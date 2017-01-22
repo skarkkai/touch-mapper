@@ -1,0 +1,194 @@
+@import "./src/styles/variables.less";
+@import "./src/styles/reset.less";
+
+/*
+ * General
+ */
+html,
+body {
+  background-color: #f0f0f0;
+	min-width: 320px;
+}
+html,
+body,
+* {
+  font-family: 'Quattrocento Sans';
+  font-size: 17px;
+}
+.clearfix:after {
+  content: ".";
+  visibility: hidden;
+  display: block;
+  height: 0;
+  clear: both;
+}
+a {
+  text-decoration: none;
+}
+input:invalid {
+  border-color: red !important;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+input {
+  background-color: #ffffff;
+  transition-duration: 0.2s;
+}
+
+input:hover,
+input:focus {
+  background-color: #ffffcc;
+  transition-duration: 0.2s;
+  border-color: #888;
+}
+input[type=submit] {
+  appearance: none;
+}
+.visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+h2 {
+  font-size: 150%;
+  margin-bottom: 20px;
+}
+/*
+ * Rows, columns
+ */
+.main-wrapper {
+  max-width: @total-width + 2 * @main-wrapper-padding;
+  min-width: 260px - 2 * @outside-margin-narrow;
+  margin: auto;
+  min-height: 100vh; // extend white BG to at least the bottom
+  border-bottom: 1px solid transparent; // keep contained bottom margins collapsing with body's, which would leave a bar of grey to the top
+  background-color: white;
+  box-shadow: 0 0 30px #ddd;
+  overflow: hidden;
+}
+.content {
+  padding: 30px @outside-margin 15px @outside-margin;
+  @media only screen and (max-width: 600px) {
+    padding-left: @outside-margin-semi;
+    padding-right: @outside-margin-semi;
+  }
+}
+.main-row {
+  margin: 17px 0 0;
+  display: flex;
+}
+.col1 {
+  width: @col1-width;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.col2 {
+  flex-basis: @col2-width;
+}
+
+/*
+ * Square block container
+ */
+.square-block-container {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+}
+.square-block-container:after {
+  content: '';
+  display: block;
+  margin-top: 100%;
+}
+.square-block-container .dummy {
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.square-block {
+  transform-origin: center center;
+  height: 100%;
+}
+
+/*
+ * Other
+ */
+input,
+button,
+select {
+  padding: 2px 4px;
+  height: @form-field-height;
+  background-color: @input-color;
+  border: 1px solid #bbb;
+}
+select {
+  padding: 1px 4px;
+}
+select::-ms-expand {
+  display: none; /* hide arrow in IE */
+}
+input[type=checkbox],
+input[type=radio] {
+  padding: 0;
+  margin: 0;
+  height: auto;
+}
+
+.controls {
+	z-index: 1;
+	position: relative;
+	margin: 0 !important;
+}
+
+.large-row {
+  width: 100%;
+  text-align: center;
+  border: 0;
+  border-radius: 4px;
+  line-height: normal;
+  color: black;
+  display: block;
+  cursor: pointer;
+  height: auto;
+  padding: 7px 10px;
+  box-shadow: 0px 3px 9px 0px rgba(0, 0, 0, 0.3);
+}
+.submit-row {
+  margin-bottom: 30px;
+}
+
+.green-button {
+  background-color: @green;
+  transition-duration: 0.2s;
+}
+.green-button:hover {
+  background-color: darken(@green, 5%);
+}
+
+.back-to-previous-page::before {
+  content: "← ";
+}
+
+@media only screen and (max-width: 450px) {
+  .main-row {
+    flex-wrap: wrap;
+  }
+  .col1 {
+    width: auto;
+  }
+}
+@media only screen and (max-width: 400px) {
+  .content {
+    padding-left: @outside-margin-narrow;
+    padding-right: @outside-margin-narrow;
+  }
+}
+
+@import "./src/styles/top.less";
+@import "./src/styles/bottom.less";

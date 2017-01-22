@@ -1,0 +1,73 @@
+<h2>Ohjeet</h2>
+
+<div class="visuallyhidden">Close this tab to return</div>
+
+<div class="help-content">
+  <h3>{{ what_is_the_map_like }}</h3>
+
+  <p>
+    {{ what_is_the_map_like__clarity }}
+    {{ what_is_the_map_like__map_content }}
+
+    <ul class="info-list">
+      <li>{{ what_is_the_map_like__roads }}</li>
+      <li>{{ what_is_the_map_like__buildings }}</li>
+      <li>{{ what_is_the_map_like__railways }}</li>
+      <li>{{ what_is_the_map_like__water }}</li>
+      <li>{{ what_is_the_map_like__selected_addr }}</li>
+      <li>{{ what_is_the_map_like__north }}</li>
+    </ul>
+  </p>
+
+  <h3 id="data-from-osm">{{ data_comes_from_osm }}</h3>
+
+  <p>
+    <%- @t('data_comes', { startTag: '<a href="https://en.wikipedia.org/wiki/OpenStreetMap">', endTag: '</a>' }) %>
+  </p>
+
+  <h3 id="users">{{ users_and_purposes }}</h3>
+
+  <p>{{ tactile_maps_have_many_different_user_groups }}</p>
+
+  <ul class="info-list">
+    <li>{{ visually_impaired_individuals }}</li>
+    <li>{{ outdoors_tourist_attractions }}</li>
+    <li>{{ public_areas_such_as_parks }}</li>
+    <li>{{ orientation_and_mobility_specialists }}</li>
+  </ul>
+
+  <h3 id="multipart-maps">{{ multipart_maps_heading }}</h3>
+
+  <p>
+    {{ multipart_maps }}
+  </p>
+
+  <h3 id="how-to-3d-print">{{ how_to_3d_print }}</a></h3>
+
+  <p>{{ map_can_be_printed }}</p>
+  <p>
+    <%- @t('if_you_print_at_service', { link: '<a href="https://www.playfulpixels.com/">Playful Pixels</a>' }) %>
+  </p>
+  <p>{{ if_you_print_yourself }}</p>
+
+  <h3 id="about">{{ about_touch_mapper }}</h3>
+
+  <p>
+    <%- @t('about_touch_mapper_answer', { startTag: '<a href="https://www.playfulpixels.com/">', endTag: '</a>' }) %>
+  </p>
+  <p>
+    <%- @t('news_from', { linkFB: '<a href="https://www.facebook.com/touchmapper/">Facebook</a>', linkTwitter: '<a href="https://twitter.com/touchmapper">Twitter</a>' }) %>
+  </p>
+  <p>{{ want_to_improve_please }}</p>
+
+  <div class="email-me large-row green-button">
+    <script>
+      function genmail(lhs, rhs) {
+        document.write("<a href=\"mailto");
+        document.write(":" + lhs + "@");
+        document.write(rhs + "\">{{ email_me }}</a>");
+      }
+     genmail("samuli.karkkainen", "touch-mapper.org");
+    </script>
+  </div>
+</div>

@@ -1,0 +1,174 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "Environment": {
+      "Description": "Environment Name",
+      "Type": "String",
+      "AllowedValues" : ["dev", "test", "prod"]
+    }
+  },
+  "Mappings" : {
+    "Environments" : {
+      "dev":  { "domain": "dev.touch-mapper.org" },
+      "test": { "domain": "test.touch-mapper.org" },
+      "prod": { "domain": "touch-mapper.org" }
+    }
+  },
+  "Resources": {
+    "Logs": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccessControl": "LogDeliveryWrite",
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "BucketName": { "Fn::Join": [ ".", [ { "Ref" : "Environment"}, "logs.touch-mapper" ] ] }
+      }
+    },
+    "WebBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "WebsiteConfiguration": {
+          "IndexDocument": "index.html",
+          "ErrorDocument": "error.html"
+        },
+        "AccessControl": "PublicRead",
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "Logs"
+          },
+          "LogFilePrefix": "web/"
+        },
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "BucketName": { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] }
+      }
+    },
+    "WebBucketRedirect": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "WebsiteConfiguration": {
+          "RedirectAllRequestsTo": { "HostName": { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] } }
+        },
+        "AccessControl": "PublicRead",
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "Logs"
+          },
+          "LogFilePrefix": "webRedirect/"
+        },
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "BucketName": { "Fn::Join": [ ".", [ "www", { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] } ] ] }
+      }
+    },
+    "MapsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "WebsiteConfiguration": {
+          "IndexDocument": "index.html"
+        },
+        "AccessControl": "PublicRead",
+        "LoggingConfiguration": {
+          "DestinationBucketName": {
+            "Ref": "Logs"
+          },
+          "LogFilePrefix": "maps/"
+        },
+        "CorsConfiguration": {
+          "CorsRules": [{
+            "AllowedMethods": ["GET", "HEAD"],
+            "AllowedOrigins": ["*"],
+            "ExposedHeaders": ["x-amz-meta-processing-stage", "x-amz-meta-error-msg", "x-amz-meta-building_count"]
+          }]
+        },
+        "LifecycleConfiguration": {
+          "Rules": [{
+            "ExpirationInDays": "180",
+            "Id": "Delete after 180 days",
+            "Prefix": "map/",
+            "Status": "Enabled"
+          }]
+        },
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "BucketName": { "Fn::Join": [ ".", [ { "Ref" : "Environment"}, "maps.touch-mapper" ] ] }
+      }
+    },
+    "RequestsQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "DelaySeconds": "0",
+        "MaximumMessageSize": "65536",
+        "MessageRetentionPeriod": "300",
+        "ReceiveMessageWaitTimeSeconds": "20",
+        "VisibilityTimeout": "600",
+        "QueueName": { "Fn::Join": [ "-", [ { "Ref" : "Environment"}, "requests-touch-mapper" ] ] }
+      }
+    },
+    "RequestsSqsPolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "Queues": [{
+          "Ref": "RequestsQueue"
+        }],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": ["SQS:GetQueueAttributes", "SQS:SendMessage"],
+            "Resource": {
+              "Fn::GetAtt": ["RequestsQueue", "Arn"]
+            }
+          }]
+        }
+      }
+    },
+    "WebBucketS3Policy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "WebBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": {
+              "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "WebBucket" }, "/*"]]
+            }
+          }]
+        }
+      }
+    }
+  },
+  "Description": "Create Touch Mapper resources",
+  "Outputs": {
+    "web": {
+      "Value": {
+        "Fn::GetAtt": ["WebBucket", "DomainName"]
+      }
+    },
+    "webURL": {
+      "Value": {
+        "Fn::GetAtt": ["WebBucket", "WebsiteURL"]
+      }
+    },
+    "maps": {
+      "Value": {
+        "Fn::GetAtt": ["MapsBucket", "DomainName"]
+      }
+    },
+    "requests": {
+      "Value": {
+        "Ref": "RequestsQueue"
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  ".comment": "see http://openlayers.org/en/v3.15.1/doc/tutorials/custom-builds.html",
+  "exports": [
+    "ol.Map",
+    "ol.Map#on",
+    "ol.Map#getView",
+    "ol.Map#getInteractions",
+    "ol.Map#updateSize",
+    "ol.Overlay",
+    "ol.Overlay#setPosition",
+    "ol.Overlay#getElement",
+    "ol.Overlay#setElement",
+    "ol.View",
+    "ol.View#getCenter",
+    "ol.View#setCenter",
+    "ol.View#getProjection",
+    "ol.View#setResolution",
+    "ol.Collection",
+    "ol.interaction.Interaction#setActive",
+    "ol.interaction.DragPan",
+    "ol.interaction.KeyboardPan",
+    "ol.control.ScaleLine",
+    "ol.source.OSM",
+    "ol.proj.Projection#getPointResolution",
+    "ol.proj.fromLonLat",
+    "ol.proj.toLonLat",
+    "ol.layer.Tile"
+  ],
+  "compile": {
+    "externs": [
+      "externs/bingmaps.js",
+      "externs/closure-compiler.js",
+      "externs/geojson.js",
+      "externs/oli.js",
+      "externs/olx.js",
+      "externs/proj4js.js",
+      "externs/tilejson.js",
+      "externs/topojson.js"
+    ],
+    "define": [
+      "goog.array.ASSUME_NATIVE_FUNCTIONS=true",
+      "goog.dom.ASSUME_STANDARDS_MODE=true",
+      "goog.json.USE_NATIVE_JSON=true",
+      "goog.DEBUG=false",
+      "ol.ENABLE_DOM=false",
+      "ol.ENABLE_WEBGL=false",
+      "ol.ENABLE_PROJ4JS=false",
+      "ol.ENABLE_IMAGE=false",
+      "ol.ENABLE_VECTOR=false"
+    ],
+    "jscomp_off": [
+      "unknownDefines"
+    ],
+    "extra_annotation_name": [
+      "api", "observable"
+    ],
+    "compilation_level": "ADVANCED_OPTIMIZATIONS",
+    "use_types_for_optimization": true,
+    "manage_closure_dependencies": true
+  }
+}

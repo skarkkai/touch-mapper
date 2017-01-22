@@ -1,0 +1,100 @@
+@import "./src/styles/variables.less";
+
+.printing-method-container:first-child {
+  margin-right: 17px;
+}
+.map-address {
+  font-size: inherit;
+}
+.ready-map {
+  margin-top: 20px;
+  border-radius: 10px;
+  padding: 10px 20px !important;
+  background-color: #e8e8e8;
+  box-shadow: inset 0 0 11px rgba(0, 0, 0, 0.18);
+}
+.warning-no-buildings {
+  display: block;
+  margin: 10px 10px 15px 8px;
+  font-weight: 600;
+}
+.download-link#order-map {
+  padding: 4px 10px;
+}
+.download-link .order-download-link {
+  position: relative;
+  top: -4px;
+}
+.download-link img.order-pp-logo {
+  height: 22px;
+  position: relative;
+  top: 6px;
+  left: 1px;
+}
+.email-sending-row {
+  cursor: initial;
+  padding-top: 5px;
+}
+.email-sending {
+  line-height: 1.5em;
+  display: block;
+}
+.email-sending .inputs {
+  display: block;
+}
+.email-sending #email-addr {
+  border: 0;
+  width: 260px;
+  padding-left: 6px;
+}
+.email-sending #email-addr.invalid {
+  background-color: #ff6677;
+}
+.email-sending-result {
+  text-align: center;
+  margin: 14px 0;
+}
+.email-sending-success .success-msg-text {
+  background-color: #f0f0f0;
+  margin-top: 0 !important;
+  padding: 6px 50px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+}
+.email-sending .submit-email {
+  padding-left: 8px;
+  padding-right: 8px;
+  background-color: white;
+  border: 0;
+  box-shadow: 0 0 15px rgba(0, 0, 0, .25);
+  cursor: pointer;
+}
+.ready-map canvas {
+  border-radius: 4px;
+}
+.ready-map p {
+  text-align: center;
+}
+.loading-3d-preview {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 200%;
+  font-weight: bold;
+  color: #e8e8e8;
+  text-shadow: #000 0px 0px 1px;
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+}
+.preview-3d-container {
+  opacity: 0;
+  transition: 1s;
+}
+.preview-3d-container.square-block-container:after {
+  margin-top: 60%;
+}
+
+.back-to-previous-page {
+  margin: 27px 5px 40px 5px;
+  display: block;
+  text-align: center;
+}

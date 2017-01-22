@@ -1,0 +1,141 @@
+.banner {
+  background-color: #098400;
+  position: relative;
+  z-index: 2;
+}
+.page-index .banner {
+  background-image: url(/images/kartta-kasissa.jpg);
+  background-size: 100%;
+  background-position: 50% 100%;
+  height: 100vh;
+
+  @media only screen and (max-aspect-ratio: 110 / 100) {
+    height: 85vw;
+  }
+  @media only screen and (min-width: (@total-width + 2 * @main-wrapper-padding)) {
+    height: 517px;
+  }
+}
+
+.page-index .banner-texts {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.banner-texts h1 {
+  font-size: 42px;
+  text-align: center;
+  padding: 7px 0 0 0;
+  text-align: center;
+  letter-spacing: 2px;
+  line-height: 1.0em;
+  color: @green;
+}
+.page-index .banner-texts h1 {
+  text-shadow: 0 0 25px rgba(0, 0, 0, 1);
+}
+.banner-texts p {
+  text-align: center;
+  font-size: 17px;
+  font-weight: bold;
+  color: white;
+  padding: 16px 10px 15px 10px;
+  line-height: 110%;
+  @media only screen and (max-width: 370px) {
+    font-size: 14px;
+  }
+}
+.banner .logo {
+  height: 65px;
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  padding-right: 8px;
+  max-width: 100%;
+}
+.page-index .banner .logo-bg {
+  position: absolute;
+  left: 50%;
+  width: 100px;
+  margin-left: -38px;
+  top: 51px;
+  height: 16px;
+  background-color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 1);
+}
+.page-index .banner-texts p {
+  text-shadow: 0 0 10px rgba(0, 0, 0, 1);
+}
+
+/*
+ * Top right corner
+ */
+.top-corner {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  color: white;
+}
+.language-selector {
+  color: white;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, .5);
+  border: 0px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  text-align: right;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.language-selector:hover,
+.language-selector:active {
+  background-color: white;
+  color: black;
+  -webkit-appearance: initial;
+  -moz-appearance: initial;
+  appearance: initial;
+}
+.language-selector option {
+  background-color: white;
+  color: black;
+}
+.help-link {
+  color: white;
+}
+@media only screen and (max-width: 450px) {
+  .top-corner {
+    right: 0px;
+  }
+  .help-link {
+    display: block;
+    text-align: right;
+    padding-right: 10px;
+    margin-top: -4px;
+  }
+  .top-corner * {
+    font-size: 14px;
+  }
+}
+@media only screen and (max-width: 400px),
+       only screen and (max-height: 400px) {
+  .banner-texts h1 {
+    font-size: 32px;
+  }
+  .banner .logo {
+    height: 52px;
+    padding-right: 6px;
+  }
+  .page-index .banner .logo-bg {
+    width: 75px;
+    margin-left: -24px;
+    top: 41px;
+    height: 15px;
+  }
+  .banner-texts p {
+    xmargin-top: 11px;
+    xmargin-bottom: 12px;
+  }
+}

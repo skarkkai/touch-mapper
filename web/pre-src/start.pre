@@ -1,0 +1,86 @@
+<!doctype html>
+<html class="page-[% pagename %]">
+  <!-- ex: set tabstop=2 shiftwidth=2 softtabstop=2 expandtab: -->
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="{{ meta_description }}">
+    <meta name="keywords" content="{{ meta_keywords }}">
+    <meta name="author" content="Samuli Kärkkäinen">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:site_name" content="{{ meta_og_site_name }}" />
+    <meta property="og:url" content="https://touch-mapper.org/" />
+    <meta property="og:image" content="https://touch-mapper.org/images/og_image.jpg" />
+    <title>{{ title }} | Touch Mapper</title>
+
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link href='//fonts.googleapis.com/css?family=Quattrocento+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="../styles/common.css">
+    <link rel="stylesheet" href="../styles/[% pagename %].css">
+    <link rel="alternate" href="/en" hreflang="en" />
+    <link rel="alternate" href="/de" hreflang="de" />
+    <link rel="alternate" href="/fi" hreflang="fi" />
+  </head>
+  <body>
+    <!-- Google Tag Manager -->
+      <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-WKR4B7"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+      <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-WKR4B7');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Facebook Pixel Code
+      can't make Facebook's ad tracking work, so disabling the pixel
+      <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+      document,'script','//connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '547106615457869');
+      fbq('track', "PageView");</script>
+      <noscript><img height="1" width="1" style="display:none"
+      src="//www.facebook.com/tr?id=547106615457869&ev=PageView&noscript=1"
+      /></noscript>
+    End Facebook Pixel Code -->
+
+    <div class="main-wrapper">
+      <div role="banner" class="banner">
+        <div class="banner-texts">
+          <h1>
+            <a href="." style="display: table;margin: auto;">
+              <div class="logo-bg"></div>
+              <svg class="logo" alt="Touch Mapper" aria-labelledby="h1-title" role="img" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.1" width="431.05673" height="192.177" viewBox="0 0 431.05673 192.177" id="Layer_1" xml:space="preserve">
+                <title id="h1-title">Touch Mapper</title>
+                <metadata id="metadata35"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs id="defs33" />
+                <g transform="translate(-284.47227,-403.912)" id="g3" style="fill:#84ff00;fill-opacity:1">
+                  <path d="m 359.929,526.013 c -0.01,0.054 -0.013,0.06 0,0 l 0,0 z" id="path5" style="fill:#84ff00;fill-opacity:1" />
+                  <polygon points="517.073,564.263 522.902,564.263 519.988,544.794 " id="polygon7" style="fill:#84ff00;fill-opacity:1" /> <path d="m 603.972,552.878 v -5.773 c 0,-2.75 -1.045,-3.631 -2.97,-3.631 h -2.859 v 13.035 h 2.859 c 1.925,0 2.97,-0.881 2.97,-3.631 z" id="path9" style="fill:#84ff00;fill-opacity:1" />
+                  <path d="m 564.263,552.878 v -5.773 c 0,-2.75 -1.045,-3.631 -2.97,-3.631 h -2.859 v 13.035 h 2.859 c 1.925,0 2.97,-0.881 2.97,-3.631 z" id="path11" style="fill:#84ff00;fill-opacity:1" /> <path d="m 682.787,551.229 v -3.795 c 0,-2.75 -0.935,-3.961 -3.08,-3.961 h -2.914 v 11.824 h 2.364 c 2.255,10e-4 3.63,-0.989 3.63,-4.068 z" id="path13" style="fill:#84ff00;fill-opacity:1" /> <path d="M 710.468,527.46 H 422.885 c 2.878,-5.143 5.445,-10.423 7.633,-15.832 9.05,-22.387 7.333,-47.568 -5.336,-68.198 -13.079,-21.295 -36.813,-33.897 -61.537,-34.484 -0.257,-0.022 -0.526,-0.034 -0.806,-0.034 -0.279,0 -0.542,0.012 -0.8,0.034 -24.629,0.575 -46.729,12.771 -60.635,33.087 -14.168,20.695 -14.924,47.293 -6.444,70.271 11.5,31.18 37.472,58.615 64.663,77.199 0.168,0.115 0.359,0.211 0.551,0.304 l 1.148,1.282 H 710.529 L 710.468,527.46 z M 381.6,559.251 c -5.034,5.002 -10.315,9.75 -15.757,14.305 -1.046,0.871 -2.12,1.711 -3.183,2.561 -21.077,-15.176 -40.621,-36.52 -52.261,-59.936 -9.7,-19.518 -11.584,-42.266 -1.432,-61.977 10.348,-20.099 31.514,-32.271 53.872,-32.562 22.162,0.291 41.953,11.931 53.067,31.089 10.847,18.7 9.214,40.777 0.442,59.852 -8.15,17.717 -20.993,33.031 -34.748,46.668 z m 106.597,17.219 h -5.72 v -27.605 l -4.18,27.605 h -5.719 l -4.51,-27.221 v 27.221 h -5.279 v -38.494 h 8.414 l 4.454,27.332 4.125,-27.332 h 8.414 v 38.494 z m 36.575,0 -1.045,-6.984 h -7.424 l -1.045,6.984 h -5.555 l 6.159,-38.494 h 8.854 l 6.159,38.494 h -6.103 z m 45.54,-23.977 c 0,6.16 -2.97,9.514 -9.019,9.514 h -2.859 v 14.463 h -6.049 v -38.494 h 8.908 c 6.049,0 9.019,3.354 9.019,9.514 v 5.003 z m 39.709,0 c 0,6.16 -2.97,9.514 -9.019,9.514 h -2.859 v 14.463 h -6.049 v -38.494 h 8.908 c 6.049,0 9.019,3.354 9.019,9.514 v 5.003 z m 38.28,-9.019 h -10.448 v 10.725 h 8.304 v 5.5 h -8.304 v 11.273 h 10.448 v 5.498 h -16.498 v -38.494 h 16.498 v 5.498 z m 35.091,32.996 c -0.329,-0.99 -0.55,-1.594 -0.55,-4.729 v -6.049 c 0,-3.576 -1.21,-4.895 -3.959,-4.895 h -2.09 v 15.672 h -6.049 v -38.494 h 9.128 c 6.27,0 8.964,2.914 8.964,8.854 v 3.025 c 0,3.959 -1.265,6.543 -3.959,7.809 3.024,1.264 4.015,4.18 4.015,8.193 v 5.939 c 0,1.869 0.055,3.244 0.659,4.674 h -6.159 z" id="path15" style="fill:#84ff00;fill-opacity:1" /> <path d="m 362.839,444.067 c -21.312,-0.576 -37.841,17.939 -38.389,38.395 -0.565,20.932 17.324,37.26 37.349,38.334 0.33,0.039 0.677,0.066 1.041,0.055 0.364,0.012 0.699,-0.016 1.029,-0.055 20.803,-1.068 36.801,-17.375 37.36,-38.334 0.576,-21.306 -17.945,-37.846 -38.39,-38.395 z m 0,64.053 c -14.286,-0.381 -25.277,-11.371 -25.664,-25.658 -0.38,-14.303 11.942,-25.294 25.664,-25.669 14.292,-0.386 25.289,11.954 25.658,25.669 0.392,14.281 -11.948,25.289 -25.658,25.658 z" id="path17" style="fill:#84ff00;fill-opacity:1" />
+                  <g id="g19" style="fill:#84ff00;fill-opacity:1"> <path d="m 450.879,448.095 h 35.423 v 10.42 H 474.32 v 62.51 h -11.46 v -62.51 h -11.981 v -10.42 z" id="path21" style="fill:#84ff00;fill-opacity:1" /> <path d="m 504.948,465.599 c 0,-11.668 6.146,-18.336 17.399,-18.336 11.252,0 17.398,6.668 17.398,18.336 v 37.922 c 0,11.67 -6.146,18.338 -17.398,18.338 -11.253,0 -17.399,-6.668 -17.399,-18.338 v -37.922 z m 11.461,38.652 c 0,5.209 2.291,7.189 5.938,7.189 3.646,0 5.938,-1.98 5.938,-7.189 v -39.383 c 0,-5.207 -2.293,-7.188 -5.938,-7.188 -3.647,0 -5.938,1.98 -5.938,7.188 v 39.383 z" id="path23" style="fill:#84ff00;fill-opacity:1" /> <path d="m 572.667,448.095 v 56.26 c 0,5.209 2.292,7.086 5.938,7.086 3.646,0 5.938,-1.877 5.938,-7.086 v -56.26 h 10.836 v 55.531 c 0,11.668 -5.835,18.336 -17.087,18.336 -11.252,0 -17.087,-6.668 -17.087,-18.336 v -55.531 h 11.462 z" id="path25" style="fill:#84ff00;fill-opacity:1" /> <path d="m 651.013,493.831 v 9.689 c 0,11.67 -5.835,18.338 -17.087,18.338 -11.252,0 -17.086,-6.668 -17.086,-18.338 v -37.922 c 0,-11.668 5.834,-18.336 17.086,-18.336 11.252,0 17.087,6.668 17.087,18.336 v 7.084 h -10.836 v -7.814 c 0,-5.207 -2.291,-7.188 -5.938,-7.188 -3.647,0 -5.939,1.98 -5.939,7.188 v 39.383 c 0,5.209 2.293,7.084 5.939,7.084 3.646,0 5.938,-1.875 5.938,-7.084 v -10.42 h 10.836 z" id="path27" style="fill:#84ff00;fill-opacity:1" /> <path d="m 684.036,521.024 h -11.46 v -72.93 h 11.46 v 31.256 h 13.023 v -31.256 h 11.668 v 72.93 H 697.06 v -31.256 h -13.023 v 31.256 z" id="path29" style="fill:#84ff00;fill-opacity:1" /> </g>
+                </g>
+              </svg>
+            </a>
+          </h1>
+          <p>{{ blurb }}</p>
+          <div class="top-corner">
+            <label for="language-selector" class="visuallyhidden">{{ language }}</label>
+            <select class="language-selector" id="language-selector">
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+              <option value="fi">Suomi</option>
+            </select><a class="help-link" href="help" target="_blank" aria-label="Open help in a new tab">Ohje</a>
+          </div>
+        </div>
+      </div>
+
+      <div role="main" class="controls content">
+
+        <script src="../scripts/vendor-common.js"></script>
+        <script src="../scripts/environment.js"></script>
+
+        <!--[if lt IE 10]>
+          <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->

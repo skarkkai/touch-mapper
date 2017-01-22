@@ -1,0 +1,41 @@
+        <div class="fb-like-container show-on-load" style="display: none">
+          <div class="fb-like" data-href="https://touch-mapper.org/" data-layout="button" data-action="like" data-show-faces="true" data-share="true"></div>
+        </div>
+        <p class="credits show-on-load" role="contentinfo" style="display: none">
+          <span class="sentence"><%- @t('3d_printing_by', { linkTag: '<a href="https://www.playfulpixels.com/" class="playful-pixels-logo"><img src="/images/playful-pixels-logo.png" alt="playfulpixels.com" /></a>' }) %></span>
+          <span class="sentence"><%- @t('address_search_by', { linkTag: '<img class="powered-by-google" src="/images/powered_by_google_on_white_hdpi.png">' }) %></span>
+          <span class="sentence"><%- @t('map_data_by', { linkTag: '<a href="https://en.wikipedia.org/wiki/OpenStreetMap">OpenStreetMap</a>' }) %></span>
+        </p>
+      </div>
+    </div>
+
+    <div id="fb-root"></div>
+    <script>
+      // Load Facebook like button only after onload, because we show the search input in onload (because Google Maps API)
+      $(window).load(function(){
+        (function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5";
+          js.async = true;
+          fjs.parentNode.insertBefore(js, fjs);
+        })(document, 'script', 'facebook-jssdk');
+      });
+    </script>
+
+    <script src="../scripts/app-common.js"></script>
+    <script src="../scripts/[% pagename %].js"></script>
+
+    <script>
+    	try {
+    		var storage = window.localStorage,
+    			x = '__storage_test__';
+    		storage.setItem(x, x);
+    		storage.removeItem(x);
+    	} catch(e) {
+        $(".main-wrapper").empty().html("<h1>Your browser is too old for Touch Mapper to work</h1><p>Support for localStorage required.</p>");
+    	}
+    </script>
+  </body>
+</html>

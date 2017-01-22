@@ -1,0 +1,198 @@
+<div class="show-on-load" style="display: none">
+  <script src="../scripts/aws-sdk-2.3.3.min.js"></script>
+  <script src="../scripts/ol-3.15.1-custom.min.js"></script>
+
+  <h2>Map parameters</h2>
+
+  <div class="row main-row search-results-row">
+    <div class="col col1"><label for="search-results">{{ address }}:</label></div>
+    <div class="col col2">
+      <span class="first-address"></span>
+      <button class="show-all-addresses" style="display: none" aria-description="Show all found addresses">Show all</button>
+      <ul class="all-addresses" style="display: none"></ul>
+    </div>
+  </div>
+
+  <div class="row main-row map-size-preset-row grey-in-advanced">
+    <div class="col col1">
+      <label for="map-size-preset">{{ map_size }}:</label>
+    </div>
+    <div class="col col2">
+      <select class="grey-in-advanced" id="map-size-preset">
+        <option value="13">{{ size_order_13 }}</option>
+        <option value="17">{{ size_order_17 }}</option>
+        <option value="20">{{ size_order_20 }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row main-row map-scale-preset-row grey-in-advanced">
+    <div class="col col1">
+      <label for="map-scale-preset">{{ map_scale }}:</label>
+    </div>
+    <div class="col col2">
+      <select class="grey-in-advanced" id="map-scale-preset" data-initial="2400">
+        <option value="1000">1:1000 &ndash; {{ map_scale__1000 }}</option>
+        <option value="1400">1:1400</option>
+        <option value="1800">1:1800 &ndash; {{ map_scale__1800 }}</option>
+        <option value="2400">1:2400 &ndash; {{ map_scale__2400 }}</option>
+        <option value="3200">1:3200 &ndash; {{ map_scale__3200 }}</option>
+        <option value="4200">1:4200</option>
+        <option value="5600">1:5600 &ndash; {{ map_scale__5600 }}</option>
+        <option value="7500">1:7500</option>
+        <option value="9999">1:9999 &ndash; {{ map_scale__9999 }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row main-row advanced-toggle">
+    <div class="col col1">
+      <label>{{ advanced_settings }}:</label>
+    </div>
+    <div class="col col2 advanced-input-container">
+      <input id="advanced-input" type="checkbox" />
+      <label for="advanced-input">{{ show_advanced_settings }}</label>
+      <span class="css-hidden-for-order how-to-print-link-span">
+        (<%- @t('printing_tips_full', { startLink: '<a href="#multipart-maps">', endLink: '</a>' }) %>)
+      </span>
+    </div>
+  </div>
+
+  <div id="advanced-controls" style="display: none">
+
+    <div class="row main-row coords-input-row">
+      <div class="col col1">
+        <label id="address-coords-label">{{ coordinates }}:</label>
+      </div>
+      <div class="col col2" aria-labelledby="address-coords-label">
+        <div class="single-input">
+         <label for="lon-input">{{ longitude_x }}:</label>
+         <input id="lon-input" value="" pattern="-?[0-9]+\.[0-9]+" />
+        </div>
+        <div class="single-input">
+         <label for="lat-input">{{ latitude_y }}:</label>
+         <input id="lat-input" value="" pattern="-?[0-9]+\.[0-9]+" />
+        </div>
+      </div>
+    </div>
+
+    <div class="row main-row map-offset-row">
+      <div class="col col1">
+        <label id="area-offset-label">{{ area_adjustment }}:</label>
+      </div>
+      <div class="col col2" aria-labelledby="area-offset-label">
+        <div class="single-input">
+          <label for="x-offset-input">{{ x_offset }}:</label>
+          <input id="x-offset-input" type="number" value="0" pattern="-?[0-9]+" />
+          <span class="units">{{ meters }} <span class="more">({{ positive_is_right }})</span></span>
+        </div>
+        <div class="single-input">
+          <span class="label"><label for="y-offset-input">{{ y_offset }}:</label></span>
+          <span class="input"><input id="y-offset-input" type="number" value="0" pattern="-?[0-9]+" /></span>
+          <span class="units">{{ meters }} <span class="more">({{ positive_is_up }})</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row main-row map-size-row">
+      <div class="col col1">
+        <label for="map-size">{{ custom_map_size }}:</label>
+      </div>
+      <div class="col col2">
+        <input id="map-size-input" pattern="[0-9]+(\.[0-9]+)?" required />
+        <span class="map-size-unit">{{ unit_cm }}</span>
+      </div>
+    </div>
+
+    <div class="row main-row print-scale-row">
+      <div class="col col1">
+        <label for="scale-input">{{ custom_scale }}:</label>
+      </div>
+      <div class="col col2">
+        <span class="one-to">1 :</span>
+        <input id="scale-input" type="number" value="2400" min="500" max="9999" required />
+      </div>
+    </div>
+
+    <div class="row main-row multipart-map">
+      <div class="col col1">
+        <label>{{ multipart_map }}:</label>
+      </div>
+      <div class="col col2">
+        <input id="multipart-map-input" type="checkbox" />
+        <label for="multipart-map-input">{{ multipart_map_label }}</label>
+      </div>
+    </div>
+
+    <div class="area-movement-buttons">
+      <h3>{{ adjust_area_for_multipart }}</h3>
+
+      <div class="column left">
+        <button class="btn left-100 ib" title="<%- @t('move_map_area_left', { amount: '100' }) %>">◀ 100%</button>
+        <button class="btn left-10 ib" title="<%- @t('move_map_area_left', { amount: '10' }) %>">◀ 10%</button>
+      </div>
+      <div class="column middle">
+        <button class="btn up-100" title="<%- @t('move_map_area_up', { amount: '100' }) %>">▲ 100%</button>
+        <button class="btn up-10" title="<%- @t('move_map_area_up', { amount: '10' }) %>">▲ 10%</button>
+        <div class="spacer"></div>
+        <button class="btn down-10" title="<%- @t('move_map_area_down', { amount: '10' }) %>">▼ 10%</button>
+        <button class="btn down-100" title="<%- @t('move_map_area_down', { amount: '100' }) %>">▼ 100%</button>
+      </div>
+      <div class="column right">
+        <button class="btn right-10 ib" title="<%- @t('move_map_area_right', { amount: '10' }) %>">▶ 10%</button>
+        <button class="btn right-100 ib" title="<%- @t('move_map_area_right', { amount: '100' }) %>">▶ 100%</button>
+      </div>
+
+      <div class="current-values" aria-label="{{ multipart_current_adjustment_aria }}">{{ multipart_current_adjustment }}:
+        <span class="multipart-adjustment-x"></span>% X,
+        <span class="multipart-adjustment-y"></span>% Y
+      </div>
+    </div>
+  </div>
+
+  <div class="row main-row submit-row">
+    <input type="submit" id="submit-button" class="large-row green-button"
+           value="{{ create_tactile_map }}" data-original-text="{{ create_tactile_map }}"
+           aria-live="polite" />
+  </div>
+
+  <div class="drag-map-with-mouse">
+    {{ drag_map }}
+  </div>
+
+  <div id="map-area-preview-container" class="square-block-container" aria-label="{{ map_area_preview_label }}" style="display: none">
+    <div class="dummy">
+      <div id="map-area-preview" class="square-block" frameborder="0" scrolling="no"
+           marginheight="0" marginwidth="0" tabindex="100"></div>
+    </div>
+  </div>
+
+  <div aria-live="off" class="map-info" aria-label="{{ map_diameter }}">
+    <span class="texts">
+      <span class="current-diameter-meters" aria-live="off"></span> {{ meters }}
+      (<span class="current-diameter-yards" aria-live="off"></span> {{ yards }})
+    </span>
+    <div class="map-info-arrow">
+      <div class="arrow left"></div>
+      <div class="arrow right"></div>
+    </div>
+  </div>
+
+  <a class="back-to-previous-page" href=".">Back to address search</a>
+
+  <div id="marker1-overlay" class="marker-container" title="{{ tooltip_selected_address }}">
+    <div class="marker1-star part1"></div>
+    <div class="marker1-star part2"></div>
+    <div class="marker1-star part3"></div>
+    <div class="marker1-star part4"></div>
+    <div class="marker-tag"></div>
+  </div>
+  <div id="marker1-overlay-empty"></div>
+
+  <script type="text/template" id="additional-addr">
+    <li>
+      <span class="additional-addr"></span>
+      <button class="select-additional-addr"
+    </li>
+  </script>
+</div>

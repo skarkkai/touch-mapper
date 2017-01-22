@@ -1,0 +1,3 @@
+window.TM_ENVIRONMENT = 'prod';
+window.TM_GOOGLE_API_KEY = 'AIzaSyCHkLB5Y2i2b8gel5K0WTboC8ztOYUvZqU';
+

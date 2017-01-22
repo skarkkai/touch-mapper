@@ -1,0 +1,278 @@
+@marker-size: 14px;
+@marker-color: rgb(255, 0, 255);
+
+@import "./src/styles/variables.less";
+
+#area-selection-method {
+  max-width: @col2-width - 130px;
+}
+
+.all-addresses li {
+    list-style: none;
+}
+.all-addresses li input {
+  margin-right: 6px;
+}
+#advanced-input {
+  position: relative;
+  top: 1px;
+  margin-right: 2px;
+}
+html.advanced-mode .grey-in-advanced {
+  color: #aaa;
+}
+html.advanced-mode  input.grey-in-advanced:hover,
+html.advanced-mode button.grey-in-advanced:hover,
+html.advanced-mode select.grey-in-advanced:hover {
+  background-color: @input-color;
+}
+#printing-method,
+#map-size-preset,
+#map-scale-preset {
+  width: 100%;
+}
+
+.coords-input-row .col2 .single-input:first-child {
+  margin-bottom: 4px;
+}
+.coords-input-row .col2 .single-input label {
+  width: 104px;
+  display: inline-block;
+}
+.coords-input-row .col2 .single-input input {
+  width: 145px;
+}
+
+.map-offset-row .col2 .single-input:first-child {
+  margin-bottom: 4px;
+}
+.map-offset-row .col2 .single-input label {
+  display: inline-block;
+}
+.map-offset-row .col2 .single-input:last-child label {
+  padding-right: 2px;
+}
+.map-offset-row .col2 .single-input input {
+  width: 75px;
+}
+.map-offset-row .col2 .more {
+  white-space: nowrap;
+  display: inline-block;
+  min-width: 115px;
+}
+
+#scale-input,
+#radius-input {
+  width: 70px;
+}
+#map-size-input {
+  width: 50px;
+}
+#search-results li {
+  list-style: none;
+  margin-bottom: 4px;
+  //box-shadow: 0 0 10px #a8a8a8;
+  border-radius: 4px;
+}
+#search-results li:hover,
+.printing-method-container:hover,
+.advanced-input-container:hover,
+.multipart-map .col2:hover,
+select:hover {
+  background-color: #eaeaea;
+}
+.printing-method-container {
+  white-space: nowrap;
+}
+#search-results li:last-child {
+  margin-bottom: 0;
+}
+#search-results input {
+  margin-right: 4px;
+  position: relative;
+  top: 1px;
+}
+.search-result-info {
+    margin: 12px 0 2px 0;
+    font-weight: 600;
+}
+.print-diameter,
+.print-road-width {
+  font-weight: 700;
+}
+.print-scale-row .one-to {
+  letter-spacing: 1px;
+}
+.drag-map-with-mouse {
+  text-align: center;
+}
+html.multipart-mode .drag-map-with-mouse {
+  display: none;
+}
+.map-info {
+  text-align: center;
+  position: relative;
+  top: -5px;
+}
+.map-info .texts {
+  background: white;
+  color: #444;
+  padding: 0 5px;
+  z-index: 1;
+  position: relative;
+}
+.map-info-arrow {
+  height: 15px;
+  border-top: 1px solid #999;
+  position: absolute;
+  top: 11px;
+  width: 100%;
+}
+.map-info-arrow .arrow {
+  position: absolute;
+  height: 100%;
+  top: -50%;
+  left: 0;
+}
+.map-info-arrow .arrow.left {
+  border-left: 1px solid #999;
+}
+
+.map-info-arrow .arrow.right {
+  border-right: 1px solid #999;
+  right: 0;
+}
+/* Show square aspect ratio map */
+#map-area-preview-container {
+  border: 1px solid #888;
+}
+
+/* Area movement buttons */
+
+html.multipart-mode .area-movement-buttons {
+  display: table;
+}
+.area-movement-buttons {
+  display: none;
+  text-align: center;
+  margin: 10px auto;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.area-movement-buttons h3 {
+  text-align: center;
+  margin: 5px 10px 5px 10px;
+}
+.area-movement-buttons .column {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 5px 5px 10px 5px;
+  padding: 0 6px;
+}
+.area-movement-buttons .column .btn {
+  display: inline-block;
+  text-align: left;
+  padding: 0px 8px;
+  background-color: #ffffff;
+  border: 1px solid #888;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.area-movement-buttons .column .btn:hover {
+  background-color: #e0e0e0;
+}
+.area-movement-buttons .column.middle .btn {
+  width: 100%;
+  margin-top: 3px;
+  display: block;
+}
+.area-movement-buttons .column.left,
+.area-movement-buttons .column.right {
+  display: inline-block;
+}
+.area-movement-buttons .column .spacer {
+  height: 13px;
+}
+@media only screen and (max-width: 504px) {
+  .area-movement-buttons .column.left .btn,
+  .area-movement-buttons .column.right .btn {
+    width: 100%;
+    display: block;
+    margin-top: 3px;
+  }
+  .area-movement-buttons .column {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+.area-movement-buttons .current-values {
+  margin-bottom: 5px;
+}
+
+.back-to-previous-page {
+  margin: 15px 5px 40px 5px;
+  display: block;
+  text-align: center;
+}
+
+.marker-container {
+  position: absolute;
+  transform-origin: center;
+  transform: rotate(45deg);
+}
+.marker1-star {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border: @marker-size/4 solid transparent;
+}
+.marker1-star.part1 {
+  top: -(@marker-size * 5 / 4);
+  left: -(@marker-size / 4);
+  border-bottom: @marker-size solid @marker-color;
+}
+.marker1-star.part2 {
+  left: -(@marker-size / 4);
+  border-top: @marker-size solid @marker-color;
+}
+.marker1-star.part3 {
+  top: -(@marker-size / 4);
+  border-left: @marker-size solid @marker-color;
+}
+.marker1-star.part4 {
+  left: -(@marker-size * 5 / 4);
+  top: -(@marker-size / 4);
+  border-right: @marker-size solid @marker-color;
+}
+.marker-tag {
+  display: none;
+  position: absolute;
+  width: @marker-size / (8 / 3);
+  height: @marker-size / (8 / 3);
+  background-color: white;
+  z-index: 10000;
+  top: -@marker-size / (16 / 3);
+  left: -@marker-size / (16 / 3);
+}
+
+@media only screen and (max-width: 450px) {
+  .info-list {
+    margin-left: 15px;
+  }
+  .email-sending #email-addr {
+    width: 100%;
+  }
+  .email-sending .submit-email {
+    margin-top: 6px;
+    width: 100%;
+  }
+}
+@media only screen and (max-width: 400px) {
+  .map-radius-row .col1,
+  .print-scale-row .col1 {
+    width: auto;
+    margin-right: 10px;
+  }
+}

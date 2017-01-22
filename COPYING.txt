@@ -1,0 +1,6 @@
+Copyright 2015-2017 Samuli Kärkkäinen <samuli.karkkainen@iki.fi>
+
+Touch Mapper is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License v3.0.
+
+OSM2World and Blender use separate licenses.
+

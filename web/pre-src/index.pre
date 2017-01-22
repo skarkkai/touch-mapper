@@ -1,0 +1,46 @@
+<div class="intro">
+  <p>{{ intro }}</p>
+</div>
+
+<div class="steps">
+  <h2>{{ it_is_simple }}</h2>
+
+  <ul class="info-list">
+    <li><span class="bullet">1</span>{{ simple__enter_address }}</li>
+    <li><span class="bullet">2</span>{{ simple__click_create_tactile_map }}</li>
+    <li><span class="bullet">3</span>{{ simple__intro_order_or_print }}</li>
+  </ul>
+</div>
+
+<script>
+  var script = document.createElement('script');
+  script.setAttribute("type", "text/javascript");
+  script.setAttribute("src", '//maps.googleapis.com/maps/api/js?key=' + window.TM_GOOGLE_API_KEY + '&libraries=places');
+  $("head").append(script);
+</script>
+
+<!-- Don't show immediately because Google API loads asynchronously -->
+<div class="row main-row address-input-row show-on-load" style="display: none">
+  <div class="col col1">
+    <label for="address-input">{{ street_address }}:</label>
+  </div>
+  <div class="col col2">
+    <form id="address-search-form" action="#">
+      <div class="address-input-container">
+        <input id="address-input" value="" />
+       </div>
+      <div class="address-search-submit-container">
+        <input id="address-search-submit" value="{{ search }}" type="submit" />
+      </div>
+    </form>
+
+    <div id="searching" class="search-result-info" style="display: none">{{ searching }}</div>
+    <div id="no-search-results" class="search-result-info" role="alert" aria-live="assertive" tabindex="-1" style="display: none">Nothing found</div>
+  </div>
+</div>
+
+<p class="help-has-more-info">
+  <%- @t('help_has_more_info', { startTag: '<a href="help" target="_blank">', endTag: '</a>' }) %>.
+</p>
+
+<div id="dummy-google-map" style="display: none"></div>

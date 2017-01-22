@@ -1,0 +1,11 @@
+Touch Mapper – maps for visually impaired people
+
+Tactile maps help blind and visually impaired people to perceive their environment. Traditionally making tactile maps has been slow, laborious, and expensive. The new Touch Mapper service makes it startlingly easy to create and 3D-print a tactile map of your environment.
+
+Touch Mapper can generate a tactile map of any address. A 3D model of the selected area is created (based on street address input) and a 3D print of this model can be made directly by the user, or ordered from the service.
+
+In the tactile map, roads, buildings, and railways are elevated, pedestrian roads more so than other roads. The selected address is marked by a cone, water areas have a wavy surface, and the map can be properly oriented because the north-east corner is indicated.
+
+Touch Mapper is made by Finnish programmer Samuli Kärkkäinen. 3D printing is provided by Playful Pixels, a Finnish 3D design and 3D printing service.
+
+You can find Touch Mapper at www.touch-mapper.org

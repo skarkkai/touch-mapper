@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <!-- ex: set tabstop=2 shiftwidth=2 softtabstop=2 expandtab: -->
+  <head>
+    <meta charset="utf-8">
+    <title>Touch Mapper</title>
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+  </head>
+  <body>
+    <script src="../scripts/app-common.js"></script>
+    <script>
+      var id = getUrlParam("map");
+      var origin = getUrlParam('origin');
+      if (id) {
+        url = "/en/map?map=" + id;
+      } else if (origin === 'BlindSquare') {
+        // BlindSquare URL is like
+        // https://touch-mapper.org/?lat=60.666&lon=25.2525&addrName=Foo+place&lang=XX&origin=BlindSquare
+        // Parameter "lang" is optional.
+        var lang = getUrlParam("lang") || 'en';
+        url = "/" + lang + "/area" + window.location.search; // doesn't include hash, don't know why it should
+      }
+      location.href = url;
+    </script>
+  </body>
+</html>
