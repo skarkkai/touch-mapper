@@ -1,0 +1,957 @@
+diff --git a/OSM2World/.classpath b/OSM2World/.classpath
+new file mode 100644
+index 0000000..6a3f3c9
+--- /dev/null
++++ b/OSM2World/.classpath
+@@ -0,0 +1,79 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<classpath>
++	<classpathentry kind="src" path="src"/>
++	<classpathentry kind="lib" path="build/lib/commons/commons-math3-3.0.jar"/>
++	<classpathentry kind="lib" path="build/lib/configuration/commons-collections-3.2.1.jar"/>
++	<classpathentry kind="lib" path="build/lib/configuration/commons-configuration-1.6.jar"/>
++	<classpathentry kind="lib" path="build/lib/configuration/commons-lang-2.6.jar"/>
++	<classpathentry kind="lib" path="build/lib/configuration/commons-logging-1.1.1.jar"/>
++	<classpathentry kind="lib" path="build/lib/guava/guava-r08.jar"/>
++	<classpathentry kind="lib" path="build/lib/javailp/javailp-1.2a.jar"/>
++	<classpathentry kind="lib" path="build/lib/javaproj/javaproj-1.0.6.jar"/>
++	<classpathentry kind="lib" path="build/lib/jewelcli/jewelcli-0.6.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/gluegen-rt-natives-linux-amd64.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/gluegen-rt-natives-linux-i586.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/gluegen-rt-natives-windows-amd64.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/gluegen-rt-natives-windows-i586.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/gluegen-rt.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/jogl-all-natives-linux-amd64.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/jogl-all-natives-linux-i586.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/jogl-all-natives-macosx-universal.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/jogl-all-natives-windows-amd64.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/jogl-all-natives-windows-i586.jar"/>
++	<classpathentry kind="lib" path="build/lib/jogl/jogl-all.jar"/>
++	<classpathentry kind="lib" path="build/lib/jts/jts-1.11.jar"/>
++	<classpathentry kind="lib" path="build/lib/lp_solve/lpsolve55j.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/commons-compress-1.2.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/osmosis-core-0.41.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/osmosis-pbf-0.41.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/osmosis-xml-0.41.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/osmpbf-1.1.1-754a33af.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/protobuf-java-2.4.1.jar"/>
++	<classpathentry kind="lib" path="build/lib/osmosis/xercesImpl-2.9.1.jar"/>
++	<classpathentry kind="lib" path="build/lib/pngj/pngj-2.0.0.jar"/>
++	<classpathentry kind="lib" path="build/lib/poly2tri/poly2tri-core-0.1.1-SNAPSHOT.jar"/>
++	<classpathentry kind="lib" path="build/lib/slf4j/slf4j-api-1.7.5.jar"/>
++	<classpathentry kind="lib" path="build/lib/slf4j/slf4j-simple-1.7.5.jar"/>
++	<classpathentry kind="lib" path="build/lib/trove/trove-111118193120.jar"/>
++	<classpathentry kind="lib" path="build/lib/trove/trove-3.0.1-src.jar"/>
++	<classpathentry kind="lib" path="build/OSM2World.jar"/>
++	<classpathentry kind="lib" path="lib/commons/commons-math3-3.0.jar"/>
++	<classpathentry kind="lib" path="lib/configuration/commons-collections-3.2.1.jar"/>
++	<classpathentry kind="lib" path="lib/configuration/commons-configuration-1.6.jar"/>
++	<classpathentry kind="lib" path="lib/configuration/commons-lang-2.6.jar"/>
++	<classpathentry kind="lib" path="lib/configuration/commons-logging-1.1.1.jar"/>
++	<classpathentry kind="lib" path="lib/guava/guava-r08.jar"/>
++	<classpathentry kind="lib" path="lib/javailp/javailp-1.2a.jar"/>
++	<classpathentry kind="lib" path="lib/javaproj/javaproj-1.0.6.jar"/>
++	<classpathentry kind="lib" path="lib/jewelcli/jewelcli-0.6.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/gluegen-rt-natives-linux-amd64.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/gluegen-rt-natives-linux-i586.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/gluegen-rt-natives-windows-amd64.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/gluegen-rt-natives-windows-i586.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/gluegen-rt.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/jogl-all-natives-linux-amd64.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/jogl-all-natives-linux-i586.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/jogl-all-natives-macosx-universal.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/jogl-all-natives-windows-amd64.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/jogl-all-natives-windows-i586.jar"/>
++	<classpathentry kind="lib" path="lib/jogl/jogl-all.jar"/>
++	<classpathentry kind="lib" path="lib/jts/jts-1.11.jar"/>
++	<classpathentry kind="lib" path="lib/lp_solve/lpsolve55j.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/commons-compress-1.2.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/osmosis-core-0.41.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/osmosis-pbf-0.41.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/osmosis-xml-0.41.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/osmpbf-1.1.1-754a33af.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/protobuf-java-2.4.1.jar"/>
++	<classpathentry kind="lib" path="lib/osmosis/xercesImpl-2.9.1.jar"/>
++	<classpathentry kind="lib" path="lib/pngj/pngj-2.0.0.jar"/>
++	<classpathentry kind="lib" path="lib/poly2tri/poly2tri-core-0.1.1-SNAPSHOT.jar"/>
++	<classpathentry kind="lib" path="lib/slf4j/slf4j-api-1.7.5.jar"/>
++	<classpathentry kind="lib" path="lib/slf4j/slf4j-simple-1.7.5.jar"/>
++	<classpathentry kind="lib" path="lib/trove/trove-111118193120.jar"/>
++	<classpathentry kind="lib" path="lib/trove/trove-3.0.1-src.jar"/>
++	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
++	<classpathentry kind="output" path="eclipse-bin"/>
++</classpath>
+diff --git a/OSM2World/.gitignore b/OSM2World/.gitignore
+new file mode 100644
+index 0000000..6cc54c9
+--- /dev/null
++++ b/OSM2World/.gitignore
+@@ -0,0 +1,4 @@
++/bin
++/build
++
++/eclipse-bin/
+diff --git a/OSM2World/.project b/OSM2World/.project
+new file mode 100644
+index 0000000..d66d464
+--- /dev/null
++++ b/OSM2World/.project
+@@ -0,0 +1,28 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<projectDescription>
++	<name>Touch Mapper OSM2World</name>
++	<comment></comment>
++	<projects>
++	</projects>
++	<buildSpec>
++		<buildCommand>
++			<name>org.eclipse.jdt.core.javabuilder</name>
++			<arguments>
++			</arguments>
++		</buildCommand>
++	</buildSpec>
++	<natures>
++		<nature>org.eclipse.jdt.core.javanature</nature>
++	</natures>
++	<filteredResources>
++		<filter>
++			<id>1477832440066</id>
++			<name></name>
++			<type>22</type>
++			<matcher>
++				<id>org.eclipse.ui.ide.multiFilter</id>
++				<arguments>1.0-name-matches-false-false-*.class</arguments>
++			</matcher>
++		</filter>
++	</filteredResources>
++</projectDescription>
+diff --git a/OSM2World/build.xml b/OSM2World/build.xml
+index 9459e90..cdcc9aa 100644
+--- a/OSM2World/build.xml
++++ b/OSM2World/build.xml
+@@ -31,12 +31,12 @@
+ 
+     <target name="compile">
+ 	<mkdir dir="bin"/>
+-        <javac optimize="true" encoding="UTF-8" srcdir="src" destdir="bin" classpath="${classpath}" includeantruntime="false"/>
++        <javac target="1.7" source="1.7" optimize="true" encoding="UTF-8" srcdir="src" destdir="bin" classpath="${classpath}" includeantruntime="false"/>
+     </target>
+ 
+     <target name="compiledbg">
+ 	<mkdir dir="bin"/>
+-        <javac debug="true" encoding="UTF-8" srcdir="src" destdir="bin" classpath="${classpath}" includeantruntime="false"/>
++        <javac target="1.7" source="1.7" debug="true" encoding="UTF-8" srcdir="src" destdir="bin" classpath="${classpath}" includeantruntime="false"/>
+     </target>
+ 	
+     <target name="jar" depends="compile">
+diff --git a/OSM2World/src/org/osm2world/core/ConversionFacade.java b/OSM2World/src/org/osm2world/core/ConversionFacade.java
+index e71693c..39cba67 100644
+--- a/OSM2World/src/org/osm2world/core/ConversionFacade.java
++++ b/OSM2World/src/org/osm2world/core/ConversionFacade.java
+@@ -28,6 +28,7 @@ import org.osm2world.core.map_elevation.creation.TerrainInterpolator;
+ import org.osm2world.core.map_elevation.creation.ZeroInterpolator;
+ import org.osm2world.core.map_elevation.data.EleConnector;
+ import org.osm2world.core.math.VectorXYZ;
++import org.osm2world.core.math.AxisAlignedBoundingBoxXZ;
+ import org.osm2world.core.osm.creation.JOSMFileHack;
+ import org.osm2world.core.osm.creation.OsmosisReader;
+ import org.osm2world.core.osm.data.OSMData;
+@@ -133,20 +134,20 @@ public class ConversionFacade {
+ 				new RoadModule(),
+ 				new RailwayModule(),
+ 				new BuildingModule(),
+-				new ParkingModule(),
+-				new TreeModule(),
+-				new StreetFurnitureModule(),
+-				new TrafficSignModule(),
+-				new WaterModule(),
+-				new PoolModule(),
+-				new GolfModule(),
+-				new CliffModule(),
+-				new BarrierModule(),
+-				new PowerModule(),
+-				new BridgeModule(),
+-				new TunnelModule(),
+-				new SurfaceAreaModule(),
+-				new InvisibleModule()
++				//new ParkingModule(),
++				//new TreeModule(),
++				//new StreetFurnitureModule(),
++				//new TrafficSignModule(),
++				new WaterModule()
++				//new PoolModule(),
++				//new GolfModule(),
++				//new CliffModule(),
++				//new BarrierModule(),
++				//new PowerModule(),
++				//new BridgeModule(),
++				//new TunnelModule(),
++				//new SurfaceAreaModule(),
++				//new InvisibleModule()
+ 		);
+ 		
+ 	}
+@@ -303,7 +304,7 @@ public class ConversionFacade {
+ 				}
+ 			}
+ 		}
+-		
++
+ 		/* create map data from OSM data */
+ 		updatePhase(Phase.MAP_DATA);
+ 		
+@@ -313,6 +314,14 @@ public class ConversionFacade {
+ 		OSMToMapDataConverter converter = new OSMToMapDataConverter(mapProjection, config);
+ 		MapData mapData = converter.createMapData(osmData);
+ 		
++                AxisAlignedBoundingBoxXZ boundary = mapData.getBoundary();
++                System.out.println("Map-boundary:["
++                    + " minX=" + boundary.minX
++                    + " minZ=" + boundary.minZ
++                    + " maxX=" + boundary.maxX
++                    + " maxZ=" + boundary.maxZ
++                    + " ]");
++		
+ 		/* apply world modules */
+ 		updatePhase(Phase.REPRESENTATION);
+ 		
+diff --git a/OSM2World/src/org/osm2world/core/target/obj/ObjTarget.java b/OSM2World/src/org/osm2world/core/target/obj/ObjTarget.java
+index 6be2959..17b2b1f 100644
+--- a/OSM2World/src/org/osm2world/core/target/obj/ObjTarget.java
++++ b/OSM2World/src/org/osm2world/core/target/obj/ObjTarget.java
+@@ -13,10 +13,12 @@ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
++import org.openstreetmap.josm.plugins.graphview.core.data.TagGroup;
+ import org.osm2world.core.map_data.data.MapArea;
+ import org.osm2world.core.map_data.data.MapElement;
+ import org.osm2world.core.map_data.data.MapNode;
+ import org.osm2world.core.map_data.data.MapWaySegment;
++import org.osm2world.core.map_elevation.data.EleConnector;
+ import org.osm2world.core.math.TriangleXYZ;
+ import org.osm2world.core.math.TriangleXYZWithNormals;
+ import org.osm2world.core.math.VectorXYZ;
+@@ -91,10 +93,21 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
+ 			/* start an object with the object's class
+ 			 * and the underlying OSM element's name/ref tags */
+ 			
++			String roadSuffix = null;
++			
+ 			MapElement element = object.getPrimaryMapElement();
+ 			OSMElement osmElement;
+ 			if (element instanceof MapNode) {
+ 				osmElement = ((MapNode) element).getOsmNode();
++				
++				List<MapWaySegment> connectedWaySegments = ((MapNode) element).getConnectedWaySegments();
++				int pedestrians = 0;
++				for (MapWaySegment mapWaySegment : connectedWaySegments) {
++					pedestrians += isPath(mapWaySegment.getTags()) ? 1 : 0;
++				}
++				if (pedestrians >= (connectedWaySegments.size()+1) / 2) {
++					roadSuffix = "::pedestrian";
++				}
+ 			} else if (element instanceof MapWaySegment) {
+ 				osmElement = ((MapWaySegment) element).getOsmWay();
+ 			} else if (element instanceof MapArea) {
+@@ -103,18 +116,50 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
+ 				osmElement = null;
+ 			}
+ 			
++			if (roadSuffix == null) {
++				roadSuffix = isPath(osmElement.tags) ? "::pedestrian" : "";
++			}
++			
+ 			if (osmElement != null && osmElement.tags.containsKey("name")) {
+-				objStream.println("o " + object.getClass().getSimpleName() + " " + osmElement.tags.getValue("name"));
++				objStream.println("o " + object.getClass().getSimpleName() + " " + osmElement.tags.getValue("name") + roadSuffix);
+ 			} else if (osmElement != null && osmElement.tags.containsKey("ref")) {
+-				objStream.println("o " + object.getClass().getSimpleName() + " " + osmElement.tags.getValue("ref"));
++				objStream.println("o " + object.getClass().getSimpleName() + " " + osmElement.tags.getValue("ref") + roadSuffix);
+ 			} else {
+-				objStream.println("o " + object.getClass().getSimpleName() + anonymousWOCounter ++);
++				objStream.println("o " + object.getClass().getSimpleName() + anonymousWOCounter ++ + roadSuffix);
+ 			}
+ 			
+ 		}
+ 		
+ 	}
+ 	
++	private static boolean isPath(TagGroup tags) {
++		String highwayValue = tags.getValue("highway");
++		if ("path".equals(highwayValue)
++			|| "footway".equals(highwayValue)
++			|| "cycleway".equals(highwayValue)
++			|| "service".equals(highwayValue)
++			|| "bridleway".equals(highwayValue)
++			|| "living_street".equals(highwayValue)
++			|| "pedestrian".equals(highwayValue)
++			|| "track".equals(highwayValue)
++			|| "steps".equals(highwayValue)) {
++			return true;
++		}
++		if (tags.containsKey("footway")
++				|| tags.contains("tourism", "attraction")
++				|| tags.contains("man_made", "pier")
++				|| tags.contains("man_made", "breakwater")) {
++			return true;
++		}
++		String footValue = tags.getValue("foot");
++		if ("yes".equals(footValue)
++			|| "designated".equals(footValue)) {
++			return true;
++		}
++		return false;
++	}
++
++	
+ 	@Override
+ 	public void drawFace(Material material, List<VectorXYZ> vs,
+ 			List<VectorXYZ> normals, List<List<VectorXZ>> texCoordLists) {
+diff --git a/OSM2World/src/org/osm2world/core/world/modules/BuildingModule.java b/OSM2World/src/org/osm2world/core/world/modules/BuildingModule.java
+index df24aa2..b9542b6 100644
+--- a/OSM2World/src/org/osm2world/core/world/modules/BuildingModule.java
++++ b/OSM2World/src/org/osm2world/core/world/modules/BuildingModule.java
+@@ -76,8 +76,8 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 	@Override
+ 	public void applyTo(MapData mapData) {
+ 		
+-		boolean useBuildingColors = config.getBoolean("useBuildingColors", true);
+-		boolean drawBuildingWindows = config.getBoolean("drawBuildingWindows", true);
++		boolean useBuildingColors = config.getBoolean("useBuildingColors", false);
++		boolean drawBuildingWindows = config.getBoolean("drawBuildingWindows", false);
+ 		
+ 		for (MapArea area : mapData.getMapAreas()) {
+ 			
+@@ -111,23 +111,23 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 			
+ 			this.area = area;
+ 			
+-			for (MapOverlap<?,?> overlap : area.getOverlaps()) {
+-				MapElement other = overlap.getOther(area);
+-				if (other instanceof MapArea
+-						&& other.getTags().containsKey("building:part")) {
+-					
+-					MapArea otherArea = (MapArea)other;
+-					
+-					//TODO: check whether the building contains the part (instead of just touching it)
+-					if (area.getPolygon().contains(
+-							otherArea.getPolygon().getOuter())) {
+-						parts.add(new BuildingPart(this, otherArea,
+-							otherArea.getPolygon(), useBuildingColors,
+-							drawBuildingWindows));
+-					}
+-					
+-				}
+-			}
++//			for (MapOverlap<?,?> overlap : area.getOverlaps()) {
++//				MapElement other = overlap.getOther(area);
++//				if (other instanceof MapArea
++//						&& other.getTags().containsKey("building:part")) {
++//					
++//					MapArea otherArea = (MapArea)other;
++//					
++//					//TODO: check whether the building contains the part (instead of just touching it)
++//					if (area.getPolygon().contains(
++//							otherArea.getPolygon().getOuter())) {
++//						parts.add(new BuildingPart(this, otherArea,
++//							otherArea.getPolygon(), useBuildingColors,
++//							drawBuildingWindows));
++//					}
++//					
++//				}
++//			}
+ 			
+ 			/* add part(s) for area not covered by building:part polygons */
+ 			boolean isBuildingPart = false;
+@@ -138,23 +138,23 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 				parts.add(new BuildingPart(this, area,
+ 						area.getPolygon(), useBuildingColors, drawBuildingWindows));
+ 			} else {
+-				List<SimplePolygonXZ> subtractPolygons = new ArrayList<SimplePolygonXZ>();
+-				
+-				for (BuildingPart part : parts) {
+-					subtractPolygons.add(part.getPolygon().getOuter());
+-				}
+-				subtractPolygons.addAll(area.getPolygon().getHoles());
+-				
+-				Collection<PolygonWithHolesXZ> remainingPolys =
+-					CAGUtil.subtractPolygons(
+-							area.getPolygon().getOuter(),
+-							subtractPolygons);
+-				
+-				for (PolygonWithHolesXZ remainingPoly : remainingPolys) {
+-					parts.add(new BuildingPart(this, area, remainingPoly,
+-							useBuildingColors, drawBuildingWindows));
+-				}
+-				
++//				List<SimplePolygonXZ> subtractPolygons = new ArrayList<SimplePolygonXZ>();
++//				
++//				for (BuildingPart part : parts) {
++//					subtractPolygons.add(part.getPolygon().getOuter());
++//				}
++//				subtractPolygons.addAll(area.getPolygon().getHoles());
++//				
++//				Collection<PolygonWithHolesXZ> remainingPolys =
++//					CAGUtil.subtractPolygons(
++//							area.getPolygon().getOuter(),
++//							subtractPolygons);
++//				
++//				for (PolygonWithHolesXZ remainingPoly : remainingPolys) {
++//					parts.add(new BuildingPart(this, area, remainingPoly,
++//							useBuildingColors, drawBuildingWindows));
++//				}
++//				
+ 			}
+ 
+ 			/* create connectors along the outline.
+@@ -319,19 +319,19 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 			this.area = area;
+ 			this.polygon = polygon;
+ 
+-			setAttributes(useBuildingColors, drawBuildingWindows);
+-			
+-			for (MapNode node : area.getBoundaryNodes()) {
+-				if ((node.getTags().contains("building", "entrance")
+-						|| node.getTags().containsKey("entrance"))
+-						&& node.getRepresentations().isEmpty()) {
+-					
+-					BuildingEntrance entrance = new BuildingEntrance(this, node);
+-					entrances.add(entrance);
+-					node.addRepresentation(entrance);
+-					
+-				}
+-			}
++			setAttributes(false, false);
++			
++//			for (MapNode node : area.getBoundaryNodes()) {
++//				if ((node.getTags().contains("building", "entrance")
++//						|| node.getTags().containsKey("entrance"))
++//						&& node.getRepresentations().isEmpty()) {
++//					
++//					BuildingEntrance entrance = new BuildingEntrance(this, node);
++//					entrances.add(entrance);
++//					node.addRepresentation(entrance);
++//					
++//				}
++//			}
+ 			
+ 		}
+ 		
+@@ -349,10 +349,11 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 		
+ 		@Override
+ 		public void renderTo(Target<?> target) {
++			renderFloor(target, 0);
+ 			
+-			renderWalls(target, roof);
++//			renderWalls(target, roof);
+ 			
+-			roof.renderTo(target);
++//			roof.renderTo(target);
+ 			
+ 		}
+ 
+@@ -380,8 +381,9 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 			double floorHeight = calculateFloorHeight(roof);
+ 			boolean renderFloor = (floorHeight > 0);
+ 			
+-			if (area.getOverlaps().isEmpty()) {
+-				
++			if (true || area.getOverlaps().isEmpty()) {
++				// Always draw buildings whole. Otherwise there may be
++				// eg. ground level tunnels through them, which would screw things up.
+ 				renderWalls(target, roof.getPolygon(), false,
+ 						baseEle, floorHeight, roof);
+ 				
+@@ -732,64 +734,68 @@ public class BuildingModule extends ConfigurableWorldModule {
+ 			
+ 			/* determine roof shape */
+ 			
+-			boolean explicitRoofTagging = true;
+-			
+-			if (!("no".equals(area.getTags().getValue("roof:lines"))) && hasComplexRoof(area)) {
+-				roof = new ComplexRoof();
+-			} else {
+-				
+-				String roofShape = getValue("roof:shape");
+-				if (roofShape == null) { roofShape = getValue("building:roof:shape"); }
+-				
+-				if (roofShape == null) {
+-					roofShape = defaultRoofShape;
+-					explicitRoofTagging = false;
+-				}
+-				
+-				try {
+-					
+-					if ("pyramidal".equals(roofShape)) {
+-						roof = new PyramidalRoof();
+-					} else if ("onion".equals(roofShape)) {
+-						roof = new OnionRoof();
+-					} else if ("skillion".equals(roofShape)) {
+-						roof = new SkillionRoof();
+-					} else if ("gabled".equals(roofShape)) {
+-						roof = new GabledRoof();
+-					} else if ("hipped".equals(roofShape)) {
+-						roof = new HippedRoof();
+-					} else if ("half-hipped".equals(roofShape)) {
+-						roof = new HalfHippedRoof();
+-					} else if ("gambrel".equals(roofShape)) {
+-						roof = new GambrelRoof();
+-					} else if ("mansard".equals(roofShape)) {
+-						roof = new MansardRoof();
+-					} else if ("dome".equals(roofShape)) {
+-						roof = new DomeRoof();
+-					} else if ("round".equals(roofShape)) {
+-						roof = new RoundRoof();
+-					} else {
+-						roof = new FlatRoof();
+-					}
+-					
+-				} catch (InvalidGeometryException e) {
+-					System.err.println("falling back to FlatRoof: " + e);
+-					roof = new FlatRoof();
+-					explicitRoofTagging = false;
+-				}
+-				
+-			}
+-			
++//			boolean explicitRoofTagging = true;
++//			
++//			if (!("no".equals(area.getTags().getValue("roof:lines"))) && hasComplexRoof(area)) {
++//				roof = new ComplexRoof();
++//			} else {
++//				
++//				String roofShape = getValue("roof:shape");
++//				if (roofShape == null) { roofShape = getValue("building:roof:shape"); }
++//				
++//				if (roofShape == null) {
++//					roofShape = defaultRoofShape;
++//					explicitRoofTagging = false;
++//				}
++//				
++//				try {
++//					
++//					if ("pyramidal".equals(roofShape)) {
++//						roof = new PyramidalRoof();
++//					} else if ("onion".equals(roofShape)) {
++//						roof = new OnionRoof();
++//					} else if ("skillion".equals(roofShape)) {
++//						roof = new SkillionRoof();
++//					} else if ("gabled".equals(roofShape)) {
++//						roof = new GabledRoof();
++//					} else if ("hipped".equals(roofShape)) {
++//						roof = new HippedRoof();
++//					} else if ("half-hipped".equals(roofShape)) {
++//						roof = new HalfHippedRoof();
++//					} else if ("gambrel".equals(roofShape)) {
++//						roof = new GambrelRoof();
++//					} else if ("mansard".equals(roofShape)) {
++//						roof = new MansardRoof();
++//					} else if ("dome".equals(roofShape)) {
++//						roof = new DomeRoof();
++//					} else if ("round".equals(roofShape)) {
++//						roof = new RoundRoof();
++//					} else {
++//						roof = new FlatRoof();
++//					}
++//					
++//				} catch (InvalidGeometryException e) {
++//					System.err.println("falling back to FlatRoof: " + e);
++//					roof = new FlatRoof();
++//					explicitRoofTagging = false;
++//				}
++//				
++//			}
++
++			roof = new FlatRoof();
++			boolean explicitRoofTagging = false;
++
+ 			/* determine height */
+ 			
+-			double fallbackHeight = buildingLevels * defaultHeightPerLevel;
+-			
+-			fallbackHeight += roof.getRoofHeight();
+-			
+-			fallbackHeight = parseHeight(buildingTags, (float)fallbackHeight);
+-			
+-			double height = parseHeight(tags, (float)fallbackHeight);
+-		    heightWithoutRoof = height - roof.getRoofHeight();
++//			double fallbackHeight = buildingLevels * defaultHeightPerLevel;
++//			
++//			fallbackHeight += roof.getRoofHeight();
++//			
++//			fallbackHeight = parseHeight(buildingTags, (float)fallbackHeight);
++//			
++//			double height = parseHeight(tags, (float)fallbackHeight);
++			double height = 100f;
++			heightWithoutRoof = height - roof.getRoofHeight();
+ 			
+ 			/* determine materials */
+ 		    
+diff --git a/OSM2World/src/org/osm2world/core/world/modules/RailwayModule.java b/OSM2World/src/org/osm2world/core/world/modules/RailwayModule.java
+index efaec57..11671b7 100644
+--- a/OSM2World/src/org/osm2world/core/world/modules/RailwayModule.java
++++ b/OSM2World/src/org/osm2world/core/world/modules/RailwayModule.java
+@@ -40,7 +40,9 @@ public class RailwayModule extends ConfigurableWorldModule {
+ 		
+ 		for (MapWaySegment segment : grid.getMapWaySegments()) {
+ 			if (segment.getTags().containsAny("railway", RAILWAY_VALUES)) {
+-				segment.addRepresentation(new Rail(segment));
++				if (! TunnelModule.isTunnel(segment.getTags())) {
++					segment.addRepresentation(new Rail(segment));
++				}
+ 			}
+ 		}
+ 		
+@@ -66,13 +68,16 @@ public class RailwayModule extends ConfigurableWorldModule {
+ 	
+ 	private static class Rail extends AbstractNetworkWaySegmentWorldObject
+ 		implements RenderableToAllTargets, TerrainBoundaryWorldObject {
++
++		private static float TM_SCALE = Float.parseFloat(System.getenv("TOUCH_MAPPER_SCALE"));
++		private static float TM_EXTRUDER = Float.parseFloat(System.getenv("TOUCH_MAPPER_EXTRUDER_WIDTH"));
+ 		
+-		private static final float GROUND_WIDTH = 2.25f;
+-		private static final float RAIL_DIST = 1.5f;
++		private static float sizesScaling = TM_SCALE / 3100; // historically things were tuned for scale 3100
++
++		private static final float GROUND_WIDTH = 2.25f * sizesScaling;
++		private static final float RAIL_DIST = 1.5f * sizesScaling;
+ 	
+-		private static final float SLEEPER_WIDTH = 2.0f;
+-		private static final float SLEEPER_LENGTH = 0.75f;
+-		private static final float SLEEPER_HEIGHT = 0.125f;
++		private static final float SLEEPER_HEIGHT = 0.125f * sizesScaling;
+ 		
+ 		private static final List<VectorXYZ> RAIL_SHAPE = asList(
+ 			new VectorXYZ(-0.45f, 0, 0), new VectorXYZ(-0.1f, 0.1f, 0),
+@@ -132,37 +137,37 @@ public class RailwayModule extends ConfigurableWorldModule {
+ 					getOutline(false), getOutline(true),
+ 					1 - ((GROUND_WIDTH - RAIL_DIST) / GROUND_WIDTH) / 2);
+ 
+-			for (List<VectorXYZ> railLine : railLines) {
+-				
+-				List<List<VectorXYZ>> stripVectors =
+-					WorldModuleGeometryUtil.createShapeExtrusionAlong(
+-					RAIL_SHAPE, railLine,
+-					Collections.nCopies(railLine.size(), VectorXYZ.Y_UNIT));
+-					
+-				for (List<VectorXYZ> stripVector : stripVectors) {
+-					target.drawTriangleStrip(Materials.RAIL_DEFAULT, stripVector, null);
+-				}
+-			
+-			}
+-			
+-			
+-			/* draw railway ties/sleepers */
+-			
+-			List<VectorXZ> sleeperPositions = GeometryUtil.equallyDistributePointsAlong(3, false,
+-					getStartWithOffset(), getEndWithOffset());
+-						
+-			for (VectorXZ sleeperPosition : sleeperPositions) {
+-			
+-				//TODO interpolate ele, also using additional points inbetween
+-				
+-//				VectorXYZ sleeperPositionXYZ =
+-//						segment.getElevationProfile().getWithEle(sleeperPosition);
+-//
+-//				target.drawBox(Materials.RAIL_SLEEPER_DEFAULT,
+-//						sleeperPositionXYZ, segment.getDirection(),
+-//						SLEEPER_HEIGHT, SLEEPER_WIDTH, SLEEPER_LENGTH);
+-				
+-			}
++//			for (List<VectorXYZ> railLine : railLines) {
++//				
++//				List<List<VectorXYZ>> stripVectors =
++//					WorldModuleGeometryUtil.createShapeExtrusionAlong(
++//					RAIL_SHAPE, railLine,
++//					Collections.nCopies(railLine.size(), VectorXYZ.Y_UNIT));
++//					
++//				for (List<VectorXYZ> stripVector : stripVectors) {
++//					target.drawTriangleStrip(Materials.RAIL_DEFAULT, stripVector, null);
++//				}
++//			
++//			}
++//			
++//			
++//			/* draw railway ties/sleepers */
++//			
++//			List<VectorXZ> sleeperPositions = GeometryUtil.equallyDistributePointsAlong(3, false,
++//					getStartWithOffset(), getEndWithOffset());
++//						
++//			for (VectorXZ sleeperPosition : sleeperPositions) {
++//			
++//				//TODO interpolate ele, also using additional points inbetween
++//				
++////				VectorXYZ sleeperPositionXYZ =
++////						segment.getElevationProfile().getWithEle(sleeperPosition);
++////
++////				target.drawBox(Materials.RAIL_SLEEPER_DEFAULT,
++////						sleeperPositionXYZ, segment.getDirection(),
++////						SLEEPER_HEIGHT, SLEEPER_WIDTH, SLEEPER_LENGTH);
++//				
++//			}
+ 			
+ 		}
+ 
+diff --git a/OSM2World/src/org/osm2world/core/world/modules/RoadModule.java b/OSM2World/src/org/osm2world/core/world/modules/RoadModule.java
+index 66bc74f..b9a11b5 100644
+--- a/OSM2World/src/org/osm2world/core/world/modules/RoadModule.java
++++ b/OSM2World/src/org/osm2world/core/world/modules/RoadModule.java
+@@ -61,21 +61,24 @@ public class RoadModule extends ConfigurableWorldModule {
+ 		
+ 		for (MapWaySegment line : grid.getMapWaySegments()) {
+ 			if (isRoad(line.getTags())) {
+-				line.addRepresentation(new Road(line, line.getTags()));
++				if (! isTunnelOrSimilar(line.getTags())) {
++					line.addRepresentation(new Road(line, line.getTags()));
++				}
+ 			}
+ 		}
+ 
+ 		for (MapArea area : grid.getMapAreas()) {
+ 				
+ 			if (isRoad(area.getTags())) {
+-				
+-				List<VectorXZ> coords = new ArrayList<VectorXZ>();
+-				for (MapNode node : area.getBoundaryNodes()) {
+-					coords.add(node.getPos());
++				if (! isTunnelOrSimilar(area.getTags())) {
++					List<VectorXZ> coords = new ArrayList<VectorXZ>();
++					for (MapNode node : area.getBoundaryNodes()) {
++						coords.add(node.getPos());
++					}
++					coords.remove(coords.size()-1);
++					
++					area.addRepresentation(new RoadArea(area));
+ 				}
+-				coords.remove(coords.size()-1);
+-				
+-				area.addRepresentation(new RoadArea(area));
+ 			}
+ 			
+ 		}
+@@ -86,7 +89,7 @@ public class RoadModule extends ConfigurableWorldModule {
+ 			
+ 			List<Road> connectedRoads = getConnectedRoads(node, false);
+ 			
+-			if (connectedRoads.size() > 2) {
++			if (connectedRoads.size() == 3) {
+ 				
+ 				node.addRepresentation(new RoadJunction(node));
+ 				
+@@ -112,6 +115,18 @@ public class RoadModule extends ConfigurableWorldModule {
+ 		
+ 	}
+ 
++	public static final boolean isTunnelOrSimilar(TagGroup tags) {
++		if (tags.containsKey("tunnel")
++				&& !"no".equals(tags.getValue("tunnel"))) {
++			return true;
++		};
++		if (tags.containsKey("indoor")
++				&& !"no".equals(tags.getValue("indoor"))) {
++			return true;
++		};
++		return false;
++	}
++
+ 	private static boolean isRoad(TagGroup tags) {
+ 		if (tags.containsKey("highway")
+ 				&& !tags.contains("highway", "construction")
+@@ -119,15 +134,24 @@ public class RoadModule extends ConfigurableWorldModule {
+ 			return true;
+ 		} else {
+ 			return tags.contains("railway", "platform")
+-				|| tags.contains("leisure", "track");
++				|| tags.contains("leisure", "track")
++				|| tags.contains("tourism", "attraction")
++				|| tags.contains("man_made", "pier")
++				|| tags.contains("man_made", "breakwater");
+ 		}
+ 	}
+ 	
+ 	private static boolean isSteps(TagGroup tags) {
+-		return tags.contains(new Tag("highway","steps"));
++		return false;
++//		return tags.contains(new Tag("highway","steps"));
+ 	}
+ 
++	// See also ObjTarget.isPath()
+ 	private static boolean isPath(TagGroup tags) {
++		if (tags.contains("man_made", "pier")
++				|| tags.contains("man_made", "breakwater")) {
++			return true;
++		}
+ 		String highwayValue = tags.getValue("highway");
+ 		return "path".equals(highwayValue)
+ 			|| "footway".equals(highwayValue)
+@@ -339,6 +363,9 @@ public class RoadModule extends ConfigurableWorldModule {
+ 	 */
+ 	private static List<LaneConnection> buildLaneConnections(
+ 			MapNode node, boolean isJunction, boolean isCrossing) {
++		if (true) {
++			return new ArrayList<LaneConnection>();
++		}
+ 		
+ 		List<Road> roads = getConnectedRoads(node, true);
+ 		
+@@ -434,6 +461,9 @@ public class RoadModule extends ConfigurableWorldModule {
+ 	private static List<LaneConnection> buildLaneConnections_allOneway(
+ 			MapNode node, List<Road> inboundOnewayRoadsLTR,
+ 			List<Road> outboundOnewayRoadsLTR) {
++		if (true) {
++			return new ArrayList<LaneConnection>();
++		}
+ 
+ 		List<Lane> inboundLanes = new ArrayList<Lane>();
+ 		List<Lane> outboundLanes = new ArrayList<Lane>();
+@@ -754,7 +784,16 @@ public class RoadModule extends ConfigurableWorldModule {
+ 	public static class Road
+ 		extends AbstractNetworkWaySegmentWorldObject
+ 		implements RenderableToAllTargets, TerrainBoundaryWorldObject {
+-		
++
++		private static float TM_SCALE = Float.parseFloat(System.getenv("TOUCH_MAPPER_SCALE"));
++		private static float TM_EXTRUDER = Float.parseFloat(System.getenv("TOUCH_MAPPER_EXTRUDER_WIDTH"));
++
++		// Using exactly extruder width will leave many roads unprinted. The ideal road width may
++		// be much less than the goal because edges where roads connect are not perpendicular
++		// to road direction. Further unevenness in road width is caused by fattening in Blender.
++		// Further, Simplify3D often uses value eg. 1.2x extruder width, depending on printer-dependent configuration.
++		private static final float ROAD_WIDTH_MULTIPLIER = 1.6f;
++
+ 		protected static final float DEFAULT_LANE_WIDTH = 3.5f;
+ 		
+ 		protected static final float DEFAULT_ROAD_CLEARING = 5;
+@@ -799,11 +838,15 @@ public class RoadModule extends ConfigurableWorldModule {
+ 			this.steps = isSteps(tags);
+ 						
+ 			if (steps) {
++				// Never executed
+ 				this.laneLayout = null;
+ 				this.width = parseWidth(tags, 1.0f);
+ 			} else {
+ 				this.laneLayout = buildBasicLaneLayout();
+-				this.width = calculateWidth();
++				float mmToUnits = TM_SCALE / 1000;
++				float minRoadWidth = TM_EXTRUDER * ROAD_WIDTH_MULTIPLIER * mmToUnits;
++				float sizesScaling = TM_SCALE / 3100; // historically things were tuned for scale 3100
++				this.width = Math.max(minRoadWidth, calculateWidth() * 0.8f * sizesScaling);
+ 				laneLayout.setCalculatedValues(width);
+ 			}
+ 			
+diff --git a/OSM2World/src/org/osm2world/core/world/modules/WaterModule.java b/OSM2World/src/org/osm2world/core/world/modules/WaterModule.java
+index 40e66c8..2be92c1 100644
+--- a/OSM2World/src/org/osm2world/core/world/modules/WaterModule.java
++++ b/OSM2World/src/org/osm2world/core/world/modules/WaterModule.java
+@@ -45,6 +45,7 @@ public class WaterModule extends ConfigurableWorldModule {
+ 
+ 	//TODO: add canal, ditch, drain
+ 
++	private static final float MIN_WATER_WIDTH = 2.2f;
+ 	private static final Tag WATER_TAG = new Tag("natural", "water");
+ 	private static final Tag RIVERBANK_TAG = new Tag("waterway", "riverbank");
+ 	
+@@ -52,11 +53,11 @@ public class WaterModule extends ConfigurableWorldModule {
+ 	
+ 	static {
+ 		WATERWAY_WIDTHS = new HashMap<String, Float>();
+-		WATERWAY_WIDTHS.put("river", 3f);
+-		WATERWAY_WIDTHS.put("stream", 0.5f);
+-		WATERWAY_WIDTHS.put("canal", 2f);
+-		WATERWAY_WIDTHS.put("ditch", 1f);
+-		WATERWAY_WIDTHS.put("drain", 1f);
++		WATERWAY_WIDTHS.put("river", MIN_WATER_WIDTH * 1.5f);
++		WATERWAY_WIDTHS.put("stream", MIN_WATER_WIDTH);
++		WATERWAY_WIDTHS.put("canal", MIN_WATER_WIDTH * 1.2f);
++		WATERWAY_WIDTHS.put("ditch", MIN_WATER_WIDTH);
++		WATERWAY_WIDTHS.put("drain", MIN_WATER_WIDTH);
+ 	}
+ 	
+ 	//TODO: apply to is almost always the same! create a superclass handling this!
+@@ -121,8 +122,10 @@ public class WaterModule extends ConfigurableWorldModule {
+ 		}
+ 		
+ 		public float getWidth() {
+-			return WorldModuleParseUtil.parseWidth(segment.getTags(),
+-					WATERWAY_WIDTHS.get(segment.getTags().getValue("waterway")));
++			return 2 * Math.max(
++					1,
++					WorldModuleParseUtil.parseWidth(segment.getTags(),
++					WATERWAY_WIDTHS.get(segment.getTags().getValue("waterway"))));
+ 		}
+ 		
+ 		@Override
+@@ -164,37 +167,37 @@ public class WaterModule extends ConfigurableWorldModule {
+ 				List<VectorXYZ> rightWaterBorder = createLineBetween(
+ 						leftOutline, rightOutline, 0.95f);
+ 				
+-				modifyLineHeight(leftWaterBorder, -0.2f);
+-				modifyLineHeight(rightWaterBorder, -0.2f);
+-	
+-				List<VectorXYZ> leftGround = createLineBetween(
+-						leftOutline, rightOutline, 0.35f);
+-				List<VectorXYZ> rightGround = createLineBetween(
+-						leftOutline, rightOutline, 0.65f);
+-				
+-				modifyLineHeight(leftGround, -1);
+-				modifyLineHeight(rightGround, -1);
+-				
+-				/* render ground */
+-				
+-				@SuppressWarnings("unchecked") // generic vararg is intentional
+-				List<List<VectorXYZ>> strips = asList(
+-					createTriangleStripBetween(
+-							leftOutline, leftWaterBorder),
+-					createTriangleStripBetween(
+-							leftWaterBorder, leftGround),
+-					createTriangleStripBetween(
+-							leftGround, rightGround),
+-					createTriangleStripBetween(
+-							rightGround, rightWaterBorder),
+-					createTriangleStripBetween(
+-							rightWaterBorder, rightOutline)
+-				);
+-				
+-				for (List<VectorXYZ> strip : strips) {
+-					target.drawTriangleStrip(TERRAIN_DEFAULT, strip,
+-						texCoordLists(strip, TERRAIN_DEFAULT, GLOBAL_X_Z));
+-				}
++//				modifyLineHeight(leftWaterBorder, -0.2f);
++//				modifyLineHeight(rightWaterBorder, -0.2f);
++//	
++//				List<VectorXYZ> leftGround = createLineBetween(
++//						leftOutline, rightOutline, 0.35f);
++//				List<VectorXYZ> rightGround = createLineBetween(
++//						leftOutline, rightOutline, 0.65f);
++//				
++//				modifyLineHeight(leftGround, -1);
++//				modifyLineHeight(rightGround, -1);
++//				
++//				/* render ground */
++//				
++//				@SuppressWarnings("unchecked") // generic vararg is intentional
++//				List<List<VectorXYZ>> strips = asList(
++//					createTriangleStripBetween(
++//							leftOutline, leftWaterBorder),
++//					createTriangleStripBetween(
++//							leftWaterBorder, leftGround),
++//					createTriangleStripBetween(
++//							leftGround, rightGround),
++//					createTriangleStripBetween(
++//							rightGround, rightWaterBorder),
++//					createTriangleStripBetween(
++//							rightWaterBorder, rightOutline)
++//				);
++//				
++//				for (List<VectorXYZ> strip : strips) {
++//					target.drawTriangleStrip(TERRAIN_DEFAULT, strip,
++//						texCoordLists(strip, TERRAIN_DEFAULT, GLOBAL_X_Z));
++//				}
+ 				
+ 				/* render water */
+ 				
