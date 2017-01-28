@@ -12,9 +12,17 @@ if [[ ! -f $blender_basename ]]; then
     (cd blender && patch -p0 -s <../stl-export-blender.patch)
 fi
 
-# Install Python modules
-pip install --target=converter/py-lib/boto3 boto3==1.2.2
-pip install xlwt xlrd # for translation file conversions
-
 # Create symlinks
 ln -s ../OSM2World ../blender converter
+
+# Install Python modules
+pip install --target=converter/py-lib/boto3 boto3==1.2.2
+sudo pip install xlwt xlrd # for translation file conversions
+sudo pip install awscli
+
+# Install jq for install/web-s3.sh
+sudo apt install jq
+
+# Compile OSM2World
+make osm2world
+

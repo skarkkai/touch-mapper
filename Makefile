@@ -25,12 +25,8 @@ prod-web-s3-install:
 package:
 	install/package.sh
 
-test-install-local:
-	rsync -a --delete ~/test-touch-mapper/dist ~/test-touch-mapper/dist.old
-	rsync -a --delete --delay-updates install/dist/ ~/test-touch-mapper/dist/
-	~/test-touch-mapper/dist/restart-pollers.sh test ~/test-touch-mapper
-
 test-install-ec2: package
+	# "tm-ec2-test" needs to be defined as a Host in ~/.ssh/config
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2-test:touch-mapper/dist/
 	ssh tm-ec2-test touch-mapper/dist/ec2-restart-pollers.sh
 
@@ -41,4 +37,3 @@ test-cp-to-s3.sh:
 	ssh tm-ec2-test touch-mapper/dist/cp-to-s3.sh
 
 # Install into prod only through AMI launch
-
