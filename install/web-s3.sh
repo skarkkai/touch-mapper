@@ -35,18 +35,7 @@ done
 
 
 # Invalidate CloudFront
-case $environment in
-dev)
-  aws cloudfront create-invalidation --distribution-id E1MTV53V6GWMYK --paths '/*'
-  ;;
-test)
-  aws cloudfront create-invalidation --distribution-id E2Q2FFANJQFQ8G --paths '/*'
-  ;;
-prod)
-  aws cloudfront create-invalidation --distribution-id E394513QCS44IG --paths '/*'
-  ;;
-*)
-  echo "don't know how to invalidate CloudFront for $environment"
-  exit 1
-esac
+distribution_id=$( aws cloudfront list-distributions | jq --raw-output ".DistributionList.Items[] | select(.Origins.Items[].DomainName == \"$environment.maps.touch-mapper.s3.amazonaws.com\") | .Id" )
+echo "Invalidating $environment environment CloudFront distribution '$distribution_id'"
+aws cloudfront create-invalidation --distribution-id $distribution_id --paths '/*'
 
