@@ -8,6 +8,14 @@ Tactile map maker. Creates 3D printable files for requested OpenStreetMap areas.
 
     ./init.sh
 
+### Setup Amazon AWS
+
+Some AWS resources are needed even for development. 
+
+    pip install awscli
+    aws configure
+    make dev-cloudformation-update
+
 ### Run OSM -> STL converter service
 
 In a tab of its own:
