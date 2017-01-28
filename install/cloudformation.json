@@ -146,6 +146,71 @@
           }]
         }
       }
+    },
+    "CloudFront": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Aliases": [
+            { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] },
+            { "Fn::Join": [ "", [ "*.", { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] } ] ] }
+          ],
+          "Enabled": true,
+          "PriceClass": "PriceClass_All",
+          "Origins": [
+            {
+              "Id": "web",
+              "DomainName": { "Fn::GetAtt": [ "WebBucket", "DomainName" ] },
+              "CustomOriginConfig": {
+                "OriginProtocolPolicy": "http-only"
+              }
+            },
+            {
+              "Id": "maps",
+              "DomainName": { "Fn::GetAtt": [ "MapsBucket", "DomainName" ] },
+              "S3OriginConfig": {}
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "web",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "MinTTL": 3600,
+            "AllowedMethods": [
+              "HEAD", "GET", "OPTIONS"
+            ],
+            "CachedMethods": [
+              "HEAD", "GET"
+            ],
+            "ForwardedValues": {
+              "QueryString": false,
+              "Headers": [ "Origin" ],
+              "Cookies": { "Forward": "none" }
+            }
+          },
+          "CacheBehaviors": [
+            {
+              "TargetOriginId": "maps",
+              "PathPattern": "/map/*",
+              "ViewerProtocolPolicy": "allow-all",
+              "MinTTL": 0,
+              "AllowedMethods": [
+                "HEAD", "GET", "OPTIONS"
+              ],
+              "CachedMethods": [
+                "HEAD", "GET"
+              ],
+              "ForwardedValues": {
+                "QueryString": false,
+                "Cookies": { "Forward": "none" }
+              }
+            }
+          ],
+          "Logging": {
+            "Bucket": { "Fn::GetAtt": [ "Logs", "DomainName" ] },
+            "Prefix": "webCloudFront/"
+          }
+        }
+      }
     }
   },
   "Description": "Create Touch Mapper resources",
