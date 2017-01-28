@@ -2,17 +2,23 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
     "Environment": {
-      "Description": "Environment Name",
+      "Description": "Environment Name: test, prod, or dev-USERNAME",
       "Type": "String",
-      "AllowedValues" : ["dev", "test", "prod"]
+      "AllowedPattern" : "dev-.+|test|prod"
+    },
+    "IsDevEnv": {
+      "Description": "True if this is a development environment, so eg. has no Route53 domain name. Environment name should start with 'dev-'.",
+      "Type": "String",
+      "AllowedPattern" : "true|false"
+    },
+    "Domain": {
+      "Description": "CloudFront domain for non-dev. Also defines S3 bucket names.",
+      "Type": "String",
+      "AllowedPattern" : ".*touch-mapper.org"
     }
   },
-  "Mappings" : {
-    "Environments" : {
-      "dev":  { "domain": "dev.touch-mapper.org" },
-      "test": { "domain": "test.touch-mapper.org" },
-      "prod": { "domain": "touch-mapper.org" }
-    }
+  "Conditions": {
+    "IsDevEnv": { "Fn::Equals": [ { "Ref": "IsDevEnv" }, "true" ] }
   },
   "Resources": {
     "Logs": {
@@ -42,14 +48,14 @@
         "VersioningConfiguration": {
           "Status": "Suspended"
         },
-        "BucketName": { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] }
+        "BucketName": { "Ref": "Domain" }
       }
     },
     "WebBucketRedirect": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
         "WebsiteConfiguration": {
-          "RedirectAllRequestsTo": { "HostName": { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] } }
+          "RedirectAllRequestsTo": { "HostName": { "Ref": "Domain" } }
         },
         "AccessControl": "PublicRead",
         "LoggingConfiguration": {
@@ -61,7 +67,7 @@
         "VersioningConfiguration": {
           "Status": "Suspended"
         },
-        "BucketName": { "Fn::Join": [ ".", [ "www", { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] } ] ] }
+        "BucketName": { "Fn::Join": [ ".", [ "www", { "Ref": "Domain" } ] ] }
       }
     },
     "MapsBucket": {
@@ -153,14 +159,14 @@
         "DistributionConfig": {
           "Aliases": [
             { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] },
-            { "Fn::Join": [ "", [ "*.", { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] } ] ] }
+            { "Fn::Join": [ "", [ "*.", { "Ref": "Domain" } ] ] }
           ],
           "Enabled": true,
           "PriceClass": "PriceClass_All",
           "Origins": [
             {
               "Id": "web",
-              "DomainName": { "Fn::GetAtt": [ "WebBucket", "DomainName" ] },
+              "DomainName": { "Fn::GetAtt": [ "WebBucket", "WebsiteURL" ] },
               "CustomOriginConfig": {
                 "OriginProtocolPolicy": "http-only"
               }
@@ -205,6 +211,19 @@
               }
             }
           ],
+          "HttpVersion": "http2",
+          "ViewerCertificate": {
+            "Fn::If": [
+                "IsDevEnv",
+                {
+                  "CloudFrontDefaultCertificate": true
+                },
+                {
+                  "AcmCertificateArn": "arn:aws:acm:us-east-1:730535225693:certificate/9dbd7fe0-68f5-4973-8d3a-b95623e476db",
+                  "SslSupportMethod": "sni-only"
+                }
+            ]
+          },
           "Logging": {
             "Bucket": { "Fn::GetAtt": [ "Logs", "DomainName" ] },
             "Prefix": "webCloudFront/"
@@ -215,22 +234,22 @@
   },
   "Description": "Create Touch Mapper resources",
   "Outputs": {
-    "web": {
+    "cloudFrontDomainName": {
       "Value": {
-        "Fn::GetAtt": ["WebBucket", "DomainName"]
+        "Fn::GetAtt": ["CloudFront", "DomainName"]
       }
     },
-    "webURL": {
+    "WebBucketUrl": {
       "Value": {
         "Fn::GetAtt": ["WebBucket", "WebsiteURL"]
       }
     },
-    "maps": {
+    "mapsBucket": {
       "Value": {
         "Fn::GetAtt": ["MapsBucket", "DomainName"]
       }
     },
-    "requests": {
+    "requestsQueue": {
       "Value": {
         "Ref": "RequestsQueue"
       }

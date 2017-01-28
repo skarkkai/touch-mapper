@@ -5,7 +5,7 @@ osm2world:
 	cd OSM2World && ant
 
 dev-cloudformation-update:
-	aws cloudformation update-stack --stack-name TouchMapperDev  --template-body file://install/cloudformation.json --parameters ParameterKey=Environment,ParameterValue=dev
+	install/cloudformation-update.sh dev
 
 test-cloudformation-update:
 	aws cloudformation update-stack --stack-name TouchMapperTest --template-body file://install/cloudformation.json --parameters ParameterKey=Environment,ParameterValue=test

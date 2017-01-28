@@ -18,7 +18,7 @@ List is in a rough priority order.
 - Print labels for roads and/or points of interest
   - Maybe use short labels, and offer a separate legend that maps the labels to longer descriptions. The legend could be electronic.
 - Replace spinning 3D preview with one or more larger static images, create using Blender Render, using ambient occlusion
-  - 3D previw is too small and unclear, and doesn't work on all devices
+  - 3D preview is too small and unclear, and doesn't work on all devices
 - Allow selecting which things are included. Most important would be to allow excluding buildings.
 - Make selected address (indicated by the marker) draggable
 - Avoid significant overlaps between roads and buildings. This would enable reliable two-color 3D printing.
@@ -50,7 +50,7 @@ List is in a rough priority order.
 
 In a tab of its own:
 
-    install/run-dev.sh &
+    install/run-dev.sh
 
 ### Local web development
 
