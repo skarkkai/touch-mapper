@@ -8,10 +8,10 @@ dev-cloudformation-update:
 	install/cloudformation-update.sh dev
 
 test-cloudformation-update:
-	aws cloudformation update-stack --stack-name TouchMapperTest --template-body file://install/cloudformation.json --parameters ParameterKey=Environment,ParameterValue=test
+	install/cloudformation-update.sh test
 
 prod-cloudformation-update:
-	@echo 'run: aws cloudformation update-stack --stack-name TouchMapperProd --template-body file://install/cloudformation.json --parameters ParameterKey=Environment,ParameterValue=prod'
+	@echo 'install/cloudformation-update.sh prod'
 
 dev-web-s3-install:
 	install/web-s3.sh dev dev.

@@ -158,7 +158,7 @@
       "Properties": {
         "DistributionConfig": {
           "Aliases": [
-            { "Fn::FindInMap": [ "Environments", { "Ref" : "Environment"}, "domain" ] },
+            { "Ref": "Domain" },
             { "Fn::Join": [ "", [ "*.", { "Ref": "Domain" } ] ] }
           ],
           "Enabled": true,
@@ -166,7 +166,7 @@
           "Origins": [
             {
               "Id": "web",
-              "DomainName": { "Fn::GetAtt": [ "WebBucket", "WebsiteURL" ] },
+              "DomainName": { "Fn::Select": [ "2", { "Fn::Split": [ "/", { "Fn::GetAtt": [ "WebBucket", "WebsiteURL" ] } ] } ] } ,
               "CustomOriginConfig": {
                 "OriginProtocolPolicy": "http-only"
               }
@@ -177,10 +177,14 @@
               "S3OriginConfig": {}
             }
           ],
+          "DefaultRootObject": "index.html",
           "DefaultCacheBehavior": {
             "TargetOriginId": "web",
             "ViewerProtocolPolicy": "redirect-to-https",
+            "DefaultTTL": 3600,
             "MinTTL": 3600,
+            "MaxTTL": 3600,
+            "Compress": true,
             "AllowedMethods": [
               "HEAD", "GET", "OPTIONS"
             ],
