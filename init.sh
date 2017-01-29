@@ -13,7 +13,7 @@ if [[ ! -f $blender_basename ]]; then
 fi
 
 # Create symlinks
-ln -s ../OSM2World ../blender converter
+ln -s ../OSM2World ../blender converter || true
 
 # Install Python modules
 pip install --target=converter/py-lib/boto3 boto3==1.2.2
@@ -25,4 +25,6 @@ sudo apt install jq
 
 # Compile OSM2World
 make osm2world
+
+echo "Finished"
 
