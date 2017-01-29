@@ -11,7 +11,7 @@ test-cloudformation-update:
 	install/cloudformation-update.sh test
 
 prod-cloudformation-update:
-	@echo 'install/cloudformation-update.sh prod'
+	@echo 'run: install/cloudformation-update.sh prod'
 
 dev-web-s3-install:
 	install/web-s3.sh dev dev.
