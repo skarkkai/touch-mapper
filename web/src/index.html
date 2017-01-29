@@ -19,6 +19,8 @@
         // Parameter "lang" is optional.
         var lang = getUrlParam("lang") || 'en';
         url = "/" + lang + "/area" + window.location.search; // doesn't include hash, don't know why it should
+      } else {
+        url = "/en";
       }
       location.href = url;
     </script>
