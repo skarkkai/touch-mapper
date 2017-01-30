@@ -46,6 +46,9 @@ List is in a rough priority order.
 
     make dev-web-s3-install
 
+Last line of output gives the URL (https://something.cloudfront.net) where
+the web UI can be accessed.
+
 ### Run OSM -> STL converter service
 
 In a tab of its own:

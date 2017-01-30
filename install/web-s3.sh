@@ -2,16 +2,19 @@
 
 set -e
 
-if [[ $# != 2 ]]; then
-    echo "Usage: $0 ENVIRONMENT DOMAIN_SUFFIX"
+if [[ $# != 1 ]]; then
+    echo "Usage: $0 ENVIRONMENT"
     exit 1
 fi
 environment=$1
-suffix=$2
-url=s3://${suffix}touch-mapper.org
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ../web
+eval $( ../install/parameters.sh $environment )
+url=s3://$domain
+echo "env_name: $env_name"
+echo "S3 web bucket: $url"
+./create-env-js.sh $env_name >build/scripts/environment.js 
 
 # build => dist
 rm -rf dist
@@ -24,7 +27,7 @@ for lang in $(cd dist; find ?? -type d); do
     )
 done
 rm -f dist/.gitignore
-cp -p src/scripts/environment.js.$environment dist/scripts/environment.js
+
 
 # Sync dist to S3
 aws s3 sync --delete --cache-control must-revalidate dist/ $url
@@ -35,7 +38,9 @@ done
 
 
 # Invalidate CloudFront
-distribution_id=$( aws cloudfront list-distributions | jq --raw-output ".DistributionList.Items[] | select(.Origins.Items[].DomainName == \"$environment.maps.touch-mapper.s3.amazonaws.com\") | .Id" )
-echo "Invalidating $environment environment CloudFront distribution '$distribution_id'"
+distribution_id=$( aws cloudfront list-distributions | jq --raw-output ".DistributionList.Items[] | select(.Origins.Items[].DomainName == \"$env_name.maps.touch-mapper.s3.amazonaws.com\") | .Id" )
+echo "Invalidating $env_name environment CloudFront distribution '$distribution_id'"
 aws cloudfront create-invalidation --distribution-id $distribution_id --paths '/*'
+
+echo "Web resources installed to https://$( cat dist/scripts/environment.js  | egrep '^window.TM_DOMAIN' | cut -d "'" -f 2 )"
 

@@ -20,8 +20,8 @@ pip install --target=converter/py-lib/boto3 boto3==1.2.2
 sudo pip install xlwt xlrd # for translation file conversions
 sudo pip install awscli
 
-# Install jq for install/web-s3.sh
-sudo apt install jq
+# Install "jq" and "rename" for install/web-s3.sh
+sudo apt install jq rename
 
 # Compile OSM2World
 make osm2world

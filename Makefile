@@ -14,13 +14,13 @@ prod-cloudformation-update:
 	@echo 'run: install/cloudformation-update.sh prod'
 
 dev-web-s3-install:
-	install/web-s3.sh dev dev.
+	install/web-s3.sh dev
 
 test-web-s3-install:
-	install/web-s3.sh test test.
+	install/web-s3.sh test
 
 prod-web-s3-install:
-	@echo 'run: install/web-s3.sh prod ""'
+	@echo 'run: install/web-s3.sh prod'
 
 package:
 	install/package.sh
