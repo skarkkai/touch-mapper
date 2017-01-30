@@ -53,7 +53,7 @@ the web UI can be accessed.
 
 In a tab of its own:
 
-    install/run-dev.sh
+    install/run-dev-converter.sh
 
 ### Local web development
 
