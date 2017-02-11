@@ -4,27 +4,8 @@
 (function(){
     'use strict';
 
-    function lambdaCallback(err, data) {
-        if (err) {
-            // This doesn't really happen
-            if (console) { console.error(err); }
-            $('.email-sending-error').slideDown().find('.error-msg-text').text(err);
-        } else {
-            //if (console) { console.log(data); }
-            var errorMsg = 'no Payload';
-            try {
-                var payload = JSON.parse(data.Payload);
-                errorMsg = payload.errorMessage;
-            } catch (e) {
-                if (console) { console.log(data); }
-            }
-            if (! data.StatusCode || data.StatusCode !== 200 || data.FunctionError || errorMsg) {
-                $('.email-sending-error').slideDown().find('.error-msg-text').text(errorMsg).focus();
-            } else {
-                var payload = JSON.parse(data.Payload);
-                $('.email-sending-success').slideDown().focus();
-            }
-        }
+    function showError(errorMsg) {
+      $('.email-sending-error').slideDown().find('.error-msg-text').text(errorMsg).focus();
     }
 
     function initEmailSending(container, emailType, mapUrl, meta) {
@@ -38,27 +19,6 @@
             }
             email.removeClass('invalid');
 
-            AWS.config.update({
-                accessKeyId: 'AKIAIAD65QYHCIFV7BXQ',
-                secretAccessKey: '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'
-            });
-            AWS.config.region = 'eu-west-1';
-
-            var lambda = new AWS.Lambda({apiVersion: '2015-03-31'});
-            var payload = {
-                mapUrl: mapUrl,
-                meta: meta,
-                to: email.val(),
-                emailType: emailType
-            };
-            //console.log(JSON.stringify(payload));
-            var params = {
-              FunctionName: 'SendEmail',
-              InvocationType: 'RequestResponse',
-              LogType: 'Tail',
-              Payload: JSON.stringify(payload)
-            };
-
             $('.email-sending-success').slideUp();
             $('.email-sending-error').slideUp();
 
@@ -69,7 +29,23 @@
                 submit.removeAttr('disabled');
             }, 4000);
 
-            lambda.invoke(params, lambdaCallback);
+            var params = {
+                mapUrl: mapUrl,
+                meta: meta,
+                to: email.val(),
+                emailType: emailType
+            };
+            $.ajax({
+                type: "POST",
+                url: "https://6ww05s3p8k.execute-api.eu-west-1.amazonaws.com/prod", // FIXME
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(params)
+            }).fail(function(jqXHR, textStatus, errorThrown){
+                console.log(jqXHR.status, textStatus, errorThrown);
+                showError(textStatus);
+            }).done(function(d, textStatus, jqXHR){
+                $('.email-sending-success').slideDown().focus();
+            });
         });
     }
 

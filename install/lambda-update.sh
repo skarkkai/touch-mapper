@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# To update existing lambda's code:
+# zip lambda-email-sending.zip lambda-email-sending.py && aws lambda update-function-code --zip-file fileb://lambda-email-sending.zip --function-name TouchMapperDevSkarkkai-EmailSendingLambda-1J5HH0GRNN6YR 
+#
 
 set -e
 

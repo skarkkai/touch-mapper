@@ -62,3 +62,5 @@ In `web` dir, in separate tabs:
     make watch
     make serve
 
+You can now access the web UI in http://localhost:9000
+
