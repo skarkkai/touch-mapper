@@ -38,9 +38,9 @@ List is in a rough priority order.
 
     aws configure
 
-### Create AWS resources such as S3
+### Create AWS resources
 
-    make dev-cloudformation-update
+    make dev-aws-install
 
 ### Install static website to S3
 

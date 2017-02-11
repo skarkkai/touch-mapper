@@ -4,13 +4,16 @@ all:
 osm2world:
 	cd OSM2World && ant
 
-dev-cloudformation-update:
+dev-aws-install:
+	install/lambda-update.sh dev
 	install/cloudformation-update.sh dev
 
-test-cloudformation-update:
+test-aws-install:
+	install/lambda-update.sh test
 	install/cloudformation-update.sh test
 
-prod-cloudformation-update:
+prod-aws-install:
+	install/lambda-update.sh prod
 	@echo 'run: install/cloudformation-update.sh prod'
 
 dev-web-s3-install:

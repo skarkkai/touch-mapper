@@ -234,6 +234,45 @@
           }
         }
       }
+    },
+    "EmailSendingRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Service": "lambda.amazonaws.com" },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [ {
+	  "PolicyName": "EmailSendingPolicy",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [ {
+              "Effect": "Allow",
+              "Action": [ "ses:SendEmail" ],
+              "Resource": [ "*" ]
+            } ]
+          }
+        } ]
+      }
+    },
+    "EmailSendingLambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "lambda-email-sending.lambda_handler",
+        "Role": { "Fn::GetAtt" : ["EmailSendingRole", "Arn"] },
+        "Code": {
+          "S3Bucket": { "Fn::Join": [ ".", [ { "Ref" : "Environment"}, "internal.touch-mapper" ] ] },
+          "S3Key": "lambda-email-sending.zip"
+        },
+        "Runtime": "python2.7",
+        "Timeout": "10"
+      }
     }
   },
   "Description": "Create Touch Mapper resources",
