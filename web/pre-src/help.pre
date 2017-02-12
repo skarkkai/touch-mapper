@@ -1,6 +1,6 @@
-<h2>Ohjeet</h2>
+<div class="close-help">Close this tab to exit help</div>
 
-<div class="visuallyhidden">Close this tab to return</div>
+<h2>Ohjeet</h2>
 
 <div class="help-content">
   <h3>{{ what_is_the_map_like }}</h3>
