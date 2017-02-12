@@ -12,8 +12,7 @@ List is in a rough priority order.
 - Describe map contents in the web UI.
   - Roads: intersections between roads, and between roads and map borders; street numbers
   - Points of interest, esp. bus stops: https://developers.google.com/maps/documentation/javascript/places#place_search_requests
-  - May be difficult when using OSM2World
-  - Separate app would be able to do a better job. There are some plans for such apps.
+  - Support hot-keys for area adjustment, so that choosing the area is practical for a blind user
 - Print labels for roads and/or points of interest
   - Maybe use short labels, and offer a separate legend that maps the labels to longer descriptions. The legend could be electronic.
 - Replace spinning 3D preview with one or more larger static images, create using Blender Render, using ambient occlusion
@@ -21,15 +20,24 @@ List is in a rough priority order.
 - Allow selecting which things are included. Most important would be to allow excluding buildings.
 - Make selected address (indicated by the marker) draggable
 - Avoid significant overlaps between roads and buildings. This would enable reliable two-color 3D printing.
-  - Maybe use https://sourceforge.net/projects/jts-topo-suite/ from OSM2World
 - Print a compass star into corner of the map
 - Indicate map scale using small dots on map borders
 - Smaller scale modes: only show water/land/green areads; N largest roads; city borders
 - Non-square maps
+- Indoor areas
 
 Technical TODO:
 
 - Move converter from EC2 to Lambda
+- Do all the work in a Java application that could be based on the first stages
+  of OSM2World transformation pipeline. Benefits:
+  - Do road processing mostly when they are still line segments rather than 2D objects
+    - Create embosser input
+    - Avoid roads intersecting with buildings => enable two-color 3D printing
+      - Maybe use https://sourceforge.net/projects/jts-topo-suite/
+    - Much easier to describe map contents (eg. roads intersecting with edges)
+  - Better performance
+  - Simpler processing pipeline
 
 ## Development
 
