@@ -8,12 +8,12 @@ List is in a rough priority order.
 
 - Move converter from EC2 to Lambda
 - Allow printing a QR sticker that points to touch-mapper.org/?id=deadbeef
+- Allow inspecting maps on a touch device.
+  - APH's Nearby Explorer
 - Describe map contents in the web UI.
   - Roads: intersections between roads, and between roads and map borders; street numbers
   - Points of interest, esp. bus stops: https://developers.google.com/maps/documentation/javascript/places#place_search_requests
   - May be difficult when using OSM2World
-- Allow inspecting maps on a touch device.
-  - Apple Maps may suffice to some extent. Simply show a link to Apple Maps on the web page, such that correct area is shown: https://developer.apple.com/library/content/featuredarticles/iPhoneURLScheme_Reference/MapLinks/MapLinks.html
   - Separate app would be able to do a better job. There are some plans for such apps.
 - Print labels for roads and/or points of interest
   - Maybe use short labels, and offer a separate legend that maps the labels to longer descriptions. The legend could be electronic.
@@ -41,6 +41,10 @@ List is in a rough priority order.
 ### Create AWS resources
 
     make dev-aws-install
+
+API Gateway for accessing email sending Lambda is for now not created
+automatically. The same API GW endpoints can be used by all Touch Mapper
+instances.
 
 ### Install static website to S3
 
