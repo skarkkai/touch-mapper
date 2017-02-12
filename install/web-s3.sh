@@ -14,11 +14,11 @@ eval $( ../install/parameters.sh $environment )
 url=s3://$domain
 echo "env_name: $env_name"
 echo "S3 web bucket: $url"
-./create-env-js.sh $env_name >build/scripts/environment.js 
 
 # build => dist
 rm -rf dist
 cp -a build dist
+./create-env-js.sh $env_name >dist/scripts/environment.js 
 for lang in $(cd dist; find ?? -type d); do
     (
         cd dist/$lang
