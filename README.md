@@ -6,10 +6,9 @@ Tactile map maker. Creates 3D-printable files from OpenStreetMap data. See https
 
 List is in a rough priority order.
 
-- Move converter from EC2 to Lambda
-- Allow printing a QR sticker that points to touch-mapper.org/?id=deadbeef
+- Allow printing a QR sticker that points to touch-mapper.org/?map=deadbeef
 - Allow inspecting maps on a touch device.
-  - APH's Nearby Explorer
+  - APH's Nearby Explorer, and other apps
 - Describe map contents in the web UI.
   - Roads: intersections between roads, and between roads and map borders; street numbers
   - Points of interest, esp. bus stops: https://developers.google.com/maps/documentation/javascript/places#place_search_requests
@@ -27,6 +26,10 @@ List is in a rough priority order.
 - Indicate map scale using small dots on map borders
 - Smaller scale modes: only show water/land/green areads; N largest roads; city borders
 - Non-square maps
+
+Technical TODO:
+
+- Move converter from EC2 to Lambda
 
 ## Development
 
