@@ -14,6 +14,7 @@
     "street_address": "Katuosoite",
     "search": "Etsi",
     "searching": "Etsitään...",
+    "nothing_found": "Yhtään osoitetta ei löytynyt",
     "map_parameters": "Kartan asetukset",
     "show_all_addresses": "Näytä lisää",
     "show_all_addresses_aria": "Näytä lisää löytyneitä osoitteita",

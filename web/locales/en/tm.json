@@ -16,6 +16,7 @@
     "street_address": "Street address",
     "search": "Search",
     "searching": "Searching...",
+    "nothing_found": "Nothing found",
     "map_parameters": "Map parameters",
     "show_all_addresses": "Show more",
     "show_all_addresses_aria": "Show more found addresses",

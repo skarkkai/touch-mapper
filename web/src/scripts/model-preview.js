@@ -22,7 +22,7 @@
 
       var loader = new THREE.STLLoader();
       var mesh;
-      loader.load( s3url || 'http://dev.maps.touch-mapper.s3-eu-west-1.amazonaws.com/f9ff37c0-fede-1dec-c0b8-c1b4312b42f2.stl', function ( geometry ) {
+      loader.load(s3url, function ( geometry ) {
         // Mesh
         var mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial( { color: 0xffffff } ) );
         mesh.rotation.x = Math.PI * 1.5 + Math.PI / 4;

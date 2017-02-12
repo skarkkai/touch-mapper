@@ -35,7 +35,7 @@
     </form>
 
     <div id="searching" class="search-result-info" style="display: none">{{ searching }}</div>
-    <div id="no-search-results" class="search-result-info" role="alert" aria-live="assertive" tabindex="-1" style="display: none">Nothing found</div>
+    <div id="no-search-results" class="search-result-info" role="alert" aria-live="assertive" tabindex="-1" style="display: none">{{ nothing_found }}</div>
   </div>
 </div>
 

@@ -117,8 +117,7 @@
     $("#submit-button").val("Connecting...");
     $.ajax({
         type: "GET",
-        url: window.location.protocol + "//sqs.eu-west-1.amazonaws.com/730535225693/" + window.TM_ENVIRONMENT + "-requests-touch-mapper?Action=SendMessage&MessageBody="
-             + body + "&Version=2012-11-05"
+        url: window.TM_MAP_REQUEST_SQS_QUEUE + "?Action=SendMessage&MessageBody=" + body + "&Version=2012-11-05"
     }).done(function(d, textStatus, jqXHR){
       $("#submit-button").val("Waiting for server...");
       $("#submit-button")[0].focus();

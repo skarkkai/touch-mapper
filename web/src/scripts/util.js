@@ -81,8 +81,8 @@ function uriEncodeRequestId(rid) {
   var TM_HOST = window.location.protocol + "//" + TM_DOMAIN;
 
   window.makeS3url = function(id) {
-    // TODO: move this to parameters.js so that AWS Region is dynamic
-    var MAPS_S3_HOST = window.location.protocol + "//s3-eu-west-1.amazonaws.com/" + window.TM_ENVIRONMENT + ".maps.touch-mapper";
+    // XXX It would make more sense to have the S3 host in environment.js
+    var MAPS_S3_HOST = window.location.protocol + "//s3-" + TM_REGION + ".amazonaws.com/" + window.TM_ENVIRONMENT + ".maps.touch-mapper";
     return MAPS_S3_HOST + "/map/" + uriEncodeRequestId(id) + '.stl';
   };
 
