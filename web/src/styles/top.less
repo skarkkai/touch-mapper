@@ -79,9 +79,9 @@
 }
 .language-selector {
   color: white;
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, .5);
-  border: 0px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, .3);
+  height: auto;
   padding: 2px 8px;
   border-radius: 2px;
   text-align: right;
@@ -103,17 +103,20 @@
   color: black;
 }
 .help-link {
+  margin-left: 10px;
   color: white;
 }
 @media only screen and (max-width: 450px) {
   .top-corner {
     right: 0px;
   }
+  .language-selector {
+    margin-right: 5px;
+  }
   .help-link {
     display: block;
     text-align: right;
     padding-right: 10px;
-    margin-top: -4px;
   }
   .top-corner * {
     font-size: 14px;
