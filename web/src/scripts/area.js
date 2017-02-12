@@ -45,7 +45,7 @@ function showAllAddresses(addresses) {
           .text(addr.addrLong)));
   });
   $(".all-addresses").slideDown(700);
-  $(".all-addresses li").first().focus();
+  $("#search-results").focus();
 }
 
 function initInputs(outputs, osmDragPanInteraction) {

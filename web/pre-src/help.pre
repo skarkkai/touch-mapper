@@ -1,4 +1,4 @@
-<div class="close-help">Close this tab to exit help</div>
+<div class="close-help">{{ close_tab_to_exit_help }}</div>
 
 <h2>Ohjeet</h2>
 

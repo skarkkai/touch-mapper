@@ -5,11 +5,11 @@
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
   <div class="main-row">
-    <span class="printing-method-container">
+    <span class="printing-method-container" style="margin-right: 25px">
      <input type="radio" name="printing-method" id="printing-method-order" checked="checked">
      <label for="printing-method-order">{{ map_printing__order }}</label>
     </span>
-    &nbsp;
+
     <span class="printing-method-container">
      <input type="radio" name="printing-method" id="printing-method-self">
      <label for="printing-method-self">{{ map_printing__self }}</label>
