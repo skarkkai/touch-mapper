@@ -71,7 +71,7 @@
               <option value="en">English</option>
               <option value="de">Deutsch</option>
               <option value="fi">Suomi</option>
-            </select><a class="help-link" href="help" target="_blank" aria-label="Open help in a new tab">Ohje</a>
+            </select><a class="help-link" href="help" target="_blank" aria-label="{{ open_help_aria }}">{{ help }}</a>
           </div>
         </div>
       </div>

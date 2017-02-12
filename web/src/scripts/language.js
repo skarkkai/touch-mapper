@@ -5,7 +5,7 @@
 $(function(){
   // Change URL to one with given language
   function changeLang(newLang) {
-    var newHref = location.href.replace(/[a-z][a-z]\b(\/.*)/, newLang + '$1');
+    var newHref = location.href.replace(/\/[a-z][a-z]\b(\/.*)/, '/' + newLang + '$1');
     location.href = newHref;
   }
 

@@ -5,7 +5,10 @@
           <span class="sentence"><%- @t('3d_printing_by', { linkTag: '<a href="https://www.playfulpixels.com/" class="playful-pixels-logo"><img src="/images/playful-pixels-logo.png" alt="playfulpixels.com" /></a>' }) %></span>
           <span class="sentence"><%- @t('address_search_by', { linkTag: '<img class="powered-by-google" src="/images/powered_by_google_on_white_hdpi.png">' }) %></span>
           <span class="sentence"><%- @t('map_data_by', { linkTag: '<a href="https://en.wikipedia.org/wiki/OpenStreetMap">OpenStreetMap</a>' }) %></span>
-          <div class="open-source">Touch Mapper is open source software. See <a href="https://github.com/skarkkai/touch-mapper">GitHub repository</a> for source and more.</div>
+          <div class="open-source">
+            {{ touch_mapper_is_os }}
+            <%- @t('see_github', { startTag: '<a href="https://github.com/skarkkai/touch-mapper">', endTag: '</a>' }) %>
+          </div>
         </p>
       </div>
     </div>

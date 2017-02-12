@@ -2,13 +2,13 @@
   <script src="../scripts/aws-sdk-2.3.3.min.js"></script>
   <script src="../scripts/ol-3.15.1-custom.min.js"></script>
 
-  <h2>Map parameters</h2>
+  <h2>{{ map_parameters }}</h2>
 
   <div class="row main-row search-results-row">
     <div class="col col1"><label for="search-results">{{ address }}:</label></div>
     <div class="col col2">
       <span class="first-address"></span>
-      <button class="show-all-addresses" style="display: none" aria-description="Show all found addresses">Show all</button>
+      <button class="show-all-addresses" style="display: none" aria-description="{{ show_all_addresses_aria }}">{{ show_all_addresses }}</button>
       <ul class="all-addresses" style="display: none"></ul>
     </div>
   </div>
@@ -52,9 +52,6 @@
     <div class="col col2 advanced-input-container">
       <input id="advanced-input" type="checkbox" />
       <label for="advanced-input">{{ show_advanced_settings }}</label>
-      <span class="css-hidden-for-order how-to-print-link-span">
-        (<%- @t('printing_tips_full', { startLink: '<a href="#multipart-maps">', endLink: '</a>' }) %>)
-      </span>
     </div>
   </div>
 
@@ -178,7 +175,7 @@
     </div>
   </div>
 
-  <a class="back-to-previous-page" href=".">Back to address search</a>
+  <a class="back-to-previous-page" href=".">{{ back_to_index }}</a>
 
   <div id="marker1-overlay" class="marker-container" title="{{ tooltip_selected_address }}">
     <div class="marker1-star part1"></div>
@@ -188,11 +185,4 @@
     <div class="marker-tag"></div>
   </div>
   <div id="marker1-overlay-empty"></div>
-
-  <script type="text/template" id="additional-addr">
-    <li>
-      <span class="additional-addr"></span>
-      <button class="select-additional-addr"
-    </li>
-  </script>
 </div>
