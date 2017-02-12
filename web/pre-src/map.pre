@@ -1,7 +1,6 @@
 <div class="show-on-load" style="display: none">
   <script src="../scripts/three-20160121.min.js"></script>
   <script src="../scripts/three-STLLoader-20160122.js"></script>
-  <script src="../scripts/aws-sdk-2.3.3.min.js"></script>
 
   <h2>Map for <span class="map-address"></span></h2>
 
