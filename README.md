@@ -13,6 +13,8 @@ List is in a rough priority order.
   - Roads: intersections between roads, and between roads and map borders; street numbers
   - Points of interest, esp. bus stops: https://developers.google.com/maps/documentation/javascript/places#place_search_requests
   - Support hot-keys for area adjustment, so that choosing the area is practical for a blind user
+- Describe map contents in audio
+  - Could perhaps crowd source production of the descriptions
 - Print labels for roads and/or points of interest
   - Maybe use short labels, and offer a separate legend that maps the labels to longer descriptions. The legend could be electronic.
 - Replace spinning 3D preview with one or more larger static images, create using Blender Render, using ambient occlusion

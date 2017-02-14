@@ -6,7 +6,7 @@ export LC_ALL
 
 sudo apt-get update
 sudo apt-get upgrade -y
-sudo apt-get -y install awscli openjdk-7-jre-headless libglu1-mesa libxi6
+sudo apt-get -y install awscli openjdk-8-jre-headless libglu1-mesa libxi6
 aws configure
 sudo cp -r /home/ubuntu/.aws /root/
 
