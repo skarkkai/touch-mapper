@@ -69,7 +69,6 @@
     "email_sent": "Sähköposti lähetetty",
     "error_sending_email": "Virhe sähköpostin lähetyksessä",
     "drag_map": "Raahaa karttaa sopivaan kohtaan",
-    "map_area_preview_label": "Kartan alueen esikatselu.",
     "map_diameter": "Kartan leveys/korkeus",
     "label_3d_preview": "Kohokartan 3D-esikatselu",
     "tooltip_selected_address": "Valittu osoite",

@@ -157,15 +157,15 @@
     {{ drag_map }}
   </div>
 
-  <div id="map-area-preview-container" class="square-block-container" aria-label="{{ map_area_preview_label }}" style="display: none">
+  <div id="map-area-preview-container" class="square-block-container" aria-hidden="true" style="display: none">
     <div class="dummy">
       <div id="map-area-preview" class="square-block" frameborder="0" scrolling="no"
            marginheight="0" marginwidth="0" tabindex="100"></div>
     </div>
   </div>
 
-  <div aria-live="off" class="map-info" aria-label="{{ map_diameter }}">
-    <span class="texts">
+  <div aria-live="off" class="map-info">
+    <span class="texts" aria-label="{{ map_diameter }}">
       <span class="current-diameter-meters" aria-live="off"></span> {{ meters }}
       (<span class="current-diameter-yards" aria-live="off"></span> {{ yards }})
     </span>
