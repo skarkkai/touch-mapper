@@ -17,6 +17,7 @@ ln -s ../OSM2World ../blender converter || true
 
 # Install Python modules
 pip install --target=converter/py-lib/boto3 boto3==1.2.2
+pip install --target=blender/2.76/python/lib/python3.4 svgwrite==1.1.9
 sudo pip install xlwt xlrd # for translation file conversions
 sudo pip install awscli
 

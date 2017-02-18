@@ -10,6 +10,7 @@ import json
 import math
 import random
 import time
+import svgwrite
 
 ROAD_HEIGHT_CAR_MM = 0.82 # 3 x 0.25-0.3mm layers
 ROAD_HEIGHT_PEDESTRIAN_MM = 1.5
@@ -63,6 +64,45 @@ def move_everything(move_by):
     for ob in bpy.context.scene.objects:
         if ob.type == 'MESH':
             ob.location += vector
+
+def all_mesh_objects():
+    out = []
+    for ob in bpy.context.scene.objects:
+        if ob.type != 'MESH':
+            continue
+        if ob.name == 'map':
+            # Happens when there is nothing on the map
+            continue
+        out.append(ob)
+    return out
+
+def add_svg_object(dwg, ob, type):
+    mesh = ob.data
+    verts = mesh.vertices
+    color = 'gray' if type == 'road' else 'black'
+    g = dwg.add(dwg.g(stroke_width=0, stroke=color, fill=color))
+    #g = dwg.add(dwg.g(stroke_width=0.1, stroke=color, fill=color)) # causes slight weirdness in corners
+    for polygon in mesh.polygons:
+        points = []
+        for vert_index in polygon.vertices:
+            vx, vz, vy = (verts[vert_index].co)
+            points.append((vx, vy))
+        g.add(dwg.polygon(points=points))
+
+def export_svg(base_path, args):
+    min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
+    dwg = svgwrite.Drawing(base_path + '.svg', profile = 'basic')
+    dwg['width'] = '20cm'
+    dwg['height'] = '20cm'
+    dwg['viewBox'] = "%d %d %d %d" % (min_x, min_y, max_x - min_x, max_y - min_y)
+    dwg['shape-rendering'] = 'geometricPrecision'
+
+    objs = all_mesh_objects()
+    for ob in [ob for ob in objs if ob.name.startswith('Road')]:
+        add_svg_object(dwg, ob, 'road')
+    for ob in [ob for ob in objs if ob.name.startswith('Building')]:
+        add_svg_object(dwg, ob, 'building')
+    dwg.save()
 
 def _export_stl(stl_path, scale):
     print("creating {stl}...".format(stl=stl_path))
@@ -473,13 +513,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     joinable_waterways = []
     inner_water_areas = []
     deleteables = []
-    for ob in bpy.context.scene.objects:
-        if ob.type != 'MESH':
-            continue
-        if ob.name == 'map':
-            # Happens when there is nothing on the map
-            continue
-
+    for ob in all_mesh_objects():
         if ob.name.startswith('BuildingEntrance'):
             deleteables.append(ob)
         elif ob.name.startswith('Building'):
@@ -598,10 +632,12 @@ def main():
     remove_everything()
     for obj_path in args.obj_paths:
         import_obj_file(obj_path)
+        base_path = os.path.splitext(obj_path)[0]
+        export_svg(base_path, args)
+        return
         base_cube = make_tactile_map(args)
         move_everything([-c for c in get_minimum_coordinate(base_cube)])
         if not args.no_stl_export:
-            base_path = os.path.splitext(obj_path)[0]
             export_stl(base_path, args.scale)
             export_stl_separate(base_path, args.scale)
             export_blend_file(base_path)
