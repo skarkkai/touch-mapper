@@ -76,12 +76,12 @@ def all_mesh_objects():
         out.append(ob)
     return out
 
-def add_svg_object(dwg, ob, type):
+def add_svg_object(dwg, ob, brightness):
+    color = "rgb(%d%%, %d%%, %d%%)" % (brightness, brightness, brightness)
+    g = dwg.add(dwg.g(stroke=color, fill=color))
+    #g = dwg.add(dwg.g(stroke_width=0, stroke=color, fill=color)) # theotically more correct, but leaves slight gaps between triangles
     mesh = ob.data
     verts = mesh.vertices
-    color = 'gray' if type == 'road' else 'black'
-    g = dwg.add(dwg.g(stroke_width=0, stroke=color, fill=color))
-    #g = dwg.add(dwg.g(stroke_width=0.1, stroke=color, fill=color)) # causes slight weirdness in corners
     for polygon in mesh.polygons:
         points = []
         for vert_index in polygon.vertices:
@@ -96,12 +96,35 @@ def export_svg(base_path, args):
     dwg['height'] = '20cm'
     dwg['viewBox'] = "%d %d %d %d" % (min_x, min_y, max_x - min_x, max_y - min_y)
     dwg['shape-rendering'] = 'geometricPrecision'
+    dwg['stroke-width'] = 1.0 # removes gaps between triangles, and also makes roads a bit thicker
+    dwg['stroke-linejoin'] = 'round' # greatly reduces protruding edges caused by non-zero stroke-width
 
+    # Group objects into different layers
     objs = all_mesh_objects()
-    for ob in [ob for ob in objs if ob.name.startswith('Road')]:
-        add_svg_object(dwg, ob, 'road')
-    for ob in [ob for ob in objs if ob.name.startswith('Building')]:
-        add_svg_object(dwg, ob, 'building')
+    color60 = []
+    color30 = []
+    color00 = []
+    for ob in objs:
+        if ob.name.startswith('Road'):
+            if is_pedestrian(ob.name):
+                color00.append(ob)
+            else:
+                color30.append(ob)
+        elif ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
+            color30.append(ob)
+        elif ob.name.startswith('Building') or ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
+            color60.append(ob)
+        else:
+            print("UNHANDLED TYPE IN SVG CREATION: " + ob.name)
+
+    # Draw layers starting from lowest (brightest color)
+    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)'))
+    for ob in color30:
+        add_svg_object(dwg, ob, 30)
+    for ob in color00:
+        add_svg_object(dwg, ob, 0)
+    for ob in color60:
+        add_svg_object(dwg, ob, 60)
     dwg.save()
 
 def _export_stl(stl_path, scale):
