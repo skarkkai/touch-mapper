@@ -34,7 +34,7 @@ test-install-ec2: package
 	ssh tm-ec2-test touch-mapper/dist/ec2-restart-pollers.sh
 
 test-install-ec2-diff: package
-	rsync -a --delete --delay-updates --dry-run --verbose -e ssh install/dist/ tm-ec2-test:touch-mapper/dist/
+	rsync -a --delete --delay-updates --dry-run -e ssh install/dist/ tm-ec2-test:touch-mapper/dist/
 
 test-cp-to-s3.sh:
 	ssh tm-ec2-test touch-mapper/dist/cp-to-s3.sh

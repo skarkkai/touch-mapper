@@ -153,7 +153,7 @@
            aria-live="polite" />
   </div>
 
-  <div class="drag-map-with-mouse">
+  <div class="drag-map-with-mouse" aria-hidden="true">
     {{ drag_map }}
   </div>
 
@@ -165,7 +165,8 @@
   </div>
 
   <div aria-live="off" class="map-info">
-    <span class="texts" aria-label="{{ map_diameter }}">
+    <label class="visuallyhidden">{{ map_diameter }}</label>
+    <span class="texts">
       <span class="current-diameter-meters" aria-live="off"></span> {{ meters }}
       (<span class="current-diameter-yards" aria-live="off"></span> {{ yards }})
     </span>
