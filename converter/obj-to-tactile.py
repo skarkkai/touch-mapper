@@ -11,7 +11,11 @@ import math
 import random
 import time
 import re
-import svgwrite
+
+script_dir = os.path.dirname(__file__)
+sys.path.insert(1, "%s/blender/2.76/python/lib/python3.4/svgwrite" % (script_dir,))
+sys.path.insert(1, "%s/blender/2.76/python/lib/python3.4/svglib" % (script_dir,))
+# These modules imported at the site of us
 
 ROAD_HEIGHT_CAR_MM = 0.82 # 3 x 0.25-0.3mm layers
 ROAD_HEIGHT_PEDESTRIAN_MM = 1.5
@@ -103,10 +107,11 @@ def add_svg_object(dwg, ob, brightness):
 
 def export_svg(base_path, args):
     t = time.clock()
-    min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
+    import svgwrite
     dwg = svgwrite.Drawing(base_path + '.svg', profile = 'basic')
     dwg['width'] = '20cm'
     dwg['height'] = '20cm'
+    min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
     dwg['viewBox'] = "%d %d %d %d" % (min_x, min_y, max_x - min_x, max_y - min_y)
     dwg['shape-rendering'] = 'geometricPrecision'
     dwg['stroke-width'] = 1.0 # removes gaps between triangles, and also makes roads a bit thicker
@@ -654,7 +659,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
 def make_tactile_map(args):
     t = time.clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
-    
+
     process_objects(min_x, min_y, max_x, max_y, args.scale, args.no_borders)
     print("process_objects() took " + (str(time.clock() - t)))
 
@@ -664,7 +669,7 @@ def make_tactile_map(args):
     # Add marker(s)
     if args.marker1 != None:
         add_marker1(args, args.scale)
-        
+
     return base_cube
 
 def main():
