@@ -10,6 +10,7 @@ import json
 import math
 import random
 import time
+import re
 import svgwrite
 
 ROAD_HEIGHT_CAR_MM = 0.82 # 3 x 0.25-0.3mm layers
@@ -76,20 +77,32 @@ def all_mesh_objects():
         out.append(ob)
     return out
 
+ob_name_matcher = re.compile('^([a-z]+)( *)(.*)$', re.IGNORECASE)
+
 def add_svg_object(dwg, ob, brightness):
-    color = "rgb(%d%%, %d%%, %d%%)" % (brightness, brightness, brightness)
+    color = "rgb(%d%%,%d%%,%d%%)" % (brightness, brightness, brightness)
     g = dwg.add(dwg.g(stroke=color, fill=color))
     #g = dwg.add(dwg.g(stroke_width=0, stroke=color, fill=color)) # theotically more correct, but leaves slight gaps between triangles
+
+    m = ob_name_matcher.match(ob.name)
+    if m:
+        ob_type = re.sub('area$', '', m.group(1).lower())
+        if m.group(2):
+            title = re.sub('::[a-z]+$', '', m.group(3))
+            g.set_desc(title + ' (' + ob_type + ')')
+        else:
+            g.set_desc(ob_type)
     mesh = ob.data
     verts = mesh.vertices
     for polygon in mesh.polygons:
         points = []
         for vert_index in polygon.vertices:
             vx, vz, vy = (verts[vert_index].co)
-            points.append((vx, vy))
+            points.append(('%.1f' % vx, '%.1f' % vy))
         g.add(dwg.polygon(points=points))
 
 def export_svg(base_path, args):
+    t = time.clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
     dwg = svgwrite.Drawing(base_path + '.svg', profile = 'basic')
     dwg['width'] = '20cm'
@@ -105,19 +118,22 @@ def export_svg(base_path, args):
     color30 = []
     color00 = []
     for ob in objs:
-        if ob.name.startswith('Road'):
-            if is_pedestrian(ob.name):
-                color00.append(ob)
-            else:
+        try:
+            if ob.name.startswith('Road'):
+                if is_pedestrian(ob.name):
+                    color00.append(ob)
+                else:
+                    color30.append(ob)
+            elif ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
                 color30.append(ob)
-        elif ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
-            color30.append(ob)
-        elif ob.name.startswith('Building') or ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
-            color60.append(ob)
-        else:
-            print("UNHANDLED TYPE IN SVG CREATION: " + ob.name)
+            elif ob.name.startswith('Building') or ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
+                color60.append(ob)
+            else:
+                print("UNHANDLED TYPE IN SVG CREATION: " + ob.name)
+        except Exception as e:
+            print("SVG export failed {}: {}".format(ob.name, str(e)))
 
-    # Draw layers starting from lowest (brightest color)
+    # Draw layers
     dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)'))
     for ob in color30:
         add_svg_object(dwg, ob, 30)
@@ -126,6 +142,7 @@ def export_svg(base_path, args):
     for ob in color60:
         add_svg_object(dwg, ob, 60)
     dwg.save()
+    print("creating SVG took " + (str(time.clock() - t)))
 
 def _export_stl(stl_path, scale):
     print("creating {stl}...".format(stl=stl_path))
@@ -657,7 +674,6 @@ def main():
         import_obj_file(obj_path)
         base_path = os.path.splitext(obj_path)[0]
         export_svg(base_path, args)
-        return
         base_cube = make_tactile_map(args)
         move_everything([-c for c in get_minimum_coordinate(base_cube)])
         if not args.no_stl_export:
