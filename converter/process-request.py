@@ -100,12 +100,14 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
             stl_ways = f.read()
         with open(os.path.dirname(osm_path) + '/map-rest.stl', 'rb') as f:
             stl_rest = f.read()
+        with open(os.path.dirname(osm_path) + '/map.svg', 'rb') as f:
+            svg = f.read()
         with open(os.path.dirname(osm_path) + '/map.blend', 'rb') as f:
             blend = f.read()
         with open(os.path.dirname(osm_path) + '/map-meta.json', 'r') as f:
             meta = f.read()
 
-        return stl, stl_ways, stl_rest, blend, json.loads(meta)
+        return stl, stl_ways, stl_rest, svg, blend, json.loads(meta)
     except Exception as e:
         raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
 
@@ -164,12 +166,12 @@ def main():
         osm_path = get_osm(progress_updater, request_body, args.work_dir)
 
         # Convert OSM => STL
-        stl, stl_ways, stl_rest, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
+        stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
 
         # Put full STL file. Completion of this upload makes UI consider the STL creation complete.
         progress_updater('uploading')
         common_args = {
-            'ACL': 'public-read', 'ContentType': 'application/sla', 'ContentEncoding': 'gzip',
+            'ACL': 'public-read', 'ContentEncoding': 'gzip',
             'CacheControl': 'max-age=8640000', 'StorageClass': 'REDUCED_REDUNDANCY',
         }
         s3.Bucket(map_bucket_name).put_object(
@@ -180,10 +182,12 @@ def main():
         # Put other files
         name_base = map_object_name[:-4]
         s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '-ways.stl', Body=gzip.compress(stl_ways, compresslevel=5), **common_args)
+            Key=name_base + '-ways.stl', Body=gzip.compress(stl_ways, compresslevel=5), **common_args, ContentType='application/sla')
         s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '-rest.stl', Body=gzip.compress(stl_rest, compresslevel=5), **common_args)
-        s3.Bucket(map_bucket_name).put_object(Key=name_base + '.blend', Body=blend, **common_args)
+            Key=name_base + '-rest.stl', Body=gzip.compress(stl_rest, compresslevel=5), **common_args, ContentType='application/sla')
+        s3.Bucket(map_bucket_name).put_object(
+            Key=name_base + '.svg', Body=gzip.compress(svg, compresslevel=5), **common_args, ContentType='image/svg+xml')
+        s3.Bucket(map_bucket_name).put_object(Key=name_base + '.blend', Body=blend, **common_args, ContentType='application/binary')
 
         print("Processing entire request took " + str(time.clock() - t))
     except Exception as e:

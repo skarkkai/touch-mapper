@@ -57,6 +57,10 @@
     {{ error_sending_email }}: <span class="error-msg-text"></span>
   </div>
 
+  <a class="download-link main-row large-row green-button" id="download-svg" target="_blank" style="background-color: #21debb">
+    <span>Download SVG file for embossing</span>
+  </a>
+
   <div class="ready-map">
     <div class="warning-no-buildings" style="display: none">
       <span><%- @t('warning_no_buildings', { startTag: '<a href="#data-from-osm">', endTag: '</a>' }) %></span>
