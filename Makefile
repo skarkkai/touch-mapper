@@ -33,10 +33,9 @@ test-install-ec2: package
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2-test:touch-mapper/dist/
 	ssh tm-ec2-test touch-mapper/dist/ec2-restart-pollers.sh
 
-test-install-ec2-diff: package
-	rsync -a --delete --delay-updates --dry-run -e ssh install/dist/ tm-ec2-test:touch-mapper/dist/
-
 test-cp-to-s3.sh:
+	# Copy test instance's content to S3 from where prod instance will install it on boot
 	ssh tm-ec2-test touch-mapper/dist/cp-to-s3.sh
 
 # Install into prod only through AMI launch
+

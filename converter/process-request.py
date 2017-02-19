@@ -186,21 +186,23 @@ def main():
             Metadata={ 'building_count': str(meta['building_count']) }, **common_args)
         print("Processing main request took " + str(time.clock() - t))
 
-        # Put other created files. These will be available to the user quickly enough.
+        # Put SVG to S3. Will be available to the user quickly enough.
         name_base = map_object_name[:-4]
+        s3.Bucket(map_bucket_name).put_object(
+            Key=name_base + '.svg', Body=gzip.compress(svg, compresslevel=5), **common_args, ContentType='image/svg+xml')
+
+        # Create PDF from SVG and put it to S3
+        pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
+        s3.Bucket(map_bucket_name).put_object(
+            Key=name_base + '.pdf', Body=gzip.compress(pdf, compresslevel=5), **common_args, ContentType='application/pdf')
+
+        # Put the marginally useful files into S3
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '-ways.stl', Body=gzip.compress(stl_ways, compresslevel=5), **common_args, ContentType='application/sla')
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '-rest.stl', Body=gzip.compress(stl_rest, compresslevel=5), **common_args, ContentType='application/sla')
         s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '.svg', Body=gzip.compress(svg, compresslevel=5), **common_args, ContentType='image/svg+xml')
-
-        # Create PDF from SVG and put it
-        pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '.pdf', Body=gzip.compress(pdf, compresslevel=5), **common_args, ContentType='application/pdf')
-
-        s3.Bucket(map_bucket_name).put_object(Key=name_base + '.blend', Body=blend, **common_args, ContentType='application/binary')
+            Key=name_base + '.blend',    Body=gzip.compress(blend, compresslevel=5), **common_args, ContentType='application/binary')
 
         print("Processing entire request took " + str(time.clock() - t))
     except Exception as e:

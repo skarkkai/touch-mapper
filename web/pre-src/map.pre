@@ -59,8 +59,8 @@
 
   <p class="experimental-downloads">
     <span>Experimental downloads:</span>
-    <a id="download-svg">SVG file for embossing</a>,
-    <a id="download-pdf">PDF file for swell form machines</a>
+    <a id="download-svg">SVG file</a> for embossing,
+    <a id="download-pdf">PDF file</a> for swell form machines
   </p>
 
   <div class="ready-map">
