@@ -16,6 +16,7 @@ import time
 import datetime
 import math
 import gzip
+import copy
 
 STORE_AGE = 8640000
 
@@ -158,22 +159,23 @@ def main():
         request_body = receive_sqs_msg(queue_name, args.poll_time)
         if request_body == None:
             return
-
-        # Put the request to S3 for diagnostics
         print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
-        s3 = boto3.resource('s3')
-        map_object_name = 'map/' + request_body['requestId'] + '.stl'
-        json_object_name = 'map/' + re.sub(r'\/.+', '', request_body['requestId']) + '/info.json' # deadbeef/foo.stl => deadbeef/info.json
-        progress_updater = functools.partial(update_progress, s3, map_bucket_name, map_object_name)
-        progress_updater('start')
-        s3.Bucket(map_bucket_name).put_object(Key=json_object_name, StorageClass='REDUCED_REDUNDANCY', \
-            Body=json.dumps(request_body).encode('utf8'), ACL='public-read', ContentType='text/plain')
 
         # Get OSM data
+        s3 = boto3.resource('s3')
+        map_object_name = 'map/' + request_body['requestId'] + '.stl'
+        progress_updater = functools.partial(update_progress, s3, map_bucket_name, map_object_name)
         osm_path = get_osm(progress_updater, request_body, args.work_dir)
 
         # Convert OSM => STL
         stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
+
+        # Put the augmented request to S3 to be maybe read again later.
+        json_object_name = 'map/' + re.sub(r'\/.+', '', request_body['requestId']) + '/info.json' # deadbeef/foo.stl => deadbeef/info.json
+        info = copy.copy(request_body)
+        info.update(meta['objectInfos'])
+        s3.Bucket(map_bucket_name).put_object(Key=json_object_name, \
+            Body=json.dumps(info).encode('utf8'), ACL='public-read', ContentType='application/json')
 
         # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
         progress_updater('uploading')

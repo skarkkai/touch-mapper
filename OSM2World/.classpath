@@ -75,5 +75,7 @@
 	<classpathentry kind="lib" path="lib/trove/trove-111118193120.jar"/>
 	<classpathentry kind="lib" path="lib/trove/trove-3.0.1-src.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jackson/jackson-databind-2.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/jackson/jackson-core-2.8.6.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>

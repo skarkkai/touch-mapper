@@ -28,6 +28,8 @@ import org.osm2world.core.map_data.data.MapArea;
 import org.osm2world.core.map_data.data.MapData;
 import org.osm2world.core.map_data.data.MapNode;
 import org.osm2world.core.map_data.data.MapWaySegment;
+import org.osm2world.core.map_data.object_info.ObjectInfoManager;
+import org.osm2world.core.map_data.object_info.ObjectType;
 import org.osm2world.core.map_elevation.creation.EleConstraintEnforcer;
 import org.osm2world.core.map_elevation.data.GroundState;
 import org.osm2world.core.math.GeometryUtil;
@@ -63,6 +65,7 @@ public class RoadModule extends ConfigurableWorldModule {
 			if (isRoad(line.getTags())) {
 				if (! isTunnelOrSimilar(line.getTags())) {
 					line.addRepresentation(new Road(line, line.getTags()));
+					ObjectInfoManager.add(line, ObjectType.ROAD);
 				}
 			}
 		}

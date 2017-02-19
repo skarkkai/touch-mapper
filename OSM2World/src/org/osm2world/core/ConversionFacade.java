@@ -18,6 +18,7 @@ import org.osm2world.core.map_data.creation.MetricMapProjection;
 import org.osm2world.core.map_data.creation.OSMToMapDataConverter;
 import org.osm2world.core.map_data.creation.OriginMapProjection;
 import org.osm2world.core.map_data.data.MapData;
+import org.osm2world.core.map_data.object_info.ObjectInfoManager;
 import org.osm2world.core.map_elevation.creation.EleConstraintEnforcer;
 import org.osm2world.core.map_elevation.creation.EleConstraintValidator;
 import org.osm2world.core.map_elevation.creation.LeastSquaresInterpolator;
@@ -314,13 +315,13 @@ public class ConversionFacade {
 		OSMToMapDataConverter converter = new OSMToMapDataConverter(mapProjection, config);
 		MapData mapData = converter.createMapData(osmData);
 		
-                AxisAlignedBoundingBoxXZ boundary = mapData.getBoundary();
-                System.out.println("Map-boundary:["
-                    + " minX=" + boundary.minX
-                    + " minZ=" + boundary.minZ
-                    + " maxX=" + boundary.maxX
-                    + " maxZ=" + boundary.maxZ
-                    + " ]");
+		AxisAlignedBoundingBoxXZ boundary = mapData.getBoundary();
+		System.out.println("Map-boundary:["
+		    + " minX=" + boundary.minX
+		    + " minZ=" + boundary.minZ
+		    + " maxX=" + boundary.maxX
+		    + " maxZ=" + boundary.maxZ
+		    + " ]");
 		
 		/* apply world modules */
 		updatePhase(Phase.REPRESENTATION);
@@ -363,6 +364,8 @@ public class ConversionFacade {
 				target.finish();
 			}
 		}
+		
+		System.out.println("Object-infos:[{\"objectInfos\":" + ObjectInfoManager.getJsonLine() + "}]");
 		
 		return new Results(mapProjection, mapData, eleData);
 		

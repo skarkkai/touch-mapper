@@ -45,14 +45,24 @@ def run_osm2world(input_path, output_path, scale):
     m = re.compile('.*Map-boundary:\[ minX=([0-9.-]+) minZ=([0-9.-]+) maxX=([0-9.-]+) maxZ=([0-9.-]+) \]', re.DOTALL).match(output)
     if not m:
         raise Exception("Couldn't find map bounds from OSM2World output")
-    return ({
+    bounds = {
         'minX': float(m.group(1)),
         'minY': float(m.group(2)), # change from Z to Y
         'maxX': float(m.group(3)),
         'maxY': float(m.group(4)), # change from Z to Y
+    }
+
+    m = re.compile('.*^Object-infos:\[(.+?)\]$', re.DOTALL|re.MULTILINE).match(output)
+    if not m:
+        raise Exception("Couldn't find object infos from OSM2World output")
+    object_infos = json.loads(m.group(1))
+
+    return ({
+        'objectInfos': object_infos,
+        'bounds': bounds
     })
 
-def run_blender(obj_path, bounds, args, meta_path):
+def run_blender(obj_path, bounds, args):
     blender_dir = os.path.join(script_dir, 'blender')
     blender_env = os.environ.copy()
     blender_env['LD_LIBRARY_PATH'] = os.path.join(blender_dir, 'lib') + ":" + blender_env.get('LD_LIBRARY_PATH', '')
@@ -91,13 +101,12 @@ def run_blender(obj_path, bounds, args, meta_path):
     print("----------- end obj-to-tactile.py output -----------")
     
     # Find some info from the output
+    meta = {}
     iterator = re.compile('^META-START:({.+}):META-END$', re.MULTILINE).finditer(output)
-    with open(meta_path, 'w') as f:
-        meta = {}
-        for match in iterator:
-            entry_json = match.group(1);
-            meta.update(json.loads(entry_json))
-        f.write(json.dumps(meta))
+    for match in iterator:
+        entry_json = match.group(1);
+        meta.update(json.loads(entry_json))
+    return meta
 
 def print_size(scale, bounds):
     sizeX = bounds['maxX'] - bounds['minX']
@@ -115,13 +124,17 @@ def main():
 
     # Run OSM2World
     obj_path = input_basename + '.obj'
-    bounds = run_osm2world(osm_path, obj_path, args.scale)
+    meta = run_osm2world(osm_path, obj_path, args.scale)
 
-    print_size(args.scale, bounds)
+    print_size(args.scale, meta['bounds'])
 
     # Run Blender
     meta_path = input_basename + '-meta.json'
-    run_blender(obj_path, bounds, args, meta_path)
+    blender_meta = run_blender(obj_path, meta['bounds'], args)
+    blender_meta.update(meta['objectInfos'])
+    with open(meta_path, 'w') as f:
+        f.write(json.dumps(blender_meta))
+
 
 if __name__ == "__main__":
     main()
