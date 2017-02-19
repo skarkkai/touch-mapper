@@ -13,8 +13,8 @@ import time
 import re
 
 script_dir = os.path.dirname(__file__)
-sys.path.insert(1, "%s/blender/2.76/python/lib/python3.4/svgwrite" % (script_dir,))
-# These modules imported at the site of us
+sys.path.insert(1, "%s/blender/2.78/python/lib/python3.5/svgwrite" % (script_dir,))
+# These modules imported at the site of use
 
 ROAD_HEIGHT_CAR_MM = 0.82 # 3 x 0.25-0.3mm layers
 ROAD_HEIGHT_PEDESTRIAN_MM = 1.5
