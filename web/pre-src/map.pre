@@ -57,9 +57,11 @@
     {{ error_sending_email }}: <span class="error-msg-text"></span>
   </div>
 
-  <a class="download-link main-row large-row green-button" id="download-svg" target="_blank" style="background-color: #21debb">
-    <span>Download SVG file for embossing</span>
-  </a>
+  <p class="experimental-downloads">
+    <span>Experimental downloads:</span>
+    <a id="download-svg">SVG file for embossing</a>,
+    <a id="download-pdf">PDF file for swell form machines</a>
+  </p>
 
   <div class="ready-map">
     <div class="warning-no-buildings" style="display: none">

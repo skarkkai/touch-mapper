@@ -136,6 +136,13 @@ def receive_sqs_msg(queue_name, poll_time):
             return request
     return None
 
+def svg_to_pdf(svg_path):
+    try:
+        import cairosvg
+        return cairosvg.svg2pdf(url=svg_path)
+    except Exception as e:
+        raise Exception("Can't convert SVG to PDF: " + str(e))
+
 def main():
     # TODO: if output S3 object already exists, exit immediately
     s3 = None
@@ -168,7 +175,7 @@ def main():
         # Convert OSM => STL
         stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
 
-        # Put full STL file. Completion of this upload makes UI consider the STL creation complete.
+        # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
         progress_updater('uploading')
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
@@ -179,7 +186,7 @@ def main():
             Metadata={ 'building_count': str(meta['building_count']) }, **common_args)
         print("Processing main request took " + str(time.clock() - t))
 
-        # Put other files
+        # Put other created files. These will be available to the user quickly enough.
         name_base = map_object_name[:-4]
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '-ways.stl', Body=gzip.compress(stl_ways, compresslevel=5), **common_args, ContentType='application/sla')
@@ -187,6 +194,12 @@ def main():
             Key=name_base + '-rest.stl', Body=gzip.compress(stl_rest, compresslevel=5), **common_args, ContentType='application/sla')
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '.svg', Body=gzip.compress(svg, compresslevel=5), **common_args, ContentType='image/svg+xml')
+
+        # Create PDF from SVG and put it
+        pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
+        s3.Bucket(map_bucket_name).put_object(
+            Key=name_base + '.pdf', Body=gzip.compress(pdf, compresslevel=5), **common_args, ContentType='application/pdf')
+
         s3.Bucket(map_bucket_name).put_object(Key=name_base + '.blend', Body=blend, **common_args, ContentType='application/binary')
 
         print("Processing entire request took " + str(time.clock() - t))

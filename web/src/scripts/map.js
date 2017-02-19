@@ -53,6 +53,7 @@
     initEmailSending($('.email-sending.type-self'), 'self', cloudFrontUrl, meta);
 
     $("#download-svg").attr("href", makeCloudFrontUrlSvg(info.requestId));
+    $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
 
     if (parseInt(jqXHR.getResponseHeader('x-amz-meta-building_count'), 10) === 0) {
         $('.warning-no-buildings').show();

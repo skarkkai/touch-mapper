@@ -94,6 +94,10 @@ function uriEncodeRequestId(rid) {
     return TM_HOST + "/map/" + uriEncodeRequestId(id) + '.svg';
   };
 
+  window.makeCloudFrontUrlPdf = function(id) {
+    return TM_HOST + "/map/" + uriEncodeRequestId(id) + '.pdf';
+  };
+
   window.makeCloudFrontInfoUrl = function(id) {
     var idStart = id.split('/', 2)[0];
     return TM_HOST + "/map/" + idStart + '/info.json';

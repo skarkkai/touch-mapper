@@ -14,7 +14,6 @@ import re
 
 script_dir = os.path.dirname(__file__)
 sys.path.insert(1, "%s/blender/2.76/python/lib/python3.4/svgwrite" % (script_dir,))
-sys.path.insert(1, "%s/blender/2.76/python/lib/python3.4/svglib" % (script_dir,))
 # These modules imported at the site of us
 
 ROAD_HEIGHT_CAR_MM = 0.82 # 3 x 0.25-0.3mm layers
@@ -92,8 +91,9 @@ def add_svg_object(dwg, ob, brightness):
     if m:
         ob_type = re.sub('area$', '', m.group(1).lower())
         if m.group(2):
-            title = re.sub('::[a-z]+$', '', m.group(3))
-            g.set_desc(title + ' (' + ob_type + ')')
+            title = re.sub('::[a-z]+$', '', m.group(3)) + ' (' + ob_type + ')'
+            #g.set_desc(title.encode('ascii', 'xmlcharrefreplace').decode('ascii'))
+            g.set_desc(title)
         else:
             g.set_desc(ob_type)
     mesh = ob.data
@@ -170,7 +170,7 @@ def export_blend_file(base_path):
     blend_path = base_path + '.blend'
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected initially
     bpy.ops.wm.save_as_mainfile(filepath=blend_path, check_existing=False, compress=True)
-    
+
 def create_cube(min_x, min_y, max_x, max_y, min_z, max_z):
     bpy.ops.mesh.primitive_cube_add()
     cube = bpy.context.active_object
