@@ -82,20 +82,7 @@ def all_mesh_objects():
 
 ob_name_matcher = re.compile('^([a-z]+)( *)(.*)$', re.IGNORECASE)
 
-def add_svg_object(dwg, ob, brightness):
-    color = "rgb(%d%%,%d%%,%d%%)" % (brightness, brightness, brightness)
-    g = dwg.add(dwg.g(stroke=color, fill=color))
-    #g = dwg.add(dwg.g(stroke_width=0, stroke=color, fill=color)) # theotically more correct, but leaves slight gaps between triangles
-
-    m = ob_name_matcher.match(ob.name)
-    if m:
-        ob_type = re.sub('area$', '', m.group(1).lower())
-        if m.group(2):
-            title = re.sub('::[a-z]+$', '', m.group(3)) + ' (' + ob_type + ')'
-            #g.set_desc(title.encode('ascii', 'xmlcharrefreplace').decode('ascii'))
-            g.set_desc(title)
-        else:
-            g.set_desc(ob_type)
+def add_polygons(dwg, g, ob):
     mesh = ob.data
     verts = mesh.vertices
     for polygon in mesh.polygons:
@@ -104,6 +91,39 @@ def add_svg_object(dwg, ob, brightness):
             vx, vz, vy = (verts[vert_index].co)
             points.append(('%.1f' % vx, '%.1f' % vy))
         g.add(dwg.polygon(points=points))
+
+def add_svg_object(dwg, ob, brightness):
+    color = "rgb(%d%%,%d%%,%d%%)" % (brightness, brightness, brightness)
+    g = dwg.g(stroke=color, fill=color)
+    g['stroke-width'] = 0.3 # removes gaps between objects
+    dwg.add(g)
+
+    m = ob_name_matcher.match(ob.name)
+    if m:
+        ob_type = re.sub('area$', '', m.group(1).lower())
+        if m.group(2):
+            title = re.sub('::[a-z]+$', '', m.group(3)) + ' (' + ob_type + ')'
+            g.set_desc(title)
+        else:
+            #g.set_desc(ob_type)
+            pass
+        if ob_type == 'road':
+            g['stroke-width'] = 0.8 # Make roads a bit thicker so embosser draws them
+    add_polygons(dwg, g, ob)
+
+def add_road_overlay_object(dwg, ob):
+    #g = dwg.g(visibility='hidden', fill='red', stroke='blue')
+    g = dwg.g(opacity=0.0, fill='red', stroke='blue')
+    g['stroke-width'] = 5.0
+    dwg.add(g)
+
+    m = ob_name_matcher.match(ob.name)
+    if m:
+        ob_type = re.sub('area$', '', m.group(1).lower())
+        if m.group(2):
+            title = re.sub('::[a-z]+$', '', m.group(3)) + ' (' + ob_type + ')'
+            g.set_desc(title)
+            add_polygons(dwg, g, ob)
 
 def export_svg(base_path, args):
     t = time.clock()
@@ -114,7 +134,6 @@ def export_svg(base_path, args):
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
     dwg['viewBox'] = "%d %d %d %d" % (min_x, min_y, max_x - min_x, max_y - min_y)
     dwg['shape-rendering'] = 'geometricPrecision'
-    dwg['stroke-width'] = 1.0 # removes gaps between triangles, and also makes roads a bit thicker
     dwg['stroke-linejoin'] = 'round' # greatly reduces protruding edges caused by non-zero stroke-width
 
     # Group objects into different layers
@@ -132,13 +151,15 @@ def export_svg(base_path, args):
             elif ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
                 color30.append(ob)
             elif ob.name.startswith('Building') or ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
-                color60.append(ob)
+                # XXX FIXME AARG  REMOVE THIS
+                if not str(args.scale).endswith('1'):
+                    color60.append(ob)
             else:
                 print("UNHANDLED TYPE IN SVG CREATION: " + ob.name)
         except Exception as e:
             print("SVG export failed {}: {}".format(ob.name, str(e)))
 
-    # Draw layers
+    # Add visible objects
     dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)'))
     for ob in color30:
         add_svg_object(dwg, ob, 30)
@@ -146,6 +167,15 @@ def export_svg(base_path, args):
         add_svg_object(dwg, ob, 0)
     for ob in color60:
         add_svg_object(dwg, ob, 60)
+
+    # Add overlays
+    for ob in objs:
+        try:
+            if ob.name.startswith('Road') or ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
+                add_road_overlay_object(dwg, ob)
+        except Exception as e:
+            print("SVG export failed2 {}: {}".format(ob.name, str(e)))
+
     dwg.save()
     print("creating SVG took " + (str(time.clock() - t)))
 
