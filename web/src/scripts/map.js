@@ -25,8 +25,11 @@
     }
   }
 
-  function infoLoadHandler(d, textStatus, jqXHR){
-    var info = JSON.parse(d);
+  function infoLoadHandler(info, textStatus, jqXHR){
+    if (typeof info === 'string') {
+      // Older info.json's were returned as strings because mime-type was text/plain
+      info = JSON.parse(info);
+    }
     $(".map-address").text(info.addrLong);
 
     var meta = {
