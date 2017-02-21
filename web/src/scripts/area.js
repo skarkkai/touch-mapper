@@ -120,8 +120,11 @@ function setParametersByMapId(id) {
       } else {
         alert("Error: " + textStatus);
       }
-    }).done(function(d, textStatus, jqXHR){
-      var data = JSON.parse(d);
+    }).done(function(data, textStatus, jqXHR){
+      if (typeof info === 'string') {
+        // Old info.json files may have content type text/plain
+        data = JSON.parse(data);
+      }
 
       // Set address as when searching
       setLocalStorage("addresses", JSON.stringify([{
