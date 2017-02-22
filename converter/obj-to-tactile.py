@@ -92,8 +92,7 @@ def add_polygons(dwg, g, ob):
             points.append(('%.1f' % vx, '%.1f' % vy))
         g.add(dwg.polygon(points=points))
 
-def add_svg_object(dwg, ob, brightness):
-    color = "rgb(%d%%,%d%%,%d%%)" % (brightness, brightness, brightness)
+def add_svg_object(dwg, ob, color):
     g = dwg.g(stroke=color, fill=color)
     g['stroke-width'] = 0.3 # removes gaps between objects
     dwg.add(g)
@@ -138,22 +137,29 @@ def export_svg(base_path, args):
 
     # Group objects into different layers
     objs = all_mesh_objects()
-    color60 = []
-    color30 = []
-    color00 = []
+    buildings = []
+    roads_car = []
+    roads_ped = []
+    rails = []
+    rivers = []
+    water_areas = []
     for ob in objs:
         try:
             if ob.name.startswith('Road'):
                 if is_pedestrian(ob.name):
-                    color00.append(ob)
+                    roads_ped.append(ob)
                 else:
-                    color30.append(ob)
-            elif ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
-                color30.append(ob)
-            elif ob.name.startswith('Building') or ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
+                    roads_car.append(ob)
+            elif ob.name.startswith('Rail'):
+                rails.append(ob)
+            elif ob.name.startswith('Waterway') or ob.name.startswith('River'):
+                rivers.append(ob)
+            elif ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
+                water_areas.append(ob)
+            elif ob.name.startswith('Building'):
                 # XXX FIXME AARG  REMOVE THIS
                 if not str(args.scale).endswith('1'):
-                    color60.append(ob)
+                    buildings.append(ob)
             else:
                 print("UNHANDLED TYPE IN SVG CREATION: " + ob.name)
         except Exception as e:
@@ -161,12 +167,18 @@ def export_svg(base_path, args):
 
     # Add visible objects
     dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)'))
-    for ob in color30:
-        add_svg_object(dwg, ob, 30)
-    for ob in color00:
-        add_svg_object(dwg, ob, 0)
-    for ob in color60:
-        add_svg_object(dwg, ob, 60)
+    for ob in rails:
+        add_svg_object(dwg, ob, 'rgb(0%, 50%, 0%)')
+    for ob in rivers:
+        add_svg_object(dwg, ob, 'rgb(20%, 20%, 100%)')
+    for ob in water_areas:
+        add_svg_object(dwg, ob, 'rgb(20%, 20%, 100%)')
+    for ob in roads_car:
+        add_svg_object(dwg, ob, 'rgb(70%, 0%, 0%)')
+    for ob in roads_ped:
+        add_svg_object(dwg, ob, 'rgb(0%, 0%, 0%)')
+    for ob in buildings:
+        add_svg_object(dwg, ob, 'rgb(80%, 20%, 100%)')
 
     # Add overlays
     for ob in objs:
