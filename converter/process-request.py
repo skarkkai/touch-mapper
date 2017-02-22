@@ -173,7 +173,7 @@ def main():
         # Put the augmented request to S3 to be maybe read again later.
         json_object_name = 'map/' + re.sub(r'\/.+', '', request_body['requestId']) + '/info.json' # deadbeef/foo.stl => deadbeef/info.json
         info = copy.copy(request_body)
-        info.update(meta['objectInfos'])
+        info.update(meta)
         s3.Bucket(map_bucket_name).put_object(Key=json_object_name, \
             Body=json.dumps(info).encode('utf8'), ACL='public-read', ContentType='application/json')
 
@@ -184,8 +184,7 @@ def main():
             'CacheControl': 'max-age=8640000', 'StorageClass': 'REDUCED_REDUNDANCY',
         }
         s3.Bucket(map_bucket_name).put_object(
-            Key=map_object_name, Body=gzip.compress(stl, compresslevel=5),
-            Metadata={ 'building_count': str(meta['building_count']) }, **common_args)
+            Key=map_object_name, Body=gzip.compress(stl, compresslevel=5), **common_args, ContentType='application/sla')
         print("Processing main request took " + str(time.clock() - t))
 
         # Put SVG to S3. Will be available to the user quickly enough.

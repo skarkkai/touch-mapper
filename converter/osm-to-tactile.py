@@ -131,9 +131,9 @@ def main():
     # Run Blender
     meta_path = input_basename + '-meta.json'
     blender_meta = run_blender(obj_path, meta['bounds'], args)
-    blender_meta.update(meta['objectInfos'])
+    meta.update(blender_meta)
     with open(meta_path, 'w') as f:
-        f.write(json.dumps(blender_meta))
+        f.write(json.dumps(meta))
 
 
 if __name__ == "__main__":

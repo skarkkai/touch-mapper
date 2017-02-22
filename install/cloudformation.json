@@ -87,7 +87,7 @@
           "CorsRules": [{
             "AllowedMethods": ["GET", "HEAD"],
             "AllowedOrigins": ["*"],
-            "ExposedHeaders": ["x-amz-meta-processing-stage", "x-amz-meta-error-msg", "x-amz-meta-building_count"]
+            "ExposedHeaders": ["x-amz-meta-processing-stage", "x-amz-meta-error-msg"]
           }]
         },
         "LifecycleConfiguration": {

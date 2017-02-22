@@ -662,7 +662,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     joined_buildings = join_and_clip(buildings, min_co, max_co, 'Buildings')
     
     # Buildings
-    print('META-START:{"building_count":%d}:META-END\n' % (len(buildings)))
+    print('META-START:{"buildingCount":%d}:META-END\n' % (len(buildings)))
     if joined_buildings:
         t = time.clock()
         extrude_building(joined_buildings, BUILDING_HEIGHT_MM * mm_to_units)

@@ -40,6 +40,8 @@
     };
     var cloudFrontUrl = makeCloudFrontUrl(info.requestId);
 
+    $(".map-content").html(makeMapDescription(info)); // from map-description.js
+
     /*
      * Ordering
      */
@@ -58,11 +60,11 @@
     $("#download-svg").attr("href", makeCloudFrontUrlSvg(info.requestId));
     $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
 
-    if (parseInt(jqXHR.getResponseHeader('x-amz-meta-building_count'), 10) === 0) {
-        $('.warning-no-buildings').show();
-    }
     $(".show-on-load").show();
     show3dPreview($('.preview-3d'), cloudFrontUrl);
+    if ('buildingCount' in info && info.buildingCount === 0) {
+        $('.warning-no-buildings').show();
+    }
   };
 
   $(window).ready(function(){

@@ -4,6 +4,11 @@
 
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
+  <div class="main-row map-content-row">
+    <h3>Map content</h3>
+    <div class="map-content"></div>
+  </div>
+
   <div class="main-row">
     <span class="printing-method-container" style="margin-right: 25px">
      <input type="radio" name="printing-method" id="printing-method-order" checked="checked">
@@ -65,7 +70,7 @@
 
   <div class="ready-map">
     <div class="warning-no-buildings" style="display: none">
-      <span><%- @t('warning_no_buildings', { startTag: '<a href="#data-from-osm">', endTag: '</a>' }) %></span>
+      <span>{{ warning_no_buildings }}</span>
     </div>
     <div class="preview-3d-container square-block-container" aria-label="{{ label_3d_preview }}">
         <div class="dummy">

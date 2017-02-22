@@ -55,7 +55,7 @@
   "multipart_current_adjustment": "Aktuell",
   "multipart_current_adjustment_aria": "Aktuelle Anpassung für Gebiet auf Kartenteil",
   "create_tactile_map": "Taktile Karte erstellen",
-  "warning_no_buildings": "Achtung: Auf der Karte befinden sich keine Gebäude. Die Daten von OpenStreetMap für dieses Gebiet könnten unvollständig sein. __startTag__Weitere Informationen.__endTag__",
+  "warning_no_buildings": "Achtung: Auf der Karte befinden sich keine Gebäude. Die Daten von OpenStreetMap für dieses Gebiet könnten unvollständig sein.",
   "download": "STL-Datei zum Ausdrucken herunterladen",
   "order_from": "Bei __linkTag__ bestellen",
   "email_stl_to": "STL-Datei senden an",

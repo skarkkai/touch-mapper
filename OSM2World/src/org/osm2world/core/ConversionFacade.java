@@ -365,7 +365,7 @@ public class ConversionFacade {
 			}
 		}
 		
-		System.out.println("Object-infos:[{\"objectInfos\":" + ObjectInfoManager.getJsonLine() + "}]");
+		System.out.println("Object-infos:[" + ObjectInfoManager.getJsonLine() + "]");
 		
 		return new Results(mapProjection, mapData, eleData);
 		
