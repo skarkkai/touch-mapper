@@ -15,6 +15,9 @@ url=s3://$domain
 echo "env_name: $env_name"
 echo "S3 web bucket: $url"
 
+# Make sure "web/build" is up to date
+make build
+
 # build => dist
 rm -rf dist
 cp -a build dist
@@ -28,6 +31,8 @@ for lang in $(cd dist; find ?? -type d); do
 done
 rm -f dist/.gitignore
 
+time=$( date +%Y%m%d-%H%M%S )
+git tag web-install-$time
 
 # Sync dist to S3
 aws s3 sync --delete --cache-control must-revalidate dist/ $url
