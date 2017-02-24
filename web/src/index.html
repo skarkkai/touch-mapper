@@ -17,7 +17,8 @@
         // BlindSquare URL is like
         // https://touch-mapper.org/?lat=60.666&lon=25.2525&addrName=Foo+place&lang=XX&origin=BlindSquare
         // Parameter "lang" is optional.
-        var lang = getUrlParam("lang") || 'en';
+        var lang = getUrlParam("lang");
+        lang = ['en', 'de', 'fi'].indexOf(lang) > -1 ? lang : 'en';
         url = "/" + lang + "/area" + window.location.search; // doesn't include hash, don't know why it should
       } else {
         url = "/en";
