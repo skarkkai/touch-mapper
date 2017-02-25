@@ -50,7 +50,7 @@
         <option value="17">{{ size_order_17 }}</option>
         <option value="20">{{ size_order_20 }}</option>
       </select>
-      <span class="hidden-for-3d">You can print in any size, but scale selection below assumes 27.9 cm / 11 inches.</span>
+      <span class="hidden-for-3d">{{ can_print_any_size }}</span>
     </div>
   </div>
 
@@ -75,11 +75,11 @@
 
   <div class="row main-row">
     <div class="col col1">
-      <label>Sisältö:</label>
+      <label>{{ map_content }}:</label>
     </div>
     <div class="col col2 content-selection-container">
       <input id="exclude-buildings" type="checkbox" />
-      <label for="exclude-buildings">No buildings</label>
+      <label for="exclude-buildings">{{ exclude_buildings }}</label>
     </div>
   </div>
 

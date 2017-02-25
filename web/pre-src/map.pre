@@ -5,8 +5,14 @@
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
   <div class="map-content-row">
-    <h3><span>Map content</span></h3>
-    <div class="map-content"></div>
+    <h3><span>{{ map_content }}</span></h3>
+    <div class="map-content">
+      <div class="row roads" style="display: none">{{ content__roads }}: <span class="text"></span></div>
+      <div class="row nothing" style="display: none">{{ content__nothing }}</div>
+      <div class="warning-no-buildings" style="display: none">
+        <span>{{ warning_no_buildings }}</span>
+      </div>
+    </div>
   </div>
 
   <div class="hidden-for-2d">
@@ -64,9 +70,6 @@
     </div>
 
     <div class="ready-map">
-      <div class="warning-no-buildings" style="display: none">
-        <span>{{ warning_no_buildings }}</span>
-      </div>
       <div class="preview-3d-container square-block-container" aria-label="{{ label_3d_preview }}">
           <div class="dummy">
             <div class="preview-3d square-block" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></div>
@@ -77,14 +80,14 @@
 
   <div class="hidden-for-3d">
     <a class="main-row large-row green-button" id="download-svg">
-      Open SVG file for embossing, or click right mouse button to download
+      {{ open_or_download_svg }}
     </a>
 
     <a class="main-row large-row green-button" id="download-pdf">
-      Open PDF file for swell form machines, or click right mouse button to download
+      {{ open_or_download_pdf }}
     </a>
 
-    <p class="ordering-2d-later">Ordering option for embossing / swell paper maps coming later.</p>
+    <p class="ordering-2d-later">{{ emboss_ordering_later }}</p>
 
     <div class="preview-2d-container" aria-hidden="true">
       <img id="svg-preview" />

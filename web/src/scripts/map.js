@@ -51,7 +51,7 @@
     };
     var cloudFrontUrl = makeCloudFrontUrl(info.requestId);
 
-    $(".map-content").html(makeMapDescription(info)); // from map-description.js
+    insertMapDescription(info, $(".map-content")); // from map-description.js
 
     /*
      * Ordering
@@ -74,9 +74,6 @@
 
     $(".show-on-load").show();
     show3dPreview($('.preview-3d'), cloudFrontUrl);
-    if ('buildingCount' in info && info.buildingCount === 0) {
-        $('.warning-no-buildings').show();
-    }
   };
 
   $(window).ready(function(){

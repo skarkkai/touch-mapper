@@ -13,17 +13,21 @@
      * - water coverage %
      */
 
-    function makeMapDescription(info) {
+    function insertMapDescription(info, container) {
       var roads = info.objectInfos;
       var roadNames = [];
       $.each(roads, function(name){
         roadNames.push(name);
       });
       if (roadNames.length > 0) {
-        return $("<div>").text("Roads: " + roadNames.join(", "));
+        container.find(".row.roads").show().find(".text").text(roadNames.join(", "));
+      } else {
+        container.find(".row.nothing").show();
       }
-      return "No named objects";
+      if (! info.excludeBuildings && 'buildingCount' in info && info.buildingCount === 0) {
+        container.find('.warning-no-buildings').show();
+      }
     }
 
-    window.makeMapDescription = makeMapDescription;
+    window.insertMapDescription = insertMapDescription;
 })();
