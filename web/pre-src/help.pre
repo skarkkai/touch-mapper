@@ -4,31 +4,32 @@
 
 <div class="help-content">
   <h3>{{ what_is_the_map_like }}</h3>
-
   <p>
-    {{ what_is_the_map_like__clarity }}
     {{ what_is_the_map_like__map_content }}
-
     <ul class="info-list">
       <li>{{ what_is_the_map_like__roads }}</li>
       <li>{{ what_is_the_map_like__buildings }}</li>
       <li>{{ what_is_the_map_like__railways }}</li>
       <li>{{ what_is_the_map_like__water }}</li>
-      <li>{{ what_is_the_map_like__selected_addr }}</li>
       <li>{{ what_is_the_map_like__north }}</li>
+      <li>{{ what_is_the_map_like__selected_addr }}</li>
     </ul>
   </p>
+  {{ what_is_the_map_like__clarity }}
+
+  <h3 id="larger-scale-maps">{{ larger_scale_maps }}</h3>
+  <p>{{ larger_scale_maps_answer }}</p>
 
   <h3 id="data-from-osm">{{ data_comes_from_osm }}</h3>
-
   <p>
     <%- @t('data_comes', { startTag: '<a href="https://en.wikipedia.org/wiki/OpenStreetMap">', endTag: '</a>' }) %>
   </p>
 
+  <h3 id="commercial-use">{{ commercial_use }}</h3>
+  <p>{{ commercial_use_answer }}</p>
+
   <h3 id="users">{{ users_and_purposes }}</h3>
-
   <p>{{ tactile_maps_have_many_different_user_groups }}</p>
-
   <ul class="info-list">
     <li>{{ visually_impaired_individuals }}</li>
     <li>{{ outdoors_tourist_attractions }}</li>
@@ -37,7 +38,6 @@
   </ul>
 
   <h3 id="multipart-maps">{{ multipart_maps_heading }}</h3>
-
   <p>
     {{ multipart_maps }}
   </p>
@@ -55,6 +55,7 @@
   <p>
     <%- @t('about_touch_mapper_answer', { startTag: '<a href="https://www.playfulpixels.com/">', endTag: '</a>' }) %>
   </p>
+  <p>{{ later_2d_options }}</p>
   <p>
     <%- @t('news_from', { linkFB: '<a href="https://www.facebook.com/touchmapper/">Facebook</a>', linkTwitter: '<a href="https://twitter.com/touchmapper">Twitter</a>' }) %>
   </p>
