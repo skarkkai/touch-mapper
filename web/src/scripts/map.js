@@ -25,12 +25,23 @@
     }
   }
 
+  function initPrintingTech(printingTech) {
+    if (printingTech === '3d') {
+      $(".hidden-for-3d").hide();
+      initPrintingMethod();
+    } else {
+      $(".hidden-for-2d").hide();
+    }
+  }
+
   function infoLoadHandler(info, textStatus, jqXHR){
     if (typeof info === 'string') {
       // Older info.json's were returned as strings because mime-type was text/plain
       info = JSON.parse(info);
     }
     $(".map-address").text(info.addrLong);
+
+    initPrintingTech(info.printingTech || '3d');
 
     var meta = {
         size: info.size,
@@ -59,6 +70,7 @@
 
     $("#download-svg").attr("href", makeCloudFrontUrlSvg(info.requestId));
     $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
+    $("#svg-preview").attr("src", makeCloudFrontUrlSvg(info.requestId));
 
     $(".show-on-load").show();
     show3dPreview($('.preview-3d'), cloudFrontUrl);
@@ -75,8 +87,6 @@
     }
 
     $(".back-to-previous-page").attr("href", "area?map=" + id);
-
-    initPrintingMethod();
 
     $.ajax({
         url: makeCloudFrontInfoUrl(id)

@@ -9,73 +9,85 @@
     <div class="map-content"></div>
   </div>
 
-  <div class="main-row">
-    <span class="printing-method-container" style="margin-right: 25px">
-     <input type="radio" name="printing-method" id="printing-method-order" checked="checked">
-     <label for="printing-method-order">{{ map_printing__order }}</label>
-    </span>
+  <div class="hidden-for-2d">
+    <div class="main-row">
+      <span class="printing-method-container" style="margin-right: 25px">
+       <input type="radio" name="printing-method" id="printing-method-order" checked="checked">
+       <label for="printing-method-order">{{ map_printing__order }}</label>
+      </span>
 
-    <span class="printing-method-container">
-     <input type="radio" name="printing-method" id="printing-method-self">
-     <label for="printing-method-self">{{ map_printing__self }}</label>
-    </span>
-  </div>
-
-  <a class="download-link main-row large-row green-button hidden-for-order" id="download-map" target="_blank">
-    <span>{{ download }}</span>
-  </a>
-
-  <a class="download-link main-row large-row green-button hidden-for-self-print" id="order-map">
-    <span class="order-download-link">
-      <%- @t('order_from', { linkTag: '<img class="order-pp-logo" src="/images/playful-pixels-logo.png" alt="Playful Pixels" />' }) %>
-    </span>
-  </a>
-
-  <div class="email-sending-row main-row large-row green-button hidden-for-order">
-    <span class="email-sending type-self">
-      <form action="#" class="email-sending-form">
-        <label for="email-addr">{{ email_stl_to }}</label>
-        <span class="inputs">
-          <input name="email-addr" id="email-addr" type="email">
-          <input type="submit" value="{{ send_submit }}" aria-label="{{ send_email }}" class="submit-email" />
-        </span>
-      </form>
-    </span>
-  </div>
-
-  <div class="email-sending-row main-row large-row green-button hidden-for-self-print">
-    <span class="email-sending type-order">
-      <form action="#" class="email-sending-form">
-        <label for="email-addr">{{ email_order_link_to }}</label>
-        <span class="inputs">
-          <input name="email-addr" id="email-addr" type="email">
-          <input type="submit" value="{{ send_submit }}" aria-label="{{ send_email }}" class="submit-email" />
-        </span>
-      </form>
-    </span>
-  </div>
-
-  <div class="email-sending-success email-sending-result" style="display: none" aria-live="assertive" tabindex="-1">
-    <span class="success-msg-text">{{ email_sent }}</span>
-  </div>
-  <div class="email-sending-error email-sending-result error-msg" style="display: none" aria-live="assertive" tabindex="-1">
-    {{ error_sending_email }}: <span class="error-msg-text"></span>
-  </div>
-
-  <p class="experimental-downloads">
-    <span>Experimental downloads:</span>
-    <a id="download-svg">SVG file</a> for embossing,
-    <a id="download-pdf">PDF file</a> for swell form machines
-  </p>
-
-  <div class="ready-map">
-    <div class="warning-no-buildings" style="display: none">
-      <span>{{ warning_no_buildings }}</span>
+      <span class="printing-method-container">
+       <input type="radio" name="printing-method" id="printing-method-self">
+       <label for="printing-method-self">{{ map_printing__self }}</label>
+      </span>
     </div>
-    <div class="preview-3d-container square-block-container" aria-label="{{ label_3d_preview }}">
-        <div class="dummy">
-          <div class="preview-3d square-block" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></div>
-        </div>
+
+    <a class="download-link main-row large-row green-button hidden-for-order" id="download-map" target="_blank">
+      <span>{{ download }}</span>
+    </a>
+
+    <a class="download-link main-row large-row green-button hidden-for-self-print" id="order-map">
+      <span class="order-download-link">
+        <%- @t('order_from', { linkTag: '<img class="order-pp-logo" src="/images/playful-pixels-logo.png" alt="Playful Pixels" />' }) %>
+      </span>
+    </a>
+
+    <div class="email-sending-row main-row large-row green-button hidden-for-order">
+      <span class="email-sending type-self">
+        <form action="#" class="email-sending-form">
+          <label for="email-addr">{{ email_stl_to }}</label>
+          <span class="inputs">
+            <input name="email-addr" id="email-addr" type="email">
+            <input type="submit" value="{{ send_submit }}" aria-label="{{ send_email }}" class="submit-email" />
+          </span>
+        </form>
+      </span>
+    </div>
+
+    <div class="email-sending-row main-row large-row green-button hidden-for-self-print">
+      <span class="email-sending type-order">
+        <form action="#" class="email-sending-form">
+          <label for="email-addr">{{ email_order_link_to }}</label>
+          <span class="inputs">
+            <input name="email-addr" id="email-addr" type="email">
+            <input type="submit" value="{{ send_submit }}" aria-label="{{ send_email }}" class="submit-email" />
+          </span>
+        </form>
+      </span>
+    </div>
+
+    <div class="email-sending-success email-sending-result" style="display: none" aria-live="assertive" tabindex="-1">
+      <span class="success-msg-text">{{ email_sent }}</span>
+    </div>
+    <div class="email-sending-error email-sending-result error-msg" style="display: none" aria-live="assertive" tabindex="-1">
+      {{ error_sending_email }}: <span class="error-msg-text"></span>
+    </div>
+
+    <div class="ready-map">
+      <div class="warning-no-buildings" style="display: none">
+        <span>{{ warning_no_buildings }}</span>
+      </div>
+      <div class="preview-3d-container square-block-container" aria-label="{{ label_3d_preview }}">
+          <div class="dummy">
+            <div class="preview-3d square-block" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hidden-for-3d">
+    <a class="main-row large-row green-button" id="download-svg">
+      Open SVG file for embossing, or click right mouse button to download
+    </a>
+
+    <a class="main-row large-row green-button" id="download-pdf">
+      Open PDF file for swell form machines, or click right mouse button to download
+    </a>
+
+    <p class="ordering-2d-later">Ordering option for embossing / swell paper maps coming later.</p>
+
+    <div class="preview-2d-container" aria-hidden="true">
+      <img id="svg-preview" />
     </div>
   </div>
 
