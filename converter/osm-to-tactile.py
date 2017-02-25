@@ -15,6 +15,7 @@ def do_cmdline():
     parser.add_argument('--scale', metavar='N', type=int, default=3100, help="scale to print in, default 1 : 3100")
     parser.add_argument('--marker1', metavar='MARKER', help="first marker's position relative to top left corner")
     parser.add_argument('--diameter', metavar='METERS', type=int, required=True, help="larger of map area x and y diameter in meters")
+    parser.add_argument('--size', metavar='CM', type=float, required=True, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
     parser.add_argument('--exclude-buildings', action='store_true', help="don't include buildings")
     args = parser.parse_args()
@@ -81,6 +82,7 @@ def run_blender(obj_path, bounds, args):
         '--max-x', str(bounds['maxX']),
         '--max-y', str(bounds['maxY']),
         '--diameter', str(args.diameter),
+        '--size', str(args.size),
     ]
     if args.foreground:
         script_args.append('--no-stl-export')

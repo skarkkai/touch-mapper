@@ -43,6 +43,7 @@ def do_cmdline():
     parser.add_argument('--scale', metavar='N', type=int, help="scale to export STL in, 4000 would mean one Blender unit (meter) = 0.25mm (STL file unit is normally mm)")
     parser.add_argument('--marker1', metavar='MARKER', help="first marker's position relative to top left corner")
     parser.add_argument('--diameter', metavar='METERS', type=int, help="larger of map area x and y diameter in meters")
+    parser.add_argument('--size', metavar='METERS', type=float, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
     parser.add_argument('obj_paths', metavar='PATHS', nargs='+', help='.obj files to use as input')
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
@@ -126,12 +127,14 @@ def add_road_overlay_object(dwg, ob):
 
 def export_svg(base_path, args):
     t = time.clock()
+    min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
+    one_cm_units = (max_y - min_y) / args.size
+
     import svgwrite
     dwg = svgwrite.Drawing(base_path + '.svg', profile = 'basic')
-    dwg['width'] = '20cm'
-    dwg['height'] = '20cm'
-    min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
-    dwg['viewBox'] = "%d %d %d %d" % (min_x, min_y, max_x - min_x, max_y - min_y)
+    dwg['width']  = "%.2f" % (args.size) + 'cm'
+    dwg['height'] = "%.2f" % (args.size + 1) + 'cm'
+    dwg['viewBox'] = "%f %f %f %f" % (min_x, min_y - one_cm_units, max_x - min_x, max_y - min_y + one_cm_units)
     dwg['shape-rendering'] = 'geometricPrecision'
     dwg['stroke-linejoin'] = 'round' # greatly reduces protruding edges caused by non-zero stroke-width
 
@@ -164,7 +167,7 @@ def export_svg(base_path, args):
             print("SVG export failed {}: {}".format(ob.name, str(e)))
 
     # Add visible objects
-    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)'))
+    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)')) # white background
     for ob in rails:
         add_svg_object(dwg, ob, 'rgb(0%, 50%, 0%)')
     for ob in rivers:
@@ -185,6 +188,17 @@ def export_svg(base_path, args):
                 add_road_overlay_object(dwg, ob)
         except Exception as e:
             print("SVG export failed2 {}: {}".format(ob.name, str(e)))
+
+    # Add north marker to top-right corner
+    g = dwg.g(fill='yellow')
+    g['stroke-width'] = 0
+    g.set_desc('North-east corner')
+    g.add(dwg.polygon(points=[
+        ('%.2f' % max_x, '%.2f' % min_y),
+        ('%.2f' % (max_x - one_cm_units), '%.2f' % min_y),
+        ('%.2f' % (max_x - one_cm_units/2), '%.2f' % (min_y - one_cm_units)),
+    ]))
+    dwg.add(g)
 
     dwg.save()
     print("creating SVG took " + (str(time.clock() - t)))
