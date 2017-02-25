@@ -5,7 +5,7 @@
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
   <div class="map-content-row">
-    <h3>Map content</h3>
+    <h3><span>Map content</span></h3>
     <div class="map-content"></div>
   </div>
 
