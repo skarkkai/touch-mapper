@@ -79,5 +79,7 @@
     </div>
   </div>
 
-  <a class="back-to-previous-page" href="area">{{ back_to_area }}</a>
+  <div class="back-to-previous-page-container">
+    <a class="back-to-previous-page" href="area">{{ back_to_area }}</a>
+  </div>
 </div>

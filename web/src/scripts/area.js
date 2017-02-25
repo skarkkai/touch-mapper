@@ -51,6 +51,25 @@ function showAllAddresses(addresses) {
 function initInputs(outputs, osmDragPanInteraction) {
   var initDone = false;
 
+  // Printing technology
+  $("#printing-tech-3d").change(function(){
+    setData("printing-tech", "3d");
+    $(".hidden-for-3d").hide();
+    $(".hidden-for-2d").show();
+    $("#map-size-preset").change();
+  });
+  $("#printing-tech-2d").change(function(){
+    setData("printing-tech", "2d");
+    $(".hidden-for-3d").show();
+    $(".hidden-for-2d").hide();
+    $("#map-size-input").val("27.9");
+  });
+  if (getLocalStorageStr('printing-tech', '2d') === '2d') {
+    $("#printing-tech-2d").prop('checked', true).change();
+  } else {
+    $("#printing-tech-3d").prop('checked', true).change();
+  }
+
   // Map size preset (3D print size)
   $("#map-size-preset").change(function(){
     var preset = $(this).val();
@@ -152,6 +171,7 @@ function setParametersByMapId(id) {
       setLocalStorage("multipartMode", data.multipartMode);
       setLocalStorage("multipartXpc", data.multipartXpc);
       setLocalStorage("multipartYpc", data.multipartYpc);
+      // Don't set printing-tech because it doesn't change between maps
 
       return true;
     });

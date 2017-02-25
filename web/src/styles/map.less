@@ -110,8 +110,16 @@
   margin-top: 60%;
 }
 
-.back-to-previous-page {
-  margin: 27px 5px 40px 5px;
-  display: block;
-  text-align: center;
+.back-to-previous-page-container {
+  margin-top: 27px;
+}
+
+@media only screen and (max-width: 450px) {
+  .email-sending #email-addr {
+    width: 100%;
+  }
+  .email-sending .submit-email {
+    margin-top: 6px;
+    width: 100%;
+  }
 }

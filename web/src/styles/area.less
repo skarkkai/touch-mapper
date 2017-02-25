@@ -7,6 +7,10 @@
   max-width: @col2-width - 130px;
 }
 
+.printing-tech-container {
+    white-space: nowrap;
+}
+
 .all-addresses li {
     list-style: none;
 }
@@ -211,12 +215,6 @@ html.multipart-mode .area-movement-buttons {
   margin-bottom: 5px;
 }
 
-.back-to-previous-page {
-  margin: 15px 5px 40px 5px;
-  display: block;
-  text-align: center;
-}
-
 .marker-container {
   position: absolute;
   transform-origin: center;
@@ -255,24 +253,4 @@ html.multipart-mode .area-movement-buttons {
   z-index: 10000;
   top: -@marker-size / (16 / 3);
   left: -@marker-size / (16 / 3);
-}
-
-@media only screen and (max-width: 450px) {
-  .info-list {
-    margin-left: 15px;
-  }
-  .email-sending #email-addr {
-    width: 100%;
-  }
-  .email-sending .submit-email {
-    margin-top: 6px;
-    width: 100%;
-  }
-}
-@media only screen and (max-width: 400px) {
-  .map-radius-row .col1,
-  .print-scale-row .col1 {
-    width: auto;
-    margin-right: 10px;
-  }
 }

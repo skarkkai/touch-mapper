@@ -74,6 +74,7 @@
     var msg = {
       addrShort: data.get("selected_addr_short"),
       addrLong: data.get("selected_addr_full"),
+      printingTech: data.get("printing-tech"),
       offsetX: data.get("offsetX"),
       offsetY: data.get("offsetY"),
       size: data.get("size"),

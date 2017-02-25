@@ -13,16 +13,34 @@
     </div>
   </div>
 
+  <div class="main-row printing-tech-row">
+    <div class="col col1">
+      <label>{{ printing_tech }}:</label>
+    </div>
+    <div class="col col2">
+      <span class="printing-tech-container" style="margin-right: 15px">
+       <input type="radio" name="printing-tech" id="printing-tech-3d">
+       <label for="printing-tech-3d">{{ printing_tech__3d }}</label>
+      </span>
+
+      <span class="printing-tech-container">
+       <input type="radio" name="printing-tech" id="printing-tech-2d">
+       <label for="printing-tech-2d">{{ printing_tech__2d }}</label>
+      </span>
+    </div>
+  </div>
+
   <div class="row main-row map-size-preset-row grey-in-advanced">
     <div class="col col1">
       <label for="map-size-preset">{{ map_size }}:</label>
     </div>
     <div class="col col2">
-      <select class="grey-in-advanced" id="map-size-preset">
+      <select class="grey-in-advanced hidden-for-2d" id="map-size-preset">
         <option value="13">{{ size_order_13 }}</option>
         <option value="17">{{ size_order_17 }}</option>
         <option value="20">{{ size_order_20 }}</option>
       </select>
+      <span class="hidden-for-3d">You can print in any size, but scale selection below assumes 27.9 cm / 11 inches.</span>
     </div>
   </div>
 
@@ -176,7 +194,9 @@
     </div>
   </div>
 
-  <a class="back-to-previous-page" href=".">{{ back_to_index }}</a>
+  <div class="back-to-previous-page-container">
+    <a class="back-to-previous-page" href=".">{{ back_to_index }}</a>
+  </div>
 
   <div id="marker1-overlay" class="marker-container" title="{{ tooltip_selected_address }}">
     <div class="marker1-star part1"></div>
