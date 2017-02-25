@@ -178,7 +178,6 @@ def main():
             Body=json.dumps(info).encode('utf8'), ACL='public-read', ContentType='application/json')
 
         # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
-        progress_updater('uploading')
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
             'CacheControl': 'max-age=8640000', 'StorageClass': 'REDUCED_REDUNDANCY',

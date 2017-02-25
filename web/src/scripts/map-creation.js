@@ -37,20 +37,11 @@
 
         var stage = jqXHR.getResponseHeader('x-amz-meta-processing-stage');
         if (stage) {
-
           // Progress update
-          var desc = {
-             "start": "Initializing...",
-             "reading_osm": "Reading map data...",
-             "converting": "Creating 3D model...",
-             "uploading": "Finishing..."
-          }[stage];
-          if (desc) {
-            $("#submit-button").val(desc);
-          }
+          var desc = window.TM.translations["progress__" + stage] || stage;
+          $("#submit-button").val(desc);
           pollAgain();
         } else {
-
           // Completed
           location.href = makeMapPageUrlRelative(requestId);
         }
@@ -115,13 +106,11 @@
       })()
     };
     var body = encodeURIComponent(JSON.stringify(msg));
-    $("#submit-button").val("Connecting...");
+    $("#submit-button").val(window.TM.translations.progress__connecting);
     $.ajax({
         type: "GET",
         url: window.TM_MAP_REQUEST_SQS_QUEUE + "?Action=SendMessage&MessageBody=" + body + "&Version=2012-11-05"
     }).done(function(d, textStatus, jqXHR){
-      $("#submit-button").val("Waiting for server...");
-      $("#submit-button")[0].focus();
       sqsSendDone(msg.requestId);
     }).fail(function(jqXHR, textStatus, errorThrown) {
       showError("can't access SQS queue: " + textStatus + ": " + errorThrown);

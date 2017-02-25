@@ -1,6 +1,16 @@
 <div class="show-on-load" style="display: none">
   <script src="../scripts/aws-sdk-2.3.3.min.js"></script>
   <script src="../scripts/ol-3.15.1-custom.min.js"></script>
+  <script>
+    window.TM = {
+      translations: {
+        /* For map-creation.js */
+        "progress__connecting": "{{ progress__connecting }}",
+        "progress__reading_osm": "{{ progress__reading_osm }}",
+        "progress__converting": "{{ progress__converting }}"
+      }
+    };
+  </script>
 
   <h2>{{ map_parameters }}</h2>
 
