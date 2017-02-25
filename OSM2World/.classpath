@@ -6,7 +6,6 @@
 	<classpathentry kind="lib" path="build/lib/configuration/commons-configuration-1.6.jar"/>
 	<classpathentry kind="lib" path="build/lib/configuration/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="build/lib/configuration/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="build/lib/guava/guava-r08.jar"/>
 	<classpathentry kind="lib" path="build/lib/javailp/javailp-1.2a.jar"/>
 	<classpathentry kind="lib" path="build/lib/javaproj/javaproj-1.0.6.jar"/>
 	<classpathentry kind="lib" path="build/lib/jewelcli/jewelcli-0.6.jar"/>
@@ -43,7 +42,6 @@
 	<classpathentry kind="lib" path="lib/configuration/commons-configuration-1.6.jar"/>
 	<classpathentry kind="lib" path="lib/configuration/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/configuration/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="lib/guava/guava-r08.jar"/>
 	<classpathentry kind="lib" path="lib/javailp/javailp-1.2a.jar"/>
 	<classpathentry kind="lib" path="lib/javaproj/javaproj-1.0.6.jar"/>
 	<classpathentry kind="lib" path="lib/jewelcli/jewelcli-0.6.jar"/>
@@ -77,5 +75,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jackson/jackson-databind-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/jackson/jackson-core-2.8.6.jar"/>
+	<classpathentry kind="lib" path="lib/guava/guava-20.0.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>

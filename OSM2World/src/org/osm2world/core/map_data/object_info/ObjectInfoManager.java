@@ -12,41 +12,52 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class ObjectInfoManager {
-	private static Map<String, ObjectInfo> infos = new HashMap<>();
+	private static Map<String, Road> roads = new HashMap<>();        // key is street name
+	private static Map<String, Address> addresses = new HashMap<>(); // key is street or place name
 	
-	public static void add(MapWaySegment line, ObjectType type) {
-		String name = line.getTags().getValue("name");
-		if (name == null || name.equals("")) {
-			return;
-		}
-		ObjectInfo info = infos.get(name);
-		if (info == null) {
-			info = new ObjectInfo(name, type);
-			infos.put(name, info);
-		}
-		if (info.type != type) {
-			System.out.println("WARNING: different object types for " + name);
-		}
-		info.points.add(new Point(line.getStartNode().getPos().x, line.getStartNode().getPos().z));
-		
-		for (Tag tag : line.getTags()) {
-			//System.out.println("tag:" + tag.key + "=" + tag.value);
-		}
-		String houseNumber = line.getTags().getValue("addr:housenumber");
-		if (houseNumber != null && ! houseNumber.equals("")) {
-			try {
-				info.houseNumbers.add(Integer.valueOf(houseNumber));
-			} catch (Exception e) {
-				System.out.println(houseNumber);
-				e.printStackTrace();
+	public static void add(MapWaySegment line) {
+		try {
+			String name = line.getTags().getValue("name");
+			if (name == null || name.equals("")) {
+				return;
 			}
+			Road info = roads.get(name);
+			if (info == null) {
+				info = new Road(name);
+				roads.put(name, info);
+			}
+			info.points.add(new Point(line.getStartNode().getPos().x, line.getStartNode().getPos().z));
+			
+			for (Tag tag : line.getTags()) {
+				//System.out.println("tag:" + tag.key + "=" + tag.value);
+			}
+//			String houseNumber = line.getTags().getValue("addr:housenumber");
+//			if (houseNumber != null && ! houseNumber.equals("")) {
+//					info.houseNumbers.add(Integer.valueOf(houseNumber));
+//			}
+		} catch (Exception e) {
+			System.out.println(line);
+			e.printStackTrace();
 		}
 	}
-	
+
+	public static Address addAddress(String name) {
+		Address addr = addresses.get(name);
+		if (addr == null) {
+			addr = new Address(name);
+			addresses.put(name, addr);
+		}
+		return addr;
+		
+	}
+
 	public static String getJsonLine() {
 		ObjectWriter writer = new ObjectMapper().writer();
 		try {
-			return writer.writeValueAsString(infos);
+			HashMap<String, Object> out = new HashMap<>();
+			out.put("roads", roads);
+			out.put("addresses", addresses);
+			return writer.writeValueAsString(out);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			return "{}";
