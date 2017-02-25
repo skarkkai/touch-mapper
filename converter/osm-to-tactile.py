@@ -16,6 +16,7 @@ def do_cmdline():
     parser.add_argument('--marker1', metavar='MARKER', help="first marker's position relative to top left corner")
     parser.add_argument('--diameter', metavar='METERS', type=int, required=True, help="larger of map area x and y diameter in meters")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
+    parser.add_argument('--exclude-buildings', action='store_true', help="don't include buildings")
     args = parser.parse_args()
     return args
 
@@ -30,7 +31,7 @@ def subprocess_output(cmd, env=None):
         print("subprocess failed with error code: {}".format(e.output.decode("utf-8")))
         raise e
 
-def run_osm2world(input_path, output_path, scale):
+def run_osm2world(input_path, output_path, scale, exclude_buildings):
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     #print(osm2world_path + " " + input_path + " " + output_path)
     cmd = [
@@ -38,7 +39,7 @@ def run_osm2world(input_path, output_path, scale):
         '-jar', osm2world_path,
         '-i', input_path,
         '-o', output_path]
-    output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE' : str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH' : '0.4' })
+    output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.4', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
     print(output)
 
     # Find bounds from output
@@ -124,7 +125,7 @@ def main():
 
     # Run OSM2World
     obj_path = input_basename + '.obj'
-    meta = run_osm2world(osm_path, obj_path, args.scale)
+    meta = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings)
 
     print_size(args.scale, meta['bounds'])
 

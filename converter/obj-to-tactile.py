@@ -157,9 +157,7 @@ def export_svg(base_path, args):
             elif ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
                 water_areas.append(ob)
             elif ob.name.startswith('Building'):
-                # XXX FIXME AARG  REMOVE THIS
-                if not str(args.scale).endswith('1'):
-                    buildings.append(ob)
+                buildings.append(ob)
             else:
                 print("UNHANDLED TYPE IN SVG CREATION: " + ob.name)
         except Exception as e:

@@ -85,6 +85,8 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
         args = ['--scale', str(request_body['scale']), '--diameter', str(request_body['diameter']) ]
         if request_body.get('noBorders', False):
             args.append('--no-borders')
+        if request_body.get('excludeBuildings', False):
+            args.append('--exclude-buildings')
         if 'marker1' in request_body:
             eff_area = request_body['effectiveArea']
             marker1x = (request_body['marker1']['lon'] - eff_area['lonMin']) / (eff_area['lonMax'] - eff_area['lonMin'])

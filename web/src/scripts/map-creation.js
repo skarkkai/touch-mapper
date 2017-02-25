@@ -69,6 +69,7 @@
       offsetX: data.get("offsetX"),
       offsetY: data.get("offsetY"),
       size: data.get("size"),
+      excludeBuildings: data.get("exclude-buildings"),
       lon: data.get("lon"),
       lat: data.get("lat"),
       effectiveArea: (function(){

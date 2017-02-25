@@ -30,7 +30,7 @@ public class ObjectInfoManager {
 		info.points.add(new Point(line.getStartNode().getPos().x, line.getStartNode().getPos().z));
 		
 		for (Tag tag : line.getTags()) {
-			System.out.println("tag:" + tag.key + "=" + tag.value);
+			//System.out.println("tag:" + tag.key + "=" + tag.value);
 		}
 		String houseNumber = line.getTags().getValue("addr:housenumber");
 		if (houseNumber != null && ! houseNumber.equals("")) {

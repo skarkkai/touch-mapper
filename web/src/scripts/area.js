@@ -70,6 +70,9 @@ function initInputs(outputs, osmDragPanInteraction) {
     $("#printing-tech-3d").prop('checked', true).change();
   }
 
+  // Map content selection
+  initSimpleInput("exclude-buildings", $("#exclude-buildings"), "checkbox", true);
+
   // Map size preset (3D print size)
   $("#map-size-preset").change(function(){
     var preset = $(this).val();
@@ -157,6 +160,8 @@ function setParametersByMapId(id) {
       // Set area view parameters
       setLocalStorage("offsetX", data.offsetX);
       setLocalStorage("offsetY", data.offsetY);
+      setLocalStorage("printing-tech", data.printingTech || "3d");
+      setLocalStorage("exclude-buildings", data.excludeBuildings || false);
       setLocalStorage("map-size-preset",
         optionExistsInSelect($("#map-size-preset"), data.size) ? data.size
           : ""); // empty value makes initInputs() use global default
@@ -171,7 +176,6 @@ function setParametersByMapId(id) {
       setLocalStorage("multipartMode", data.multipartMode);
       setLocalStorage("multipartXpc", data.multipartXpc);
       setLocalStorage("multipartYpc", data.multipartYpc);
-      // Don't set printing-tech because it doesn't change between maps
 
       return true;
     });

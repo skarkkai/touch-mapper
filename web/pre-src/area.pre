@@ -73,6 +73,16 @@
     </div>
   </div>
 
+  <div class="row main-row">
+    <div class="col col1">
+      <label>Sisältö:</label>
+    </div>
+    <div class="col col2 content-selection-container">
+      <input id="exclude-buildings" type="checkbox" />
+      <label for="exclude-buildings">No buildings</label>
+    </div>
+  </div>
+
   <div class="row main-row advanced-toggle">
     <div class="col col1">
       <label>{{ advanced_settings }}:</label>

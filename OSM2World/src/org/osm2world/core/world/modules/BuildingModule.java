@@ -73,8 +73,14 @@ import com.google.common.base.Function;
  */
 public class BuildingModule extends ConfigurableWorldModule {
 	
+	private static String TM_EXCLUDE_BUILDINGS = System.getenv("TOUCH_MAPPER_EXCLUDE_BUILDINGS");
+
 	@Override
 	public void applyTo(MapData mapData) {
+		
+		if (TM_EXCLUDE_BUILDINGS.equals("true")) {
+			return;
+		}
 		
 		boolean useBuildingColors = config.getBoolean("useBuildingColors", false);
 		boolean drawBuildingWindows = config.getBoolean("drawBuildingWindows", false);
