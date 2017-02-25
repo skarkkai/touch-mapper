@@ -93,10 +93,10 @@ def add_polygons(dwg, g, ob):
             points.append(('%.1f' % vx, '%.1f' % vy))
         g.add(dwg.polygon(points=points))
 
-def add_svg_object(dwg, ob, color):
+def add_svg_object(dwg, main_g, ob, color):
     g = dwg.g(stroke=color, fill=color)
     g['stroke-width'] = 0.3 # removes gaps between objects
-    dwg.add(g)
+    main_g.add(g)
 
     m = ob_name_matcher.match(ob.name)
     if m:
@@ -111,11 +111,10 @@ def add_svg_object(dwg, ob, color):
             g['stroke-width'] = 0.8 # Make roads a bit thicker so embosser draws them
     add_polygons(dwg, g, ob)
 
-def add_road_overlay_object(dwg, ob):
-    #g = dwg.g(visibility='hidden', fill='red', stroke='blue')
+def add_road_overlay_object(dwg, main_g, ob):
     g = dwg.g(opacity=0.0, fill='red', stroke='blue')
     g['stroke-width'] = 5.0
-    dwg.add(g)
+    main_g.add(g)
 
     m = ob_name_matcher.match(ob.name)
     if m:
@@ -167,36 +166,43 @@ def export_svg(base_path, args):
             print("SVG export failed {}: {}".format(ob.name, str(e)))
 
     # Add visible objects
-    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)')) # white background
+
+    # A group for main content
+    clip_path = dwg.defs.add(dwg.clipPath(id='main_clip'))
+    clip_path.add(dwg.rect(insert=(min_x, min_y), size=(max_x - min_x, max_y - min_y)))
+    main_g = dwg.add(dwg.g(clip_path='url(#main_clip)'))
+
+    # White background
+    main_g.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)')) # white background
     for ob in rails:
-        add_svg_object(dwg, ob, 'rgb(0%, 50%, 0%)')
+        add_svg_object(dwg, main_g, ob, 'rgb(0%, 50%, 0%)')
     for ob in rivers:
-        add_svg_object(dwg, ob, 'rgb(20%, 20%, 100%)')
+        add_svg_object(dwg, main_g, ob, 'rgb(20%, 20%, 100%)')
     for ob in water_areas:
-        add_svg_object(dwg, ob, 'rgb(20%, 20%, 100%)')
+        add_svg_object(dwg, main_g, ob, 'rgb(20%, 20%, 100%)')
     for ob in roads_car:
-        add_svg_object(dwg, ob, 'rgb(70%, 0%, 0%)')
+        add_svg_object(dwg, main_g, ob, 'rgb(70%, 0%, 0%)')
     for ob in roads_ped:
-        add_svg_object(dwg, ob, 'rgb(0%, 0%, 0%)')
+        add_svg_object(dwg, main_g, ob, 'rgb(0%, 0%, 0%)')
     for ob in buildings:
-        add_svg_object(dwg, ob, 'rgb(80%, 20%, 100%)')
+        add_svg_object(dwg, main_g, ob, 'rgb(80%, 20%, 100%)')
 
     # Add overlays
     for ob in objs:
         try:
             if ob.name.startswith('Road') or ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
-                add_road_overlay_object(dwg, ob)
+                add_road_overlay_object(dwg, main_g, ob)
         except Exception as e:
             print("SVG export failed2 {}: {}".format(ob.name, str(e)))
 
     # Add north marker to top-right corner
-    g = dwg.g(fill='yellow')
+    g = dwg.g(fill='black')
     g['stroke-width'] = 0
     g.set_desc('North-east corner')
     g.add(dwg.polygon(points=[
-        ('%.2f' % max_x, '%.2f' % min_y),
-        ('%.2f' % (max_x - one_cm_units), '%.2f' % min_y),
-        ('%.2f' % (max_x - one_cm_units/2), '%.2f' % (min_y - one_cm_units)),
+        ('%.2f' % (max_x),                      '%.2f' % (min_y - one_cm_units*0.3)),
+        ('%.2f' % (max_x - one_cm_units*0.7),   '%.2f' % (min_y - one_cm_units*0.3)),
+        ('%.2f' % (max_x - one_cm_units*0.7/2), '%.2f' % (min_y - one_cm_units)),
     ]))
     dwg.add(g)
 
