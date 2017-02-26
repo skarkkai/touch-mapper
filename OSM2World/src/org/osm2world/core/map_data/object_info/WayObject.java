@@ -4,14 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class Road {
-	public final String name;
-	public int importance;
+public class WayObject extends BaseObject {
+    public Set<String> houseNumbers = new TreeSet<>();
 	public Set<Point> points = new HashSet<>();
 	public Set<Point> borderCrossings = new HashSet<>(); // TODO
 	public Set<String> intersections = new HashSet<>(); // TODO
 
-	public Road(String name) {
-		this.name = name;
+	public WayObject(String name) {
+		super(name);
 	}
 }

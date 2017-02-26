@@ -18,7 +18,7 @@ import org.osm2world.core.map_data.creation.MetricMapProjection;
 import org.osm2world.core.map_data.creation.OSMToMapDataConverter;
 import org.osm2world.core.map_data.creation.OriginMapProjection;
 import org.osm2world.core.map_data.data.MapData;
-import org.osm2world.core.map_data.object_info.AddressManager;
+import org.osm2world.core.map_data.object_info.AddressGatherer;
 import org.osm2world.core.map_data.object_info.ObjectInfoManager;
 import org.osm2world.core.map_elevation.creation.EleConstraintEnforcer;
 import org.osm2world.core.map_elevation.creation.EleConstraintValidator;
@@ -366,7 +366,7 @@ public class ConversionFacade {
 			}
 		}
 
-		AddressManager.gatherAddresses(osmData);
+		AddressGatherer.gather(osmData, mapData);
 		
 		System.out.println("Object-infos:[" + ObjectInfoManager.getJsonLine() + "]");
 		

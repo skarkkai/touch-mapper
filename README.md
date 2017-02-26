@@ -19,8 +19,7 @@ List is in a rough priority order.
   - Maybe use short labels, and offer a separate legend that maps the labels to longer descriptions. The legend could be electronic.
 - Replace spinning 3D preview with one or more larger static images, create using Blender Render, using ambient occlusion
   - 3D preview is too small and unclear, and doesn't work on all devices
-- Allow selecting which things are included. Most important would be to allow excluding buildings.
-- Make selected address (indicated by the marker) draggable
+- Remember user's past maps
 - Avoid significant overlaps between roads and buildings. This would enable reliable two-color 3D printing.
 - Print a compass star into corner of the map
 - Indicate map scale using small dots on map borders

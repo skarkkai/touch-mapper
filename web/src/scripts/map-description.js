@@ -14,7 +14,7 @@
      */
 
     function insertMapDescription(info, container) {
-      var roads = (info.objectInfos || {}).roads || {};
+      var roads = (info.objectInfos || {}).ways || {};
       var roadNames = [];
       $.each(roads, function(name){
         roadNames.push(name);

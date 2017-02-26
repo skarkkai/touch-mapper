@@ -6,14 +6,17 @@ import java.util.Map;
 import org.openstreetmap.josm.plugins.graphview.core.data.Tag;
 import org.osm2world.core.map_data.data.MapNode;
 import org.osm2world.core.map_data.data.MapWaySegment;
+import org.osm2world.core.osm.data.OSMElement;
+import org.osm2world.core.osm.data.OSMNode;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class ObjectInfoManager {
-	private static Map<String, Road> roads = new HashMap<>();        // key is street name
-	private static Map<String, Address> addresses = new HashMap<>(); // key is street or place name
+	private static Map<String, WayObject> ways = new HashMap<>();
+	private static Map<String, PoiObject> pois = new HashMap<>();
+	private static Map<String, Map<String, PoiObject>> poiByType = new HashMap<>(); // tram_stop => Jaakkimantie => WayObject
 	
 	public static void add(MapWaySegment line) {
 		try {
@@ -21,42 +24,80 @@ public class ObjectInfoManager {
 			if (name == null || name.equals("")) {
 				return;
 			}
-			Road info = roads.get(name);
+			WayObject info = ways.get(name);
 			if (info == null) {
-				info = new Road(name);
-				roads.put(name, info);
+				info = new WayObject(name);
+				ways.put(name, info);
 			}
 			info.points.add(new Point(line.getStartNode().getPos().x, line.getStartNode().getPos().z));
 			
 			for (Tag tag : line.getTags()) {
 				//System.out.println("tag:" + tag.key + "=" + tag.value);
 			}
-//			String houseNumber = line.getTags().getValue("addr:housenumber");
-//			if (houseNumber != null && ! houseNumber.equals("")) {
-//					info.houseNumbers.add(Integer.valueOf(houseNumber));
-//			}
 		} catch (Exception e) {
 			System.out.println(line);
 			e.printStackTrace();
 		}
 	}
 
-	public static Address addAddress(String name) {
-		Address addr = addresses.get(name);
-		if (addr == null) {
-			addr = new Address(name);
-			addresses.put(name, addr);
+	public static void addPoi(OSMElement element, String subtype, MapNode mapNode) {
+		String name = element.tags.getValue("name");
+		if (name == null) {
+			return;
 		}
-		return addr;
+		if (mapNode == null && pois.containsKey(name)) {
+			return;
+		}
 		
+		// Create PoiObject
+		PoiObject poi = new PoiObject(name);
+		if (mapNode != null) {
+			poi.center = mapNode.getPos();
+		}
+		
+		// Store by name and type+name
+		pois.put(name, poi);
+		Map<String, PoiObject> byType = poiByType.get(subtype);
+		if (byType == null) {
+			byType = new HashMap<>();
+			poiByType.put(subtype, byType);
+		}
+		byType.put(name, poi);
+		
+		// If POI references a street and has a housenumber, add that to the street.
+		addStreetHouseNumber(element, name);
 	}
 
+	public static void addStreetMeta(OSMElement element) {
+		addStreetHouseNumber(element, element.tags.getValue("name"));
+	}
+	
+	public WayObject getPoiStreet(PoiObject poi) {
+		if (poi.street != null && ways.containsKey(poi.street)) {
+			return ways.get(poi.street);
+		}
+		return null;
+	}
+
+	private static void addStreetHouseNumber(OSMElement element, String name) {
+		String street = element.tags.getValue("addr:street");
+		String housenumber = element.tags.getValue("addr:housenumber");
+		System.out.println(street + ":" + housenumber);
+		if (street != null && housenumber != null) {
+			WayObject way = ways.get(street);
+			if (way != null) {
+				System.out.println("Adding housenumber " + street + "/" + housenumber + " from POI " + name + " ");
+				way.houseNumbers.add(housenumber);
+			}
+		}
+	}
+	
 	public static String getJsonLine() {
 		ObjectWriter writer = new ObjectMapper().writer();
 		try {
 			HashMap<String, Object> out = new HashMap<>();
-			out.put("roads", roads);
-			out.put("addresses", addresses);
+			out.put("ways", ways);
+			out.put("pois", poiByType);
 			return writer.writeValueAsString(out);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
