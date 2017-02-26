@@ -92,6 +92,7 @@
     "tooltip_selected_address": "Selected address",
     "meters": "meters",
     "yards": "yards",
+    "data_no_longer_available": "This map's cached files have expired. Go back to map parameters and click \"Create tactile map\" to create a similar map.",
     "back_to_index": "Back to address search",
     "back_to_area": "Back to map parameters",
     "help_has_more_info": "More information about Touch Mapper on the __startTag__help page__endTag__",

@@ -94,7 +94,7 @@
           "Rules": [{
             "ExpirationInDays": "180",
             "Id": "Delete after 180 days",
-            "Prefix": "map/",
+            "Prefix": "map/data/",
             "Status": "Enabled"
           }]
         },

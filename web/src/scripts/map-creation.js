@@ -96,7 +96,7 @@
       },
       advancedMode: data.get("advancedMode") || false,
       requestId: (function(){
-          var id = randomHex128() + "/" + data.get("selected_addr_short").replace(/[\x00-\x1F\x80-\x9F/]/g, '_');
+          var id = newMapId() + "/" + data.get("selected_addr_short").replace(/[\x00-\x1F\x80-\x9F/]/g, '_');
           var xpc = data.get("multipartXpc");
           var ypc = data.get("multipartYpc");
           if (data.get("multipartMode")) {

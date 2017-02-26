@@ -25,23 +25,31 @@
     }
   }
 
-  function initPrintingTech(printingTech) {
+  function checkDataAvailability(url) {
+    $.ajax({
+        type: "HEAD",
+        url: url
+    }).fail(function(jqXHR, textStatus, errorThrown){
+      if (jqXHR.status === 404) {
+          $(".hidden-for-3d, .hidden-for-2d").hide();
+          $(".no-data-available-msg").show();
+      }
+    });
+  }
+
+  function initPrintingTech(printingTech, requestId) {
     if (printingTech === '3d') {
       $(".hidden-for-3d").hide();
       initPrintingMethod();
+      checkDataAvailability(makeS3url(requestId));
     } else {
       $(".hidden-for-2d").hide();
+      checkDataAvailability(makeS3urlSvg(requestId));
     }
   }
 
   function infoLoadHandler(info, textStatus, jqXHR){
-    if (typeof info === 'string') {
-      // Older info.json's were returned as strings because mime-type was text/plain
-      info = JSON.parse(info);
-    }
     $(".map-address").text(info.addrLong);
-
-    initPrintingTech(info.printingTech || '3d');
 
     var meta = {
         size: info.size,
@@ -72,8 +80,16 @@
     $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
     $("#svg-preview").attr("src", makeCloudFrontUrlSvg(info.requestId));
 
+    // Only show download links for chosen map type.
+    var printingTech = info.printingTech || '3d';
+    initPrintingTech(printingTech, info.requestId);
+
     $(".show-on-load").show();
-    show3dPreview($('.preview-3d'), cloudFrontUrl);
+
+    if (printingTech === '3d') {
+      // Only works after the containing HTML is visible
+      show3dPreview($('.preview-3d'), cloudFrontUrl);
+    }
   };
 
   $(window).ready(function(){
@@ -85,14 +101,6 @@
 
     $(".back-to-previous-page").attr("href", "area?map=" + id);
 
-    $.ajax({
-        url: makeCloudFrontInfoUrl(id)
-    }).fail(function(jqXHR, textStatus, errorThrown){
-      if (jqXHR.status === 404) {
-        alert("There is no map for ID " + id);
-      } else {
-        alert("Error: " + textStatus);
-      }
-    }).done(infoLoadHandler);
+    loadInfoJson(id).done(infoLoadHandler);
   });
 })();

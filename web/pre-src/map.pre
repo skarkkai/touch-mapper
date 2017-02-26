@@ -94,6 +94,10 @@
     </div>
   </div>
 
+  <div class="no-data-available-msg" style="display: none">
+    <span>{{ data_no_longer_available }}</span>
+  </div>
+
   <div class="back-to-previous-page-container">
     <a class="back-to-previous-page" href="area">{{ back_to_area }}</a>
   </div>

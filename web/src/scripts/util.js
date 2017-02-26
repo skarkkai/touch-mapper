@@ -60,15 +60,6 @@ function getUrlParam(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function randomHex128() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + s4() + s4();
-}
-
 function uriEncodeRequestId(rid) {
   if (rid === undefined || rid === null || rid === "") {
     return rid;
@@ -78,44 +69,68 @@ function uriEncodeRequestId(rid) {
 }
 
 (function(){
-  var TM_HOST = window.location.protocol + "//" + TM_DOMAIN;
+  var TM_HOST = "https://" + TM_DOMAIN;
+  // XXX It would make more sense to have the S3 host in environment.js
+  var MAPS_S3_HOST = window.location.protocol + "//s3-" + TM_REGION + ".amazonaws.com/" + window.TM_ENVIRONMENT + ".maps.touch-mapper";
+
+  function idStart(id) {
+    return id.split('/', 2)[0];
+  }
+
+  function idVersion(id) {
+    if (idStart(id).substring(0, 1) === 'B') {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
+
+  window.makeCloudFrontInfoUrl = function(id) {
+    if (idVersion(id) === 2) {
+      // v2 ID. Has different prefix from the data files, so S3 can be configured to never expire the info files.
+      return TM_HOST + "/map/info/" + idStart(id) + '.json';
+    } else {
+      return TM_HOST + "/map/" + idStart(id) + '/info.json';
+    }
+  };
+
+  function dataPrefix(id) {
+    if (idVersion(id) === 2) {
+      return "/map/data/" + uriEncodeRequestId(id);
+    } else {
+      return "/map/" + uriEncodeRequestId(id);
+    }
+  }
 
   window.makeS3url = function(id) {
-    // XXX It would make more sense to have the S3 host in environment.js
-    var MAPS_S3_HOST = window.location.protocol + "//s3-" + TM_REGION + ".amazonaws.com/" + window.TM_ENVIRONMENT + ".maps.touch-mapper";
-    return MAPS_S3_HOST + "/map/" + uriEncodeRequestId(id) + '.stl';
+    return MAPS_S3_HOST + dataPrefix(id) + '.stl';
+  };
+
+  window.makeS3urlSvg = function(id) {
+    return MAPS_S3_HOST + dataPrefix(id) + '.svg';
   };
 
   window.makeCloudFrontUrl = function(id) {
-    return TM_HOST + "/map/" + uriEncodeRequestId(id) + '.stl';
+    return TM_HOST + dataPrefix(id) + '.stl';
   };
 
   window.makeCloudFrontUrlSvg = function(id) {
-    return TM_HOST + "/map/" + uriEncodeRequestId(id) + '.svg';
+    return TM_HOST + dataPrefix(id) + '.svg';
   };
 
   window.makeCloudFrontUrlPdf = function(id) {
-    return TM_HOST + "/map/" + uriEncodeRequestId(id) + '.pdf';
-  };
-
-  window.makeCloudFrontInfoUrl = function(id) {
-    var idStart = id.split('/', 2)[0];
-    return TM_HOST + "/map/" + idStart + '/info.json';
+    return TM_HOST + dataPrefix(id) + '.pdf';
   };
 
   window.makeMapPageUrlRelative = function(id) {
-    var idStart = id.split('/', 2)[0];
-    return "map?map=" + idStart;
+    return "map?map=" + idStart(id);
   };
 
   window.makeMapPermaUrl = function(id) {
-    var idStart = id.split('/', 2)[0];
-    return TM_HOST + '?map=' + idStart;
+    return TM_HOST + '?map=' + idStart(id);
   };
 
-  window.makeReturnUrl = function(id) {
-    return TM_HOST + "/return" + "?id=" + uriEncodeRequestId(id);
-  };
+  window.makeReturnUrl = window.makeMapPermaUrl;
 })();
 
 function showError(errorMsg) {
@@ -151,4 +166,33 @@ function getLocalStorageStr(key, defaultValue) {
 function getLocalStorageInt(key, defaultValue) {
   var str = getLocalStorageStr(key);
   return str ? parseInt(str, 10) : defaultValue;
+}
+
+function newMapId() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  // Return a v2 ID which starts with capital B.
+  // v1 IDs are all lower case.
+  return 'B' + s4().substring(1) + s4() + s4() + s4();
+}
+
+function loadInfoJson(id) {
+  return $.ajax({
+      url: makeCloudFrontInfoUrl(id)
+  }).fail(function(jqXHR, textStatus, errorThrown){
+    if (jqXHR.status === 404) {
+      alert("There is no map for ID " + id);
+    } else {
+      alert("Error: " + textStatus);
+    }
+  }).done(function(data, textStatus, jqXHR){
+    if (typeof data === 'string') {
+      // Old info.json files may have content type text/plain
+      data = JSON.parse(data);
+    };
+    return data;
+  });
 }

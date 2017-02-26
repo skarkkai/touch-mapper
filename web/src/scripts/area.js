@@ -133,20 +133,7 @@ function initInputs(outputs, osmDragPanInteraction) {
 }
 
 function setParametersByMapId(id) {
-  return $.ajax({
-        url: makeCloudFrontInfoUrl(id)
-    }).fail(function(jqXHR, textStatus, errorThrown){
-      if (jqXHR.status === 404) {
-        alert("There is no map for ID " + id);
-        location.href = ".";
-      } else {
-        alert("Error: " + textStatus);
-      }
-    }).done(function(data, textStatus, jqXHR){
-      if (typeof info === 'string') {
-        // Old info.json files may have content type text/plain
-        data = JSON.parse(data);
-      }
+  return loadInfoJson(id).done(function(data, textStatus, jqXHR){
 
       // Set address as when searching
       setLocalStorage("addresses", JSON.stringify([{

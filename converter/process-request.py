@@ -165,15 +165,15 @@ def main():
 
         # Get OSM data
         s3 = boto3.resource('s3')
-        map_object_name = 'map/' + request_body['requestId'] + '.stl'
+        map_object_name = 'map/data/' + request_body['requestId'] + '.stl'
         progress_updater = functools.partial(update_progress, s3, map_bucket_name, map_object_name)
         osm_path = get_osm(progress_updater, request_body, args.work_dir)
 
         # Convert OSM => STL
         stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
 
-        # Put the augmented request to S3 to be maybe read again later.
-        json_object_name = 'map/' + re.sub(r'\/.+', '', request_body['requestId']) + '/info.json' # deadbeef/foo.stl => deadbeef/info.json
+        # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of every map ever created.
+        json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
         info = copy.copy(request_body)
         info.update(meta)
         s3.Bucket(map_bucket_name).put_object(Key=json_object_name, \

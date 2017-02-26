@@ -89,6 +89,7 @@
     "tooltip_selected_address": "Valittu osoite",
     "meters": "metriä",
     "yards": "jaardia",
+    "data_no_longer_available": "Tämän kartan välimuistissa olevat tiedostot ovat vanhentuneet. Palaa kartan asetuksiin, ja klikkaa \"Luo kohokartta\" luodaksesi uuden samanlaisen kartan.",
     "back_to_index": "Palaa osoitehakuun",
     "back_to_area": "Palaa kartan asetuksiin",
     "help_has_more_info": "Lisää tietoa Touch Mapperista __startTag__ohjesivulla__endTag__",
