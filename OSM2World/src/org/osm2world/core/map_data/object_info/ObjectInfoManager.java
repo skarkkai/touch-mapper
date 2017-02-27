@@ -24,12 +24,12 @@ public class ObjectInfoManager {
 			if (name == null || name.equals("")) {
 				return;
 			}
-			WayObject info = ways.get(name);
-			if (info == null) {
-				info = new WayObject(name);
-				ways.put(name, info);
+			WayObject way = ways.get(name);
+			if (way == null) {
+				way = new WayObject(name);
+				ways.put(name, way);
 			}
-			info.points.add(new Point(line.getStartNode().getPos().x, line.getStartNode().getPos().z));
+			way.addSegment(line.getLineSegment());
 			
 			for (Tag tag : line.getTags()) {
 				//System.out.println("tag:" + tag.key + "=" + tag.value);

@@ -1,16 +1,11 @@
 package org.osm2world.core.map_data.object_info;
 
-import org.openstreetmap.josm.plugins.graphview.core.data.Tag;
 import org.osm2world.core.map_data.data.MapData;
 import org.osm2world.core.map_data.data.MapNode;
 import org.osm2world.core.map_data.object_info.ObjectType.MainType;
 import org.osm2world.core.osm.data.OSMData;
-import org.osm2world.core.osm.data.OSMElement;
 import org.osm2world.core.osm.data.OSMNode;
 import org.osm2world.core.osm.data.OSMRelation;
-import org.osm2world.core.osm.data.OSMWay;
-
-import com.google.common.base.Strings;
 
 public class AddressGatherer {
 	public static void gather(OSMData osmData, MapData grid) {
