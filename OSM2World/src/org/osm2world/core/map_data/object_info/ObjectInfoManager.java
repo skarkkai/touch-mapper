@@ -52,7 +52,7 @@ public class ObjectInfoManager {
 		// Create PoiObject
 		PoiObject poi = new PoiObject(name);
 		if (mapNode != null) {
-			poi.center = mapNode.getPos();
+			poi.center = new Point(mapNode.getPos().x, mapNode.getPos().z);
 		}
 		
 		// Store by name and type+name

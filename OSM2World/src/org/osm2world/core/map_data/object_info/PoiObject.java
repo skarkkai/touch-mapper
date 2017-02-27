@@ -5,7 +5,7 @@ import org.osm2world.core.math.VectorXZ;
 public class PoiObject extends BaseObject {
     public String street; // if set, may match name of a WayObject
     public String houseNumber;
-	public VectorXZ center;
+	public Point center;
 
 	public PoiObject(String name) {
 		super(name);
