@@ -69,7 +69,4 @@ $(window).load(function(){
 
   data.trigger("init");
   $(".show-on-load").show(); // Don't use CSS for this to make screen readers happier
-
-  // TODO: redirect if arrived from BlindSquare
-  initBlindSquareIntegration(data);
 });
