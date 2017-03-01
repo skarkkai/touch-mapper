@@ -30,9 +30,9 @@
         top_left: 'top_right',
         top_row: 'right_column',
         top_right: 'bottom_right',
-        right_column: 'bottom_column',
+        right_column: 'bottom_row',
         bottom_right: 'bottom_left',
-        bottom_column: 'left_column',
+        bottom_row: 'left_column',
         bottom_left: 'top_left',
         left_column: 'top_row'
       }
@@ -98,14 +98,14 @@
 
         // 1. rotation
         top_right: 'bottom_right',
-        right_column: 'bottom_column',
+        right_column: 'bottom_row',
         top_right_to_mc: 'bottom_right_to_mc',
         top_right_and_middle: 'bottom_right_and_center',
         bottom_right_and_middle: 'bottom_left_and_center',
 
         // 2. rotation
         bottom_right: 'bottom_left',
-        bottom_column: 'left_column',
+        bottom_row: 'left_column',
         bottom_right_to_mc: 'bottom_left_to_mc',
         bottom_right_and_center: 'bottom_left_and_middle',
         bottom_left_and_center: 'top_left_and_middle',
@@ -128,6 +128,23 @@
       }
     };
 
+    function uniqueSorted(a) {
+      var sorted = a.sort();
+      return $.grep(sorted, function(value, index, array) {
+          return (index === 0) || (value !== sorted[index-1]);
+      });
+    }
+
+    // Print out a translation injector string that can be pasted into HTML
+    function printPlaceTranslationLines(locMap) {
+      var list = [];
+      var placeNames = $.map(locMap, function(val, key) { return val; });
+      var prefix = 'location';
+      $.each(uniqueSorted(placeNames), function(i, placeName){
+        list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
+      });
+      console.log(list.join(""));
+    }
 
     function areEqualShallow(a, b) {
       for(var key in a) {
@@ -253,17 +270,18 @@
       classifyRoadLocations(roads, bounds);
       var loc2map = buildLocMap(locMap2specs);
       var loc3map = buildLocMap(locMap3specs);
-      console.log(loc3map);
+      printPlaceTranslationLines(loc2map);
+      printPlaceTranslationLines(loc3map);
       $.each(roads, function(name, road){
         var place = classesToPlaceName(road.classes3, loc3map);
         if (place) {
-          road.place = place + '3';
+          road.place = '3_' + place;
         } else {
           place = classesToPlaceName(road.classes2, loc2map);
           if (place) {
-            road.place = place + '2';
+            road.place = '2_' + place;
           } else {
-            road.place = 'general';
+            road.place = '_general';
           }
         }
         console.log(road.name, road.place);
@@ -271,6 +289,7 @@
     }
 
     function insertMapDescription(info, container) {
+      console.log(window.TM);
       var roads = (info.objectInfos || {}).ways || {};
       nameRoadPlaces(roads, info.bounds);
       var roadNames = [];
@@ -283,7 +302,11 @@
       });
       if (roadNames.length > 0) {
         roadNames = roadNames.sort(function(a, b){ return roads[b].totalLength - roads[a].totalLength; });
-        container.find(".row.roads").show().find(".text").text(roadNames.join(", "));
+        var descs = [];
+        $.each(roadNames, function(i, roadName){
+          descs.push(roadName + ' (' + window.TM.translations["location" + roads[roadName].place] + ')');
+        });
+        container.find(".row.roads").show().find(".text").text(descs.join(", "));
       } else {
         container.find(".row.nothing").show();
       }

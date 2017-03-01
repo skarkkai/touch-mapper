@@ -1,6 +1,42 @@
 <div class="show-on-load" style="display: none">
   <script src="../scripts/three-20160121.min.js"></script>
   <script src="../scripts/three-STLLoader-20160122.js"></script>
+  <script>
+window.TM = { translations: {
+    "location2_bottom_left": "{{ location2_bottom_left }}",
+    "location2_bottom_right": "{{ location2_bottom_right }}",
+    "location2_bottom_row": "{{ location2_bottom_row }}",
+    "location2_left_column": "{{ location2_left_column }}",
+    "location2_right_column": "{{ location2_right_column }}",
+    "location2_top_left": "{{ location2_top_left }}",
+    "location2_top_right": "{{ location2_top_right }}",
+    "location2_top_row": "{{ location2_top_row }}",
+    "location3_bottom_left": "{{ location3_bottom_left }}",
+    "location3_bottom_left_and_center": "{{ location3_bottom_left_and_center }}",
+    "location3_bottom_left_and_middle": "{{ location3_bottom_left_and_middle }}",
+    "location3_bottom_left_to_mc": "{{ location3_bottom_left_to_mc }}",
+    "location3_bottom_right": "{{ location3_bottom_right }}",
+    "location3_bottom_right_and_center": "{{ location3_bottom_right_and_center }}",
+    "location3_bottom_right_and_middle": "{{ location3_bottom_right_and_middle }}",
+    "location3_bottom_right_to_mc": "{{ location3_bottom_right_to_mc }}",
+    "location3_bottom_row": "{{ location3_bottom_row }}",
+    "location3_center_column": "{{ location3_center_column }}",
+    "location3_left_column": "{{ location3_left_column }}",
+    "location3_middle_row": "{{ location3_middle_row }}",
+    "location3_right_column": "{{ location3_right_column }}",
+    "location3_top_left": "{{ location3_top_left }}",
+    "location3_top_left_and_center": "{{ location3_top_left_and_center }}",
+    "location3_top_left_and_middle": "{{ location3_top_left_and_middle }}",
+    "location3_top_left_diagonal": "{{ location3_top_left_diagonal }}",
+    "location3_top_left_to_mc": "{{ location3_top_left_to_mc }}",
+    "location3_top_right": "{{ location3_top_right }}",
+    "location3_top_right_and_center": "{{ location3_top_right_and_center }}",
+    "location3_top_right_and_middle": "{{ location3_top_right_and_middle }}",
+    "location3_top_right_diagonal": "{{ location3_top_right_diagonal }}",
+    "location3_top_right_to_mc": "{{ location3_top_right_to_mc }}",
+    "location3_top_row": "{{ location3_top_row }}"
+} };
+</script>
 
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
