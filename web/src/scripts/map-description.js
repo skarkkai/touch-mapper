@@ -56,6 +56,7 @@
          " .  .  .    x  x  x    x  .  .   middle_row" +
          " .  .  .    x  x  x    .  x  .   middle_row" +
          " .  .  .    x  x  x    .  .  x   middle_row" +
+         " x  .  .    x  x  x    x  .  .   middle_row" +
          " x  .  .    .  x  .    .  .  x   top_left_diagonal" +
          " x  x  .    .  x  .    .  .  x   top_left_diagonal" +
          " x  .  .    x  x  .    .  .  x   top_left_diagonal" +
@@ -65,16 +66,31 @@
          " x  x  .    .  x  .    .  x  x   top_left_diagonal" +
          " x  .  .    x  x  .    .  x  x   top_left_diagonal" +
          " x  .  .    x  x  x    .  .  x   top_left_diagonal" +
+         " x  x  .    x  x  .    .  .  x   top_left_diagonal" +
+         " x  x  .    x  x  x    .  .  x   top_left_diagonal" +
+         " x  x  .    x  x  .    .  x  x   top_left_diagonal" +
+         " x  x  .    x  x  x    .  x  x   top_left_diagonal" +
          " x  .  .    .  x  .    .  .  .   top_left_to_mc" +
          " x  x  .    .  x  .    .  .  .   top_left_to_mc" +
          " x  .  .    x  x  .    .  .  .   top_left_to_mc" +
          " x  x  .    x  x  .    .  .  .   top_left_to_mc" +
          " x  x  .    .  .  .    .  .  .   top_left_and_center" +
          " .  x  x    .  .  .    .  .  .   top_right_and_center" +
+         " .  .  x    x  x  .    .  x  x   top_right_and_center" +
+         " x  x  .    .  x  x    .  .  .   top_left_to_middle_right" +
+         " x  x  .    x  x  x    .  .  .   top_left_to_middle_right" +
+         " x  x  x    .  x  x    .  .  .   top_left_to_middle_right" +
+         " x  .  x    .  x  x    .  .  .   top_left_to_middle_right" +
+
+         " .  x  x    x  x  .    .  .  .   top_right_to_middle_left" +
+         " .  x  x    x  x  x    .  .  .   top_right_to_middle_left" +
+         " x  x  x    x  x  .    .  .  .   top_right_to_middle_left" +
+         " x  .  x    x  x  .    .  .  .   top_right_to_middle_left" +
          "",
-              //  x  .  .
-              //  X  x  .
-              //  .  X  x
+         // bc+br+mc+ml
+              //  x  .  x
+              //  .  x  x
+              //  .  .  .
       // Loc name mapping is center point symmetric, so only top portion combinations (and the center) are
       // defined above. The rest are generated according to this rotation spec.
       locRotation: {
@@ -95,6 +111,8 @@
         top_left_to_mc: 'top_right_to_mc',
         top_left_and_center: 'top_right_and_middle',
         top_right_and_center: 'bottom_right_and_middle',
+        top_left_to_middle_right: 'top_right_to_bottom_center',
+        top_right_to_middle_left: 'bottom_right_to_top_center',
 
         // 1. rotation
         top_right: 'bottom_right',
@@ -102,6 +120,8 @@
         top_right_to_mc: 'bottom_right_to_mc',
         top_right_and_middle: 'bottom_right_and_center',
         bottom_right_and_middle: 'bottom_left_and_center',
+        top_right_to_bottom_center: 'bottom_right_to_middle_left',
+        bottom_right_to_top_center: 'bottom_left_to_middle_right',
 
         // 2. rotation
         bottom_right: 'bottom_left',
@@ -109,6 +129,8 @@
         bottom_right_to_mc: 'bottom_left_to_mc',
         bottom_right_and_center: 'bottom_left_and_middle',
         bottom_left_and_center: 'top_left_and_middle',
+        bottom_right_to_middle_left: 'bottom_left_to_top_center',
+        bottom_left_to_middle_right: 'top_left_to_bottom_center',
 
         // 3. rotation
         bottom_left: 'top_left',
@@ -116,6 +138,8 @@
         bottom_left_to_mc: 'top_left_to_mc',
         bottom_left_and_middle: 'top_left_and_center',
         top_left_and_middle: 'top_right_and_center',
+        bottom_left_to_top_center: 'top_left_to_middle_right',
+        top_left_to_bottom_center: 'top_right_to_middle_left',
 
         // Two states only
         middle_row: 'center_column',
@@ -136,10 +160,10 @@
     }
 
     // Print out a translation injector string that can be pasted into HTML
-    function printPlaceTranslationLines(locMap) {
+    function printPlaceTranslationLines(locMap, category) {
       var list = [];
       var placeNames = $.map(locMap, function(val, key) { return val; });
-      var prefix = 'location';
+      var prefix = 'location' + category + '_';
       $.each(uniqueSorted(placeNames), function(i, placeName){
         list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
       });
@@ -194,7 +218,11 @@
             rowLocs[places[i]] = true;
           }
         }
-        baseMap[ Object.keys(rowLocs).sort().join("+") ] = name;
+        var str = Object.keys(rowLocs).sort().join("+");
+        if (baseMap[str]) {
+          throw "duplicate: " + str;
+        }
+        baseMap[str] = name;
       }
 
       // Rotate 3 times
@@ -270,8 +298,9 @@
       classifyRoadLocations(roads, bounds);
       var loc2map = buildLocMap(locMap2specs);
       var loc3map = buildLocMap(locMap3specs);
-      printPlaceTranslationLines(loc2map);
-      printPlaceTranslationLines(loc3map);
+      //console.log(loc3map);
+      printPlaceTranslationLines(loc2map, 2);
+      printPlaceTranslationLines(loc3map, 3);
       $.each(roads, function(name, road){
         var place = classesToPlaceName(road.classes3, loc3map);
         if (place) {
@@ -289,7 +318,6 @@
     }
 
     function insertMapDescription(info, container) {
-      console.log(window.TM);
       var roads = (info.objectInfos || {}).ways || {};
       nameRoadPlaces(roads, info.bounds);
       var roadNames = [];
