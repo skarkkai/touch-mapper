@@ -18,8 +18,8 @@
       base:
          " tl tr bl br place_name" +
          " x  .  .  .  top_left" +
-         " x  x  .  .  top_row"
-         ,
+         " x  x  .  .  top_row" +
+         "",
       locRotation: {
         tl: 'tr',
         tr: 'br',
@@ -43,13 +43,38 @@
          " tl tc tr   ml mc mr   bl bc br  place_name" +
          " x  .  .    .  .  .    .  .  .   top_left" +
          " x  x  x    .  .  .    .  .  .   top_row" +
+         " x  x  x    x  .  .    .  .  .   top_row" +
+         " x  x  x    .  x  .    .  .  .   top_row" +
+         " x  x  x    .  .  x    .  .  .   top_row" +
+         " x  x  x    .  .  .    x  .  .   top_row" +
+         " x  x  x    .  .  .    .  x  .   top_row" +
+         " x  x  x    .  .  .    .  .  x   top_row" +
+         " .  .  .    x  x  x    .  .  .   middle_row" +
          " x  .  .    x  x  x    .  .  .   middle_row" +
          " .  x  .    x  x  x    .  .  .   middle_row" +
          " .  .  x    x  x  x    .  .  .   middle_row" +
          " .  .  .    x  x  x    x  .  .   middle_row" +
          " .  .  .    x  x  x    .  x  .   middle_row" +
-         " .  .  .    x  x  x    .  .  x   middle_row"
-         ,
+         " .  .  .    x  x  x    .  .  x   middle_row" +
+         " x  .  .    .  x  .    .  .  x   top_left_diagonal" +
+         " x  x  .    .  x  .    .  .  x   top_left_diagonal" +
+         " x  .  .    x  x  .    .  .  x   top_left_diagonal" +
+         " x  .  .    .  x  x    .  .  x   top_left_diagonal" +
+         " x  .  .    .  x  .    .  x  x   top_left_diagonal" +
+         " x  x  .    .  x  x    .  .  x   top_left_diagonal" +
+         " x  x  .    .  x  .    .  x  x   top_left_diagonal" +
+         " x  .  .    x  x  .    .  x  x   top_left_diagonal" +
+         " x  .  .    x  x  x    .  .  x   top_left_diagonal" +
+         " x  .  .    .  x  .    .  .  .   top_left_to_mc" +
+         " x  x  .    .  x  .    .  .  .   top_left_to_mc" +
+         " x  .  .    x  x  .    .  .  .   top_left_to_mc" +
+         " x  x  .    x  x  .    .  .  .   top_left_to_mc" +
+         " x  x  .    .  .  .    .  .  .   top_left_and_center" +
+         " .  x  x    .  .  .    .  .  .   top_right_and_center" +
+         "",
+              //  x  .  .
+              //  X  x  .
+              //  .  X  x
       // Loc name mapping is center point symmetric, so only top portion combinations (and the center) are
       // defined above. The rest are generated according to this rotation spec.
       locRotation: {
@@ -64,25 +89,39 @@
         mc: 'mc'
       },
       placeRotation: {
-        // top
+        // orig
         top_left: 'top_right',
         top_row: 'right_column',
+        top_left_to_mc: 'top_right_to_mc',
+        top_left_and_center: 'top_right_and_middle',
+        top_right_and_center: 'bottom_right_and_middle',
 
-        // right
+        // 1. rotation
         top_right: 'bottom_right',
         right_column: 'bottom_column',
+        top_right_to_mc: 'bottom_right_to_mc',
+        top_right_and_middle: 'bottom_right_and_center',
+        bottom_right_and_middle: 'bottom_left_and_center',
 
-        // bottom
+        // 2. rotation
         bottom_right: 'bottom_left',
         bottom_column: 'left_column',
+        bottom_right_to_mc: 'bottom_left_to_mc',
+        bottom_right_and_center: 'bottom_left_and_middle',
+        bottom_left_and_center: 'top_left_and_middle',
 
-        // left
+        // 3. rotation
         bottom_left: 'top_left',
         left_column: 'top_row',
+        bottom_left_to_mc: 'top_left_to_mc',
+        bottom_left_and_middle: 'top_left_and_center',
+        top_left_and_middle: 'top_right_and_center',
 
         // Two states only
         middle_row: 'center_column',
         center_column: 'middle_row',
+        top_left_diagonal: 'top_right_diagonal',
+        top_right_diagonal: 'top_left_diagonal',
 
         // One state only
         middle_center: 'middle_center'
