@@ -182,7 +182,7 @@
       $.each(uniqueSorted(placeNames), function(i, placeName){
         list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
       });
-      console.log(list.join(""));
+      //console.log(list.join("")); // XXXXXXXXXXXXXXXXXXXXXXX
     }
 
     function areEqualShallow(a, b) {
@@ -260,7 +260,7 @@
 
     function classesToPlaceName(classes, placeNames) {
       var str = Object.keys(classes).sort().join("+");
-      console.log(str, placeNames[str]);
+      //console.log(str, placeNames[str]);
       return placeNames[str];
     }
 
@@ -328,7 +328,7 @@
             road.place = '_general';
           }
         }
-        console.log(road.name, road.place);
+        //console.log(road.name, road.place);
       });
     }
 
