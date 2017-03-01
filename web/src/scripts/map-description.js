@@ -14,33 +14,45 @@
      */
 
 
-     var locNames2 =
-       " tl tr bl br place_name" +
-       " x  .  .  .  top_left" +
-       " .  x  .  .  top_right" +
-       " .  .  x  .  bottom_left" +
-       " .  .  .  x  bottom_right" +
-       " x  x  .  .  top" +
-       " .  .  x  x  bottom" +
-       " x  .  x  .  left" +
-       " .  x  .  x  right";
+    var locMap2specs = {
+      base:
+         " tl tr bl br place_name" +
+         " x  .  .  .  top_left" +
+         " x  x  .  .  top_row"
+         ,
+      locRotation: {
+        tl: 'tr',
+        tr: 'br',
+        br: 'bl',
+        bl: 'tl'
+      },
+      placeRotation: {
+        top_left: 'top_right',
+        top_row: 'right_column',
+        top_right: 'bottom_right',
+        right_column: 'bottom_column',
+        bottom_right: 'bottom_left',
+        bottom_column: 'left_column',
+        bottom_left: 'top_left',
+        left_column: 'top_row'
+      }
+    };
 
-     var locNames3 =
-       " tl tc tr   ml mc mr   bl bc br  place_name" +
-       " x  .  .    .  .  .    .  .  .   top_left" +
-       " x  x  x    .  .  .    .  .  .   top_row" +
-       " x  .  .    x  x  x    .  .  .   middle_row" +
-       " .  x  .    x  x  x    .  .  .   middle_row" +
-       " .  .  x    x  x  x    .  .  .   middle_row" +
-       " .  .  .    x  x  x    x  .  .   middle_row" +
-       " .  .  .    x  x  x    .  x  .   middle_row" +
-       " .  .  .    x  x  x    .  .  x   middle_row"
-       ;
-
-    // locNames is center point symmetric, so only top portion combinations (and the center) are
-    // defined above. The rest are generated according to this mapping.
-    var loc3rotation = {
-      loc: {
+    var locMap3specs = {
+      base:
+         " tl tc tr   ml mc mr   bl bc br  place_name" +
+         " x  .  .    .  .  .    .  .  .   top_left" +
+         " x  x  x    .  .  .    .  .  .   top_row" +
+         " x  .  .    x  x  x    .  .  .   middle_row" +
+         " .  x  .    x  x  x    .  .  .   middle_row" +
+         " .  .  x    x  x  x    .  .  .   middle_row" +
+         " .  .  .    x  x  x    x  .  .   middle_row" +
+         " .  .  .    x  x  x    .  x  .   middle_row" +
+         " .  .  .    x  x  x    .  .  x   middle_row"
+         ,
+      // Loc name mapping is center point symmetric, so only top portion combinations (and the center) are
+      // defined above. The rest are generated according to this rotation spec.
+      locRotation: {
         tl: 'tr',
         tc: 'mr',
         tr: 'br',
@@ -51,16 +63,20 @@
         ml: 'tc',
         mc: 'mc'
       },
-      label: {
+      placeRotation: {
+        // top
         top_left: 'top_right',
         top_row: 'right_column',
 
+        // right
         top_right: 'bottom_right',
         right_column: 'bottom_column',
 
+        // bottom
         bottom_right: 'bottom_left',
         bottom_column: 'left_column',
 
+        // left
         bottom_left: 'top_left',
         left_column: 'top_row',
 
@@ -73,48 +89,45 @@
       }
     };
 
+
     function areEqualShallow(a, b) {
       for(var key in a) {
-          if(!(key in b) || a[key] !== b[key]) {
-              return false;
-          }
+          if(!(key in b) || a[key] !== b[key]) { return false; }
       }
       for(var key in b) {
-          if(!(key in a) || a[key] !== b[key]) {
-              return false;
-          }
+          if(!(key in a) || a[key] !== b[key]) { return false; }
       }
       return true;
     }
 
-    function rotateLocNames(source, locRotation) {
-      var locMap = locRotation.loc;
-      var labelMap = locRotation.label;
+    function rotateLocs(source, specs) {
+      var locMap = specs.locRotation;
+      var placeMap = specs.placeRotation;
       var out = {};
-      $.each(source, function(locStr, label){
+      $.each(source, function(locStr, place){
         var locs = locStr.split("+");
         var newLocs = $.map(locs, function(loc){ return locMap[loc]; });
         if (locs.length !== newLocs.length) {
           console.log("locs:", locs, "newLocs:", newLocs);
           throw "loc rotation mismatch";
         }
-        var newLabel = labelMap[label];
-        if (! newLabel) {
-          throw "no rotation label for " + label;
+        var newPlace = placeMap[place];
+        if (! newPlace) {
+          throw "no rotation place name for " + place;
         }
-        out[newLocs.sort().join("+")] = newLabel;
+        out[newLocs.sort().join("+")] = newPlace;
       });
       return out;
     }
 
-    // Parse locNames to { "tl+tr" => "top", ... }
-    function parseLocNames(divCount, _names) {
-      var names = _names.trim().split(/ +/);
-      var rowSize = divCount*divCount + 1;
+    // Convert locMap2specs.base to { "tl+tr" => "top", ... } and add 3 rotations
+    function buildLocMap(specs) {
+      var names = specs.base.trim().split(/ +/);
+      var rowSize = Object.keys(specs.locRotation).length + 1;
       if (names.length % rowSize !== 0) {
         throw "locnames size " + names.length + " is not divisible by " + rowSize;
       }
-      var labels = names.splice(0, rowSize);
+      var places = names.splice(0, rowSize);
       var baseMap = {}; // eg "tl tr" => "top"
       while (names.length > 0) {
         var row = names.splice(0, rowSize);
@@ -122,7 +135,7 @@
         var rowLocs = {};
         for (var i = 0; i < rowSize - 1; i++) {
           if (row[i] === 'x') {
-            rowLocs[labels[i]] = true;
+            rowLocs[places[i]] = true;
           }
         }
         baseMap[ Object.keys(rowLocs).sort().join("+") ] = name;
@@ -131,19 +144,17 @@
       // Rotate 3 times
       var out = {};
       $.extend(out, baseMap);
-      if (divCount === 3) {
-        var curMap = $.extend({}, baseMap);
-        $.each([1, 2, 3], function(i){
-          curMap = rotateLocNames(curMap, loc3rotation);
-          console.log("curMap", curMap);
-          $.extend(out, curMap);
-        });
-        curMap = rotateLocNames(curMap, loc3rotation);
-        console.log("curMap4", curMap);
-        if (! areEqualShallow(curMap, baseMap)) {
-          console.log("original locMap:", baseMap, "final:", curMap);
-          throw "locNames map with divCount " + divCount + " changed after 4 rotations";
-        }
+      var curMap = $.extend({}, baseMap);
+      $.each([1, 2, 3], function(i){
+        curMap = rotateLocs(curMap, specs);
+        //console.log("curMap", curMap);
+        $.extend(out, curMap);
+      });
+      curMap = rotateLocs(curMap, specs);
+      //console.log("curMap4", curMap);
+      if (! areEqualShallow(curMap, baseMap)) {
+        console.log("original locMap:", baseMap, "final:", curMap);
+        throw "locNames map with divCount " + divCount + " changed after 4 rotations";
       }
       return out;
     }
@@ -201,13 +212,22 @@
 
     function nameRoadPlaces(roads, bounds) {
       classifyRoadLocations(roads, bounds);
-      var locNames2map = parseLocNames(2, locNames2);
-      var locNames3map = parseLocNames(3, locNames3);
-      console.log(locNames3map);
+      var loc2map = buildLocMap(locMap2specs);
+      var loc3map = buildLocMap(locMap3specs);
+      console.log(loc3map);
       $.each(roads, function(name, road){
-        road.place2 = classesToPlaceName(road.classes2, locNames2map);
-        road.place3 = classesToPlaceName(road.classes3, locNames3map);
-        console.log(road);
+        var place = classesToPlaceName(road.classes3, loc3map);
+        if (place) {
+          road.place = place + '3';
+        } else {
+          place = classesToPlaceName(road.classes2, loc2map);
+          if (place) {
+            road.place = place + '2';
+          } else {
+            road.place = 'general';
+          }
+        }
+        console.log(road.name, road.place);
       });
     }
 
