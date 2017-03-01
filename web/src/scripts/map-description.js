@@ -1,5 +1,5 @@
 /* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next */
-/* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0, space-infix-ops:0 */
+/* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0, space-infix-ops:0 camelcase:0 */
 
 (function(){
     'use strict';
@@ -28,8 +28,86 @@
      var locNames3 =
        " tl tc tr   ml mc mr   bl bc br  place_name" +
        " x  .  .    .  .  .    .  .  .   top_left" +
-       " x  x  x    .  .  .    .  .  .   top";
+       " x  x  x    .  .  .    .  .  .   top_row" +
+       " x  .  .    x  x  x    .  .  .   middle_row" +
+       " .  x  .    x  x  x    .  .  .   middle_row" +
+       " .  .  x    x  x  x    .  .  .   middle_row" +
+       " .  .  .    x  x  x    x  .  .   middle_row" +
+       " .  .  .    x  x  x    .  x  .   middle_row" +
+       " .  .  .    x  x  x    .  .  x   middle_row"
+       ;
 
+    // locNames is center point symmetric, so only top portion combinations (and the center) are
+    // defined above. The rest are generated according to this mapping.
+    var loc3rotation = {
+      loc: {
+        tl: 'tr',
+        tc: 'mr',
+        tr: 'br',
+        mr: 'bc',
+        br: 'bl',
+        bc: 'ml',
+        bl: 'tl',
+        ml: 'tc',
+        mc: 'mc'
+      },
+      label: {
+        top_left: 'top_right',
+        top_row: 'right_column',
+
+        top_right: 'bottom_right',
+        right_column: 'bottom_column',
+
+        bottom_right: 'bottom_left',
+        bottom_column: 'left_column',
+
+        bottom_left: 'top_left',
+        left_column: 'top_row',
+
+        // Two states only
+        middle_row: 'center_column',
+        center_column: 'middle_row',
+
+        // One state only
+        middle_center: 'middle_center'
+      }
+    };
+
+    function areEqualShallow(a, b) {
+      for(var key in a) {
+          if(!(key in b) || a[key] !== b[key]) {
+              return false;
+          }
+      }
+      for(var key in b) {
+          if(!(key in a) || a[key] !== b[key]) {
+              return false;
+          }
+      }
+      return true;
+    }
+
+    function rotateLocNames(source, locRotation) {
+      var locMap = locRotation.loc;
+      var labelMap = locRotation.label;
+      var out = {};
+      $.each(source, function(locStr, label){
+        var locs = locStr.split("+");
+        var newLocs = $.map(locs, function(loc){ return locMap[loc]; });
+        if (locs.length !== newLocs.length) {
+          console.log("locs:", locs, "newLocs:", newLocs);
+          throw "loc rotation mismatch";
+        }
+        var newLabel = labelMap[label];
+        if (! newLabel) {
+          throw "no rotation label for " + label;
+        }
+        out[newLocs.sort().join("+")] = newLabel;
+      });
+      return out;
+    }
+
+    // Parse locNames to { "tl+tr" => "top", ... }
     function parseLocNames(divCount, _names) {
       var names = _names.trim().split(/ +/);
       var rowSize = divCount*divCount + 1;
@@ -37,7 +115,7 @@
         throw "locnames size " + names.length + " is not divisible by " + rowSize;
       }
       var labels = names.splice(0, rowSize);
-      var out = {}; // eg "tl tr" => "top"
+      var baseMap = {}; // eg "tl tr" => "top"
       while (names.length > 0) {
         var row = names.splice(0, rowSize);
         var name = row.splice(-1, 1)[0];
@@ -47,7 +125,25 @@
             rowLocs[labels[i]] = true;
           }
         }
-        out[ Object.keys(rowLocs).sort().join("+") ] = name;
+        baseMap[ Object.keys(rowLocs).sort().join("+") ] = name;
+      }
+
+      // Rotate 3 times
+      var out = {};
+      $.extend(out, baseMap);
+      if (divCount === 3) {
+        var curMap = $.extend({}, baseMap);
+        $.each([1, 2, 3], function(i){
+          curMap = rotateLocNames(curMap, loc3rotation);
+          console.log("curMap", curMap);
+          $.extend(out, curMap);
+        });
+        curMap = rotateLocNames(curMap, loc3rotation);
+        console.log("curMap4", curMap);
+        if (! areEqualShallow(curMap, baseMap)) {
+          console.log("original locMap:", baseMap, "final:", curMap);
+          throw "locNames map with divCount " + divCount + " changed after 4 rotations";
+        }
       }
       return out;
     }
@@ -107,7 +203,7 @@
       classifyRoadLocations(roads, bounds);
       var locNames2map = parseLocNames(2, locNames2);
       var locNames3map = parseLocNames(3, locNames3);
-      console.log(locNames2map);
+      console.log(locNames3map);
       $.each(roads, function(name, road){
         road.place2 = classesToPlaceName(road.classes2, locNames2map);
         road.place3 = classesToPlaceName(road.classes3, locNames3map);
