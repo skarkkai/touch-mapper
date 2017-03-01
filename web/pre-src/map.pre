@@ -12,6 +12,7 @@ window.TM = { translations: {
   "location2_top_right": "{{ location2_top_right }}",
   "location2_top_row": "{{ location2_top_row }}",
 
+ "location3_bottom_center": "{{ location3_bottom_center }}",
   "location3_bottom_left": "{{ location3_bottom_left }}",
   "location3_bottom_left_and_center": "{{ location3_bottom_left_and_center }}",
   "location3_bottom_left_and_middle": "{{ location3_bottom_left_and_middle }}",
@@ -27,8 +28,19 @@ window.TM = { translations: {
   "location3_bottom_row": "{{ location3_bottom_row }}",
   "location3_center_column": "{{ location3_center_column }}",
   "location3_left_column": "{{ location3_left_column }}",
+  "location3_middle_left": "{{ location3_middle_left }}",
+  "location3_middle_left_to_bottom_center": "{{ location3_middle_left_to_bottom_center }}",
+  "location3_middle_right": "{{ location3_middle_right }}",
+  "location3_middle_right_to_bottom_center": "{{ location3_middle_right_to_bottom_center }}",
   "location3_middle_row": "{{ location3_middle_row }}",
+  "location3_near_bottom_left": "{{ location3_near_bottom_left }}",
+  "location3_near_bottom_right": "{{ location3_near_bottom_right }}",
+  "location3_near_top_left": "{{ location3_near_top_left }}",
+  "location3_near_top_right": "{{ location3_near_top_right }}",
   "location3_right_column": "{{ location3_right_column }}",
+  "location3_top_center": "{{ location3_top_center }}",
+  "location3_top_center_to_middle_left": "{{ location3_top_center_to_middle_left }}",
+  "location3_top_center_to_middle_right": "{{ location3_top_center_to_middle_right }}",
   "location3_top_left": "{{ location3_top_left }}",
   "location3_top_left_and_center": "{{ location3_top_left_and_center }}",
   "location3_top_left_and_middle": "{{ location3_top_left_and_middle }}",
@@ -44,7 +56,8 @@ window.TM = { translations: {
   "location3_top_right_to_mc": "{{ location3_top_right_to_mc }}",
   "location3_top_right_to_middle_left": "{{ location3_top_right_to_middle_left }}",
   "location3_top_row": "{{ location3_top_row }}",
-    "location_general": "{{ location_general }}"
+      
+  "location_general": "{{ location_general }}"
 } };
 </script>
 

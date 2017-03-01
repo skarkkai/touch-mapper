@@ -41,6 +41,7 @@
     var locMap3specs = {
       base:
          " tl tc tr   ml mc mr   bl bc br  place_name" +
+         " .  x  .    .  .  .    .  .  .   top_center" +
          " x  .  .    .  .  .    .  .  .   top_left" +
          " x  x  x    .  .  .    .  .  .   top_row" +
          " x  x  x    x  .  .    .  .  .   top_row" +
@@ -81,15 +82,17 @@
          " x  x  .    x  x  x    .  .  .   top_left_to_middle_right" +
          " x  x  x    .  x  x    .  .  .   top_left_to_middle_right" +
          " x  .  x    .  x  x    .  .  .   top_left_to_middle_right" +
-
          " .  x  x    x  x  .    .  .  .   top_right_to_middle_left" +
          " .  x  x    x  x  x    .  .  .   top_right_to_middle_left" +
          " x  x  x    x  x  .    .  .  .   top_right_to_middle_left" +
          " x  .  x    x  x  .    .  .  .   top_right_to_middle_left" +
+         " x  x  .    x  .  .    .  .  .   near_top_left" +
+         " .  x  .    x  x  .    .  .  .   top_center_to_middle_left" +
+         //tl tc tr   ml mc mr   bl bc br  place_name" +
          "",
-         // bc+br+mc+ml
-              //  x  .  x
-              //  .  x  x
+         // mr+tc+tr
+              //  .  x  .
+              //  x  x  .
               //  .  .  .
       // Loc name mapping is center point symmetric, so only top portion combinations (and the center) are
       // defined above. The rest are generated according to this rotation spec.
@@ -113,6 +116,9 @@
         top_right_and_center: 'bottom_right_and_middle',
         top_left_to_middle_right: 'top_right_to_bottom_center',
         top_right_to_middle_left: 'bottom_right_to_top_center',
+        near_top_left: 'near_top_right',
+        top_center_to_middle_left: 'top_center_to_middle_right',
+        top_center: 'middle_right',
 
         // 1. rotation
         top_right: 'bottom_right',
@@ -122,6 +128,9 @@
         bottom_right_and_middle: 'bottom_left_and_center',
         top_right_to_bottom_center: 'bottom_right_to_middle_left',
         bottom_right_to_top_center: 'bottom_left_to_middle_right',
+        near_top_right: 'near_bottom_right',
+        top_center_to_middle_right: 'middle_right_to_bottom_center',
+        middle_right: 'bottom_center',
 
         // 2. rotation
         bottom_right: 'bottom_left',
@@ -131,6 +140,9 @@
         bottom_left_and_center: 'top_left_and_middle',
         bottom_right_to_middle_left: 'bottom_left_to_top_center',
         bottom_left_to_middle_right: 'top_left_to_bottom_center',
+        near_bottom_right: 'near_bottom_left',
+        middle_right_to_bottom_center: 'middle_left_to_bottom_center',
+        bottom_center: 'middle_left',
 
         // 3. rotation
         bottom_left: 'top_left',
@@ -140,6 +152,9 @@
         top_left_and_middle: 'top_right_and_center',
         bottom_left_to_top_center: 'top_left_to_middle_right',
         top_left_to_bottom_center: 'top_right_to_middle_left',
+        near_bottom_left: 'near_top_left',
+        middle_left_to_bottom_center: 'top_center_to_middle_left',
+        middle_left: 'top_center',
 
         // Two states only
         middle_row: 'center_column',
@@ -238,7 +253,7 @@
       //console.log("curMap4", curMap);
       if (! areEqualShallow(curMap, baseMap)) {
         console.log("original locMap:", baseMap, "final:", curMap);
-        throw "locNames map with divCount " + divCount + " changed after 4 rotations";
+        throw "locNames map with " + divCount + " changed after 4 rotations";
       }
       return out;
     }

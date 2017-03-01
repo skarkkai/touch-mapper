@@ -8,6 +8,10 @@
     "location2_bottom_left": "bottom left quarter",
     "location2_left_column": "left half",
 
+    "location3_top_center": "top center",
+    "location3_bottom_center": "bottom center",
+    "location3_middle_left": "left center",
+    "location3_middle_right": "right center",
     "location3_top_left": "top left corner",
     "location3_top_row": "top edge",
     "location3_top_left_to_mc": "top left corner to center",
@@ -42,6 +46,15 @@
     "location3_bottom_left_to_middle_right": "bottom left corner to right center",
     "location3_bottom_left_to_top_center": "bottom left corner to top center",
     "location3_top_left_to_bottom_center": "top left corner to bottom center",
+
+    "location3_near_top_left": "near top left corner",
+    "location3_top_center_to_middle_left": "left center to top center",
+    "location3_near_top_right": "near top right corner",
+    "location3_top_center_to_middle_right": "top center to right center",
+    "location3_near_bottom_right": "near bottom right corner",
+    "location3_middle_right_to_bottom_center": "bottom center to right center",
+    "location3_near_bottom_left": "near bottom left corner",
+    "location3_middle_left_to_bottom_center": "left center to bottom center",
 
     "location_general": "many areas",
 
