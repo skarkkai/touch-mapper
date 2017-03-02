@@ -70,7 +70,7 @@
     "progress__converting": "Luodaan tiedostoa...",
     "content__heading": "Sisältö",
     "content__roads": "Tiet",
-    "content__nothing": "Ei nimettyjä kohteita",
+    "content__no_roads": "Ei nimettyjä teitä",
     "warning_no_buildings": "Varoitus: kartalla ei ole rakennuksia. OpenStreetMap:ssä saattaa olla puutteellista dataa tältä alueelta. Lisätietoja ohjesivulla.",
     "download": "Lataa tulostettava STL-tiedosto",
     "order_from": "Tilaa__linkTag__ -verkkokaupasta",

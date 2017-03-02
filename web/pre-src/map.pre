@@ -56,7 +56,7 @@ window.TM = { translations: {
   "location3_top_right_to_mc": "{{ location3_top_right_to_mc }}",
   "location3_top_right_to_middle_left": "{{ location3_top_right_to_middle_left }}",
   "location3_top_row": "{{ location3_top_row }}",
-      
+
   "location_general": "{{ location_general }}"
 } };
 </script>
@@ -65,13 +65,17 @@ window.TM = { translations: {
 
   <div class="map-content-row">
     <h3><span>{{ map_content }}</span></h3>
-    <div class="map-content">
-      <div class="row roads" style="display: none">{{ content__roads }}: <span class="text"></span></div>
-      <div class="row nothing" style="display: none">{{ content__nothing }}</div>
+    <div class="map-content initial-state">
+      <div class="row roads">
+        <h4 class="">{{ content__roads }}</h4>
+        <ul></ul>
+        <span class="no-roads" style="display: none">{{ content__no_roads }}</span>
+      </div>
       <div class="warning-no-buildings" style="display: none">
         <span>{{ warning_no_buildings }}</span>
       </div>
     </div>
+    <button class="show-more">Show more</button>
   </div>
 
   <div class="hidden-for-2d">

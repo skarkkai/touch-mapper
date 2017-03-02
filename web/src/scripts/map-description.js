@@ -314,8 +314,8 @@
       var loc2map = buildLocMap(locMap2specs);
       var loc3map = buildLocMap(locMap3specs);
       //console.log(loc3map);
-      printPlaceTranslationLines(loc2map, 2);
-      printPlaceTranslationLines(loc3map, 3);
+      //printPlaceTranslationLines(loc2map, 2);
+      //printPlaceTranslationLines(loc3map, 3);
       $.each(roads, function(name, road){
         var place = classesToPlaceName(road.classes3, loc3map);
         if (place) {
@@ -345,17 +345,24 @@
       });
       if (roadNames.length > 0) {
         roadNames = roadNames.sort(function(a, b){ return roads[b].totalLength - roads[a].totalLength; });
-        var descs = [];
+        var ul = $("<ul>");
         $.each(roadNames, function(i, roadName){
-          descs.push(roadName + ' (' + window.TM.translations["location" + roads[roadName].place] + ')');
+          var li = $("<li>").text(roadName + ' (' + window.TM.translations["location" + roads[roadName].place] + ')');
+          if (i >= 4) {
+            li.addClass("initially-hidden");
+          }
+          ul.append(li);
         });
-        container.find(".row.roads").show().find(".text").text(descs.join(", "));
+        container.find(".row.roads").show().find("ul").replaceWith(ul);
       } else {
-        container.find(".row.nothing").show();
+        container.find(".no-roads").show();
       }
       if (! info.excludeBuildings && 'buildingCount' in info && info.buildingCount === 0) {
         container.find('.warning-no-buildings').show();
       }
+      $(".map-content-row .show-more").click(function(){
+        $(".map-content").toggleClass("initial-state");
+      });
     }
 
     window.insertMapDescription = insertMapDescription;

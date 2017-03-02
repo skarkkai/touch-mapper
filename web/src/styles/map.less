@@ -7,9 +7,10 @@
   font-size: inherit;
 }
 .map-content-row {
-    border: 1px solid #ccc;
-    padding: 7px 11px;
-    border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 7px 11px;
+  border-radius: 4px;
+  position: relative;
 }
 .map-content-row h3 {
   font-size: 19px;
@@ -22,9 +23,35 @@
   font-weight: normal;
 }
 .map-content {
-  max-height: 114px;
-  overflow: auto;
+  margin-top: 7px;
 }
+.map-content h4 {
+  float: left;
+  margin-right: 5px;
+}
+.map-content h4:after {
+  content: ":";
+}
+.map-content ul {
+  display: inline-block;
+}
+.map-content li {
+  list-style: none;
+}
+.map-content.initial-state .initially-hidden {
+  display: none;
+}
+.map-content-row button.show-more {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+}
+.map-content-row button.show-more:hover {
+  background-color: #ffffcc;
+  transition-duration: 0.2s;
+  cursor: pointer;
+}
+
 .ready-map {
   margin-top: 20px;
   border-radius: 10px;
@@ -34,7 +61,7 @@
 }
 .warning-no-buildings {
   display: block;
-  margin: 10px 10px 15px 8px;
+  margin: 10px 0;
 }
 .download-link#order-map {
   padding: 4px 10px;

@@ -132,7 +132,7 @@
     "map_for_address": "Map for",
     "content__heading": "Content",
     "content__roads": "Roads",
-    "content__nothing": "No named objects",
+    "content__no_roads": "No named roads",
     "warning_no_buildings": "Warning: map contains no buildings. OpenStreetMap might have incomplete data for this area. See help for more information.",
     "download": "Download printable STL file",
     "order_from": "Order from __linkTag__",
