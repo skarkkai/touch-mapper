@@ -18,11 +18,11 @@ public class ObjectInfoManager {
 	private static Map<String, PoiObject> pois = new HashMap<>();
 	private static Map<String, Map<String, PoiObject>> poiByType = new HashMap<>(); // tram_stop => Jaakkimantie => WayObject
 	
-	public static void add(MapWaySegment line) {
+	public static void addRoadSegment(MapWaySegment line) {
 		try {
 			String name = line.getTags().getValue("name");
 			if (name == null || name.equals("")) {
-				return;
+				name = "_unnamed_roads";
 			}
 			WayObject way = ways.get(name);
 			if (way == null) {

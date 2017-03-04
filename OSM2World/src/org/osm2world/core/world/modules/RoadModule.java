@@ -65,7 +65,7 @@ public class RoadModule extends ConfigurableWorldModule {
 			if (isRoad(line.getTags())) {
 				if (! isTunnelOrSimilar(line.getTags())) {
 					line.addRepresentation(new Road(line, line.getTags()));
-					ObjectInfoManager.add(line);
+					ObjectInfoManager.addRoadSegment(line);
 				}
 			}
 		}

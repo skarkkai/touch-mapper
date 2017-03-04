@@ -1,5 +1,5 @@
 /* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next */
-/* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0, space-infix-ops:0 camelcase:0 */
+/* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0, space-infix-ops:0, camelcase:0, dot-notation:0 */
 
 (function(){
     'use strict';
@@ -44,12 +44,12 @@
          " .  x  .    .  .  .    .  .  .   top_center" +
          " x  .  .    .  .  .    .  .  .   top_left" +
          " x  x  x    .  .  .    .  .  .   top_row" +
-         " x  x  x    x  .  .    .  .  .   top_row" +
-         " x  x  x    .  x  .    .  .  .   top_row" +
-         " x  x  x    .  .  x    .  .  .   top_row" +
-         " x  x  x    .  .  .    x  .  .   top_row" +
-         " x  x  x    .  .  .    .  x  .   top_row" +
-         " x  x  x    .  .  .    .  .  x   top_row" +
+         " x  x  x    x  .  .    .  .  .   mostly_top_row" +
+         " x  x  x    .  x  .    .  .  .   mostly_top_row" +
+         " x  x  x    .  .  x    .  .  .   mostly_top_row" +
+         " x  x  x    .  .  .    x  .  .   mostly_top_row" +
+         " x  x  x    .  .  .    .  x  .   mostly_top_row" +
+         " x  x  x    .  .  .    .  .  x   mostly_top_row" +
          " .  .  .    x  x  x    .  .  .   middle_row" +
          " x  .  .    x  x  x    .  .  .   middle_row" +
          " .  x  .    x  x  x    .  .  .   middle_row" +
@@ -111,6 +111,7 @@
         // orig
         top_left: 'top_right',
         top_row: 'right_column',
+        mostly_top_row: 'mostly_right_column',
         top_left_to_mc: 'top_right_to_mc',
         top_left_and_center: 'top_right_and_middle',
         top_right_and_center: 'bottom_right_and_middle',
@@ -123,6 +124,7 @@
         // 1. rotation
         top_right: 'bottom_right',
         right_column: 'bottom_row',
+        mostly_right_column: 'mostly_bottom_row',
         top_right_to_mc: 'bottom_right_to_mc',
         top_right_and_middle: 'bottom_right_and_center',
         bottom_right_and_middle: 'bottom_left_and_center',
@@ -135,6 +137,7 @@
         // 2. rotation
         bottom_right: 'bottom_left',
         bottom_row: 'left_column',
+        mostly_bottom_row: 'mostly_left_column',
         bottom_right_to_mc: 'bottom_left_to_mc',
         bottom_right_and_center: 'bottom_left_and_middle',
         bottom_left_and_center: 'top_left_and_middle',
@@ -147,6 +150,7 @@
         // 3. rotation
         bottom_left: 'top_left',
         left_column: 'top_row',
+        mostly_left_column: 'mostly_top_row',
         bottom_left_to_mc: 'top_left_to_mc',
         bottom_left_and_middle: 'top_left_and_center',
         top_left_and_middle: 'top_right_and_center',
@@ -182,7 +186,7 @@
       $.each(uniqueSorted(placeNames), function(i, placeName){
         list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
       });
-      //console.log(list.join("")); // XXXXXXXXXXXXXXXXXXXXXXX
+      console.log(list.join(""));
     }
 
     function areEqualShallow(a, b) {
@@ -328,32 +332,59 @@
             road.place = '_general';
           }
         }
-        //console.log(road.name, road.place);
+        //console.log(road.name, road.place, road.classes2, road.classes3); // XXXXXXXXXXXXXXXXXX uncomment to debug location => place assignments
       });
     }
 
+
     function insertMapDescription(info, container) {
       var roads = (info.objectInfos || {}).ways || {};
+      function roadPlaceTranslation(roadName) {
+        return window.TM.translations["location" + roads[roadName].place];
+      }
+
       nameRoadPlaces(roads, info.bounds);
       var roadNames = [];
+      var roadsLen = 0;
+      var unnamedRoadsLen = 0;
       $.each(roads, function(name){
         if (Object.keys(roads[name].classes2).length === 0) {
           // If there are no location classes, it means all of the road's points are outside of the map
           return;
         }
-        roadNames.push(name);
+        roadsLen += roads[name].totalLength;
+        if (name === '_unnamed_roads') {
+          unnamedRoadsLen = roads[name].totalLength;
+        } else {
+          roadNames.push(name);
+        }
       });
-      if (roadNames.length > 0) {
+      if (roadsLen > 0) {
         roadNames = roadNames.sort(function(a, b){ return roads[b].totalLength - roads[a].totalLength; });
-        var ul = $("<ul>");
+        var lis = [];
         $.each(roadNames, function(i, roadName){
           var li = $("<li>").text(roadName + ' (' + window.TM.translations["location" + roads[roadName].place] + ')');
           if (i >= 4) {
             li.addClass("initially-hidden");
           }
-          ul.append(li);
+          lis.push(li);
         });
-        container.find(".row.roads").show().find("ul").replaceWith(ul);
+        container.find(".row.roads").show().find("ul").prepend(lis);
+        if (unnamedRoadsLen > 0) {
+          if (roadNames.length === 0) {
+            container.find(".unnamed-roads.percentage").remove();
+            var text = container.find(".unnamed-roads.meters").text();
+            text = text.replace("%LOCATION%", roadPlaceTranslation('_unnamed_roads'));
+            text = text.replace("%METERS%", Number(unnamedRoadsLen.toPrecision(2)).toFixed());
+            text = text.replace("%YARDS%", Number((unnamedRoadsLen / 1.0936133).toPrecision(2)).toFixed());
+          } else {
+            container.find(".unnamed-roads.meters").remove();
+            var text = container.find(".unnamed-roads.percentage").text();
+            text = text.replace("%LOCATION%", roadPlaceTranslation('_unnamed_roads'));
+            text = text.replace("%PERCENTAGE%", (unnamedRoadsLen / roadsLen * 100).toPrecision(2));
+          }
+          container.find(".unnamed-roads").text(text);
+        }
       } else {
         container.find(".no-roads").show();
       }

@@ -12,7 +12,7 @@ window.TM = { translations: {
   "location2_top_right": "{{ location2_top_right }}",
   "location2_top_row": "{{ location2_top_row }}",
 
- "location3_bottom_center": "{{ location3_bottom_center }}",
+  "location3_bottom_center": "{{ location3_bottom_center }}",
   "location3_bottom_left": "{{ location3_bottom_left }}",
   "location3_bottom_left_and_center": "{{ location3_bottom_left_and_center }}",
   "location3_bottom_left_and_middle": "{{ location3_bottom_left_and_middle }}",
@@ -57,6 +57,12 @@ window.TM = { translations: {
   "location3_top_right_to_middle_left": "{{ location3_top_right_to_middle_left }}",
   "location3_top_row": "{{ location3_top_row }}",
 
+  "location3_mostly_top_row": "{{ location3_mostly_top_row }}",
+  "location3_mostly_bottom_row": "{{ location3_mostly_bottom_row }}",
+  "location3_mostly_right_column": "{{ location3_mostly_right_column }}",
+  "location3_mostly_left_column": "{{ location3_mostly_left_column }}",
+
+  "content__unnamed_roads": "{{ content__unnamed_roads }}",
   "location_general": "{{ location_general }}"
 } };
 </script>
@@ -76,7 +82,11 @@ window.TM = { translations: {
     <div class="map-content initial-state">
       <div class="row roads">
         <h4 class="">{{ content__roads }}</h4>
-        <ul></ul>
+        <ul>
+
+          <li class="unnamed-roads meters">{{ content__unnamed_roads }} (%LOCATION%, %METERS% meters / %YARDS% yards)</li>
+          <li class="unnamed-roads percentage">{{ content__unnamed_roads }} (%LOCATION%, %PERCENTAGE%% of all roads)</li>
+        </ul>
         <span class="no-roads" style="display: none">{{ content__no_roads }}</span>
       </div>
       <div class="warning-no-buildings" style="display: none">

@@ -108,7 +108,7 @@ function initInputs(outputs, osmDragPanInteraction) {
       $("#multipart-map-input").prop("checked", "").change();
       // Set advanced values from non-advanced presets
       if (data.get("printing-tech") === '3d') {
-        $("#map-size-preset").change();        
+        $("#map-size-preset").change();
       }
       $("#map-scale-preset").change();
     }
