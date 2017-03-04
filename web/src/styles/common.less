@@ -71,7 +71,7 @@ h2 {
   overflow: hidden;
 }
 .content {
-  padding: 30px @outside-margin 15px @outside-margin;
+  padding: 10px @outside-margin 15px @outside-margin;
   @media only screen and (max-width: 600px) {
     padding-left: @outside-margin-semi;
     padding-right: @outside-margin-semi;
@@ -114,6 +114,37 @@ h2 {
 .square-block {
   transform-origin: center center;
   height: 100%;
+}
+
+/*
+ * Breadcrumb
+ */
+
+.breadcrumb {
+  margin-bottom: 15px;
+}
+.breadcrumb ul {
+  list-style: none;
+}
+.breadcrumb li {
+  display: inline;
+  color: #444 !important;
+}
+.breadcrumb li a {
+  color: #444 !important;
+}
+.breadcrumb li:before {
+  content: "> ";
+}
+.breadcrumb li:first-child:before {
+  content: "";
+}
+.breadcrumb li[aria-current="location"] {
+  font-weight: bold;
+}
+.breadcrumb li {
+  display: inline;
+  color: #888;
 }
 
 /*

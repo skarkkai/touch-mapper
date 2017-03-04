@@ -58,6 +58,7 @@
 
     "location_general": "many areas",
 
+    "skip_to_main_content": "Skip to main content",
     "meta_description": "Tactile maps easily for any address. 3D-print them yourself or order.",
     "meta_keywords": "tactile map,blind,visual impairment,blind aid,visual impairment aid,blind technology,visual impairment technology,3d printing",
     "meta_og_site_name": "Touch Mapper - Tactile Maps for the Visually Impaired",
@@ -66,6 +67,10 @@
     "language": "Language",
     "help": "Help",
     "open_help_aria": "Open help in a new tab",
+    "breadcrumb_nav_title": "Breadcrumb",
+    "breadcrumb_home": "Address search",
+    "breadcrumb_area": "Settings",
+    "breadcrumb_map": "Map",
     "intro": "Tactile maps are a great aid for people who are blind or partially sighted, helping them to orient themselves and to plan routes. Using Touch Mapper, you can easily create custom outdoor maps for any address of your choice. You can either print the map yourself at no charge using an embosser, a swell paper printer or a 3D printer, or you can order an affordable 3D print (a basic map for 35 euros, about USD40).",
     "it_is_simple": "It's simple",
     "simple__enter_address": "Enter an address and click \"Search\"",

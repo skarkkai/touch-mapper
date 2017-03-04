@@ -46,6 +46,8 @@
       /></noscript>
     End Facebook Pixel Code -->
 
+    <a class="visuallyhidden" href="#main-content">{{ skip_to_main_content }}</a>
+
     <div class="main-wrapper">
       <div role="banner" class="banner">
         <div class="banner-texts">
@@ -76,7 +78,7 @@
         </div>
       </div>
 
-      <div role="main" class="controls content">
+      <div role="main" class="controls content" id="main-content">
 
         <script src="../scripts/vendor-common.js"></script>
         <script src="../scripts/environment.js"></script>

@@ -61,6 +61,14 @@ window.TM = { translations: {
 } };
 </script>
 
+  <nav class="breadcrumb" aria-label="{{ breadcrumb_nav_title }}" role="navigation">
+    <ul>
+      <li><a href=".">{{ breadcrumb_home }}</a></li>
+      <li><a href="area">{{ breadcrumb_area }}</a></li>
+      <li aria-current="location">{{ breadcrumb_map }}</li>
+    </ul>
+  </nav>
+
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
   <div class="map-content-row" tabindex="-1">
