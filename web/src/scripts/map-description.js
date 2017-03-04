@@ -362,6 +362,7 @@
       }
       $(".map-content-row .show-more").click(function(){
         $(".map-content").toggleClass("initial-state");
+        $(".map-content-row").focus();
       });
     }
 

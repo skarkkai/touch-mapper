@@ -63,7 +63,7 @@ window.TM = { translations: {
 
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
-  <div class="map-content-row">
+  <div class="map-content-row" tabindex="-1">
     <h3><span>{{ map_content }}</span></h3>
     <div class="map-content initial-state">
       <div class="row roads">
