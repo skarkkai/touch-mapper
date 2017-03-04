@@ -32,7 +32,7 @@
     }).fail(function(jqXHR, textStatus, errorThrown){
       if (jqXHR.status === 404) {
           $(".hidden-for-3d, .hidden-for-2d").hide();
-          $(".no-data-available-msg").show();
+          $(".no-data-available-msg").attr().show();
       }
     });
   }
@@ -57,25 +57,17 @@
         returnUrl: makeReturnUrl(info.requestId),
         permaUrl: makeMapPermaUrl(info.requestId),
     };
-    var cloudFrontUrl = makeCloudFrontUrl(info.requestId);
 
     insertMapDescription(info, $(".map-content")); // from map-description.js
 
-    /*
-     * Ordering
-     */
-    // Keep in sync with the email-sending lambda
     $("#order-map").attr("href", PLAYFUL_PIXELS_URL
-      + "?touchMapFileUrl=" + encodeURIComponent(cloudFrontUrl)
+      + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
       + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)));
-    initEmailSending($('.email-sending.type-order'), 'order', cloudFrontUrl, meta);
 
-    /*
-     * Downloading
-     */
-    $("#download-map").attr("href", cloudFrontUrl);
-    initEmailSending($('.email-sending.type-self'), 'self', cloudFrontUrl, meta);
+    // Keep in sync with the email-sending lambda
+    initEmailSending($('.email-sending'), meta);
 
+    $("#download-map").attr("href", makeCloudFrontUrl(info.requestId)); // STL
     $("#download-svg").attr("href", makeCloudFrontUrlSvg(info.requestId));
     $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
     $("#svg-preview").attr("src", makeCloudFrontUrlSvg(info.requestId));
@@ -88,7 +80,7 @@
 
     if (printingTech === '3d') {
       // Only works after the containing HTML is visible
-      show3dPreview($('.preview-3d'), cloudFrontUrl);
+      show3dPreview($('.preview-3d'), makeCloudFrontUrl(info.requestId));
     }
   };
 

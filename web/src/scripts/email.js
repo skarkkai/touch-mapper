@@ -8,7 +8,7 @@
       $('.email-sending-error').slideDown().find('.error-msg-text').text(errorMsg).focus();
     }
 
-    function initEmailSending(container, emailType, mapUrl, meta) {
+    function initEmailSending(container, meta) {
         container.find('.email-sending-form').submit(function(ev){
             ev.preventDefault();
 
@@ -30,10 +30,8 @@
             }, 4000);
 
             var params = {
-                mapUrl: mapUrl,
                 meta: meta,
-                to: email.val(),
-                emailType: emailType
+                to: email.val()
             };
             $.ajax({
                 type: "POST",
