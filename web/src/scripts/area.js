@@ -49,7 +49,11 @@ function showAllAddresses(addresses) {
 }
 
 function initInputs(outputs, osmDragPanInteraction) {
+  var DEFAULT_PRINT_SIZE_2D = "27.9";
+  var DEFAULT_PRINT_SIZE_3D = "17";
+
   var initDone = false;
+  var initialPrintingTech = getLocalStorageStr('printing-tech', '2d');
 
   // Printing technology
   $("#printing-tech-3d").change(function(){
@@ -62,9 +66,9 @@ function initInputs(outputs, osmDragPanInteraction) {
     setData("printing-tech", "2d");
     $(".hidden-for-3d").show();
     $(".hidden-for-2d").hide();
-    $("#map-size-input").val("27.9");
+    $("#map-size-input").val(DEFAULT_PRINT_SIZE_2D).change();
   });
-  if (getLocalStorageStr('printing-tech', '2d') === '2d') {
+  if (initialPrintingTech === '2d') {
     $("#printing-tech-2d").prop('checked', true).change();
   } else {
     $("#printing-tech-3d").prop('checked', true).change();
@@ -73,12 +77,12 @@ function initInputs(outputs, osmDragPanInteraction) {
   // Map content selection
   initSimpleInput("exclude-buildings", $("#exclude-buildings"), "checkbox", true);
 
-  // Map size preset (3D print size)
+  // Print size preset
   $("#map-size-preset").change(function(){
     var preset = $(this).val();
     $("#map-size-input").val(parseFloat(preset).toFixed(1)).change();
     setLocalStorage("map-size-preset", preset);
-  }).val(getLocalStorageStr("map-size-preset", "17"))
+  }).val(getLocalStorageStr("map-size-preset", DEFAULT_PRINT_SIZE_3D))
     .change();
 
   // Scale preset
@@ -103,7 +107,9 @@ function initInputs(outputs, osmDragPanInteraction) {
       // Basic mode can't be combined with multipart mode
       $("#multipart-map-input").prop("checked", "").change();
       // Set advanced values from non-advanced presets
-      $("#map-size-preset").change();
+      if (data.get("printing-tech") === '3d') {
+        $("#map-size-preset").change();        
+      }
       $("#map-scale-preset").change();
     }
   });
@@ -118,7 +124,8 @@ function initInputs(outputs, osmDragPanInteraction) {
   initSimpleInput("offsetY", $("#y-offset-input"), 'int', 0);
 
   // Map size
-  initSimpleInput("size", $("#map-size-input"), 'float', '17');
+  initSimpleInput("size", $("#map-size-input"), 'float',
+    initialPrintingTech === '3d' ? DEFAULT_PRINT_SIZE_3D : DEFAULT_PRINT_SIZE_2D);
 
   // Scale
   initSimpleInput("scale", $("#scale-input"), 'int', 2400);
