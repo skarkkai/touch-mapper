@@ -172,8 +172,6 @@ def export_svg(base_path, args):
     clip_path.add(dwg.rect(insert=(min_x, min_y), size=(max_x - min_x, max_y - min_y)))
     main_g = dwg.add(dwg.g(clip_path='url(#main_clip)'))
 
-    # White background
-    main_g.add(dwg.rect(insert=(min_x - 5, min_y - 5), size=(max_x - min_x + 10, max_y - min_y + 10), fill='rgb(100%, 100%, 100%)')) # white background
     for ob in rails:
         add_svg_object(dwg, main_g, ob, 'rgb(0%, 50%, 0%)')
     for ob in rivers:
@@ -194,6 +192,9 @@ def export_svg(base_path, args):
                 add_road_overlay_object(dwg, main_g, ob)
         except Exception as e:
             print("SVG export failed2 {}: {}".format(ob.name, str(e)))
+
+    # White background
+    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5 - one_cm_units), size=(max_x - min_x + 10, max_y - min_y + 10 + one_cm_units), fill='rgb(100%, 100%, 100%)'))
 
     # Add north marker to top-right corner
     g = dwg.g(fill='black')
