@@ -336,9 +336,38 @@
       });
     }
 
+    function insertPois(info, container) {
+      var pois = info.objectInfos.pois.restaurant || {};
+      //var names = Object.keys(pois).sort(function(a, b) { return pois[b].center.x - pois[b].center.x; });
+      var names = Object.keys(pois).sort(function(a, b) {
+        if (pois[a].street && ! pois[b].street) {
+          return -1;
+        } else if (pois[b].street && ! pois[a].street) {
+          return 1;
+        } else {
+          return a.localeCompare(b, {'sensitivity': 'base'});
+        }
+      });
+      if (names.length > 0) {
+        var lis = [];
+        $.each(names, function(i, name){
+          var poi = pois[name];
+          var desc = name;
+          if (poi.street) {
+            desc += ' (' + (poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street) + ')';
+          }
+          var li = $("<li>").text(desc);
+          lis.push(li);
+        });
+        container.find(".row.restaurant ul").append(lis);
+      } else {
+
+      }
+
+    }
 
     function insertRoads(info, container) {
-      var roads = (info.objectInfos || {}).ways || {};
+      var roads = info.objectInfos.ways || {};
       function roadPlaceTranslation(roadName) {
         return window.TM.translations["location" + roads[roadName].place];
       }
@@ -368,7 +397,7 @@
           }
           lis.push(li);
         });
-        container.find(".row.roads").show().find("ul").prepend(lis);
+        container.find(".row.road").show().find("ul").prepend(lis);
         if (unnamedRoadsLen > 0) {
           if (roadNames.length === 0) {
             container.find(".unnamed-roads.percentage").remove();
@@ -391,7 +420,11 @@
     }
 
     function insertMapDescription(info, container) {
+      if (! info.objectInfos) {
+        info.info.objectInfos = {};
+      }
       insertRoads(info, container);
+      insertPois(info, container);
       if (! info.excludeBuildings && 'buildingCount' in info && info.buildingCount === 0) {
         container.find('.warning-no-buildings').show();
       }
