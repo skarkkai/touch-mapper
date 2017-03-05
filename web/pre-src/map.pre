@@ -12,6 +12,7 @@ window.TM = { translations: {
   "location2_top_right": "{{ location2_top_right }}",
   "location2_top_row": "{{ location2_top_row }}",
 
+  "location3_middle_center": "{{ location3_middle_center }}",
   "location3_bottom_center": "{{ location3_bottom_center }}",
   "location3_bottom_left": "{{ location3_bottom_left }}",
   "location3_bottom_left_and_center": "{{ location3_bottom_left_and_center }}",

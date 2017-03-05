@@ -41,6 +41,7 @@
     var locMap3specs = {
       base:
          " tl tc tr   ml mc mr   bl bc br  place_name" +
+         " .  .  .    .  x  .    .  .  .   middle_center" +
          " .  x  .    .  .  .    .  .  .   top_center" +
          " x  .  .    .  .  .    .  .  .   top_left" +
          " x  x  x    .  .  .    .  .  .   top_row" +
@@ -171,24 +172,6 @@
       }
     };
 
-    function uniqueSorted(a) {
-      var sorted = a.sort();
-      return $.grep(sorted, function(value, index, array) {
-          return (index === 0) || (value !== sorted[index-1]);
-      });
-    }
-
-    // Print out a translation injector string that can be pasted into HTML
-    function printPlaceTranslationLines(locMap, category) {
-      var list = [];
-      var placeNames = $.map(locMap, function(val, key) { return val; });
-      var prefix = 'location' + category + '_';
-      $.each(uniqueSorted(placeNames), function(i, placeName){
-        list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
-      });
-      console.log(list.join(""));
-    }
-
     function areEqualShallow(a, b) {
       for(var key in a) {
           if(!(key in b) || a[key] !== b[key]) { return false; }
@@ -262,6 +245,27 @@
       return out;
     }
 
+    var LOC_2_MAP = buildLocMap(locMap2specs);
+    var LOC_3_MAP = buildLocMap(locMap3specs);
+
+    function uniqueSorted(a) {
+      var sorted = a.sort();
+      return $.grep(sorted, function(value, index, array) {
+          return (index === 0) || (value !== sorted[index-1]);
+      });
+    }
+
+    // Print out a translation injector string that can be pasted into HTML
+    function printPlaceTranslationLines(locMap, category) {
+      var list = [];
+      var placeNames = $.map(locMap, function(val, key) { return val; });
+      var prefix = 'location' + category + '_';
+      $.each(uniqueSorted(placeNames), function(i, placeName){
+        list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
+      });
+      console.log(list.join(""));
+    }
+
     function classesToPlaceName(classes, placeNames) {
       var str = Object.keys(classes).sort().join("+");
       //console.log(str, placeNames[str]);
@@ -315,17 +319,14 @@
 
     function nameRoadPlaces(roads, bounds) {
       classifyRoadLocations(roads, bounds);
-      var loc2map = buildLocMap(locMap2specs);
-      var loc3map = buildLocMap(locMap3specs);
-      //console.log(loc3map);
-      //printPlaceTranslationLines(loc2map, 2);
-      //printPlaceTranslationLines(loc3map, 3);
+      //printPlaceTranslationLines(LOC_2_MAP, 2);
+      //printPlaceTranslationLines(LOC_3_MAP, 3);
       $.each(roads, function(name, road){
-        var place = classesToPlaceName(road.classes3, loc3map);
+        var place = classesToPlaceName(road.classes3, LOC_3_MAP);
         if (place) {
           road.place = '3_' + place;
         } else {
-          place = classesToPlaceName(road.classes2, loc2map);
+          place = classesToPlaceName(road.classes2, LOC_2_MAP);
           if (place) {
             road.place = '2_' + place;
           } else {
@@ -336,6 +337,25 @@
       });
     }
 
+    function pointPlace(point, bounds) {
+      var width = bounds.maxX - bounds.minX;
+      var height = bounds.maxY - bounds.minY;
+      var posX = (point.x - bounds.minX) / width;
+      var posY = (point.y - bounds.minY) / height;
+      if (posX < -0.1 || posX > 1.1 || posY < -0.1 || posY > 1.1) {
+        return null;
+      }
+      var classes = {};
+      classes[pointClass3(posX, posY)] = true;
+      var place = classesToPlaceName(classes, LOC_3_MAP);
+      if (place) {
+        return '3_' + place;
+      } else {
+        return null; // shouldn't happen
+      }
+    }
+
+    // TODO: show other categories than restaurants too
     function insertPois(info, container) {
       var pois = info.objectInfos.pois.restaurant || {};
       //var names = Object.keys(pois).sort(function(a, b) { return pois[b].center.x - pois[b].center.x; });
@@ -352,11 +372,16 @@
         var lis = [];
         $.each(names, function(i, name){
           var poi = pois[name];
-          var desc = name;
+          var where = [];
           if (poi.street) {
-            desc += ' (' + (poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street) + ')';
+            where.push(poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street);
           }
-          var li = $("<li>").text(desc);
+          var place = pointPlace(poi.center, info.bounds);
+          if (place) {
+            where.push(window.TM.translations["location" + place]);
+          }
+          //console.log(name, poi.center, place);
+          var li = $("<li>").text(name + ' (' + where.join(', ') + ')');
           lis.push(li);
         });
         container.find(".row.restaurant ul").append(lis);
