@@ -141,7 +141,7 @@
     "map_for_address": "Map for",
     "content__heading": "Content",
     "content__roads": "Roads",
-    "content__no_roads": "No named roads",
+    "content__no_roads": "No roads",
     "content__unnamed_roads": "Unnamed roads",
     "warning_no_buildings": "Warning: map contains no buildings. OpenStreetMap might have incomplete data for this area. See help for more information.",
     "download": "Download printable STL file",

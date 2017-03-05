@@ -42,8 +42,6 @@ public class AddressGatherer {
 		ObjectType type = ObjectType.fromElement(osmNode);
 		if (type.maintype == MainType.POI) {
 			ObjectInfoManager.addPoi(osmNode, type.subtype, mapNode);
-		} else if (type.maintype == MainType.STREET_META) {
-			ObjectInfoManager.addStreetMeta(osmNode);
 		}
 //		for (Tag tag : osmNode.tags) {
 //			System.out.println(tag.key + ": " + tag.key + "=" + tag.value);

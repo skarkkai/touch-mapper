@@ -337,12 +337,11 @@
     }
 
 
-    function insertMapDescription(info, container) {
+    function insertRoads(info, container) {
       var roads = (info.objectInfos || {}).ways || {};
       function roadPlaceTranslation(roadName) {
         return window.TM.translations["location" + roads[roadName].place];
       }
-
       nameRoadPlaces(roads, info.bounds);
       var roadNames = [];
       var roadsLen = 0;
@@ -385,9 +384,14 @@
           }
           container.find(".unnamed-roads").text(text);
         }
+        container.find("ul").show();
       } else {
         container.find(".no-roads").show();
       }
+    }
+
+    function insertMapDescription(info, container) {
+      insertRoads(info, container);
       if (! info.excludeBuildings && 'buildingCount' in info && info.buildingCount === 0) {
         container.find('.warning-no-buildings').show();
       }
@@ -396,6 +400,7 @@
         $(".map-content-row").focus();
       });
     }
+
 
     window.insertMapDescription = insertMapDescription;
 })();

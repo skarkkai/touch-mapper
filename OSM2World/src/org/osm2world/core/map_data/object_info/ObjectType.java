@@ -27,9 +27,6 @@ public class ObjectType {
 		if (tags.containsKey("cuisine")) {
 			return poi("restaurant");
 		}
-		if (tags.contains("entrance", "yes")) {
-			return streetMeta();
-		}
 //		if (tags.contains("")) {
 //			return poi("");
 //		}
@@ -42,12 +39,8 @@ public class ObjectType {
 	private static ObjectType way(String subtype) {
 		return new ObjectType(MainType.WAY, subtype);
 	}
-	private static ObjectType streetMeta() {
-		return new ObjectType(MainType.STREET_META, "");
-	}
 	static enum MainType {
 		WAY,         // roads, railways, rivers
 		POI,         // bus stops, shops
-		STREET_META, // Not shown to user, just provide housenumbers to streets
 		UNKNOWN }
 }

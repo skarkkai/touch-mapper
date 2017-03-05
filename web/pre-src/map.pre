@@ -82,8 +82,7 @@ window.TM = { translations: {
     <div class="map-content initial-state">
       <div class="row roads">
         <h4 class="">{{ content__roads }}</h4>
-        <ul>
-
+        <ul style="display: none">
           <li class="unnamed-roads meters">{{ content__unnamed_roads }} (%LOCATION%, %METERS% meters / %YARDS% yards)</li>
           <li class="unnamed-roads percentage">{{ content__unnamed_roads }} (%LOCATION%, %PERCENTAGE%% of all roads)</li>
         </ul>

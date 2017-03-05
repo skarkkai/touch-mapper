@@ -65,13 +65,9 @@ public class ObjectInfoManager {
 		byType.put(name, poi);
 		
 		// If POI references a street and has a housenumber, add that to the street.
-		addStreetHouseNumber(element, name);
+		addStreetHouseNumber(poi, element);
 	}
 
-	public static void addStreetMeta(OSMElement element) {
-		addStreetHouseNumber(element, element.tags.getValue("name"));
-	}
-	
 	public WayObject getPoiStreet(PoiObject poi) {
 		if (poi.street != null && ways.containsKey(poi.street)) {
 			return ways.get(poi.street);
@@ -79,15 +75,13 @@ public class ObjectInfoManager {
 		return null;
 	}
 
-	private static void addStreetHouseNumber(OSMElement element, String name) {
+	private static void addStreetHouseNumber(PoiObject poi, OSMElement element) {
 		String street = element.tags.getValue("addr:street");
-		String housenumber = element.tags.getValue("addr:housenumber");
-		System.out.println(street + ":" + housenumber);
-		if (street != null && housenumber != null) {
-			WayObject way = ways.get(street);
-			if (way != null) {
-				System.out.println("Adding housenumber " + street + "/" + housenumber + " from POI " + name + " ");
-				way.houseNumbers.add(housenumber);
+		if (street != null) {
+			poi.street = street;
+			String houseNumber = element.tags.getValue("addr:housenumber");
+			if (houseNumber != null) {
+				poi.houseNumber = houseNumber;
 			}
 		}
 	}

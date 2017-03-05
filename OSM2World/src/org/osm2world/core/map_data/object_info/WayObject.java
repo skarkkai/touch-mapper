@@ -7,7 +7,6 @@ import java.util.TreeSet;
 import org.osm2world.core.math.LineSegmentXZ;
 
 public class WayObject extends BaseObject {
-    public Set<String> houseNumbers = new TreeSet<>();
 	public Set<Point> points = new HashSet<>();
 	public float totalLength;
 	public Set<Point> borderCrossings = new HashSet<>(); // TODO
