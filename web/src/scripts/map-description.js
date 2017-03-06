@@ -355,9 +355,7 @@
       }
     }
 
-    // TODO: show other categories than restaurants too
-    function insertPois(info, container) {
-      var pois = info.objectInfos.pois.restaurant || {};
+    function insertPoisType(pois, container, bounds, poiType) {
       //var names = Object.keys(pois).sort(function(a, b) { return pois[b].center.x - pois[b].center.x; });
       var names = Object.keys(pois).sort(function(a, b) {
         if (pois[a].street && ! pois[b].street) {
@@ -368,27 +366,32 @@
           return a.localeCompare(b, {'sensitivity': 'base'});
         }
       });
-      if (names.length > 0) {
-        var lis = [];
-        $.each(names, function(i, name){
-          var poi = pois[name];
-          var where = [];
-          if (poi.street) {
-            where.push(poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street);
-          }
-          var place = pointPlace(poi.center, info.bounds);
-          if (place) {
-            where.push(window.TM.translations["location" + place]);
-          }
-          //console.log(name, poi.center, place);
-          var li = $("<li>").text(name + ' (' + where.join(', ') + ')');
-          lis.push(li);
-        });
-        container.find(".row.restaurant ul").append(lis);
-      } else {
-
+      if (names.length === 0) {
+        return 0;
       }
 
+      var lis = [];
+      $.each(names, function(i, name){
+        var poi = pois[name];
+        var where = [];
+        if (poi.street) {
+          where.push(poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street);
+        }
+        var place = pointPlace(poi.center, bounds);
+        if (place) {
+          where.push(window.TM.translations["location" + place]);
+        }
+        //console.log(name, poi.center, place);
+        var li = $("<li>").text(name + ' (' + where.join(', ') + ')');
+        lis.push(li);
+      });
+      container.find(".row." + poiType).show().find("ul").append(lis);
+      return names.length;
+    }
+
+    function insertPois(info, container) {
+      insertPoisType(info.objectInfos.pois.restaurant || {}, container, info.bounds, 'restaurant');
+      insertPoisType(info.objectInfos.pois.shop || {}, container, info.bounds, 'shop');
     }
 
     function insertRoads(info, container) {

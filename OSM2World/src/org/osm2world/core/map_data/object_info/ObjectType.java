@@ -24,7 +24,7 @@ public class ObjectType {
 		if (tags.containsKey("shop")) {
 			return poi("shop");
 		}
-		if (tags.containsKey("cuisine")) {
+		if (tags.containsKey("cuisine") || tags.contains("amenity", "restaurant")) {
 			return poi("restaurant");
 		}
 //		if (tags.contains("")) {

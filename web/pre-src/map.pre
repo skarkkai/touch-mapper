@@ -89,10 +89,13 @@ window.TM = { translations: {
         </ul>
         <span class="no-roads" style="display: none">{{ content__no_roads }}</span>
       </div>
+      <div class="row shop initially-hidden">
+        <h4>{{ content__shop }}</h4>
+        <ul class="list" style="display: none"></ul>
+      </div>
       <div class="row restaurant initially-hidden">
         <h4>{{ content__restaurant }}</h4>
         <ul class="list" style="display: none"></ul>
-        <span class="none" style="display: none">{{ content__no_roads }}</span>
       </div>
     </div>
     <button class="show-more">Show more</button>
