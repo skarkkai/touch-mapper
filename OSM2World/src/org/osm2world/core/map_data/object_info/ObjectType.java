@@ -15,11 +15,17 @@ public class ObjectType {
 	public static ObjectType fromElement(OSMElement element) {
 		TagGroup tags = element.tags;
 		
-		if (tags.contains("railway", "bus_stop")) {
+		if (tags.contains("highway", "bus_stop")) {
+			return poi("bus_stop");
+		}
+		if (tags.containsKey("public_transport") && tags.contains("bus", "yes")) {
 			return poi("bus_stop");
 		}
 		if (tags.contains("railway", "tram_stop")) {
 			return poi("tram_stop");
+		}
+		if (tags.containsKey("public_transport") && tags.contains("tram", "yes")) {
+			return poi("bus_stop");
 		}
 		if (tags.containsKey("shop")) {
 			return poi("shop");

@@ -378,20 +378,23 @@
           where.push(poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street);
         }
         var place = pointPlace(poi.center, bounds);
-        if (place) {
-          where.push(window.TM.translations["location" + place]);
+        if (! place) {
+          // outside of the map
+          return;
         }
+        where.push(window.TM.translations["location" + place]);
         //console.log(name, poi.center, place);
         var li = $("<li>").text(name + ' (' + where.join(', ') + ')');
         lis.push(li);
       });
-      container.find(".row." + poiType).show().find("ul").append(lis);
+      container.find(".row." + poiType).find(".list").append(lis);
       return names.length;
     }
 
     function insertPois(info, container) {
       insertPoisType(info.objectInfos.pois.restaurant || {}, container, info.bounds, 'restaurant');
       insertPoisType(info.objectInfos.pois.shop || {}, container, info.bounds, 'shop');
+      insertPoisType(info.objectInfos.pois.bus_stop || {}, container, info.bounds, 'bus_stop');
     }
 
     function insertRoads(info, container) {
