@@ -1,6 +1,6 @@
 # Touch Mapper
 
-Tactile map maker. Creates 3D-printable files from OpenStreetMap data. See https://touch-mapper.org
+Tactile map maker. Creates files for 3D or embossing printing from OpenStreetMap data. See https://touch-mapper.org
 
 ## Feature roadmap
 
@@ -9,7 +9,7 @@ List is in a rough priority order.
 - Allow printing a QR sticker that points to touch-mapper.org/?map=deadbeef
 - Allow inspecting maps on a touch device.
   - APH's Nearby Explorer, and other apps
-- Describe map contents in the web UI.
+- Describe map contents in the web UI (in progress).
   - Roads: intersections between roads, and between roads and map borders; street numbers
   - Points of interest, esp. bus stops: https://developers.google.com/maps/documentation/javascript/places#place_search_requests
   - Support hot-keys for area adjustment, so that choosing the area is practical for a blind user
