@@ -73,6 +73,7 @@
               <option value="en">English</option>
               <option value="de">Deutsch</option>
               <option value="fi">Suomi</option>
+              <option value="nl">Nederlands</option>
             </select><a class="help-link" href="help" target="_blank" aria-label="{{ open_help_aria }}">{{ help }}</a>
           </div>
         </div>
