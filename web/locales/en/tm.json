@@ -146,7 +146,6 @@
     "content__shop": "Shops",
     "content__restaurant": "Restaurants",
     "content__no_roads": "No roads",
-    "content__no_roads": "No buildings.",
     "content__unnamed_roads": "Unnamed roads",
     "warning_no_buildings": "Warning: penStreetMap might have incomplete data for this area. See help for more information.",
     "download": "Download printable STL file",
