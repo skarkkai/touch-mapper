@@ -83,6 +83,9 @@ def all_mesh_objects():
 
 ob_name_matcher = re.compile('^([a-z]+)( *)(.*)$', re.IGNORECASE)
 
+def rgb(r, g, b):
+    return 'rgb(%d, %d, %d)' % (round(r*2.55), round(g*2.55), round(b*2.55))
+
 def add_polygons(dwg, g, ob):
     mesh = ob.data
     verts = mesh.vertices
@@ -166,7 +169,7 @@ def export_svg(base_path, args):
             print("SVG export failed {}: {}".format(ob.name, str(e)))
 
     # White background
-    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5 - one_cm_units), size=(max_x - min_x + 10, max_y - min_y + 10 + one_cm_units), fill='rgb(100%, 100%, 100%)'))
+    dwg.add(dwg.rect(insert=(min_x - 5, min_y - 5 - one_cm_units), size=(max_x - min_x + 10, max_y - min_y + 10 + one_cm_units), fill=rgb(100, 100, 100)))
 
     # A group for main content
     clip_path = dwg.defs.add(dwg.clipPath(id='main_clip'))
@@ -174,17 +177,17 @@ def export_svg(base_path, args):
     main_g = dwg.add(dwg.g(clip_path='url(#main_clip)'))
 
     for ob in rails:
-        add_svg_object(dwg, main_g, ob, 'rgb(0%, 50%, 0%)')
+        add_svg_object(dwg, main_g, ob, rgb(0, 50, 0))
     for ob in rivers:
-        add_svg_object(dwg, main_g, ob, 'rgb(20%, 20%, 100%)')
+        add_svg_object(dwg, main_g, ob, rgb(20, 20, 100))
     for ob in water_areas:
-        add_svg_object(dwg, main_g, ob, 'rgb(20%, 20%, 100%)')
+        add_svg_object(dwg, main_g, ob, rgb(20, 20, 100))
     for ob in roads_car:
-        add_svg_object(dwg, main_g, ob, 'rgb(70%, 0%, 0%)')
+        add_svg_object(dwg, main_g, ob, rgb(70, 0, 0))
     for ob in roads_ped:
-        add_svg_object(dwg, main_g, ob, 'rgb(0%, 0%, 0%)')
+        add_svg_object(dwg, main_g, ob, rgb(0, 0, 0))
     for ob in buildings:
-        add_svg_object(dwg, main_g, ob, 'rgb(80%, 20%, 100%)')
+        add_svg_object(dwg, main_g, ob, rgb(80, 20, 100))
 
     # Add overlays
     for ob in objs:
