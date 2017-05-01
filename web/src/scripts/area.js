@@ -53,7 +53,7 @@ function initInputs(outputs, osmDragPanInteraction) {
   var DEFAULT_PRINT_SIZE_3D = "17";
 
   var initDone = false;
-  var initialPrintingTech = getLocalStorageStr('printing-tech', '2d');
+  var initialPrintingTech = getLocalStorageStr('printing-tech', '3d');
 
   // Printing technology
   $("#printing-tech-3d").change(function(){
