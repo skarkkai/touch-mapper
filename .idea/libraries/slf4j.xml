@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="slf4j">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/slf4j/slf4j-api-1.7.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/slf4j/slf4j-simple-1.7.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

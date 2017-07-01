@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="configuration">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/configuration/commons-configuration-1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/configuration/commons-lang-2.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/configuration/commons-collections-3.2.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/configuration/commons-logging-1.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

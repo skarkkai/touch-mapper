@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="javaproj-1.0.6">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/javaproj/javaproj-1.0.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

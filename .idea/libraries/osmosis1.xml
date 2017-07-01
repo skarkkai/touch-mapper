@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="osmosis1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/osmosis-xml-0.41.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/osmpbf-1.1.1-754a33af.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/commons-compress-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/osmosis-core-0.41.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/osmosis-pbf-0.41.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/xercesImpl-2.9.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/osmosis/protobuf-java-2.4.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

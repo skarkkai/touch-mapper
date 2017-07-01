@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/blender" />
+      <excludeFolder url="file://$MODULE_DIR$/blender-2.78b-linux-glibc219-x86_64" />
+      <excludeFolder url="file://$MODULE_DIR$/converter/OSM2World" />
+      <excludeFolder url="file://$MODULE_DIR$/converter/blender" />
+      <excludeFolder url="file://$MODULE_DIR$/converter/py-lib" />
+      <excludeFolder url="file://$MODULE_DIR$/runtime" />
+      <excludeFolder url="file://$MODULE_DIR$/t" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

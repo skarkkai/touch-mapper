@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="lpsolve55j">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/lp_solve/lpsolve55j.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

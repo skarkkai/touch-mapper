@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="javailp-1.2a1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/javailp/javailp-1.2a.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

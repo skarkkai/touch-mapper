@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="poly2tri-core-0.1.1-SNAPSHOT1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/poly2tri/poly2tri-core-0.1.1-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

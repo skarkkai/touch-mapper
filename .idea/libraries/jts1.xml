@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="jts1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/jts/jts-1.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/lib/jts/jts-1.11-src.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

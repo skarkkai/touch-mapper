@@ -1,0 +1,20 @@
+<component name="libraryTable">
+  <library name="jogl1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/jogl-all-natives-windows-amd64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/gluegen-rt-natives-windows-amd64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/jogl-all-natives-linux-i586.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/gluegen-rt-natives-macosx-universal.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/gluegen-rt-natives-windows-i586.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/jogl-all-natives-macosx-universal.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/jogl-all-natives-linux-amd64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/gluegen-rt-natives-linux-amd64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/gluegen-rt.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/jogl-all.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/jogl-all-natives-windows-i586.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/jogl/gluegen-rt-natives-linux-i586.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="trove">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/trove/trove-3.0.1-src.jar!/" />
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/trove/trove-111118193120.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

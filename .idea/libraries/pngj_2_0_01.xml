@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="pngj-2.0.01">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/OSM2World/build/lib/pngj/pngj-2.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
