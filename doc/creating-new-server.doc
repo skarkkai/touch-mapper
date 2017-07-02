@@ -1,0 +1,39 @@
+Overview
+--------
+
+- Tarball test instance's "dist" to S3 (make test-cp-to-s3.sh)
+- Create a fresh Ubuntu instance, configure it a little, and install ec2-init.sh from S3 
+
+Creating a new server
+---------------------
+
+- Create a Ubuntu nano instance in EC2
+  - tag Name=tm-YYYYMMDD-HHMM
+  - Use ~/.ssh/amazon-ec2-second_keypair.pubkey
+  - Update the public IP to "tm-ec2" in ~/.ssh/config
+
+- Configure the instance:
+scp install/setup-ec2.sh ubuntu@tm-ec2:/tmp/
+ssh tm-ec2
+bash /tmp/setup-ec2.sh
+In another terminal: cat ~/.aws/{config,credentials}
+
+- Move test instance from old server
+  - Stop test instance on the old server
+    pkill -f "poller.sh test"
+    pkill -f ./process-request.py
+
+  - Install to test instance
+    make test-install-ec2
+
+  - Reboot server and verify that https://test.touch-mapper.org works
+
+  - Copy test to prod
+    make prod-install-ec2
+
+  - Reboot server
+  - Stop old server
+  - Verify that https://touch-mapper.org works
+
+- UPDATE CLOUDWATCH ALERTS
+

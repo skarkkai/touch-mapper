@@ -20,6 +20,6 @@ mkdir dist/OSM2World
 cp -alH ../OSM2World/build dist/OSM2World/
 cp -plH ../converter/*{py,sh} dist/
 cp -aH ../converter/py-lib dist/
-#cp -aH restart-pollers.sh cp-to-s3.sh dist/
+cp -aH ../install/{ec2-restart-pollers.sh,ec2-init.sh} dist/
 echo "$( date +'%Y-%m-%dT%H:%M:%S') $( git rev-parse --abbrev-ref HEAD ) $( git describe --tags ) $( git rev-parse --verify HEAD )" >dist/VERSION.txt
 #GZIP=-4 tar czf dist.tgz dist

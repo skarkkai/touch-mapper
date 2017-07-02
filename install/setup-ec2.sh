@@ -10,10 +10,15 @@ sudo apt-get -y install awscli openjdk-8-jre-headless libglu1-mesa libxi6 python
 aws configure
 sudo cp -r /home/ubuntu/.aws /root/
 
-mkdir -p touch-mapper/runtime
-cd touch-mapper
-aws s3 cp s3://meta.touch-mapper/converter-dist.tgz /tmp
-tar xf /tmp/converter-dist.tgz dist/ec2-init.sh
-sudo ln -s $PWD/dist/ec2-init.sh /etc/init.d/touch-mapper
-sudo update-rc.d touch-mapper defaults
+sudo fallocate -l 200M /swap
+sudo mkswap /swap
+echo "/swap  none  swap  sw 0  0" | sudo tee -a /etc/fstab
+
+dir=~ubuntu/touch-mapper
+for execmode in test prod; do
+    mkdir -p $dir/$execmode/runtime
+done
+
+# Make a symlink whose target will be installed a bit later
+sudo ln -s $dir/test/dist/ec2-init.sh /etc/init.d/touch-mapper
 

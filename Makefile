@@ -29,13 +29,13 @@ package:
 	install/package.sh
 
 test-install-ec2: package
-	# "tm-ec2-test" needs to be defined as a Host in ~/.ssh/config
-	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2-test:touch-mapper/dist/
-	ssh tm-ec2-test touch-mapper/dist/ec2-restart-pollers.sh
+	# "tm-ec2" needs to be defined as a Host in ~/.ssh/config
+	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2:touch-mapper/test/dist/
 
-test-cp-to-s3.sh:
-	# Copy test instance's content to S3 from where prod instance will install it on boot
-	ssh tm-ec2-test touch-mapper/dist/cp-to-s3.sh
+test-restart: package
+	ssh tm-ec2 touch-mapper/test/dist/ec2-restart-pollers.sh
 
-# Install into prod only through AMI launch
+prod-install-ec2: package
+	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/
+
 
