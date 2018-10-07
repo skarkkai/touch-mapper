@@ -18,7 +18,9 @@
   {{ what_is_the_map_like__clarity }}
 
   <h3 id="larger-scale-maps">{{ larger_scale_maps }}</h3>
-  <p>{{ larger_scale_maps_answer }}</p>
+  <p>
+    <%- @t('larger_scale_maps_answer', { aphLinkStart: '<a href="http://shop.aph.org/webapp/wcs/stores/servlet/Category_413A9B_10001_11051_20905__20815">', aphLinkEnd: '</a>' }) %>
+  </p>
 
   <h3 id="data-from-osm">{{ data_comes_from_osm }}</h3>
   <p>
