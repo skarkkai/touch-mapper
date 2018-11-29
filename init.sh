@@ -27,7 +27,7 @@ blender/$BLENDER_VERSION/python/bin/pip install --target=blender/$BLENDER_VERSIO
 
 sudo pip install xlwt xlrd # for translation file conversions
 sudo pip install awscli
-apt install python3-cairosvg # for SVG to PDF conversion
+sudo apt install python3-cairosvg # for SVG to PDF conversion
 
 # Install "jq" and "rename" for install/web-s3.sh
 sudo apt install jq rename
