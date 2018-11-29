@@ -11,7 +11,6 @@ if [[ ! -f $blender_basename ]]; then
     curl -O $BLENDER_DL_URL
     tar xf $blender_basename
     ln -sfn ${blender_basename%.tar.bz2} blender
-    (cd blender && patch -p0 -s <../stl-export-blender.patch)
 fi
 
 # Create symlinks
