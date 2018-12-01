@@ -2,7 +2,7 @@ all:
 	@echo "No default target exists"
 
 osm2world:
-	cd OSM2World && ant
+	cd OSM2World && ant jar
 
 dev-aws-install:
 	install/lambda-update.sh dev
