@@ -6,7 +6,8 @@ export LC_ALL
 
 sudo apt-get update
 sudo apt-get upgrade -y
-sudo apt-get -y install awscli openjdk-8-jre-headless libglu1-mesa libxi6 python3-cairosvg
+sudo apt-get -y install awscli openjdk-8-jre-headless libglu1-mesa libxi6 python3-cairosvg python3-pip
+sudo -H pip3 install --upgrade boto3
 aws configure
 sudo cp -r /home/ubuntu/.aws /root/
 
