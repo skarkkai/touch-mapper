@@ -23,6 +23,7 @@ if [[ ! -d "$work_dir" ]]; then
   fi
 fi
 
+cd $dirname
 (
   flock --exclusive --nonblock 200 || exit 1
   echo $$ >&200
@@ -30,7 +31,7 @@ fi
 
   # Keep the loop as simple as possible to minimize chance of this process ever exiting
   while true; do
-      cd $dirname # do every time, because "dist" may have been replaced due to version update
+      cd .  # "dist" may have just been replaced due to version update
       PYTHONUNBUFFERED=true TM_ENVIRONMENT=$environment timeout --kill-after=1s 10m ./process-request.py --poll-time 300 --work-dir "$work_dir" &> "$work_dir/request.log"
       cp "$work_dir/request.log" "$work_dir/prev-request.log"
       if [[ $? -ne 0 ]]; then
