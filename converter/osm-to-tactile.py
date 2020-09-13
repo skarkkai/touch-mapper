@@ -40,7 +40,7 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
         '-jar', osm2world_path,
         '-i', input_path,
         '-o', output_path]
-    output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.4', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
+    output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
     print(output)
 
     # Find bounds from output
