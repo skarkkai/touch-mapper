@@ -47,9 +47,6 @@
   <h3 id="how-to-3d-print">{{ how_to_3d_print }}</a></h3>
 
   <p>{{ map_can_be_printed }}</p>
-  <p>
-    <%- @t('if_you_print_at_service', { link: '<a href="https://www.playfulpixels.com/">Playful Pixels</a>' }) %>
-  </p>
   <p>{{ if_you_print_yourself }}</p>
 
   <h3 id="about">{{ about_touch_mapper }}</h3>
@@ -57,7 +54,6 @@
   <p>
     <%- @t('about_touch_mapper_answer', { startTag: '<a href="https://www.playfulpixels.com/">', endTag: '</a>' }) %>
   </p>
-  <p>{{ later_2d_options }}</p>
   <p>
     <%- @t('news_from', { linkFB: '<a href="https://www.facebook.com/touchmapper/">Facebook</a>', linkTwitter: '<a href="https://twitter.com/touchmapper">Twitter</a>' }) %>
   </p>
