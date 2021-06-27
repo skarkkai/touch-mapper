@@ -1,6 +1,6 @@
 <div class="show-on-load" style="display: none">
-  <script src="../scripts/three-20160121.min.js"></script>
-  <script src="../scripts/three-STLLoader-20160122.js"></script>
+  <script src="../scripts/three-20210627.min.js"></script>
+  <script src="../scripts/three-STLLoader-20210627.js"></script>
   <script>
 window.TM = { translations: {
   "location2_bottom_left": "{{ location2_bottom_left }}",
