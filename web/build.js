@@ -56,7 +56,7 @@ var metalsmith = Metalsmith(__dirname)
         output: 'scripts/app-common.js'
     }))
     .use(concat({
-        files: ['**/jquery-2.1.4.min.js', '**/underscore-1.8.3.min.js', '**/backbone-1.2.3.min.js', ],
+        files: ['**/jquery-2.1.4.min.js', '**/underscore-1.13.1.min.js', '**/backbone-1.2.3.min.js', ],
         output: 'scripts/vendor-common.js'
     }))
     .use(copy({ pattern: '**/aws-sdk*.js', directory: 'scripts', move: true, }))
