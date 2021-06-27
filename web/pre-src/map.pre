@@ -123,9 +123,7 @@ window.TM = { translations: {
     </a>
 
     <a class="download-link main-row large-row green-button hidden-for-self-print" id="order-map">
-      <span class="order-download-link">
-        <%- @t('order_from', { linkTag: '<img class="order-pp-logo" src="/images/playful-pixels-logo.png" alt="Playful Pixels" />' }) %>
-      </span>
+      <span class="order-download-link">{{ order_from }}</span>
     </a>
   </div>
 
