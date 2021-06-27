@@ -54,7 +54,6 @@
     </div>
     <div class="col col2">
       <select class="grey-in-advanced hidden-for-2d" id="map-size-preset">
-        <option value="13">{{ size_order_13 }}</option>
         <option value="17">{{ size_order_17 }}</option>
         <option value="20">{{ size_order_20 }}</option>
       </select>
