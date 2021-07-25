@@ -3,8 +3,6 @@
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 (function(){
-  var PLAYFUL_PIXELS_URL = "https://www.playfulpixels.com/en/tactile-map";
-
   function initPrintingMethod() {
 
     $("#printing-method-order").change(function(){
@@ -40,7 +38,7 @@
   function initPrintingTech(printingTech, requestId) {
     if (printingTech === '3d') {
       $(".hidden-for-3d").hide();
-      initPrintingMethod();
+      //initPrintingMethod();
       checkDataAvailability(makeS3url(requestId));
     } else {
       $(".hidden-for-2d").hide();
@@ -60,9 +58,12 @@
 
     insertMapDescription(info, $(".map-content")); // from map-description.js
 
-    $("#order-map").attr("href", PLAYFUL_PIXELS_URL
-      + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
-      + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)));
+    tsGetData(makeCloudFrontUrl(info.requestId), function(response) {
+        $(".order-min-price").text(response.currency + ' ' + response.price);
+        $("a.download-link").attr("href", response.orderUrl);
+        $(".order-download-link-loading").hide();
+        $(".order-download-link").show();
+    });
 
     // Keep in sync with the email-sending lambda
     initEmailSending($('.email-sending'), meta);
@@ -86,10 +87,10 @@
 
   $(window).ready(function(){
     var id = getUrlParam("map");
-    if (! id) {
-      alert("Query parameter 'map' required");
-      return;
-    }
+    //if (! id) {
+      //alert("Query parameter 'map' required");
+      //return;
+    //}
 
     $(".back-to-previous-page").attr("href", "area?map=" + id);
 
