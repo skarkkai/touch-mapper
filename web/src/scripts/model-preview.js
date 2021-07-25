@@ -32,7 +32,7 @@
         // Lights
         var dirLight = new THREE.DirectionalLight(0xfffbf4, 0.85);
         dirLight.position.set(100, 100, 100);
-        // dirLight.castShadow = true;
+        dirLight.castShadow = true;
         // dirLight.shadowMapWidth = 2048; // default is 512
         // dirLight.shadowMapHeight = 2048; // default is 512
         var ambLight = new THREE.AmbientLight(0x404050);
@@ -53,6 +53,15 @@
         scene.add(ambLight);
         scene.add(mesh);
 
+        // Composer
+        var composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        //var ssaoPass = new THREE.SSAOPass(scene, camera, width, height);
+        //ssaoPass.kernelRadius = 5;
+        //composer.addPass( ssaoPass );
+        //var ssrPass = new THREE.SSRPass({ renderer: renderer, scene: scene, camera: camera, width: width, height: height });
+        //composer.addPass( ssrPass );
+
         // Replace "Loading..." with renderer
         elem.empty().append(renderer.domElement);
 
@@ -63,7 +72,7 @@
         function render() {
           requestAnimationFrame( render );
           mesh.rotation.z = (getNowMs() - startTime) / -2000;
-          renderer.render( scene, camera );
+          composer.render( scene, camera );
         }
         render();
 

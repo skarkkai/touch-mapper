@@ -1,6 +1,19 @@
 <div class="show-on-load" style="display: none">
   <script src="../scripts/three-20210627.min.js"></script>
   <script src="../scripts/three-STLLoader-20210627.js"></script>
+  <!-- SSAO effect and its direct dependencies -->
+  <script src="../scripts/three-EffectComposer-20210627.js"></script>
+  <script src="../scripts/three-RenderPass-20210627.js"></script>
+  <xscript src="../scripts/three-SSAOPass-20210627.js"></script>
+  <xscript src="../scripts/three-SSRPass-20210627.js"></script>
+  <!-- Indirect dependencies of SSAO -->
+  <script src="../scripts/three-CopyShader-20210627.js"></script>
+  <script src="../scripts/three-ShaderPass-20210627.js"></script>
+  <xscript src="../scripts/three-SimplexNoise-20210627.js"></script>
+  <xscript src="../scripts/three-SSAOShader-20210627.js"></script>
+  <!-- Indirect dependencies of SSR -->
+  <xscript src="../scripts/three-SSRShader-20210627.js"></script>
+
   <script>
 window.TM = { translations: {
   "location2_bottom_left": "{{ location2_bottom_left }}",
@@ -106,24 +119,16 @@ window.TM = { translations: {
   </div>
 
   <div class="hidden-for-2d">
-    <div class="main-row">
-      <span class="printing-method-container" style="margin-right: 25px">
-       <input type="radio" name="printing-method" id="printing-method-order" checked="checked">
-       <label for="printing-method-order">{{ map_printing__order }}</label>
-      </span>
-
-      <span class="printing-method-container">
-       <input type="radio" name="printing-method" id="printing-method-self">
-       <label for="printing-method-self">{{ map_printing__self }}</label>
-      </span>
-    </div>
-
-    <a class="download-link main-row large-row green-button hidden-for-order" id="download-map" target="_blank">
+    <a class="download-link main-row large-row green-button" id="download-map" target="_blank">
       <span>{{ download }}</span>
     </a>
 
-    <a class="download-link main-row large-row green-button hidden-for-self-print" id="order-map">
-      <span class="order-download-link">{{ order_from }}</span>
+    <a class="download-link main-row large-row green-button" id="order-map">
+      <span class="order-download-link-loading">{{ order_from_loading }}</span>
+      <span class="order-download-link" style="display: none">
+          {{ order_from }}
+          <span class="order-min-price"></span>
+      </span>
     </a>
   </div>
 
