@@ -52,7 +52,7 @@
   <h3 id="about">{{ about_touch_mapper }}</h3>
 
   <p>
-    <%- @t('about_touch_mapper_answer', { startTag: '<a href="https://www.playfulpixels.com/">', endTag: '</a>' }) %>
+    <%- @t('about_touch_mapper_answer') %>
   </p>
   <p>
     <%- @t('news_from', { linkFB: '<a href="https://www.facebook.com/touchmapper/">Facebook</a>', linkTwitter: '<a href="https://twitter.com/touchmapper">Twitter</a>' }) %>
@@ -69,4 +69,5 @@
      genmail("samuli.karkkainen", "touch-mapper.org");
     </script>
   </div>
+
 </div>

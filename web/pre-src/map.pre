@@ -106,7 +106,7 @@ window.TM = { translations: {
   </div>
 
   <div class="hidden-for-2d">
-    <div class="main-row">
+    <!--div class="main-row">
       <span class="printing-method-container" style="margin-right: 25px">
        <input type="radio" name="printing-method" id="printing-method-order" checked="checked">
        <label for="printing-method-order">{{ map_printing__order }}</label>
@@ -116,15 +116,15 @@ window.TM = { translations: {
        <input type="radio" name="printing-method" id="printing-method-self">
        <label for="printing-method-self">{{ map_printing__self }}</label>
       </span>
-    </div>
+    </div-->
 
-    <a class="download-link main-row large-row green-button hidden-for-order" id="download-map" target="_blank">
+    <a class="download-link main-row large-row green-button x-hidden-for-order" id="download-map" target="_blank">
       <span>{{ download }}</span>
     </a>
 
-    <a class="download-link main-row large-row green-button hidden-for-self-print" id="order-map">
+    <a class="download-link main-row large-row green-button x-hidden-for-self-print" id="order-map">
       <span class="order-download-link">
-        <%- @t('order_from', { linkTag: '<img class="order-pp-logo" src="/images/playful-pixels-logo.png" alt="Playful Pixels" />' }) %>
+        <%- @t('order_from',{ companyName: 'HeKeyTech' }) %>
       </span>
     </a>
   </div>
@@ -138,7 +138,7 @@ window.TM = { translations: {
       {{ open_or_download_pdf }}
     </a>
 
-    <p class="ordering-2d-later">{{ emboss_ordering_later }}</p>
+    <!--p class="ordering-2d-later">{{ emboss_ordering_later }}</p-->
   </div>
 
 

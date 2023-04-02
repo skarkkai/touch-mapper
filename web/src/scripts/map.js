@@ -3,8 +3,6 @@
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 (function(){
-  var PLAYFUL_PIXELS_URL = "https://www.playfulpixels.com/en/tactile-map";
-
   function initPrintingMethod() {
 
     $("#printing-method-order").change(function(){
@@ -60,9 +58,15 @@
 
     insertMapDescription(info, $(".map-content")); // from map-description.js
 
-    $("#order-map").attr("href", PLAYFUL_PIXELS_URL
-      + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
-      + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)));
+    //$("#order-map").attr("href", PLAYFUL_PIXELS_URL
+    //  + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
+    //  + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)));
+    $("#order-map")
+      .attr("href", "https://www.hekeytech.com/contact"
+        + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
+        + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)))
+      .attr("target", "_blank")
+      .attr("rel", "noopener noreferrer");
 
     // Keep in sync with the email-sending lambda
     initEmailSending($('.email-sending'), meta);
