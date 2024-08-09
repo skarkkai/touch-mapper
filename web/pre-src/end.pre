@@ -1,9 +1,5 @@
-        <footer class="show-on-load" style="display: none">
-          <div class="fb-like-container">
-            <div class="fb-like" data-href="https://touch-mapper.org/" data-layout="button" data-action="like" data-show-faces="true" data-share="true"></div>
-          </div>
+        <footer>
           <p class="credits">
-            <span class="sentence"><%- @t('address_search_by', { linkTag: '<img class="powered-by-google" src="/images/powered_by_google_on_white_hdpi.png" alt="Powered by Google">' }) %></span>
             <span class="sentence"><%- @t('map_data_by', { linkTag: '<a href="https://en.wikipedia.org/wiki/OpenStreetMap">OpenStreetMap</a>' }) %></span>
             <div class="open-source">
               {{ touch_mapper_is_os }}
@@ -13,21 +9,6 @@
         </footer>
       </div>
     </div>
-
-    <div id="fb-root"></div>
-    <script>
-      // Load Facebook like button only after onload, because we show the search input in onload (because Google Maps API)
-      $(window).load(function(){
-        (function(d, s, id) {
-          var js, fjs = d.getElementsByTagName(s)[0];
-          if (d.getElementById(id)) return;
-          js = d.createElement(s); js.id = id;
-          js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5";
-          js.async = true;
-          fjs.parentNode.insertBefore(js, fjs);
-        })(document, 'script', 'facebook-jssdk');
-      });
-    </script>
 
     <script src="../scripts/app-common.js"></script>
     <script src="../scripts/[% pagename %].js"></script>

@@ -55,19 +55,7 @@
     <%- @t('about_touch_mapper_answer') %>
   </p>
   <p>
-    <%- @t('news_from', { linkFB: '<a href="https://www.facebook.com/touchmapper/">Facebook</a>', linkTwitter: '<a href="https://twitter.com/touchmapper">Twitter</a>' }) %>
+    <%- @t('news_from', { linkTwitter: '<a href="https://x.com/touchmapper">X</a>' }) %>
   </p>
-  <p>{{ want_to_improve_please }}</p>
-
-  <div class="email-me large-row green-button">
-    <script>
-      function genmail(lhs, rhs) {
-        document.write("<a href=\"mailto");
-        document.write(":" + lhs + "@");
-        document.write(rhs + "\">{{ email_me }}</a>");
-      }
-     genmail("samuli.karkkainen", "touch-mapper.org");
-    </script>
-  </div>
 
 </div>
