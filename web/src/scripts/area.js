@@ -206,6 +206,7 @@ function initialAddressAndParameters() {
   }
   var addrIndex = getLocalStorageInt("addressesSelectedIndex", 0);
   var addresses = JSON.parse(localStorage.addresses);
+  if (addrIndex >= addresses.length) addrIndex = 0;
   var addr = addresses[addrIndex];
   if (! addr) {
     location.href = ".";

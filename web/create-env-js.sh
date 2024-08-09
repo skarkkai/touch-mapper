@@ -19,11 +19,9 @@ else
     tm_domain=$domain
 fi
 
-map_request_sqs_queue=$( aws sqs list-queues | jq --raw-output ".QueueUrls[]" | egrep "queue\.amazonaws\.com/[0-9]+/$environment" )
+map_request_sqs_queue=$( aws sqs list-queues | jq --raw-output ".QueueUrls[]" | egrep "$environment-requests-touch-mapper" )
 
 echo "window.TM_ENVIRONMENT = '$env_name';"
 echo "window.TM_DOMAIN = '$tm_domain';"
 echo "window.TM_REGION = '$(aws configure get region)';"
 echo "window.TM_MAP_REQUEST_SQS_QUEUE = '$map_request_sqs_queue';"
-echo "window.TM_GOOGLE_API_KEY = 'AIzaSyCjP6bWuVy98RUxiP9j0iHYO6V-vf-6NcY';"
-

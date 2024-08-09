@@ -12,15 +12,7 @@
   </ul>
 </div>
 
-<script>
-  var script = document.createElement('script');
-  script.setAttribute("type", "text/javascript");
-  script.setAttribute("src", '//maps.googleapis.com/maps/api/js?key=' + window.TM_GOOGLE_API_KEY + '&libraries=places');
-  $("head").append(script);
-</script>
-
-<!-- Don't show immediately because Google API loads asynchronously -->
-<div class="row main-row address-input-row show-on-load" style="display: none">
+<div class="row main-row address-input-row">
   <div class="col col1">
     <label for="address-input">{{ street_address }}:</label>
   </div>
