@@ -29,7 +29,7 @@ def do_cmdline():
 
 def update_progress(s3, map_bucket_name, map_object_name, stage):
     s3.Bucket(map_bucket_name).put_object(Key=map_object_name, ACL='public-read', \
-        CacheControl='no-cache', StorageClass='REDUCED_REDUNDANCY', Metadata={ 'processing-stage': stage })
+        CacheControl='no-cache', StorageClass='GLACIER_IR', Metadata={ 'processing-stage': stage })
 
 def get_osm(progress_updater, request_body, work_dir):
     # TODO: verify the requested region isn't too large
@@ -182,7 +182,7 @@ def main():
         # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
-            'CacheControl': 'max-age=8640000', 'StorageClass': 'REDUCED_REDUNDANCY',
+            'CacheControl': 'max-age=8640000', 'StorageClass': 'GLACIER_IR',
         }
         s3.Bucket(map_bucket_name).put_object(
             Key=map_object_name, Body=gzip.compress(stl, compresslevel=5), **common_args, ContentType='application/sla')
@@ -213,7 +213,7 @@ def main():
             if s3 != None:
                 # Put map file that contains just the error message in metadata
                 s3.Bucket(map_bucket_name).put_object(Key=map_object_name, Body=b'', ACL='public-read', \
-                    CacheControl='max-age=8640000', StorageClass='REDUCED_REDUNDANCY', Metadata={ 'error-msg': str(e) })
+                    CacheControl='max-age=8640000', StorageClass='GLACIER_IR', Metadata={ 'error-msg': str(e) })
         except:
             pass
         sys.exit(1)
