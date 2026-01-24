@@ -9,7 +9,7 @@ import json
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 def do_cmdline():
-    parser = argparse.ArgumentParser(description='''Convert .osm file into a tactile map. Writes one or more .stl files in thee input file's directory.''')
+    parser = argparse.ArgumentParser(description='''Convert .osm file into a tactile map. Writes one or more .stl files in the input file's directory.''')
     parser.add_argument('input', metavar='OSM_FILE', help='input file path')
     parser.add_argument('--foreground', action='store_true', help="open Blender UI, and don't perform STL export")
     parser.add_argument('--scale', metavar='N', type=int, default=3100, help="scale to print in, default 1 : 3100")
