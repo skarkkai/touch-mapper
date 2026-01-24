@@ -105,6 +105,7 @@
     "map_scale__9999": "Gebiete mit nur großen Straßen",
     "map_content": "Inhalt",
     "exclude_buildings": "Gebäude ausblenden (beeinflusst die Kartenvorschau nicht)",
+    "location_marker": "Standortmarkierung",
     "hide_location_marker": "Standortmarkierung ausblenden",
     "advanced_settings": "Erweitert",
     "show_advanced_settings": "Erweiterte Optionen anzeigen",

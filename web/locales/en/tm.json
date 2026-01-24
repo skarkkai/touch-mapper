@@ -111,6 +111,7 @@
     "map_scale__9999": "areas with only large roads",
     "map_content": "Content",
     "exclude_buildings": "Hide buildings (doesn't affect map preview)",
+    "location_marker": "Location marker",
     "hide_location_marker": "Hide location marker",
     "advanced_settings": "Advanced",
     "show_advanced_settings": "Show advanced options",

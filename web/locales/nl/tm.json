@@ -105,6 +105,7 @@
     "map_scale__9999": "gebieden met alleen grote wegen",
     "map_content": "Inhoud",
     "exclude_buildings": "Gebouwen uitsluiten (heeft geen invloed op het kaartvoorbeeld)",
+    "location_marker": "Locatiemarkering",
     "hide_location_marker": "Locatiemarkering verbergen",
     "advanced_settings": "Geavanceerd",
     "show_advanced_settings": "Toon geavanceerde opties",

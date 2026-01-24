@@ -92,7 +92,7 @@
 
   <div class="row main-row">
     <div class="col col1">
-      <label>{{ hide_location_marker }}:</label>
+      <label>{{ location_marker }}:</label>
     </div>
     <div class="col col2 content-selection-container">
       <input id="hide-location-marker" type="checkbox" />
