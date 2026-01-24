@@ -56,7 +56,7 @@
   "unit_cm": "cm",
   "custom_scale": "Benutzerdefinierter Maßstab",
   "multipart_map": "Mehrteilige Karte",
-  "multipart_map_label": "Teil einer mehrteiligen Karte (ohne Rahmen)",
+  "multipart_map_label": "Teil einer mehrteiligen Karte (ohne Rahmen, blendet Standortmarkierung aus)",
   "adjust_area_for_multipart": "Gebiet auf Kartenteil anpassen",
   "move_map_area_left": "Gebiet auf Karte um __amount__ Prozent nach links verschieben",
   "move_map_area_up": "Gebiet auf Karte um __amount__ Prozent nach oben verschieben",

@@ -6,6 +6,6 @@ Touch Mapper can generate a tactile map of any address. A 3D model of the select
 
 In the tactile map, roads, buildings, and railways are elevated, pedestrian roads more so than other roads. The selected address is marked by a cone, water areas have a wavy surface, and the map can be properly oriented because the north-east corner is indicated.
 
-Touch Mapper is made by Finnish programmer Sofia Pahaoja. 3D printing is provided by Playful Pixels, a Finnish 3D design and 3D printing service.
+Touch Mapper is made by Finnish programmer Sofia Pahaoja.
 
 You can find Touch Mapper at www.touch-mapper.org

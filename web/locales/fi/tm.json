@@ -59,7 +59,7 @@
     "custom_map_size": "Muokattu koko",
     "custom_scale": "Muokattu mittakaava",
     "multipart_map": "Moniosainen kartta",
-    "multipart_map_label": "Tulosta osa moniosaisesta kartasta",
+    "multipart_map_label": "Tulosta osa moniosaisesta kartasta (piilottaa sijaintimerkin)",
     "adjust_area_for_multipart": "Säädä kartan sijaintia",
     "move_map_area_left": "Siirrä aluetta vasemmalle __amount__ prosenttia",
     "move_map_area_up": "Siirrä aluetta ylös __amount__ prosenttia",

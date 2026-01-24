@@ -64,7 +64,7 @@
     "unit_cm": "cm",
     "custom_scale": "Aangepaste schaal",
     "multipart_map": "Meerdelige kaart",
-    "multipart_map_label": "Print een deel van een meerdelige kaart",
+    "multipart_map_label": "Print een deel van een meerdelige kaart (verbergt locatiemarkering)",
     "adjust_area_for_multipart": "Locatie van het kaartdeel aanpassen",
     "move_map_area_left": "Verplaats het kaartgebied naar links met __amount__ procent",
     "move_map_area_up": "Verplaats het kaartgebied naar boven met __amount__ procent",

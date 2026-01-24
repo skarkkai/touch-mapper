@@ -126,7 +126,7 @@
     "unit_cm": "cm",
     "custom_scale": "Custom scale",
     "multipart_map": "Multipart map",
-    "multipart_map_label": "Print a part of a multipart map",
+    "multipart_map_label": "Print a part of a multipart map (hides location marker)",
     "adjust_area_for_multipart": "Adjust map part location",
     "move_map_area_left": "Move map area left by __amount__ percent",
     "move_map_area_up": "Move map area up by __amount__ percent",
