@@ -122,12 +122,14 @@ window.TM = { translations: {
       <span>{{ download }}</span>
     </a>
 
+    <!--
     <a class="download-link main-row large-row green-button x-hidden-for-self-print" id="order-map">
       <span class="order-download-link">
         <%- @t('order_from_1', { companyName: 'HeKeyTech' }) %><br>
         <%- @t('order_from_2') %>
       </span>
     </a>
+    -->
   </div>
 
   <div class="hidden-for-3d">
