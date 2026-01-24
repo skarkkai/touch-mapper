@@ -33,5 +33,9 @@ This file captures project-specific conventions and "gotchas" that help especial
 - `install/parameters.sh` derives env names; `TOUCH_MAPPER_DEV_ENV` controls the dev suffix.
 - `install/run-dev-converter.sh` runs the OSM -> STL converter locally.
 
+## Setup
+- See `README.md` for full local setup steps (dependencies, AWS CLI, and web dev workflow).
+- `init.sh` installs system dependencies and builds `OSM2World` (use it for full setup).
+
 ## OSM2World
 - `OSM2World/` is a modified upstream dependency, rarely modified.
