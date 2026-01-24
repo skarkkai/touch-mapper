@@ -114,12 +114,24 @@ function uriEncodeRequestId(rid) {
     return TM_HOST + dataPrefix(id) + '.stl';
   };
 
+  window.makeCloudFrontUrlWays = function(id) {
+    return TM_HOST + dataPrefix(id) + '-ways.stl';
+  };
+
+  window.makeCloudFrontUrlRest = function(id) {
+    return TM_HOST + dataPrefix(id) + '-rest.stl';
+  };
+
   window.makeCloudFrontUrlSvg = function(id) {
     return TM_HOST + dataPrefix(id) + '.svg';
   };
 
   window.makeCloudFrontUrlPdf = function(id) {
     return TM_HOST + dataPrefix(id) + '.pdf';
+  };
+
+  window.makeCloudFrontUrlBlend = function(id) {
+    return TM_HOST + dataPrefix(id) + '.blend';
   };
 
   window.makeMapPageUrlRelative = function(id) {

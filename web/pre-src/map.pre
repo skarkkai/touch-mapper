@@ -144,6 +144,16 @@ window.TM = { translations: {
     <!--p class="ordering-2d-later">{{ emboss_ordering_later }}</p-->
   </div>
 
+  <div class="main-row large-row green-button other-downloads">
+    <div class="other-downloads-title">{{ other_downloads }}</div>
+    <ul class="other-downloads-list">
+      <li><a class="other-downloads-link" id="download-stl-ways" target="_blank" rel="noopener noreferrer">{{ download_stl_ways }}</a></li>
+      <li><a class="other-downloads-link" id="download-stl-rest" target="_blank" rel="noopener noreferrer">{{ download_stl_rest }}</a></li>
+      <li class="hidden-for-2d"><a class="other-downloads-link" id="download-pdf-embossers" target="_blank" rel="noopener noreferrer">{{ download_pdf_embossers }}</a></li>
+      <li class="hidden-for-2d"><a class="other-downloads-link" id="download-svg-embossers" target="_blank" rel="noopener noreferrer">{{ download_svg_embossers }}</a></li>
+      <li><a class="other-downloads-link" id="download-blender" target="_blank" rel="noopener noreferrer">{{ download_blender }}</a></li>
+    </ul>
+  </div>
 
   <!-- ---------------- Email sending -------------------- -->
   <div class="email-sending-row main-row large-row green-button">

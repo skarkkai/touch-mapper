@@ -72,8 +72,13 @@
     initEmailSending($('.email-sending'), meta);
 
     $("#download-map").attr("href", makeCloudFrontUrl(info.requestId)); // STL
+    $("#download-stl-ways").attr("href", makeCloudFrontUrlWays(info.requestId));
+    $("#download-stl-rest").attr("href", makeCloudFrontUrlRest(info.requestId));
     $("#download-svg").attr("href", makeCloudFrontUrlSvg(info.requestId));
+    $("#download-svg-embossers").attr("href", makeCloudFrontUrlSvg(info.requestId));
     $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
+    $("#download-pdf-embossers").attr("href", makeCloudFrontUrlPdf(info.requestId));
+    $("#download-blender").attr("href", makeCloudFrontUrlBlend(info.requestId));
     $("#svg-preview").attr("src", makeCloudFrontUrlSvg(info.requestId));
 
     // Only show download links for chosen map type.
