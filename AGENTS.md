@@ -1,0 +1,37 @@
+# Touch Mapper
+
+This file captures project-specific conventions and "gotchas" that help especially an AI make safe, aligned changes.
+
+## Repo layout (high level)
+- `web/`: static web UI built with Metalsmith + ECT + Less.
+- `converter/`: Python-based OSM -> tactile map conversion pipeline.
+- `OSM2World/`: vendored upstream with local modifications; rarely changed.
+- `install/`: AWS packaging/deploy scripts for server-side code.
+- `translation/`: helper scripts for spreadsheet-based translation collection (rarely used).
+
+## Generated vs source (web)
+- `web/src/*.ect` are generated from `web/pre-src/*.pre` via `web/pre2src.py`.
+  - Edit `web/pre-src/*.pre`, not `web/src/*.ect`.
+- `web/build.js` runs the Metalsmith pipeline; output goes to `web/build/`.
+- `web/src/styles/*.less` are the source; compiled to CSS during the build.
+
+## Web build conventions
+- Build pipeline (`web/build.js`) does:
+  - Converts `{{ key }}` in ECT files to `@t('key')` for i18n.
+  - Runs `metalsmith-i18next` over `web/locales/*/tm.json`. Available locales seen as folders in `web/locales`.
+  - Compiles Less and concatenates JS bundles into `scripts/app-common.js` and `scripts/vendor-common.js`.
+- `web/src/index.html` is a small redirect page; the main page template is `web/pre-src/index.pre`.
+- `web/src/scripts/environment.js.*` are environment stubs; `web/create-env-js.sh` generates a real `environment.js` (requires AWS CLI + config).
+
+## i18n conventions
+- Translation keys live in `web/locales/<lang>/tm.json`.
+- The English file is the source of truth for keys and ordering.
+- Translation spreadsheets in `translation/` exist for human translators but are not the primary edit path.
+
+## AWS / deployment notes (for code changes)
+- Root `Makefile` has targets for AWS installs and packaging (dev/test/prod).
+- `install/parameters.sh` derives env names; `TOUCH_MAPPER_DEV_ENV` controls the dev suffix.
+- `install/run-dev-converter.sh` runs the OSM -> STL converter locally.
+
+## OSM2World
+- `OSM2World/` is a modified upstream dependency, rarely modified.
