@@ -45,6 +45,7 @@
     "map_scale__9999": "vain isoja teitä sisältävät alueet",
     "map_content": "Sisältö",
     "exclude_buildings": "Jätä pois rakennukset (ei vaikuta esikatseluun)",
+    "hide_location_marker": "Piilota sijaintimerkki",
     "advanced_settings": "Lisävalinnat",
     "show_advanced_settings": "Näytä lisävalinta-asetukset",
     "coordinates": "Koordinaatit",

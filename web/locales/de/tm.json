@@ -41,6 +41,7 @@
   "map_scale__3200": "durchschnittlich dicht bebaute Vororte",
   "map_scale__5600": "wenig bebaute Gebiete",
   "map_scale__9999": "Gebiete mit nur großen Straßen",
+  "hide_location_marker": "Standortmarkierung ausblenden",
   "advanced_settings": "Erweitert",
   "show_advanced_settings": "Erweiterte Optionen anzeigen",
   "coordinates": "Koordinaten",

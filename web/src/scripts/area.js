@@ -76,6 +76,7 @@ function initInputs(outputs, osmDragPanInteraction) {
 
   // Map content selection
   initSimpleInput("exclude-buildings", $("#exclude-buildings"), "checkbox", true);
+  initSimpleInput("hide-location-marker", $("#hide-location-marker"), "checkbox", false);
 
   // Print size preset
   $("#map-size-preset").change(function(){

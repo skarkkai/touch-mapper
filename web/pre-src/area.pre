@@ -90,6 +90,16 @@
     </div>
   </div>
 
+  <div class="row main-row">
+    <div class="col col1">
+      <label>{{ hide_location_marker }}:</label>
+    </div>
+    <div class="col col2 content-selection-container">
+      <input id="hide-location-marker" type="checkbox" />
+      <label for="hide-location-marker">{{ hide_location_marker }}</label>
+    </div>
+  </div>
+
   <div class="row main-row advanced-toggle">
     <div class="col col1">
       <label>{{ advanced_settings }}:</label>
