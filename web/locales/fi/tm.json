@@ -121,7 +121,7 @@
     "multipart_maps_heading": "Karttojen tulostus useassa osassa",
     "multipart_maps": "Jos yksittäinen kartta ei ole tarpeeksi suuri kattaakseen haluamasi alueen, voit tehdä useita karttoja ja asettaa ne vierekkäin tasaiselle pinnalle. Valitse “Näytä lisävalinta-asetukset” ja sitten “Tulosta osa moniosaisesta kartasta”. Tällöin 3D-tulosteessa ei ole korotettuja reunoja. Lisäksi näkyviin tulee nuolipainikkeita joilla voit säätää kartan aluetta 100% (kartan leveys/korkeus) tai 10% kerrallaan. Tällä tavalla on helppo valita vierekkäisiä alueita.",
     "about_touch_mapper": "Tietoa Touch Mapperista",
-    "about_touch_mapper_answer": "Nimeni on Samuli Pahaoja (aiemmin Kärkkäinen). Tein Touch Mapperin opittuani näkövammaisten haasteista itsenäisessä liikkumisessä, ja tajuttuani kuinka 3D tulostus yhdistettynä vapaaseen karttadataan voi parantaa tilannetta.",
+    "about_touch_mapper_answer": "Nimeni on Sofia Pahaoja. Tein Touch Mapperin opittuani näkövammaisten haasteista itsenäisessä liikkumisessä, ja tajuttuani kuinka 3D tulostus yhdistettynä vapaaseen karttadataan voi parantaa tilannetta.",
     "news_from": "Tietoa uusista ominaisuuksista: __linkFB__, __linkTwitter__.",
     "want_to_improve_please": "Haluan tehdä Touch Mapperista niin hyvän kuin mahdollista ja käyttäjäpalaute on siinä avainasemassa. Jos sinulla on kysyttävää tai kehitysehdotuksia,",
     "email_me": "Lähetä minulle sähköpostia",

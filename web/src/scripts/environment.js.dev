@@ -1,3 +1,2 @@
 window.TM_ENVIRONMENT = 'dev';
 window.TM_DOMAIN = 'dev';
-window.TM_GOOGLE_API_KEY = 'AIzaSyCjP6bWuVy98RUxiP9j0iHYO6V-vf-6NcY';

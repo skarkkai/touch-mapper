@@ -1,8 +1,23 @@
 'use strict';
-/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next show3dPreview data */
+/* global $ mapCalc Backbone isNan _ ol THREE performance TRANSLATIONS i18next show3dPreview data */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
-// Can't use 'load' event because Google API loads asynchronously
+const MAX_ADDRESSES = 5;
+
+const getAddress = (g) => {
+  let streetAddr = g.street;
+  if (streetAddr && g.housenumber) {
+    streetAddr += ' ' + g.housenumber;
+  }
+  let addrShort = g.name || streetAddr || g.label;
+  return [
+    addrShort,
+    [g.name, streetAddr, g.city, g.state || g.county, g.country].filter((x) => x != undefined).join(', ')
+      || g.label,
+  ];
+};
+
+// Wait for window load so the DOM is fully ready.
 $(window).load(function(){
 
   // Address search
@@ -10,8 +25,6 @@ $(window).load(function(){
   if (localStorage.searchString && localStorage.searchString.length > 0) {
     $("#address-input").val(localStorage.searchString).change();
   }
-  var map = new google.maps.Map(document.getElementById('dummy-google-map'));
-  var placesServices = new google.maps.places.PlacesService(map);
   var prevAddr;
   $("#address-search-form").submit(function(ev){
     ev.preventDefault();
@@ -25,46 +38,62 @@ $(window).load(function(){
 
     //$("#searching").slideDown();
     $("#no-search-results").hide();
-    placesServices.textSearch({
-      query: addr
-    }, function callback(results, status){
-      if (status !== google.maps.places.PlacesServiceStatus.OK && status !== google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-        alert("search failed: " + status);
-        prevAddr = undefined;
-        return;
-      }
 
-      if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS || results.length === 0) {
+    function handleSearchResults(response) {
+      var results = response.features;
+      if (results.length === 0) {
         $("#searching").hide();
         $("#no-search-results").show().focus();
         return;
       }
 
-      if (results.length > 5) {
-        results = results.slice(0, 5);
-      }
+      const seenLabels = {};
+      let addresses = results.map((result) => {
+        var g = result.properties.geocoding;
+        // There may be effectively duplicates, only show first one of those
+        if (seenLabels[g.label]) return null;
+        seenLabels[g.label] = true;
 
-      localStorage.addresses = JSON.stringify(_.map(results, function(result){
-        var addrShort = result.formatted_address.substr(0, result.formatted_address.indexOf(','))
-            || result.formatted_address;
-
-        var addrLong = result.formatted_address;
-        if (result.name && ! (addrLong.toLowerCase().startsWith(result.name.toLowerCase()))) {
-          addrLong += " (" + result.name + ")";
-        }
-
-        var location = result.geometry.location;
-
+        const addr = getAddress(g);
+        const coords = result.geometry.coordinates;
         return {
-          addrShort: addrShort,
-          addrLong: addrLong,
-          lat: location.lat(),
-          lon: location.lng(),
+          addrShort: addr[0],
+          addrLong: addr[1],
+          lat: coords[1],
+          lon: coords[0],
         };
-      }));
+      }).filter((x) => x != undefined);
+      if (addresses.length > MAX_ADDRESSES) {
+        addresses = addresses.slice(0, MAX_ADDRESSES);
+      }
+      localStorage.addresses = JSON.stringify(addresses);
       localStorage.searchString = addr;
       location.href = "area";
-    });
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+      q: addr,
+      addressdetails: 1,
+      format: 'geocodejson',
+      limit: MAX_ADDRESSES * 3, // *3 to have room for duplicate removal
+      email: 'sofia.pahaoja@gmail.com',
+    }).toString(), true);
+    xhr.onload = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          handleSearchResults(JSON.parse(xhr.responseText));
+        } else {
+          alert("search failed: " + xhr.statusText);
+          prevAddr = undefined;
+        }
+      }
+    };
+    xhr.onerror = () => {
+      alert("search failed: " + xhr.statusText);
+      prevAddr = undefined;
+    };
+    xhr.send(null);
   });
 
   data.trigger("init");

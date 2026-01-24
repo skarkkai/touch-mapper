@@ -6,7 +6,6 @@ Touch Mapperin kautta on mahdollista hankkia yksilöllinen kohokartta haluamasta
 
 Tulostettavassa kohokartassa talot ja kadut ovat koholla, kävelytiet erottuvat autoteistä. Haettu osoite on merkitty tunnisteella, vesialueet aaltoilevat ja kartan saa asetettua oikein päin pohjois-itä-nurkasta löytyvän merkin avulla.
 
-Touch Mapper on espoolaisen Samuli Kärkkäisen kehittämä palvelu. Kohokartan tulostamisen tarjoaa Playful Pixels, suomalainen 3D-suunnitteluun ja -tulostamiseen keskittynyt internetpalvelu.
+Touch Mapper on espoolaisen Sofia Pahaojan kehittämä palvelu. Kohokartan tulostamisen tarjoaa Playful Pixels, suomalainen 3D-suunnitteluun ja -tulostamiseen keskittynyt internetpalvelu.
 
 Touch Mapperin löydät osoitteesta www.touch-mapper.org
-

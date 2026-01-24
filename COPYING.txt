@@ -1,5 +1,3 @@
-Copyright 2015-2018 Samuli Kärkkäinen <samuli.karkkainen@iki.fi>
-
 Touch Mapper is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License v3.0.
 
 For-media content such as doc/image-for-media-licenced-cc-by.jpg can be reused under the Creative Commons Attribution 2.0 Generic (CC BY 2.0) license. 
