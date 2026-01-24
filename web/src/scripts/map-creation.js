@@ -70,6 +70,7 @@
       offsetY: data.get("offsetY"),
       size: data.get("size"),
       excludeBuildings: data.get("exclude-buildings"),
+      hideLocationMarker: data.get("hide-location-marker") || false,
       lon: data.get("lon"),
       lat: data.get("lat"),
       effectiveArea: (function(){
@@ -90,10 +91,6 @@
       noBorders: data.get("multipartMode"),
       multipartXpc: data.get("multipartXpc"),
       multipartYpc: data.get("multipartYpc"),
-      marker1: {
-        lat: parseFloat(data.get("lat")),
-        lon: parseFloat(data.get("lon"))
-      },
       advancedMode: data.get("advancedMode") || false,
       requestId: (function(){
           var id = newMapId() + "/" + data.get("selected_addr_short").replace(/[\x00-\x1F\x80-\x9F/]/g, '_');
@@ -106,6 +103,12 @@
           return id;
       })()
     };
+    if (! msg.hideLocationMarker) {
+      msg.marker1 = {
+        lat: parseFloat(data.get("lat")),
+        lon: parseFloat(data.get("lon"))
+      };
+    }
     var body = encodeURIComponent(JSON.stringify(msg));
     $("#submit-button").val(window.TM.translations.progress__connecting);
     $.ajax({

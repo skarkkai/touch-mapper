@@ -157,6 +157,7 @@ function setParametersByMapId(id) {
       setLocalStorage("offsetY", data.offsetY);
       setLocalStorage("printing-tech", data.printingTech || "3d");
       setLocalStorage("exclude-buildings", data.excludeBuildings || false);
+      setLocalStorage("hide-location-marker", data.hideLocationMarker || false);
       setLocalStorage("map-size-preset",
         optionExistsInSelect($("#map-size-preset"), data.size) ? data.size
           : ""); // empty value makes initInputs() use global default
