@@ -1,9 +1,11 @@
 
+ENVIRONMENT ?= dev
+
 build: node_modules
 	./pre2src.py
 	rm -rf build
 	node build.js
-	./create-env-js.sh dev >build/scripts/environment.js
+	./create-env-js.sh $(ENVIRONMENT) >build/scripts/environment.js
 
 node_modules: package.json
 	npm install

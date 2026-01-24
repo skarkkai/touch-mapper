@@ -16,7 +16,7 @@ echo "env_name: $env_name"
 echo "S3 web bucket: $url"
 
 # Make sure "web/build" is up to date
-make build
+ENVIRONMENT=$env_name make build
 
 # build => dist
 rm -rf dist
@@ -48,4 +48,3 @@ echo "Invalidating $env_name environment CloudFront distribution '$distribution_
 aws cloudfront create-invalidation --distribution-id $distribution_id --paths '/*'
 
 echo "Web resources installed to https://$( cat dist/scripts/environment.js  | egrep '^window.TM_DOMAIN' | cut -d "'" -f 2 )"
-

@@ -19,7 +19,11 @@ else
     tm_domain=$domain
 fi
 
-map_request_sqs_queue=$( aws sqs list-queues | jq --raw-output ".QueueUrls[]" | egrep "queue\.amazonaws\.com/[0-9]+/$environment" )
+map_request_sqs_queue=$( aws sqs get-queue-url --queue-name "${environment}-requests-touch-mapper" --query QueueUrl --output text 2>/dev/null )
+if [[ -z "$map_request_sqs_queue" || "$map_request_sqs_queue" == "None" ]]; then
+    echo "$0: failed to resolve SQS queue URL for ${environment}-requests-touch-mapper" >&2
+    exit 1
+fi
 
 echo "window.TM_ENVIRONMENT = '$env_name';"
 echo "window.TM_DOMAIN = '$tm_domain';"
