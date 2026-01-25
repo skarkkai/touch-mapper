@@ -154,6 +154,7 @@
     "open_or_download_svg": "SVG-Datei öffnen (für Prägegeräte) oder mit der rechten Maustaste herunterladen",
     "open_or_download_pdf": "PDF-Datei öffnen (für Quellpapiergeräte) oder mit der rechten Maustaste herunterladen",
     "emboss_ordering_later": "Bestelloption für Präge- oder Quellpapierkarten folgt später.",
+    "osm_attribution": "Kartendaten © __startTag__OpenStreetMap-Mitwirkende__endTag__. Wenn Sie ein Produkt mit Touch Mapper erstellen, müssen Sie OpenStreetMap als Datenquelle angeben.",
     "email_map_to": "Kartenlink per E-Mail senden an",
     "send_submit": "Senden",
     "send_email": "E-Mail senden",

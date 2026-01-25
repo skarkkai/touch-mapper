@@ -154,6 +154,7 @@
     "open_or_download_svg": "Open SVG-bestand (voor brailleprinters), of klik met de rechter muisknop om te downloaden",
     "open_or_download_pdf": "Open PDF-bestand (voor swell form machines), of klik met de rechter muisknop om te downloaden",
     "emboss_ordering_later": "Een besteloptie voor kaarten als brailleprint of swell paper volgt later.",
+    "osm_attribution": "Kaartgegevens © __startTag__OpenStreetMap-bijdragers__endTag__. Als u een product maakt met Touch Mapper, moet u OpenStreetMap als gegevensbron vermelden.",
     "email_map_to": "E-mail een link naar de kaart naar",
     "send_submit": "Verzenden",
     "send_email": "E-mail verzenden",

@@ -154,6 +154,7 @@
     "open_or_download_svg": "Avaa SVG-tiedosto (pistekirjoittimille), tai klikkaa hiiren oikealla napilla tallentaaksesi",
     "open_or_download_pdf": "Avaa PDF-tiedosto (kuohupaperitulostimille), tai klikkaa hiiren oikealla napilla tallentaaksesi",
     "emboss_ordering_later": "Tilausmahdollisuus tulossa myöhemmin.",
+    "osm_attribution": "Karttadata © __startTag__OpenStreetMapin osallistujat__endTag__. Jos teet tuotteen Touch Mapperilla, sinun on mainittava OpenStreetMap datalähteenä.",
     "email_map_to": "Mailaa karttalinkki osoitteeseen",
     "send_submit": "Lähetä",
     "send_email": "Lähetä sähköposti",

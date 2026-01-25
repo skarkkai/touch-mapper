@@ -174,6 +174,10 @@ window.TM = { translations: {
     {{ error_sending_email }}: <span class="error-msg-text"></span>
   </div>
 
+  <div class="osm-attribution">
+    <%- @t('osm_attribution', { startTag: '<a href="https://www.openstreetmap.org/copyright">', endTag: '</a>' }) %>
+  </div>
+
   <div class="hidden-for-2d">
     <div class="ready-map">
       <div class="preview-3d-container square-block-container" aria-label="{{ label_3d_preview }}">

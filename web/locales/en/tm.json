@@ -160,6 +160,7 @@
     "open_or_download_svg": "Open SVG file (for embossers), or click right mouse button to download",
     "open_or_download_pdf": "Open PDF file (for swell form machines), or click right mouse button to download",
     "emboss_ordering_later": "Ordering option for embossed / swell paper maps coming later.",
+    "osm_attribution": "Map data © __startTag__OpenStreetMap contributors__endTag__. If you create a product using Touch Mapper, you must attribute OpenStreetMap as the data source.",
     "email_map_to": "Email a map link to",
     "send_submit": "Send",
     "send_email": "Send email",
