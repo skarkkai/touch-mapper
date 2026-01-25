@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a feature for Touch Mapper
+title: "[Feature]: "
+labels: ["feature-request"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Read before submitting
+
+        Touch Mapper is intentionally limited in scope.
+        It exists solely to produce tactile maps for visually impaired users.
+
+        The primary design constraint is tactile clarity.
+
+        This requires flat maps, very simple geometry, and minimal detail. Features that primarily benefit
+        visualization, simulation, or gaming use cases are out of scope and will not be implemented.
+
+
+  - type: checkboxes
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: >
+            I understand that Touch Mapper is focused on tactile maps for visually impaired users only.
+          required: true
