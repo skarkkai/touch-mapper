@@ -27,6 +27,7 @@ This file captures project-specific conventions and "gotchas" that help especial
 - Translation keys live in `web/locales/<lang>/tm.json`.
 - The English file is the source of truth for keys and ordering.
 - Translation spreadsheets in `translation/` exist for human translators but are not the primary edit path.
+- For any new features and other changes, UI strings should be created using these i18n conventions.
 
 ## AWS / deployment notes (for code changes)
 - Root `Makefile` has targets for AWS installs and packaging (dev/test/prod).
