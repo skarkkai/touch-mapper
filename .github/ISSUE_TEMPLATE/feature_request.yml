@@ -10,8 +10,7 @@ body:
       value: |
         ## Read before submitting
 
-        Touch Mapper is intentionally limited in scope.
-        It exists solely to produce tactile maps for visually impaired users.
+        Touch Mapper is intentionally limited in scope. It exists solely to produce tactile maps for visually impaired users.
 
         The primary design constraint is tactile clarity.
 

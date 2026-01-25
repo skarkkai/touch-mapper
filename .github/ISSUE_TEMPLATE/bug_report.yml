@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a concrete problem in Touch Mapper
+title: "[Bug]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Read before submitting
+
+        Use this form to report concrete, reproducible bugs in Touch Mapper. This is not a support or discussion channel.
+
+        If you are unsure whether something is a bug, or want to explore an idea, use Discussions instead.
+
+  - type: checkboxes
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: >
+            I am reporting an actual malfunction or incorrect behavior in Touch Mapper
+          required: true
