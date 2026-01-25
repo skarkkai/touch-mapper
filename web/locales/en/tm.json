@@ -109,6 +109,7 @@
     "map_scale__3200": "average suburbs",
     "map_scale__5600": "very sparsely built areas",
     "map_scale__9999": "areas with only large roads",
+    "map_scale_coverage": "At this scale a map __size__ across covers an area __area_metric__ / __area_imperial__ across.",
     "map_content": "Content",
     "exclude_buildings": "Hide buildings (doesn't affect map preview)",
     "location_marker": "Location marker",

@@ -103,6 +103,7 @@
     "map_scale__3200": "durchschnittlich dicht bebaute Vororte",
     "map_scale__5600": "wenig bebaute Gebiete",
     "map_scale__9999": "Gebiete mit nur großen Straßen",
+    "map_scale_coverage": "Bei diesem Maßstab deckt eine Karte mit __size__ Breite ein Gebiet von __area_metric__ / __area_imperial__ ab.",
     "map_content": "Inhalt",
     "exclude_buildings": "Gebäude ausblenden (beeinflusst die Kartenvorschau nicht)",
     "location_marker": "Standortmarkierung",

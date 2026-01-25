@@ -103,6 +103,7 @@
     "map_scale__3200": "gemiddelde buitenwijk",
     "map_scale__5600": "zeer dunbebouwde gebieden",
     "map_scale__9999": "gebieden met alleen grote wegen",
+    "map_scale_coverage": "Op deze schaal beslaat een kaart van __size__ breed een gebied van __area_metric__ / __area_imperial__.",
     "map_content": "Inhoud",
     "exclude_buildings": "Gebouwen uitsluiten (heeft geen invloed op het kaartvoorbeeld)",
     "location_marker": "Locatiemarkering",

@@ -103,6 +103,7 @@
     "map_scale__3200": "lähiöt",
     "map_scale__5600": "hyvin harvaan rakennetut alueet",
     "map_scale__9999": "vain isoja teitä sisältävät alueet",
+    "map_scale_coverage": "Tällä mittakaavalla __size__ leveä kartta kattaa __area_metric__ / __area_imperial__.",
     "map_content": "Sisältö",
     "exclude_buildings": "Jätä pois rakennukset (ei vaikuta esikatseluun)",
     "location_marker": "Sijaintimerkki",

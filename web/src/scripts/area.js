@@ -51,6 +51,58 @@ function showAllAddresses(addresses) {
 function initInputs(outputs, osmDragPanInteraction) {
   var DEFAULT_PRINT_SIZE_2D = "27.9";
   var DEFAULT_PRINT_SIZE_3D = "17";
+  var mapScaleCoverage = $(".map-scale-coverage");
+
+  function interpolateTranslation(key, replacements) {
+    var text = window.TM && window.TM.translations ? window.TM.translations[key] : "";
+    if (!replacements) {
+      return text;
+    }
+    return text.replace(/__([a-zA-Z0-9_]+)__/g, function(match, name) {
+      if (replacements[name] === undefined) {
+        return match;
+      }
+      return replacements[name];
+    });
+  }
+
+  function formatSizeCm(sizeCm) {
+    var rounded = Math.round(sizeCm * 10) / 10;
+    var isWhole = Math.abs(rounded - Math.round(rounded)) < 0.0001;
+    var formatted = isWhole ? rounded.toFixed(0) : rounded.toFixed(1);
+    var unit = window.TM && window.TM.translations ? window.TM.translations.unit_cm : "cm";
+    return formatted + " " + unit;
+  }
+
+  function updateMapScaleCoverage() {
+    if (!mapScaleCoverage.length) {
+      return;
+    }
+    var scale = data.get("scale");
+    if (!scale) {
+      return;
+    }
+    var sizeCm = data.get("size");
+    if (!sizeCm) {
+      return;
+    }
+    var sizeLabel = formatSizeCm(sizeCm);
+    var metersRaw = sizeCm / 100 * scale;
+    var metersAcross = Math.round(metersRaw);
+    var yardsAcross = Math.round(metersRaw * 1.0936133);
+    var metersUnit = window.TM && window.TM.translations ? window.TM.translations.meters : "meters";
+    var yardsUnit = window.TM && window.TM.translations ? window.TM.translations.yards : "yards";
+    var metricText = metersAcross + " " + metersUnit;
+    var imperialText = yardsAcross + " " + yardsUnit;
+    var text = interpolateTranslation("map_scale_coverage", {
+      size: sizeLabel,
+      area_metric: metricText,
+      area_imperial: imperialText
+    });
+    mapScaleCoverage.text(text);
+  }
+
+  data.on("change:scale change:size change:printing-tech", updateMapScaleCoverage);
 
   var initDone = false;
   var initialPrintingTech = getLocalStorageStr('printing-tech', '3d');
@@ -137,6 +189,7 @@ function initInputs(outputs, osmDragPanInteraction) {
   // Submit map creation
   $("#submit-button").click(window.submitMapCreation); // in map-creation.js
 
+  updateMapScaleCoverage();
   initDone = true;
 }
 
