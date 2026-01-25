@@ -48,6 +48,10 @@ public class WaterModule extends ConfigurableWorldModule {
 	private static final float MIN_WATER_WIDTH = 2.2f;
 	private static final Tag WATER_TAG = new Tag("natural", "water");
 	private static final Tag RIVERBANK_TAG = new Tag("waterway", "riverbank");
+	private static final Tag BAY_TAG = new Tag("natural", "bay");
+	private static final Tag RESERVOIR_TAG = new Tag("landuse", "reservoir");
+	private static final Tag BASIN_TAG = new Tag("landuse", "basin");
+	private static final Tag OCEAN_TAG = new Tag("ocean", "yes");
 	
 	private static final Map<String, Float> WATERWAY_WIDTHS;
 	
@@ -90,8 +94,7 @@ public class WaterModule extends ConfigurableWorldModule {
 		}
 
 		for (MapArea area : mapData.getMapAreas()) {
-			if (area.getTags().contains(WATER_TAG)
-					|| area.getTags().contains(RIVERBANK_TAG)) {
+			if (isWaterArea(area)) {
 				area.addRepresentation(new Water(area));
 			}
 			if (area.getTags().contains("amenity", "fountain")) {
@@ -99,6 +102,15 @@ public class WaterModule extends ConfigurableWorldModule {
 			}
 		}
 		
+	}
+
+	private static boolean isWaterArea(MapArea area) {
+		return area.getTags().contains(WATER_TAG)
+				|| area.getTags().contains(RIVERBANK_TAG)
+				|| area.getTags().contains(BAY_TAG)
+				|| area.getTags().contains(RESERVOIR_TAG)
+				|| area.getTags().contains(BASIN_TAG)
+				|| area.getTags().contains(OCEAN_TAG);
 	}
 	
 	public static class Waterway extends AbstractNetworkWaySegmentWorldObject

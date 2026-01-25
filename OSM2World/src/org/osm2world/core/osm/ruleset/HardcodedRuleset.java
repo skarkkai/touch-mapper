@@ -21,11 +21,13 @@ public class HardcodedRuleset implements Ruleset {
 		areaTags.add(new Tag("leisure", "pitch"));
 		areaTags.add(new Tag("leisure", "swimming_pool"));
 		areaTags.add(new Tag("natural", "beach"));
+		areaTags.add(new Tag("natural", "bay"));
 		areaTags.add(new Tag("natural", "sand"));
 		areaTags.add(new Tag("natural", "water"));
 		areaTags.add(new Tag("natural", "wood"));
 		areaTags.add(new Tag("power", "generator"));
 		areaTags.add(new Tag("waterway", "riverbank"));
+		areaTags.add(new Tag("ocean", "yes"));
 		
 		areaKeys.add("building");
 		areaKeys.add("building:part");
@@ -33,10 +35,14 @@ public class HardcodedRuleset implements Ruleset {
 		areaKeys.add("landuse");
 
 		landTags.add(new Tag("landuse", "forest"));
+		landTags.add(new Tag("landuse", "basin"));
+		landTags.add(new Tag("landuse", "reservoir"));
+		landTags.add(new Tag("natural", "bay"));
 		landTags.add(new Tag("natural", "water"));
 		landTags.add(new Tag("natural", "wood"));
 		landTags.add(new Tag("waterway", "river"));
 		landTags.add(new Tag("waterway", "stream"));
+		landTags.add(new Tag("ocean", "yes"));
 
 		seaTags.add(new Tag("maritime", "yes"));
 		seaTags.add(new Tag("route", "ferry"));
