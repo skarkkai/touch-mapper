@@ -54,15 +54,15 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
         'maxY': float(m.group(4)), # change from Z to Y
     }
 
-    m = re.compile('.*^Object-infos:\[(.+?)\]$', re.DOTALL|re.MULTILINE).match(output)
-    if not m:
-        raise Exception("Couldn't find object infos from OSM2World output")
-    object_infos = json.loads(m.group(1))
+    meta_path = os.path.join(os.path.dirname(output_path), 'map-meta.json')
+    if not os.path.exists(meta_path):
+        raise Exception("Couldn't find map-meta.json from OSM2World output")
+    with open(meta_path, 'r') as f:
+        meta = json.load(f)
 
-    return ({
-        'objectInfos': object_infos,
-        'bounds': bounds
-    })
+    meta['bounds'] = bounds
+
+    return meta
 
 def run_blender(obj_path, bounds, args):
     blender_dir = os.path.join(script_dir, 'blender')

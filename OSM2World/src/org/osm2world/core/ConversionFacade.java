@@ -368,8 +368,6 @@ public class ConversionFacade {
 
 		AddressGatherer.gather(osmData, mapData);
 		
-		System.out.println("Object-infos:[" + ObjectInfoManager.getJsonLine() + "]");
-		
 		return new Results(mapProjection, mapData, eleData);
 		
 	}

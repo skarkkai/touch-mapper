@@ -43,3 +43,4 @@ This file captures project-specific conventions and "gotchas" that help especial
 
 ## OSM2World
 - `OSM2World/` is a modified upstream dependency, rarely modified.
+- To build, it's safest to run `ant clean jar`
