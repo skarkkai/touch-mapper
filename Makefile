@@ -4,6 +4,9 @@ all:
 osm2world:
 	cd OSM2World && ant jar
 
+test:
+	test/run-osm2world-regression.sh
+
 dev-aws-install:
 	install/lambda-update.sh dev
 	install/cloudformation-update.sh dev
@@ -37,5 +40,3 @@ test-restart: package
 
 prod-install-ec2: package
 	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/
-
-
