@@ -52,7 +52,7 @@ public final class MapMetaWriter {
 	private static Map<String, Object> buildMeta(MapData mapData) {
 		Map<String, Object> meta = new LinkedHashMap<String, Object>();
 		meta.put("boundary", boundsToMap(mapData.getBoundary()));
-		meta.put("data_boundary", boundsToMap(mapData.getDataBoundary()));
+		meta.put("dataBoundary", boundsToMap(mapData.getDataBoundary()));
 		return meta;
 	}
 
@@ -201,7 +201,7 @@ public final class MapMetaWriter {
 		geometry.put("closed", Boolean.valueOf(way.isClosed()));
 
 		entry.put("geometry", geometry);
-		entry.put("is_closed", Boolean.valueOf(way.isClosed()));
+		entry.put("isClosed", Boolean.valueOf(way.isClosed()));
 		entry.put("bounds", boundsToMap(bounds));
 		entry.put("center", centerToList(bounds));
 
@@ -238,7 +238,7 @@ public final class MapMetaWriter {
 		AxisAlignedBoundingBoxXZ bounds = area.getAxisAlignedBoundingBoxXZ();
 
 		entry.put("geometry", geometry);
-		entry.put("has_holes", Boolean.valueOf(!holes.isEmpty()));
+		entry.put("hasHoles", Boolean.valueOf(!holes.isEmpty()));
 		entry.put("bounds", boundsToMap(bounds));
 		entry.put("center", centerToList(bounds));
 
@@ -247,9 +247,9 @@ public final class MapMetaWriter {
 
 	private static void addCommonFields(Map<String, Object> entry,
 			String elementType, OSMElement osmElement, TagGroup tags) {
-		entry.put("element_type", elementType);
-		entry.put("osm_type", osmType(osmElement));
-		entry.put("osm_id", Long.valueOf(osmElement.id));
+		entry.put("elementType", elementType);
+		entry.put("osmType", osmType(osmElement));
+		entry.put("osmId", Long.valueOf(osmElement.id));
 		entry.put("layer", Integer.valueOf(getLayer(tags)));
 		entry.put("tags", tagsToMap(tags));
 	}
@@ -268,10 +268,10 @@ public final class MapMetaWriter {
 				: representations.get(0);
 
 		entry.put("representations", new ArrayList<String>(repNames));
-		entry.put("primary_representation",
+		entry.put("primaryRepresentation",
 				(primary == null) ? null : primary.getClass().getSimpleName());
-		entry.put("ground_states", new ArrayList<String>(groundStates));
-		entry.put("primary_ground_state",
+		entry.put("groundStates", new ArrayList<String>(groundStates));
+		entry.put("primaryGroundState",
 				(primary == null) ? null : primary.getGroundState().name());
 	}
 
@@ -295,10 +295,10 @@ public final class MapMetaWriter {
 		}
 
 		entry.put("representations", new ArrayList<String>(repNames));
-		entry.put("ground_states", new ArrayList<String>(groundStates));
-		entry.put("primary_representation",
+		entry.put("groundStates", new ArrayList<String>(groundStates));
+		entry.put("primaryRepresentation",
 				(primaryNames.size() == 1) ? primaryNames.iterator().next() : null);
-		entry.put("primary_ground_state",
+		entry.put("primaryGroundState",
 				(primaryGroundStates.size() == 1)
 						? primaryGroundStates.iterator().next()
 						: null);
@@ -314,10 +314,10 @@ public final class MapMetaWriter {
 
 	private static Map<String, Double> boundsToMap(AxisAlignedBoundingBoxXZ bounds) {
 		Map<String, Double> out = new LinkedHashMap<String, Double>();
-		out.put("min_x", Double.valueOf(bounds.minX));
-		out.put("min_z", Double.valueOf(bounds.minZ));
-		out.put("max_x", Double.valueOf(bounds.maxX));
-		out.put("max_z", Double.valueOf(bounds.maxZ));
+		out.put("minX", Double.valueOf(bounds.minX));
+		out.put("minZ", Double.valueOf(bounds.minZ));
+		out.put("maxX", Double.valueOf(bounds.maxX));
+		out.put("maxZ", Double.valueOf(bounds.maxZ));
 		return out;
 	}
 

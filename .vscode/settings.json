@@ -1,12 +1,3 @@
 {
-    "makefile.configureOnOpen": false,
-    "files.exclude": {
-        "OSM2World": true
-    },
-    "search.exclude": {
-        "OSM2World": true
-    },
-    "files.watcherExclude": {
-        "OSM2World": true
-    }
+    "makefile.configureOnOpen": false
 }
