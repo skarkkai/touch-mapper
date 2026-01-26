@@ -51,7 +51,7 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
 
     return meta
 
-def run_blender(obj_path, bounds, args):
+def run_blender(obj_path, boundary, args):
     blender_dir = os.path.join(script_dir, 'blender')
     blender_env = os.environ.copy()
     blender_env['LD_LIBRARY_PATH'] = os.path.join(blender_dir, 'lib') + ":" + blender_env.get('LD_LIBRARY_PATH', '')
@@ -64,10 +64,10 @@ def run_blender(obj_path, bounds, args):
     ]
     script_args = [
         '--scale', str(args.scale),
-        '--min-x', str(bounds['minX']),
-        '--min-y', str(bounds['minY']),
-        '--max-x', str(bounds['maxX']),
-        '--max-y', str(bounds['maxY']),
+        '--min-x', str(boundary['minX']),
+        '--min-y', str(boundary['minY']),
+        '--max-x', str(boundary['maxX']),
+        '--max-y', str(boundary['maxY']),
         '--diameter', str(args.diameter),
         '--size', str(args.size),
     ]
@@ -98,9 +98,9 @@ def run_blender(obj_path, bounds, args):
         meta.update(json.loads(entry_json))
     return meta
 
-def print_size(scale, bounds):
-    sizeX = bounds['maxX'] - bounds['minX']
-    sizeY = bounds['maxY'] - bounds['minY']
+def print_size(scale, boundary):
+    sizeX = boundary['maxX'] - boundary['minX']
+    sizeY = boundary['maxY'] - boundary['minY']
     print("Map is {:.0f} x {:.0f} meters. Selected scale {:.0f} will result in a {:.0f} x {:.0f} mm print.".format(sizeX, sizeY, scale, sizeX / scale * 1000 , sizeY / scale * 1000))
 
 def main():
@@ -115,12 +115,15 @@ def main():
     # Run OSM2World
     obj_path = input_basename + '.obj'
     meta = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings)
+    boundary = meta.get('meta', {}).get('boundary')
+    if boundary is None:
+        raise Exception("map-meta.json missing meta.boundary")
 
-    print_size(args.scale, meta['bounds'])
+    print_size(args.scale, boundary)
 
     # Run Blender
     meta_path = input_basename + '-meta.json'
-    blender_meta = run_blender(obj_path, meta['bounds'], args)
+    blender_meta = run_blender(obj_path, boundary, args)
     meta.update(blender_meta)
     with open(meta_path, 'w') as f:
         f.write(json.dumps(meta))

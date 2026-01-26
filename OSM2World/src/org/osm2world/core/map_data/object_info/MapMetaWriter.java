@@ -315,9 +315,9 @@ public final class MapMetaWriter {
 	private static Map<String, Double> boundsToMap(AxisAlignedBoundingBoxXZ bounds) {
 		Map<String, Double> out = new LinkedHashMap<String, Double>();
 		out.put("minX", Double.valueOf(bounds.minX));
-		out.put("minZ", Double.valueOf(bounds.minZ));
+		out.put("minY", Double.valueOf(bounds.minZ));
 		out.put("maxX", Double.valueOf(bounds.maxX));
-		out.put("maxZ", Double.valueOf(bounds.maxZ));
+		out.put("maxY", Double.valueOf(bounds.maxZ));
 		return out;
 	}
 

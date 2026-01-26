@@ -391,18 +391,18 @@
       return names.length;
     }
 
-    function insertPois(info, container) {
-      insertPoisType(info.objectInfos.pois.restaurant || {}, container, info.bounds, 'restaurant');
-      insertPoisType(info.objectInfos.pois.shop || {}, container, info.bounds, 'shop');
-      insertPoisType(info.objectInfos.pois.bus_stop || {}, container, info.bounds, 'bus_stop');
+    function insertPois(info, container, bounds) {
+      insertPoisType(info.objectInfos.pois.restaurant || {}, container, bounds, 'restaurant');
+      insertPoisType(info.objectInfos.pois.shop || {}, container, bounds, 'shop');
+      insertPoisType(info.objectInfos.pois.bus_stop || {}, container, bounds, 'bus_stop');
     }
 
-    function insertRoads(info, container) {
+    function insertRoads(info, container, bounds) {
       var roads = info.objectInfos.ways || {};
       function roadPlaceTranslation(roadName) {
         return window.TM.translations["location" + roads[roadName].place];
       }
-      nameRoadPlaces(roads, info.bounds);
+      nameRoadPlaces(roads, bounds);
       var roadNames = [];
       var roadsLen = 0;
       var unnamedRoadsLen = 0;
@@ -454,8 +454,12 @@
       if (! info.objectInfos) {
         info.objectInfos = {};
       }
-      insertRoads(info, container);
-      insertPois(info, container);
+      var bounds = (info.meta && info.meta.boundary) ? info.meta.boundary : info.bounds;
+      if (! bounds) {
+        return;
+      }
+      insertRoads(info, container, bounds);
+      insertPois(info, container, bounds);
       if (! info.excludeBuildings && 'buildingCount' in info && info.buildingCount === 0) {
         container.find('.warning-no-buildings').show();
       }
