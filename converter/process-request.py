@@ -207,7 +207,7 @@ def main():
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '.pdf', Body=gzip.compress(pdf, compresslevel=5), **common_args, ContentType='application/pdf')
 
-        # Put the marginally useful files into S3
+        # Put the remaining files into S3
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '-ways.stl', Body=gzip.compress(stl_ways, compresslevel=5), **common_args, ContentType='application/sla')
         s3.Bucket(map_bucket_name).put_object(

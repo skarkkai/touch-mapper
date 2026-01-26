@@ -1,0 +1,874 @@
+{
+  "A": {
+    "key": "A",
+    "name": "Linear features",
+    "subclasses": [
+      {
+        "key": "A1_secondary_roads",
+        "name": "Secondary roads",
+        "count": 1,
+        "kind": "linear",
+        "groups": [
+          {
+            "label": "L\u00e4hderannantie",
+            "locationText": "near the top-right corner of the map (center: near the top-right corner of the map)",
+            "count": 1,
+            "hasName": true,
+            "totalLength": 33.77375347166582,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- L\u00e4hderannantie \u2014 34 m \u2014 near the top-right corner of the map (center: near the top-right corner of the map)"
+        ]
+      },
+      {
+        "key": "A1_local_streets",
+        "name": "Local streets",
+        "count": 3,
+        "kind": "linear",
+        "groups": [
+          {
+            "label": "Nuum\u00e4entie",
+            "locationText": "near the top-right corner of the map -> a little south-east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 1,
+            "hasName": true,
+            "totalLength": 302.9625695395819,
+            "totalArea": 0.0
+          },
+          {
+            "label": "Nuuniitynkuja",
+            "locationText": "a little north-east of the center of the map -> near the northern edge of the map (center: near the northern edge of the map)",
+            "count": 1,
+            "hasName": true,
+            "totalLength": 175.31155120405373,
+            "totalArea": 0.0
+          },
+          {
+            "label": "Nuum\u00e4entie",
+            "locationText": "near the top-right corner of the map (center: near the top-right corner of the map)",
+            "count": 1,
+            "hasName": true,
+            "totalLength": 19.531746015188755,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- Nuum\u00e4entie \u2014 305 m \u2014 near the top-right corner of the map -> a little south-east of the center of the map (center: a little north-east of the center of the map)",
+          "- Nuuniitynkuja \u2014 175 m \u2014 a little north-east of the center of the map -> near the northern edge of the map (center: near the northern edge of the map)",
+          "- Nuum\u00e4entie \u2014 20 m \u2014 near the top-right corner of the map (center: near the top-right corner of the map)"
+        ]
+      },
+      {
+        "key": "A1_service_roads",
+        "name": "Service roads",
+        "count": 22,
+        "kind": "linear",
+        "groups": [
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north of the center of the map -> near the northern edge of the map (center: a little north-west of the center of the map)",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 194.20893142422187,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the northern edge of the map (center: near the northern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 172.26505538623294,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south of the center of the map -> a little south-west of the center of the map (center: a little south of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 130.45481817559906,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-east of the center of the map -> a little east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 70.47328960088342,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south-east of the center of the map (center: a little south-east of the center of the map)",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 59.61322544450806,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the center of the map -> a little west of the center of the map (center: a little west of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 58.064255068449356,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south-west of the center of the map -> a little west of the center of the map (center: a little west of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 54.730551322115055,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north of the center of the map -> near the center of the map (center: near the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 51.94729401707427,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south-east of the center of the map -> near the southern edge of the map (center: a little south-east of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 48.1461601722197,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the top-right corner of the map -> near the eastern edge of the map (center: near the eastern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 43.59826834373051,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south-east of the center of the map -> a little east of the center of the map (center: a little south-east of the center of the map)",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 41.43835946894404,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the center of the map -> a little east of the center of the map (center: near the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 40.79980512004592,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north of the center of the map -> a little west of the center of the map (center: a little north of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 40.17609794794471,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north of the center of the map -> near the center of the map (center: a little north of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 36.07313272787226,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the eastern edge of the map (center: near the eastern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 34.49768284972196,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-west of the center of the map -> a little west of the center of the map (center: a little west of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 25.424056796664054,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the southern edge of the map (center: near the southern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 19.41238390821695,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 16.63364706030776,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south of the center of the map (center: a little south of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 14.587132206160328,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- 2 x (unnamed) \u2014 total 195 m \u2014 a little north of the center of the map -> near the northern edge of the map (center: a little north-west of the center of the map)",
+          "- (unnamed) \u2014 170 m \u2014 near the northern edge of the map (center: near the northern edge of the map)",
+          "- (unnamed) \u2014 130 m \u2014 a little south of the center of the map -> a little south-west of the center of the map (center: a little south of the center of the map)",
+          "- (unnamed) \u2014 70 m \u2014 a little north-east of the center of the map -> a little east of the center of the map (center: a little north-east of the center of the map)",
+          "- 2 x (unnamed) \u2014 total 60 m \u2014 a little south-east of the center of the map (center: a little south-east of the center of the map)",
+          "- (unnamed) \u2014 58 m \u2014 near the center of the map -> a little west of the center of the map (center: a little west of the center of the map)",
+          "- (unnamed) \u2014 55 m \u2014 a little south-west of the center of the map -> a little west of the center of the map (center: a little west of the center of the map)",
+          "- (unnamed) \u2014 52 m \u2014 a little north of the center of the map -> near the center of the map (center: near the center of the map)",
+          "- (unnamed) \u2014 48 m \u2014 a little south-east of the center of the map -> near the southern edge of the map (center: a little south-east of the center of the map)",
+          "- (unnamed) \u2014 44 m \u2014 near the top-right corner of the map -> near the eastern edge of the map (center: near the eastern edge of the map)",
+          "- ... (+9 more)"
+        ]
+      },
+      {
+        "key": "A2_footpaths_trails",
+        "name": "Footpaths / trails",
+        "count": 19,
+        "kind": "linear",
+        "groups": [
+          {
+            "label": "(unnamed)",
+            "locationText": "near the northern edge of the map -> a little north of the center of the map (center: near the northern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 355.9934022792047,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the top-right corner of the map -> a little south of the center of the map (center: a little north of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 257.1883554134748,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-east of the center of the map -> near the northern edge of the map (center: near the northern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 172.23080885148747,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the top-right corner of the map -> a little north-east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 82.6864855488189,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the center of the map -> a little north-east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 45.275098800307426,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south-west of the center of the map -> a little south of the center of the map (center: a little south of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 40.97598631784877,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-east of the center of the map -> a little east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 38.79053506404736,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the northern edge of the map (center: near the northern edge of the map)",
+            "count": 4,
+            "hasName": false,
+            "totalLength": 37.61591906815037,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 4,
+            "hasName": false,
+            "totalLength": 36.784782986249155,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north of the center of the map -> a little north-east of the center of the map (center: a little north-east of the center of the map)",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 29.77236668839351,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north of the center of the map -> a little north-east of the center of the map (center: a little north of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 16.783060929921234,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little north-west of the center of the map (center: a little north-west of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 2.8370824802955603,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- (unnamed) \u2014 355 m \u2014 near the northern edge of the map -> a little north of the center of the map (center: near the northern edge of the map)",
+          "- (unnamed) \u2014 255 m \u2014 near the top-right corner of the map -> a little south of the center of the map (center: a little north of the center of the map)",
+          "- (unnamed) \u2014 170 m \u2014 a little north-east of the center of the map -> near the northern edge of the map (center: near the northern edge of the map)",
+          "- (unnamed) \u2014 83 m \u2014 near the top-right corner of the map -> a little north-east of the center of the map (center: a little north-east of the center of the map)",
+          "- (unnamed) \u2014 45 m \u2014 near the center of the map -> a little north-east of the center of the map (center: a little north-east of the center of the map)",
+          "- (unnamed) \u2014 41 m \u2014 a little south-west of the center of the map -> a little south of the center of the map (center: a little south of the center of the map)",
+          "- (unnamed) \u2014 39 m \u2014 a little north-east of the center of the map -> a little east of the center of the map (center: a little north-east of the center of the map)",
+          "- 4 x (unnamed) \u2014 total 38 m \u2014 near the northern edge of the map (center: near the northern edge of the map)",
+          "- 4 x (unnamed) \u2014 total 37 m \u2014 a little north-east of the center of the map (center: a little north-east of the center of the map)",
+          "- 2 x (unnamed) \u2014 total 30 m \u2014 a little north of the center of the map -> a little north-east of the center of the map (center: a little north-east of the center of the map)",
+          "- ... (+2 more)"
+        ]
+      },
+      {
+        "key": "A2_cycleways",
+        "name": "Cycleways",
+        "count": 4,
+        "kind": "linear",
+        "groups": [
+          {
+            "label": "(unnamed)",
+            "locationText": "near the eastern edge of the map -> near the northern edge of the map (center: near the top-right corner of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 374.261024507744,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "a little south of the center of the map -> near the southern edge of the map (center: a little south of the center of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 64.43008251585589,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed)",
+            "locationText": "near the top-right corner of the map (center: near the top-right corner of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 15.933292526861774,
+            "totalArea": 0.0
+          },
+          {
+            "label": "(unnamed) [bridge, layer=1]",
+            "locationText": "near the southern edge of the map (center: near the southern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 10.023309084329396,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- (unnamed) \u2014 375 m \u2014 near the eastern edge of the map -> near the northern edge of the map (center: near the top-right corner of the map)",
+          "- (unnamed) \u2014 64 m \u2014 a little south of the center of the map -> near the southern edge of the map (center: a little south of the center of the map)",
+          "- (unnamed) \u2014 16 m \u2014 near the top-right corner of the map (center: near the top-right corner of the map)",
+          "- (unnamed) [bridge, layer=1] \u2014 10 m \u2014 near the southern edge of the map (center: near the southern edge of the map)"
+        ]
+      },
+      {
+        "key": "A4_streams_canals",
+        "name": "Streams / canals",
+        "count": 1,
+        "kind": "linear",
+        "groups": [
+          {
+            "label": "(unnamed)",
+            "locationText": "near the bottom-right corner of the map -> near the western edge of the map (center: near the southern edge of the map)",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 291.3306996877825,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- (unnamed) \u2014 290 m \u2014 near the bottom-right corner of the map -> near the western edge of the map (center: near the southern edge of the map)"
+        ]
+      },
+      {
+        "key": "A5_connectivity_nodes",
+        "name": "Connectivity nodes",
+        "count": 49,
+        "kind": "connectivity",
+        "groups": [
+          {
+            "label": "junction: Nuum\u00e4entie",
+            "locationText": null,
+            "count": 9,
+            "hasName": true,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "junction: Nuuniitynkuja",
+            "locationText": null,
+            "count": 2,
+            "hasName": true,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "crossing: L\u00e4hderannantie",
+            "locationText": null,
+            "count": 1,
+            "hasName": true,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "crossing: Nuuniitynkuja",
+            "locationText": null,
+            "count": 1,
+            "hasName": true,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "junction: (unnamed)",
+            "locationText": null,
+            "count": 32,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "connector: (unnamed)",
+            "locationText": null,
+            "count": 3,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "crossing: (unnamed)",
+            "locationText": null,
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- 9 x junction: Nuum\u00e4entie",
+          "- 2 x junction: Nuuniitynkuja",
+          "- crossing: L\u00e4hderannantie",
+          "- crossing: Nuuniitynkuja",
+          "- 32 x junction: (unnamed)",
+          "- 3 x connector: (unnamed)",
+          "- crossing: (unnamed)"
+        ]
+      }
+    ]
+  },
+  "B": {
+    "key": "B",
+    "name": "Areal features",
+    "subclasses": [
+      {
+        "key": "B1_lakes",
+        "name": "Lakes",
+        "count": 1,
+        "kind": "area",
+        "groups": [
+          {
+            "label": "lake: Lippaj\u00e4rvi",
+            "locationText": "near the bottom-left corner of the map",
+            "count": 1,
+            "hasName": true,
+            "totalLength": 0.0,
+            "totalArea": 585814.0000454999
+          }
+        ],
+        "cooked": [
+          "- lake: Lippaj\u00e4rvi, ~59 ha \u2014 near the bottom-left corner of the map"
+        ]
+      }
+    ]
+  },
+  "C": {
+    "key": "C",
+    "name": "Buildings",
+    "subclasses": [
+      {
+        "key": "C2_public",
+        "name": "Functional public buildings",
+        "count": 2,
+        "kind": "building",
+        "groups": [
+          {
+            "label": "kindergarten, Nuum\u00e4entie 2",
+            "locationText": "near the eastern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "utility, Nuum\u00e4entie 5",
+            "locationText": "a little north of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- kindergarten, Nuum\u00e4entie 2 \u2014 near the eastern edge of the map",
+          "- utility, Nuum\u00e4entie 5 \u2014 a little north of the center of the map"
+        ]
+      },
+      {
+        "key": "C3_other_buildings",
+        "name": "Other buildings",
+        "count": 44,
+        "kind": "building",
+        "groups": [
+          {
+            "label": "building",
+            "locationText": "near the southern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "building",
+            "locationText": "a little north-east of the center of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "building",
+            "locationText": "near the eastern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "building, Nuum\u00e4entie 13",
+            "locationText": "near the southern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "building, Nuum\u00e4entie 5",
+            "locationText": "a little north of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "building, Nuum\u00e4entie 5",
+            "locationText": "a little north-west of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "garages building",
+            "locationText": "near the northern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building",
+            "locationText": "a little south of the center of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building",
+            "locationText": "near the eastern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building",
+            "locationText": "near the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 10a",
+            "locationText": "near the eastern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 10b",
+            "locationText": "a little east of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 11a",
+            "locationText": "a little south of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 11b",
+            "locationText": "near the southern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 12",
+            "locationText": "near the eastern edge of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 13",
+            "locationText": "a little south-east of the center of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 14",
+            "locationText": "a little south-east of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 4",
+            "locationText": "near the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 4",
+            "locationText": "a little north of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 4",
+            "locationText": "a little east of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 5",
+            "locationText": "near the northern edge of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 5",
+            "locationText": "a little north-west of the center of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 6",
+            "locationText": "a little east of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 7",
+            "locationText": "near the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 8",
+            "locationText": "a little east of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 9",
+            "locationText": "a little south of the center of the map",
+            "count": 3,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuum\u00e4entie 9",
+            "locationText": "a little south-west of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuuniitynkuja 1",
+            "locationText": "near the northern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Nuuniitynkuja 2",
+            "locationText": "near the northern edge of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential building, Tuokkostie 9",
+            "locationText": "near the southern edge of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "residential, Nuum\u00e4entie 7",
+            "locationText": "a little west of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "shed building, Nuum\u00e4entie 7",
+            "locationText": "a little west of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "storage, Nuum\u00e4entie 4",
+            "locationText": "a little north of the center of the map",
+            "count": 1,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          },
+          {
+            "label": "terrace building, Nuum\u00e4entie 7",
+            "locationText": "a little west of the center of the map",
+            "count": 2,
+            "hasName": false,
+            "totalLength": 0.0,
+            "totalArea": 0.0
+          }
+        ],
+        "cooked": [
+          "- building \u2014 near the southern edge of the map",
+          "- 2 x building \u2014 a little north-east of the center of the map",
+          "- building \u2014 near the eastern edge of the map",
+          "- building, Nuum\u00e4entie 13 \u2014 near the southern edge of the map",
+          "- building, Nuum\u00e4entie 5 \u2014 a little north of the center of the map",
+          "- building, Nuum\u00e4entie 5 \u2014 a little north-west of the center of the map",
+          "- garages building \u2014 near the northern edge of the map",
+          "- 2 x residential building \u2014 a little south of the center of the map",
+          "- residential building \u2014 near the eastern edge of the map",
+          "- residential building \u2014 near the center of the map",
+          "- ... (+24 more)"
+        ]
+      }
+    ]
+  },
+  "D": {
+    "key": "D",
+    "name": "POIs",
+    "subclasses": [
+      {
+        "key": null,
+        "name": null,
+        "count": 0,
+        "kind": null,
+        "groups": [],
+        "empty": true,
+        "cooked": []
+      }
+    ]
+  },
+  "E": {
+    "key": "E",
+    "name": "Boundaries and edges",
+    "subclasses": [
+      {
+        "key": null,
+        "name": null,
+        "count": 0,
+        "kind": null,
+        "groups": [],
+        "empty": true,
+        "cooked": []
+      }
+    ]
+  }
+}

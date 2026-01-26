@@ -468,39 +468,47 @@ def _render_group_line(group: Dict[str, Any], kind: str) -> str:
     return prefix + " — " + group.get("locationText") if group.get("locationText") else prefix
 
 
-def render_grouped(grouped: Dict[str, Any], spec: Dict[str, Any],
-                   map_data: Optional[Dict[str, Any]] = None) -> str:
-    # Produce human-readable classification output from grouped data.
-    lines = []
+def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
+                       map_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    # Build a structured intermediate representation for later rendering.
     road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
     classes = spec.get("classes") or OrderedDict()
     main_keys = sorted(classes.keys())
+    raw: List[Dict[str, Any]] = []
 
     for main_key in main_keys:
         main_name = classes.get(main_key, {}).get("name", main_key)
-        lines.append(main_key + " — " + main_name)
-
         sub_groups = grouped.get(main_key) or OrderedDict()
-        sub_order = []
-        subclasses = classes.get(main_key, {}).get("subclasses")
-        if subclasses:
-            sub_order = list(subclasses.keys())
+        subclasses = classes.get(main_key, {}).get("subclasses") or {}
+        sub_order = list(subclasses.keys())
         sub_keys = [k for k in sub_order if sub_groups.get(k)]
         for key in sub_groups.keys():
             if key not in sub_keys and sub_groups.get(key):
                 sub_keys.append(key)
 
+        main_entry: Dict[str, Any] = {
+            "key": main_key,
+            "name": main_name,
+            "subclasses": []
+        }
+
         if not sub_keys:
-            lines.append("  (no items)")
-            lines.append("")
+            main_entry["subclasses"].append({
+                "key": None,
+                "name": None,
+                "count": 0,
+                "kind": None,
+                "groups": [],
+                "empty": True
+            })
+            raw.append(main_entry)
             continue
 
         for sub_key in sub_keys:
             items = sub_groups.get(sub_key) or []
             if not items:
                 continue
-            sub_name = classes.get(main_key, {}).get("subclasses", {}).get(sub_key, sub_key)
-            lines.append("  " + sub_key + " — " + sub_name + " (" + str(len(items)) + ")")
+            sub_name = subclasses.get(sub_key, sub_key)
 
             kind = "linear"
             if main_key == "A" and sub_key == "A5_connectivity_nodes":
@@ -518,15 +526,76 @@ def render_grouped(grouped: Dict[str, Any], spec: Dict[str, Any],
             grouped_items = _build_groups(items, kind, road_names_by_coord)
             sort_kind = "boundary" if (kind == "linear" and main_key == "E") else kind
             sorted_groups = _sort_groups(grouped_items, sort_kind)
-            display = sorted_groups[:MAX_ITEMS_PER_SUBCLASS]
+
+            main_entry["subclasses"].append({
+                "key": sub_key,
+                "name": sub_name,
+                "count": len(items),
+                "kind": sort_kind,
+                "groups": sorted_groups
+            })
+
+        raw.append(main_entry)
+
+    return {"raw": raw}
+
+
+def render_from_intermediate(intermediate: Dict[str, Any]) -> str:
+    # Render human-readable output from the intermediate representation.
+    lines: List[str] = []
+    for main_entry in intermediate.get("raw", []):
+        main_key = main_entry.get("key")
+        main_name = main_entry.get("name") or main_key
+        lines.append(str(main_key) + " — " + str(main_name))
+
+        subclasses = main_entry.get("subclasses") or []
+        if subclasses and subclasses[0].get("empty"):
+            lines.append("  (no items)")
+            lines.append("")
+            continue
+
+        for sub_entry in subclasses:
+            sub_key = sub_entry.get("key")
+            sub_name = sub_entry.get("name") or sub_key
+            count = sub_entry.get("count", 0)
+            lines.append("  " + str(sub_key) + " — " + str(sub_name) + " (" + str(count) + ")")
+
+            groups = sub_entry.get("groups") or []
+            display = groups[:MAX_ITEMS_PER_SUBCLASS]
             for group in display:
-                lines.append("    - " + _render_group_line(group, sort_kind))
-            if len(sorted_groups) > MAX_ITEMS_PER_SUBCLASS:
-                lines.append("    - ... (+" + str(len(sorted_groups) - MAX_ITEMS_PER_SUBCLASS) + " more)")
+                lines.append("    - " + _render_group_line(group, sub_entry.get("kind", "")))
+            if len(groups) > MAX_ITEMS_PER_SUBCLASS:
+                lines.append("    - ... (+" + str(len(groups) - MAX_ITEMS_PER_SUBCLASS) + " more)")
 
         lines.append("")
 
     return "\n".join(lines).strip()
+
+
+def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
+                      output_path: str, map_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    # Persist intermediate data with cooked summaries embedded per subclass.
+    intermediate = build_intermediate(grouped, spec, map_data)
+    content: "OrderedDict[str, Any]" = OrderedDict()
+    for main_entry in intermediate.get("raw", []):
+        subclasses = main_entry.get("subclasses") or []
+        for sub_entry in subclasses:
+            if sub_entry.get("empty"):
+                sub_entry["cooked"] = []
+                continue
+            groups = sub_entry.get("groups") or []
+            display = groups[:MAX_ITEMS_PER_SUBCLASS]
+            cooked_lines = []
+            for group in display:
+                cooked_lines.append("- " + _render_group_line(group, sub_entry.get("kind", "")))
+            if len(groups) > MAX_ITEMS_PER_SUBCLASS:
+                cooked_lines.append("- ... (+" + str(len(groups) - MAX_ITEMS_PER_SUBCLASS) + " more)")
+            sub_entry["cooked"] = cooked_lines
+        key = main_entry.get("key") or "unknown"
+        content[key] = main_entry
+    with open(output_path, "w") as handle:
+        json.dump(content, handle, indent=2)
+    return content
 
 
 def _load_json(path: str) -> OrderedDict:
@@ -536,18 +605,18 @@ def _load_json(path: str) -> OrderedDict:
 
 
 def run_standalone(args: List[str]) -> str:
-    # CLI entry: load grouped JSON and print the text summary.
+    # CLI entry: load grouped JSON and write map-content.json.
     base_dir = os.path.dirname(os.path.abspath(__file__))
     spec_path = os.path.join(base_dir, "map-description-classifications.json")
     spec = _load_json(spec_path)
     input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta.json")
     grouped = _load_json(input_path)
-    output = render_grouped(grouped, spec, grouped)
-    print(output)
-    return output
+    output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
+    write_map_content(grouped, spec, output_path, grouped)
+    return output_path
 
 
-__all__ = ["render_grouped", "run_standalone"]
+__all__ = ["build_intermediate", "render_from_intermediate", "write_map_content", "run_standalone"]
 
 
 if __name__ == "__main__":

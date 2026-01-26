@@ -367,9 +367,8 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
         output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
     with open(output_path, "w") as handle:
         json.dump(grouped, handle, indent=2)
-    print(json.dumps(grouped, indent=2))
-    output = map_desc_render.render_grouped(grouped, spec, map_data)
-    print(output)
+    output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
+    map_desc_render.write_map_content(grouped, spec, output_path, map_data)
     return grouped
 
 
