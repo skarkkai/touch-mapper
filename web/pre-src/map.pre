@@ -89,33 +89,6 @@ window.TM = { translations: {
 
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
-  <div class="map-content-row" tabindex="-1" style="display: none">
-    <h3><span>{{ map_content }}</span></h3>
-    <div class="map-content initial-state">
-      <div class="row road">
-        <h4>{{ content__road }}</h4>
-        <ul style="display: none">
-          <li class="unnamed-roads meters">{{ content__unnamed_roads }} (%LOCATION%, %METERS% meters / %YARDS% yards)</li>
-          <li class="unnamed-roads percentage">{{ content__unnamed_roads }} (%LOCATION%, %PERCENTAGE%% of all roads)</li>
-        </ul>
-        <span class="no-roads" style="display: none">{{ content__no_roads }}</span>
-      </div>
-      <div class="row bus_stop initially-hidden">
-        <h4>{{ content__bus_stop }}</h4>
-        <ul class="list"></ul>
-      </div>
-      <div class="row shop initially-hidden">
-        <h4>{{ content__shop }}</h4>
-        <ul class="list"></ul>
-      </div>
-      <div class="row restaurant initially-hidden">
-        <h4>{{ content__restaurant }}</h4>
-        <ul class="list"></ul>
-      </div>
-    </div>
-    <button class="show-more">Show more</button>
-  </div>
-
   <div class="hidden-for-2d">
     <!--div class="main-row">
       <span class="printing-method-container" style="margin-right: 25px">
@@ -206,8 +179,9 @@ window.TM = { translations: {
     </div>
   </div>
 
-  <div class="map-meta-preview">
+  <div class="map-description">
     <h3>Map content</h3>
+    
     <p>This mock description is based on the current sample map-meta.json.txt: it contains a few named roads (like Nuuniitynkuja and Nuumaentie), a large set of unnamed road segments, about 28 buildings, and no POIs listed. The map bounds are roughly a 170m square centered around the chosen address.</p>
   </div>
 
