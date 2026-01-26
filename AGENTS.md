@@ -22,7 +22,10 @@ This file captures project-specific conventions and "gotchas" that help especial
   - Compiles Less and concatenates JS bundles into `scripts/app-common.js` and `scripts/vendor-common.js`.
 - JavaScript should be as modern as possible while still working on the latest versions of Edge, Chrome, Firefox, and Safari (no legacy browser support).
   - OK: `async/await`, `fetch`, optional chaining, nullish coalescing, `URL`, `URLSearchParams`, `AbortController`, `class`.
-  - Avoid: `var`-heavy patterns, manual `XMLHttpRequest`, or legacy polyfills aimed at IE/old Edge.
+  - Prefer: `const` by default, `let` when reassignment is needed (avoid `var`).
+  - Prefer: `===`/`!==`, template literals, and `for...of` over index loops when iterating arrays.
+  - Avoid: implicit globals, `with`, or `eval`.
+  - Avoid: manual `XMLHttpRequest` or legacy polyfills aimed at IE/old Edge.
 - `web/src/index.html` is a small redirect page; the main page template is `web/pre-src/index.pre`.
 - `web/src/scripts/environment.js.*` are environment stubs; `web/create-env-js.sh` generates a real `environment.js` (requires AWS CLI + config).
 
