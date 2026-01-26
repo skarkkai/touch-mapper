@@ -4,6 +4,12 @@
 (function(){
     'use strict';
 
+    /*
+     * Build short, human-friendly map descriptions from legacy map-meta.json
+     * (objectInfos + bounds). Uses 2x2 and 3x3 grid heuristics to label
+     * feature locations. See TOUCH_MAPPER_MAP_DESC_SPEC.md for goals.
+     */
+
     /* TODO:
      * - roads/rivers/rails edge crossings, intersections
      * - building locations
@@ -13,7 +19,7 @@
      * - water coverage %
      */
 
-
+    // 2x2 grid specs for labeling "top_left", "top_row", etc.
     var locMap2specs = {
       base:
          " tl tr bl br place_name" +
@@ -38,6 +44,7 @@
       }
     };
 
+    // 3x3 grid specs; only top-section combos are listed, the rest are rotated.
     var locMap3specs = {
       base:
          " tl tc tr   ml mc mr   bl bc br  place_name" +
@@ -172,6 +179,7 @@
       }
     };
 
+    // Verify two maps have the same shallow key/value pairs.
     function areEqualShallow(a, b) {
       for(var key in a) {
           if(!(key in b) || a[key] !== b[key]) { return false; }
@@ -182,6 +190,7 @@
       return true;
     }
 
+    // Rotate location signatures to cover all quadrants.
     function rotateLocs(source, specs) {
       var locMap = specs.locRotation;
       var placeMap = specs.placeRotation;
@@ -248,6 +257,7 @@
     var LOC_2_MAP = buildLocMap(locMap2specs);
     var LOC_3_MAP = buildLocMap(locMap3specs);
 
+    // Utility for stable translation key generation.
     function uniqueSorted(a) {
       var sorted = a.sort();
       return $.grep(sorted, function(value, index, array) {
@@ -266,6 +276,7 @@
       console.log(list.join(""));
     }
 
+    // Convert a set of occupied cells into a place label.
     function classesToPlaceName(classes, placeNames) {
       var str = Object.keys(classes).sort().join("+");
       //console.log(str, placeNames[str]);
@@ -294,6 +305,7 @@
       return y + x;
     }
 
+    // Annotate each road with which 2x2/3x3 grid cells it crosses.
     function classifyRoadLocations(roads, bounds) {
       var width = bounds.maxX - bounds.minX;
       var height = bounds.maxY - bounds.minY;
@@ -317,6 +329,7 @@
       });
     }
 
+    // Choose the best place label based on 3x3 cells, fallback to 2x2.
     function nameRoadPlaces(roads, bounds) {
       classifyRoadLocations(roads, bounds);
       //printPlaceTranslationLines(LOC_2_MAP, 2);
@@ -337,6 +350,7 @@
       });
     }
 
+    // Return a 3x3 place label for a point; ignore points outside the map.
     function pointPlace(point, bounds) {
       var width = bounds.maxX - bounds.minX;
       var height = bounds.maxY - bounds.minY;
@@ -355,6 +369,7 @@
       }
     }
 
+    // Render a list of POIs of one type with location qualifiers.
     function insertPoisType(pois, container, bounds, poiType) {
       //var names = Object.keys(pois).sort(function(a, b) { return pois[b].center.x - pois[b].center.x; });
       var names = Object.keys(pois).sort(function(a, b) {
@@ -391,12 +406,14 @@
       return names.length;
     }
 
+    // Insert POI lists for known categories.
     function insertPois(info, container, bounds) {
       insertPoisType(info.objectInfos.pois.restaurant || {}, container, bounds, 'restaurant');
       insertPoisType(info.objectInfos.pois.shop || {}, container, bounds, 'shop');
       insertPoisType(info.objectInfos.pois.bus_stop || {}, container, bounds, 'bus_stop');
     }
 
+    // Summarize roads by length and place, handle unnamed roads separately.
     function insertRoads(info, container, bounds) {
       var roads = info.objectInfos.ways || {};
       function roadPlaceTranslation(roadName) {
@@ -450,6 +467,7 @@
       }
     }
 
+    // Entry point: add road/POI summaries and hook "show more" UI.
     function insertMapDescription(info, container) {
       if (! info.objectInfos) {
         info.objectInfos = {};
