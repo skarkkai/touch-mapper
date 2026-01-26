@@ -48,6 +48,50 @@ def _location_phrase(location: Optional[Dict[str, Any]]) -> Optional[str]:
     return location.get("phrase")
 
 
+def _location_struct_from_phrase(phrase: Optional[str], key: str) -> Optional[Dict[str, Optional[str]]]:
+    # Wrap a single location phrase in a structured container.
+    if not phrase:
+        return None
+    return {key: phrase}
+
+
+def _location_key(location: Optional[Dict[str, Optional[str]]]) -> str:
+    # Stable string key for grouping by location phrases.
+    if not location:
+        return ""
+    parts = []
+    for key in ("start", "end", "center", "point"):
+        value = location.get(key)
+        if value:
+            parts.append(key + "=" + value)
+    return "|".join(parts)
+
+
+def _render_location_text(location: Optional[Dict[str, Optional[str]]], kind: str) -> Optional[str]:
+    # Render a human-readable location string from structured phrases.
+    if not location:
+        return None
+    start_phrase = location.get("start")
+    end_phrase = location.get("end")
+    center_phrase = location.get("center") or location.get("point")
+    if kind in ("linear", "boundary"):
+        if not start_phrase and not end_phrase and not center_phrase:
+            return None
+        if start_phrase and end_phrase and start_phrase == end_phrase:
+            text = start_phrase
+        elif start_phrase and end_phrase:
+            text = start_phrase + " -> " + end_phrase
+        else:
+            text = start_phrase or end_phrase or ""
+        if center_phrase:
+            if text:
+                text += " (center: " + center_phrase + ")"
+            else:
+                text = center_phrase
+        return text if text else None
+    return center_phrase or start_phrase or end_phrase
+
+
 def _normalize_label(value: Optional[Any]) -> Optional[str]:
     # Normalize tag values for display.
     if not value:
@@ -196,30 +240,25 @@ def _modifiers_suffix(modifiers: Optional[List[Dict[str, Any]]]) -> str:
 
 def _summarize_linear_base(item: Dict[str, Any]) -> Dict[str, Any]:
     # Summary for linear features: name, modifiers, and location phrase.
-    name = _get_name(item.get("tags")) or "(unnamed)"
+    name = _get_name(item.get("tags"))
     mod_suffix = _modifiers_suffix(item.get("_classification", {}).get("modifiers"))
     cls = item.get("_classification", {})
     start_phrase = _location_phrase(cls.get("locationStart"))
     end_phrase = _location_phrase(cls.get("locationEnd"))
     center_phrase = _location_phrase(cls.get("locationCenter"))
-    location_text = None
+    location = None
     if start_phrase or end_phrase or center_phrase:
-        if start_phrase and end_phrase and start_phrase == end_phrase:
-            location_text = start_phrase
-            if center_phrase:
-                location_text += " (center: " + center_phrase + ")"
-        else:
-            if start_phrase and end_phrase:
-                location_text = start_phrase + " -> " + end_phrase
-            else:
-                location_text = start_phrase or end_phrase
-            if center_phrase:
-                location_text += " (center: " + center_phrase + ")"
+        location = {
+            "start": start_phrase,
+            "end": end_phrase,
+            "center": center_phrase
+        }
     return {
-        "label": name + mod_suffix,
-        "locationText": location_text,
+        "label": name if name else None,
+        "displayLabel": (name if name else "(unnamed)") + mod_suffix,
+        "location": location,
         "length": _compute_line_length(item.get("geometry")),
-        "hasName": name != "(unnamed)"
+        "hasName": bool(name)
     }
 
 
@@ -275,8 +314,12 @@ def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
     if address:
         parts.append(address)
     return {
-        "label": ", ".join(parts),
-        "locationText": _location_phrase(item.get("_classification", {}).get("locationCenter")),
+        "label": name if name else None,
+        "displayLabel": ", ".join(parts),
+        "location": _location_struct_from_phrase(
+            _location_phrase(item.get("_classification", {}).get("locationCenter")),
+            "center"
+        ),
         "hasName": bool(name)
     }
 
@@ -307,13 +350,21 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
     label = qualifier or category
     if name:
         return {
-            "label": label + ": " + name,
-            "locationText": _location_phrase(item.get("_classification", {}).get("location")),
+            "label": name,
+            "displayLabel": label + ": " + name,
+            "location": _location_struct_from_phrase(
+                _location_phrase(item.get("_classification", {}).get("location")),
+                "point"
+            ),
             "hasName": True
         }
     return {
-        "label": label,
-        "locationText": _location_phrase(item.get("_classification", {}).get("location")),
+        "label": None,
+        "displayLabel": label,
+        "location": _location_struct_from_phrase(
+            _location_phrase(item.get("_classification", {}).get("location")),
+            "point"
+        ),
         "hasName": False
     }
 
@@ -348,8 +399,12 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
     name = _get_name(item.get("tags"))
     base = label + ": " + name if name else label + " (unnamed)"
     return {
-        "label": base,
-        "locationText": _location_phrase(item.get("_classification", {}).get("locationCenter")),
+        "label": name if name else None,
+        "displayLabel": base,
+        "location": _location_struct_from_phrase(
+            _location_phrase(item.get("_classification", {}).get("locationCenter")),
+            "center"
+        ),
         "area": _compute_area(item.get("geometry"), item.get("bounds")),
         "hasName": bool(name)
     }
@@ -362,8 +417,12 @@ def _summarize_boundary_base(item: Dict[str, Any]) -> Dict[str, Any]:
     name = _get_name(item.get("tags"))
     summary = label + ": " + name if name else label
     return {
-        "label": summary,
-        "locationText": _location_phrase(item.get("_classification", {}).get("locationCenter")),
+        "label": name if name else None,
+        "displayLabel": summary,
+        "location": _location_struct_from_phrase(
+            _location_phrase(item.get("_classification", {}).get("locationCenter")),
+            "center"
+        ),
         "length": _compute_line_length(item.get("geometry")),
         "hasName": bool(name)
     }
@@ -380,7 +439,7 @@ def _sort_groups(groups: List[Dict[str, Any]], kind: str) -> List[Dict[str, Any]
             metric = entry.get("count", 0)
         else:
             metric = 0
-        return (not entry.get("hasName"), -metric, entry.get("label"))
+        return (not entry.get("hasName"), -metric, entry.get("displayLabel") or "")
     return sorted(groups, key=sort_key)
 
 
@@ -402,16 +461,18 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
         else:
             base = _summarize_linear_base(item)
 
-        key = base.get("label") + "||" + (base.get("locationText") or "")
+        key = (base.get("displayLabel") or "") + "||" + _location_key(base.get("location"))
         group = groups.get(key)
         if not group:
             groups[key] = {
                 "label": base.get("label"),
-                "locationText": base.get("locationText"),
+                "displayLabel": base.get("displayLabel"),
+                "location": base.get("location"),
                 "count": 0,
                 "hasName": base.get("hasName"),
                 "totalLength": 0.0,
-                "totalArea": 0.0
+                "totalArea": 0.0,
+                "items": []
             }
             group = groups[key]
         group["count"] += 1
@@ -420,6 +481,7 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
             group["totalLength"] += base.get("length")
         if base.get("area"):
             group["totalArea"] += base.get("area")
+        group["items"].append(base)
 
     return list(groups.values())
 
@@ -429,43 +491,50 @@ def _render_group_line(group: Dict[str, Any], kind: str) -> str:
     if group.get("count") == 1:
         if kind == "linear":
             length = _format_meters(group.get("totalLength"))
-            if length and group.get("locationText"):
-                return group.get("label") + " — " + length + " — " + group.get("locationText")
+            location_text = _render_location_text(group.get("location"), kind)
+            if length and location_text:
+                return group.get("displayLabel") + " — " + length + " — " + location_text
             if length:
-                return group.get("label") + " — " + length
-            return group.get("label") + " — " + group.get("locationText") if group.get("locationText") else group.get("label")
+                return group.get("displayLabel") + " — " + length
+            return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
         if kind == "boundary":
             b_len = _format_meters(group.get("totalLength"))
-            if b_len and group.get("locationText"):
-                return group.get("label") + " — " + b_len + " — " + group.get("locationText")
+            location_text = _render_location_text(group.get("location"), kind)
+            if b_len and location_text:
+                return group.get("displayLabel") + " — " + b_len + " — " + location_text
             if b_len:
-                return group.get("label") + " — " + b_len
-            return group.get("label") + " — " + group.get("locationText") if group.get("locationText") else group.get("label")
+                return group.get("displayLabel") + " — " + b_len
+            return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
         if kind == "area":
             area = _format_area(group.get("totalArea"))
-            if area and group.get("locationText"):
-                return group.get("label") + ", " + area + " — " + group.get("locationText")
+            location_text = _render_location_text(group.get("location"), kind)
+            if area and location_text:
+                return group.get("displayLabel") + ", " + area + " — " + location_text
             if area:
-                return group.get("label") + ", " + area
-            return group.get("label") + " — " + group.get("locationText") if group.get("locationText") else group.get("label")
-        return group.get("label") + " — " + group.get("locationText") if group.get("locationText") else group.get("label")
+                return group.get("displayLabel") + ", " + area
+            return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
+        location_text = _render_location_text(group.get("location"), kind)
+        return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
 
-    prefix = str(group.get("count")) + " x " + group.get("label")
+    prefix = str(group.get("count")) + " x " + group.get("displayLabel")
     if kind in ("linear", "boundary"):
         total_len = _format_meters(group.get("totalLength"))
-        if total_len and group.get("locationText"):
-            return prefix + " — total " + total_len + " — " + group.get("locationText")
+        location_text = _render_location_text(group.get("location"), kind)
+        if total_len and location_text:
+            return prefix + " — total " + total_len + " — " + location_text
         if total_len:
             return prefix + " — total " + total_len
-        return prefix + " — " + group.get("locationText") if group.get("locationText") else prefix
+        return prefix + " — " + location_text if location_text else prefix
     if kind == "area":
         total_area = _format_area(group.get("totalArea"))
-        if total_area and group.get("locationText"):
-            return prefix + " — total " + total_area + " — " + group.get("locationText")
+        location_text = _render_location_text(group.get("location"), kind)
+        if total_area and location_text:
+            return prefix + " — total " + total_area + " — " + location_text
         if total_area:
             return prefix + " — total " + total_area
-        return prefix + " — " + group.get("locationText") if group.get("locationText") else prefix
-    return prefix + " — " + group.get("locationText") if group.get("locationText") else prefix
+        return prefix + " — " + location_text if location_text else prefix
+    location_text = _render_location_text(group.get("location"), kind)
+    return prefix + " — " + location_text if location_text else prefix
 
 
 def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
@@ -584,12 +653,56 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
                 sub_entry["cooked"] = []
                 continue
             groups = sub_entry.get("groups") or []
-            display = groups[:MAX_ITEMS_PER_SUBCLASS]
+            kind = sub_entry.get("kind", "")
             cooked_lines = []
-            for group in display:
-                cooked_lines.append("- " + _render_group_line(group, sub_entry.get("kind", "")))
-            if len(groups) > MAX_ITEMS_PER_SUBCLASS:
-                cooked_lines.append("- ... (+" + str(len(groups) - MAX_ITEMS_PER_SUBCLASS) + " more)")
+            unnamed_groups = [group for group in groups if group.get("label") is None]
+            named_groups = [group for group in groups if group.get("label") is not None]
+
+            for group in named_groups:
+                items = group.get("items") or []
+                if group.get("count", 0) <= 1 or not items:
+                    cooked_lines.append("- " + _render_group_line(group, kind))
+                    continue
+                for idx, item in enumerate(items, start=1):
+                    base_label = group.get("displayLabel") or group.get("label") or "(unnamed)"
+                    item_group = {
+                        "displayLabel": base_label + " (" + str(idx) + ")",
+                        "location": item.get("location"),
+                        "count": 1,
+                        "totalLength": item.get("length"),
+                        "totalArea": item.get("area")
+                    }
+                    cooked_lines.append("- " + _render_group_line(item_group, kind))
+
+            if unnamed_groups:
+                total_count = 0
+                total_length = 0.0
+                total_area = 0.0
+                location_keys = set()
+                location_value = None
+                for group in unnamed_groups:
+                    total_count += group.get("count", 0)
+                    total_length += group.get("totalLength", 0.0)
+                    total_area += group.get("totalArea", 0.0)
+                    loc = group.get("location")
+                    location_keys.add(_location_key(loc))
+                    if location_value is None:
+                        location_value = loc
+                if len(location_keys) > 1:
+                    location_value = {"center": "multiple locations"}
+                combined = {
+                    "displayLabel": "(unnamed)",
+                    "location": location_value,
+                    "count": total_count,
+                    "totalLength": total_length,
+                    "totalArea": total_area
+                }
+                cooked_lines.append("- " + _render_group_line(combined, kind))
+
+            if len(cooked_lines) > MAX_ITEMS_PER_SUBCLASS:
+                cooked_lines = cooked_lines[:MAX_ITEMS_PER_SUBCLASS] + [
+                    "- ... (+" + str(len(cooked_lines) - MAX_ITEMS_PER_SUBCLASS) + " more)"
+                ]
             sub_entry["cooked"] = cooked_lines
         key = main_entry.get("key") or "unknown"
         content[key] = main_entry
