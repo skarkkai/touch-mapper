@@ -37,6 +37,11 @@ Output:
     );
   }
 
+  function locationPhrase(location) {
+    if (!location || !location.phrase) return null;
+    return location.phrase;
+  }
+
   function normalizeLabel(value) {
     if (!value) return null;
     return String(value).replace(/_/g, " ");
@@ -155,8 +160,27 @@ Output:
   function summarizeLinearBase(item) {
     const name = getName(item.tags) || "(unnamed)";
     const modSuffix = modifiersSuffix(item._classification && item._classification.modifiers);
+    const cls = item._classification || {};
+    const startPhrase = locationPhrase(cls.locationStart);
+    const endPhrase = locationPhrase(cls.locationEnd);
+    const centerPhrase = locationPhrase(cls.locationCenter);
+    let locationText = null;
+    if (startPhrase || endPhrase || centerPhrase) {
+      if (startPhrase && endPhrase && startPhrase === endPhrase) {
+        locationText = startPhrase;
+        if (centerPhrase && centerPhrase !== startPhrase) {
+          locationText += " (center: " + centerPhrase + ")";
+        } else if (centerPhrase && centerPhrase === startPhrase) {
+          locationText += " (center: " + centerPhrase + ")";
+        }
+      } else {
+        locationText = (startPhrase && endPhrase) ? (startPhrase + " -> " + endPhrase) : (startPhrase || endPhrase);
+        if (centerPhrase) locationText += " (center: " + centerPhrase + ")";
+      }
+    }
     return {
       label: name + modSuffix,
+      locationText: locationText,
       length: computeLineLength(item.geometry),
       hasName: name !== "(unnamed)"
     };
@@ -211,6 +235,7 @@ Output:
     if (address) parts.push(address);
     return {
       label: parts.join(", "),
+      locationText: locationPhrase(item._classification && item._classification.locationCenter),
       hasName: !!name
     };
   }
@@ -234,9 +259,17 @@ Output:
     const name = getName(tags);
     const label = qualifier || category;
     if (name) {
-      return { label: label + ": " + name, hasName: true };
+      return {
+        label: label + ": " + name,
+        locationText: locationPhrase(item._classification && item._classification.location),
+        hasName: true
+      };
     }
-    return { label: label, hasName: false };
+    return {
+      label: label,
+      locationText: locationPhrase(item._classification && item._classification.location),
+      hasName: false
+    };
   }
 
   function areaTypeLabel(subClass) {
@@ -268,6 +301,7 @@ Output:
     const base = name ? label + ": " + name : label + " (unnamed)";
     return {
       label: base,
+      locationText: locationPhrase(item._classification && item._classification.locationCenter),
       area: computeArea(item.geometry, item.bounds),
       hasName: !!name
     };
@@ -280,6 +314,7 @@ Output:
     const summary = name ? label + ": " + name : label;
     return {
       label: summary,
+      locationText: locationPhrase(item._classification && item._classification.locationCenter),
       length: computeLineLength(item.geometry),
       hasName: !!name
     };
@@ -313,11 +348,12 @@ Output:
       else if (kind === "boundary") base = summarizeBoundaryBase(item);
       else base = summarizeLinearBase(item);
 
-      const key = base.label;
+      const key = base.label + "||" + (base.locationText || "");
       let group = map.get(key);
       if (!group) {
         group = {
           label: base.label,
+          locationText: base.locationText || null,
           count: 0,
           hasName: base.hasName,
           totalLength: 0,
@@ -337,29 +373,39 @@ Output:
     if (group.count === 1) {
       if (kind === "linear") {
         const len = formatMeters(group.totalLength);
-        return len ? (group.label + " — " + len) : group.label;
+        if (len && group.locationText) return group.label + " — " + len + " — " + group.locationText;
+        if (len) return group.label + " — " + len;
+        return group.locationText ? (group.label + " — " + group.locationText) : group.label;
       }
       if (kind === "boundary") {
         const bLen = formatMeters(group.totalLength);
-        return bLen ? (group.label + " — " + bLen) : group.label;
+        if (bLen && group.locationText) return group.label + " — " + bLen + " — " + group.locationText;
+        if (bLen) return group.label + " — " + bLen;
+        return group.locationText ? (group.label + " — " + group.locationText) : group.label;
       }
       if (kind === "area") {
         const area = formatArea(group.totalArea);
-        return area ? (group.label + ", " + area) : group.label;
+        if (area && group.locationText) return group.label + ", " + area + " — " + group.locationText;
+        if (area) return group.label + ", " + area;
+        return group.locationText ? (group.label + " — " + group.locationText) : group.label;
       }
-      return group.label;
+      return group.locationText ? (group.label + " — " + group.locationText) : group.label;
     }
 
     const prefix = group.count + " x " + group.label;
     if (kind === "linear" || kind === "boundary") {
       const totalLen = formatMeters(group.totalLength);
-      return totalLen ? (prefix + " — total " + totalLen) : prefix;
+      if (totalLen && group.locationText) return prefix + " — total " + totalLen + " — " + group.locationText;
+      if (totalLen) return prefix + " — total " + totalLen;
+      return group.locationText ? (prefix + " — " + group.locationText) : prefix;
     }
     if (kind === "area") {
       const totalArea = formatArea(group.totalArea);
-      return totalArea ? (prefix + " — total " + totalArea) : prefix;
+      if (totalArea && group.locationText) return prefix + " — total " + totalArea + " — " + group.locationText;
+      if (totalArea) return prefix + " — total " + totalArea;
+      return group.locationText ? (prefix + " — " + group.locationText) : prefix;
     }
-    return prefix;
+    return group.locationText ? (prefix + " — " + group.locationText) : prefix;
   }
 
   function renderGrouped(grouped, spec, mapData) {

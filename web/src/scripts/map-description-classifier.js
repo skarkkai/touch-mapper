@@ -22,6 +22,20 @@ Output:
 })(typeof self !== "undefined" ? self : this, function() {
   "use strict";
 
+  const locSegments = (function() {
+    if (typeof require === "function") {
+      try {
+        return require("./map-description-loc-segments");
+      } catch (err) {
+        return null;
+      }
+    }
+    if (typeof globalThis !== "undefined" && globalThis.TM && globalThis.TM.mapDescriptionLocSegments) {
+      return globalThis.TM.mapDescriptionLocSegments;
+    }
+    return null;
+  })();
+
   function getField(item, path) {
     if (!path) return undefined;
     const parts = path.split(".");
@@ -179,11 +193,138 @@ Output:
     return null;
   }
 
+  function mapBBoxFromMeta(mapData) {
+    if (!mapData || !mapData.meta) return null;
+    if (mapData.meta.boundary) return mapData.meta.boundary;
+    if (mapData.meta.dataBoundary) return mapData.meta.dataBoundary;
+    return null;
+  }
+
+  function mapBBoxFromItems(mapData) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    let found = false;
+    Object.keys(mapData || {}).forEach(function(key) {
+      const value = mapData[key];
+      if (!Array.isArray(value)) return;
+      for (let i = 0; i < value.length; i += 1) {
+        const item = value[i];
+        if (!item || !item.bounds) continue;
+        const b = item.bounds;
+        if (!isFinite(b.minX) || !isFinite(b.minY) || !isFinite(b.maxX) || !isFinite(b.maxY)) continue;
+        minX = Math.min(minX, b.minX);
+        minY = Math.min(minY, b.minY);
+        maxX = Math.max(maxX, b.maxX);
+        maxY = Math.max(maxY, b.maxY);
+        found = true;
+      }
+    });
+    if (!found) return null;
+    return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+  }
+
+  function getMapBBox(mapData) {
+    return mapBBoxFromMeta(mapData) || mapBBoxFromItems(mapData);
+  }
+
+  function centerFromBounds(bounds) {
+    if (!bounds) return null;
+    if (!isFinite(bounds.minX) || !isFinite(bounds.minY) || !isFinite(bounds.maxX) || !isFinite(bounds.maxY)) return null;
+    return {
+      x: (bounds.minX + bounds.maxX) / 2,
+      y: (bounds.minY + bounds.maxY) / 2
+    };
+  }
+
+  function pointFromCoords(coords) {
+    if (!Array.isArray(coords) || coords.length < 2) return null;
+    return { x: coords[0], y: coords[1] };
+  }
+
+  function averagePoint(coords) {
+    if (!Array.isArray(coords) || !coords.length) return null;
+    let sumX = 0;
+    let sumY = 0;
+    let count = 0;
+    for (let i = 0; i < coords.length; i += 1) {
+      const p = coords[i];
+      if (!Array.isArray(p) || p.length < 2) continue;
+      sumX += p[0];
+      sumY += p[1];
+      count += 1;
+    }
+    if (!count) return null;
+    return { x: sumX / count, y: sumY / count };
+  }
+
+  function polygonPoints(geometry) {
+    if (!geometry) return null;
+    if (Array.isArray(geometry.outer)) return geometry.outer;
+    if (Array.isArray(geometry.coordinates) && Array.isArray(geometry.coordinates[0])) {
+      if (typeof geometry.coordinates[0][0] === "number") return geometry.coordinates;
+    }
+    return null;
+  }
+
+  function attachLocations(entry, item, bbox) {
+    if (!bbox || !locSegments || !locSegments.classifyLocation) return;
+    const classifyLocation = locSegments.classifyLocation;
+    const geom = item.geometry || {};
+    let point = null;
+
+    if (geom.type === "point") {
+      point = pointFromCoords(geom.coordinates);
+      if (point) {
+        entry._classification.location = classifyLocation(point, bbox);
+      }
+      return;
+    }
+
+    if (geom.type === "line_string") {
+      const coords = Array.isArray(geom.coordinates) ? geom.coordinates : [];
+      if (coords.length) {
+        const start = pointFromCoords(coords[0]);
+        const end = pointFromCoords(coords[coords.length - 1]);
+        const center = averagePoint(coords) || centerFromBounds(item.bounds);
+        if (start) entry._classification.locationStart = classifyLocation(start, bbox);
+        if (end) entry._classification.locationEnd = classifyLocation(end, bbox);
+        if (center) entry._classification.locationCenter = classifyLocation(center, bbox);
+      }
+      if (entry._classification.mainClass === "D" && !entry._classification.location && entry._classification.locationCenter) {
+        entry._classification.location = entry._classification.locationCenter;
+      }
+      return;
+    }
+
+    if (geom.type === "polygon") {
+      const points = polygonPoints(geom);
+      point = averagePoint(points) || centerFromBounds(item.bounds);
+      if (point) {
+        entry._classification.locationCenter = classifyLocation(point, bbox);
+      }
+      if (entry._classification.mainClass === "D" && !entry._classification.location && entry._classification.locationCenter) {
+        entry._classification.location = entry._classification.locationCenter;
+      }
+      return;
+    }
+
+    point = centerFromBounds(item.bounds);
+    if (point) {
+      entry._classification.locationCenter = classifyLocation(point, bbox);
+    }
+    if (entry._classification.mainClass === "D" && !entry._classification.location && entry._classification.locationCenter) {
+      entry._classification.location = entry._classification.locationCenter;
+    }
+  }
+
   function groupMapData(mapData, spec, optionsOverride) {
     const grouped = {};
     Object.keys(spec.classes || {}).forEach(function(mainKey) {
       grouped[mainKey] = {};
     });
+    const bbox = getMapBBox(mapData);
 
     function addItem(item) {
       const classification = classifyItem(item, spec, optionsOverride);
@@ -199,6 +340,7 @@ Output:
         poiImportance: classification.poiImportance,
         modifiers: modifiers
       };
+      attachLocations(entry, item, bbox);
       let mainGroup = grouped[classification.mainClass];
       if (!mainGroup) {
         grouped[classification.mainClass] = {};
