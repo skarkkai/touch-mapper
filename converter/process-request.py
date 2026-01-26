@@ -5,6 +5,7 @@ script_dir = os.path.dirname(__file__)
 sys.path.insert(1, "%s/py-lib/boto3" % (script_dir,))
 
 import re
+import importlib.machinery
 import boto3
 import json
 import argparse
@@ -107,7 +108,7 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
             svg = f.read()
         with open(os.path.dirname(osm_path) + '/map.blend', 'rb') as f:
             blend = f.read()
-        with open(os.path.dirname(osm_path) + '/map-meta.json', 'r') as f:
+        with open(os.path.dirname(osm_path) + '/map-meta-raw.json', 'r') as f:
             meta = f.read()
 
         return stl, stl_ways, stl_rest, svg, blend, json.loads(meta)
@@ -146,6 +147,12 @@ def svg_to_pdf(svg_path):
     except Exception as e:
         raise Exception("Can't convert SVG to PDF: " + str(e))
 
+def run_map_desc(raw_meta_path):
+    map_desc_path = os.path.join(script_dir, 'map-desc', '__init__.py')
+    loader = importlib.machinery.SourceFileLoader('map_desc', map_desc_path)
+    module = loader.load_module()
+    module.run_map_desc(raw_meta_path)
+
 def main():
     # TODO: if output S3 object already exists, exit immediately
     s3 = None
@@ -171,6 +178,10 @@ def main():
 
         # Convert OSM => STL
         stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
+        raw_meta_path = os.path.join(os.path.dirname(osm_path), 'map-meta-raw.json')
+
+        # Enrich map-meta.json
+        run_map_desc(raw_meta_path)
 
         # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of every map ever created.
         json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json

@@ -14,7 +14,7 @@ def _load_module(module_name, path):
 
 def _load_loc_segments():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    loc_path = os.path.join(base_dir, "map-description-loc-segments.py")
+    loc_path = os.path.join(base_dir, "map-desc-loc-segments.py")
     if not os.path.exists(loc_path):
         return None
     try:
@@ -25,6 +25,17 @@ def _load_loc_segments():
 
 
 classify_location = _load_loc_segments()
+
+
+def _load_renderer():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    render_path = os.path.join(base_dir, "map-desc-render.py")
+    if not os.path.exists(render_path):
+        return None
+    try:
+        return _load_module("map_desc_render", render_path)
+    except Exception:
+        return None
 
 
 def _get_field(item, path):
@@ -366,15 +377,27 @@ def _load_json(path):
 
 
 def run_standalone(args):
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    spec_path = os.path.join(base_dir, "map-description-classifications.json")
-    spec = _load_json(spec_path)
-    input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta.json")
+    input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta-raw.json")
     if not os.path.exists(input_path):
         input_path = os.path.join(os.getcwd(), "test/data/map-meta.indented.json")
+    return run_map_desc(input_path)
+
+
+def run_map_desc(input_path, output_path=None, options_override=None):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    spec_path = os.path.normpath(os.path.join(base_dir, "..", "map-description-classifications.json"))
+    spec = _load_json(spec_path)
     map_data = _load_json(input_path)
-    grouped = group_map_data(map_data, spec, None)
+    grouped = group_map_data(map_data, spec, options_override)
+    if output_path is None:
+        output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
+    with open(output_path, "w") as handle:
+        json.dump(grouped, handle, indent=2)
     print(json.dumps(grouped, indent=2))
+    renderer = _load_renderer()
+    if renderer:
+        output = renderer.render_grouped(grouped, spec, map_data)
+        print(output)
     return grouped
 
 

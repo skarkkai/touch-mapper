@@ -65,7 +65,7 @@ public final class ObjWriter {
 		mtlStream.close();
 
 		File metaFile = new File(objFile.getAbsoluteFile().getParentFile(),
-				"map-meta.json");
+				"map-meta-raw.json");
 		MapMetaWriter.write(metaFile, mapData);
 		
 	}
@@ -151,7 +151,7 @@ public final class ObjWriter {
 		
 		mtlStream.close();
 
-		File metaFile = new File(objDirectory, "map-meta.json");
+		File metaFile = new File(objDirectory, "map-meta-raw.json");
 		MapMetaWriter.write(metaFile, mapData);
 		
 	}

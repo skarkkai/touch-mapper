@@ -43,9 +43,9 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
     output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
     print(output)
 
-    meta_path = os.path.join(os.path.dirname(output_path), 'map-meta.json')
+    meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
     if not os.path.exists(meta_path):
-        raise Exception("Couldn't find map-meta.json from OSM2World output")
+        raise Exception("Couldn't find map-meta-raw.json from OSM2World output")
     with open(meta_path, 'r') as f:
         meta = json.load(f)
 
@@ -117,7 +117,7 @@ def main():
     meta = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings)
     boundary = meta.get('meta', {}).get('boundary')
     if boundary is None:
-        raise Exception("map-meta.json missing meta.boundary")
+        raise Exception("map-meta-raw.json missing meta.boundary")
 
     print_size(args.scale, boundary)
 

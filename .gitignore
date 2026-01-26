@@ -1,6 +1,7 @@
 *~
 .*.swp
 .~*#
+__pycache__
 /blender*
 /runtime
 /ol

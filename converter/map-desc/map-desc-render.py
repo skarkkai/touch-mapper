@@ -1,26 +1,9 @@
 # Python 3.5
 from __future__ import division
 
-import importlib.machinery
 import json
 import os
 from collections import OrderedDict
-
-
-def _load_module(module_name, path):
-    loader = importlib.machinery.SourceFileLoader(module_name, path)
-    return loader.load_module()
-
-
-def _load_classifier():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    classifier_path = os.path.join(base_dir, "map-description-classifier.py")
-    module = _load_module("map_description_classifier", classifier_path)
-    return module
-
-
-classifier = _load_classifier()
-
 
 MAX_ITEMS_PER_SUBCLASS = 10
 
@@ -94,9 +77,28 @@ def _coord_key(coord):
     return _to_fixed(float(coord[0]), 3) + "," + _to_fixed(float(coord[1]), 3)
 
 
+def _iter_grouped_items(grouped):
+    if not isinstance(grouped, dict):
+        return
+    for main_group in grouped.values():
+        if not isinstance(main_group, dict):
+            continue
+        for items in main_group.values():
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                yield item
+
+
 def _build_road_names_by_coord(map_data):
     road_map = {}
-    ways = map_data.get("ways") or []
+    ways = []
+    if isinstance(map_data, dict) and isinstance(map_data.get("ways"), list):
+        ways = map_data.get("ways") or []
+    else:
+        for item in _iter_grouped_items(map_data):
+            if item.get("elementType") == "way":
+                ways.append(item)
     for way in ways:
         coords = way.get("geometry", {}).get("coordinates")
         if not isinstance(coords, list):
@@ -438,9 +440,9 @@ def _render_group_line(group, kind):
     return prefix + " — " + group.get("locationText") if group.get("locationText") else prefix
 
 
-def render_grouped(grouped, spec, map_data):
+def render_grouped(grouped, spec, map_data=None):
     lines = []
-    road_names_by_coord = _build_road_names_by_coord(map_data)
+    road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
     classes = spec.get("classes") or OrderedDict()
     main_keys = sorted(classes.keys())
 
@@ -504,14 +506,11 @@ def _load_json(path):
 
 def run_standalone(args):
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    spec_path = os.path.join(base_dir, "map-description-classifications.json")
+    spec_path = os.path.normpath(os.path.join(base_dir, "..", "map-description-classifications.json"))
     spec = _load_json(spec_path)
     input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta.json")
-    if not os.path.exists(input_path):
-        input_path = os.path.join(os.getcwd(), "test/data/map-meta.indented.json")
-    map_data = _load_json(input_path)
-    grouped = classifier.group_map_data(map_data, spec, None)
-    output = render_grouped(grouped, spec, map_data)
+    grouped = _load_json(input_path)
+    output = render_grouped(grouped, spec, grouped)
     print(output)
     return output
 
