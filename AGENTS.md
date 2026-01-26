@@ -44,3 +44,14 @@ This file captures project-specific conventions and "gotchas" that help especial
 ## OSM2World
 - `OSM2World/` is a modified upstream dependency, rarely modified.
 - To build, it's safest to run `ant clean jar`
+- OSM2World outputs
+  - an .obj file that contains all needed geometry without any height (it's extruded later in Blender)
+  - map-meta.json that describes the elements on the map so they can be described textually in UI
+
+## Processing pipeline
+
+1. OSM data is fetched from OSM servers for the requested areas.
+
+2. OSM data is read by OSM2World, which outputs both files `map.obj` and `map-meta.json`.
+
+3. Browser UI fetches map-meta.json from Touch Mapper S3 bucket, and presents its content to the user in a way described above.

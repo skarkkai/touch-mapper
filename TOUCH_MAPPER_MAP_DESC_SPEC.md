@@ -50,9 +50,7 @@ The human text must be generated deterministically from the structured descripti
 
 ### 4) Where it appears in the product
 
-* On the results page where the map preview is shown.
 * On the final/download page for the generated map.
-* In exported formats (optional in v1): include as downloadable `.txt` and as embedded metadata in the output package if such a package exists.
 
 UI requirements:
 
@@ -291,10 +289,3 @@ Given a known metadata fixture, the system must:
 
 The original input for the whole process is OSM data in format https://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide
 
-## Processing pipeline
-
-1. OSM data is fetched from OSM servers for the requested areas.
-
-2. OSM data is read by OSM2World, which outputs both files `map.obj` and `map-meta.json`. Modifying OSM2world code so that it outputs suitable map-meta.json is part of this implementation task. map-meta.json contains most of the information received from OSM but in the same coordinates that map.obj uses, and only includes things element types included in map.obj.
-
-3. Browser UI fetches map-meta.json from Touch Mapper S3 bucket, and presents its content to the user in a way described above.
