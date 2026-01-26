@@ -1530,7 +1530,8 @@
             "water" : "lake",
             "wikidata" : "Q24356918",
             "wikipedia" : "fi:Lippajärvi (järvi)"
-         }
+         },
+         "tmCategory" : "Water"
       },
       {
          "bounds" : {
@@ -1717,7 +1718,8 @@
             "addr:street" : "Nuuniitynkuja",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -1782,7 +1784,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -1855,7 +1858,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -1936,7 +1940,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2017,7 +2022,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2106,7 +2112,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2260,7 +2267,8 @@
             "addr:unit" : "C",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2335,7 +2343,8 @@
             "building" : "terrace",
             "building:levels" : "2",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2392,7 +2401,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2447,7 +2457,8 @@
          "tags" : {
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2504,7 +2515,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2559,7 +2571,8 @@
          "tags" : {
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2614,7 +2627,8 @@
          "tags" : {
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2669,7 +2683,8 @@
          "tags" : {
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2744,7 +2759,8 @@
             "building" : "terrace",
             "building:levels" : "2",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2801,7 +2817,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2858,7 +2875,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2915,7 +2933,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -2972,7 +2991,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3037,7 +3057,8 @@
             "addr:street" : "Tuokkostie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3102,7 +3123,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3167,7 +3189,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3270,7 +3293,8 @@
             "building" : "residential",
             "building:levels" : "2",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3343,7 +3367,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3416,7 +3441,8 @@
             "addr:street" : "Nuumäentie",
             "building" : "residential",
             "source" : "NLS.fi"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3487,7 +3513,8 @@
             "addr:street" : "Nuuniitynkuja",
             "addr:unit" : "A",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3602,7 +3629,8 @@
             "addr:street" : "Nuuniitynkuja",
             "addr:unit" : "C",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3672,7 +3700,8 @@
          ],
          "tags" : {
             "building" : "garages"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3747,7 +3776,8 @@
             "addr:street" : "Nuumäentie",
             "addr:unit" : "C",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3826,7 +3856,8 @@
             "addr:street" : "Nuumäentie",
             "addr:unit" : "B",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -3925,7 +3956,8 @@
             "addr:street" : "Nuumäentie",
             "addr:unit" : "D",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4000,7 +4032,8 @@
             "addr:street" : "Nuumäentie",
             "addr:unit" : "A",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4099,7 +4132,8 @@
             "addr:street" : "Nuumäentie",
             "addr:unit" : "A",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4178,7 +4212,8 @@
             "addr:street" : "Nuumäentie",
             "addr:unit" : "B",
             "building" : "residential"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4237,7 +4272,8 @@
             "building:fi:id" : "04906100540002003",
             "building:levels" : "1",
             "start_date" : "2006-11-07"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4314,7 +4350,8 @@
             "building:use" : "kindergarten",
             "start_date" : "2016-12-20",
             "website" : "https://www.espoo.fi/fi-FI/Kasvatus_ja_opetus/Varhaiskasvatus/Varhaiskasvatuksen_toimipaikat/Kunnalliset_paivakodit/Leppavaara/Nuumaen_paivakoti"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4374,7 +4411,8 @@
             "building:levels" : "1",
             "building:use" : "storage",
             "start_date" : "1979"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4433,7 +4471,8 @@
             "building:fi:id" : "04906100530001005",
             "building:levels" : "2",
             "start_date" : "1978"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4496,7 +4535,8 @@
             "ref" : "717",
             "start_date" : "1986",
             "substation" : "minor_distribution"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4555,7 +4595,8 @@
             "building:fi:id" : "04906100530001006",
             "building:levels" : "1",
             "start_date" : "1979"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4664,7 +4705,8 @@
             "building:levels" : "2",
             "building:use" : "residential",
             "start_date" : "1978"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4723,7 +4765,8 @@
             "building:fi:id" : "04906100550002005",
             "building:levels" : "1",
             "start_date" : "1978"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4780,7 +4823,8 @@
             "building:fi:id" : "04906100570002003",
             "building:levels" : "1",
             "start_date" : "1988-07-04"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4834,7 +4878,8 @@
          ],
          "tags" : {
             "building" : "yes"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4888,7 +4933,8 @@
          ],
          "tags" : {
             "building" : "yes"
-         }
+         },
+         "tmCategory" : "Building"
       },
       {
          "bounds" : {
@@ -4942,7 +4988,8 @@
          ],
          "tags" : {
             "building" : "yes"
-         }
+         },
+         "tmCategory" : "Building"
       }
    ],
    "buildingCount" : 46,
@@ -4991,7 +5038,10 @@
          "representations" : [
             "RoadConnector"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5023,7 +5073,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5058,7 +5111,10 @@
          "tags" : {
             "crossing" : "uncontrolled",
             "highway" : "crossing"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5092,7 +5148,10 @@
          ],
          "tags" : {
             "highway" : "turning_circle"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5124,7 +5183,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5156,7 +5218,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5188,7 +5253,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5220,7 +5288,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5252,7 +5323,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5290,7 +5364,10 @@
             "crossing:signals" : "no",
             "highway" : "crossing",
             "traffic_calming" : "table"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5328,7 +5405,10 @@
             "crossing:signals" : "no",
             "highway" : "crossing",
             "traffic_calming" : "table"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5360,7 +5440,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5392,7 +5475,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5424,7 +5510,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5456,7 +5545,10 @@
          "representations" : [
             "RoadConnector"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5488,7 +5580,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5520,7 +5615,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5552,7 +5650,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5584,7 +5685,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5616,7 +5720,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5648,7 +5755,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5680,7 +5790,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5712,7 +5825,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5744,7 +5860,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5776,7 +5895,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5808,7 +5930,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5840,7 +5965,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -5872,7 +6000,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5904,7 +6035,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5936,7 +6070,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -5968,7 +6105,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6000,7 +6140,10 @@
          "representations" : [
             "RoadConnector"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6032,7 +6175,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6064,7 +6210,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6096,7 +6245,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6128,7 +6280,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -6160,7 +6315,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6192,7 +6350,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6224,7 +6385,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6256,7 +6420,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6288,7 +6455,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6320,7 +6490,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6352,7 +6525,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6384,7 +6560,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6416,7 +6595,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6448,7 +6630,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6480,7 +6665,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6512,7 +6700,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6544,7 +6735,10 @@
          "representations" : [
             "RoadJunction"
          ],
-         "tags" : {}
+         "tags" : {},
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       }
    ],
    "ways" : [
@@ -6678,7 +6872,10 @@
             "segregated" : "no",
             "source" : "survey",
             "surface" : "asphalt"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6803,7 +7000,10 @@
             "highway" : "footway",
             "source" : "survey",
             "surface" : "asphalt"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -6901,7 +7101,10 @@
             "name" : "Nuuniitynkuja",
             "name:fi" : "Nuuniitynkuja",
             "name:sv" : "Noängsgränden"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -7001,7 +7204,10 @@
             "footway" : "sidewalk",
             "highway" : "footway",
             "surface" : "paved"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7058,7 +7264,10 @@
             "name:sv" : "Nobacksvägen",
             "surface" : "asphalt",
             "traffic_calming" : "table"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -7240,7 +7449,8 @@
          ],
          "tags" : {
             "waterway" : "stream"
-         }
+         },
+         "tmCategory" : "Waterway"
       },
       {
          "bounds" : {
@@ -7399,7 +7609,10 @@
             "name:fi" : "Nuumäentie",
             "name:sv" : "Nobacksvägen",
             "surface" : "asphalt"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -7463,7 +7676,10 @@
             "oneway" : "yes",
             "surface" : "asphalt",
             "traffic_calming" : "table"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : false,
+         "tmRoadType" : "car"
       },
       {
          "bounds" : {
@@ -7509,7 +7725,10 @@
             "highway" : "cycleway",
             "layer" : "1",
             "source" : "survey"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7565,7 +7784,10 @@
             "lit" : "yes",
             "segregated" : "no",
             "surface" : "asphalt"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7703,7 +7925,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7758,7 +7983,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "parking_aisle"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7812,7 +8040,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7866,7 +8097,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7944,7 +8178,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -7990,7 +8227,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8092,7 +8332,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8202,7 +8445,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8248,7 +8494,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8291,7 +8540,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "parking_aisle"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8335,7 +8587,10 @@
             "foot" : "yes",
             "highway" : "cycleway",
             "source" : "survey"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8382,7 +8637,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "driveway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8437,7 +8695,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "driveway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8480,7 +8741,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "driveway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8527,7 +8791,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "driveway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8570,7 +8837,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "driveway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8613,7 +8883,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "parking_aisle"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8667,7 +8940,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8729,7 +9005,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8783,7 +9062,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8825,7 +9107,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8875,7 +9160,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8947,7 +9235,10 @@
             "footway" : "sidewalk",
             "highway" : "footway",
             "surface" : "asphalt"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -8997,7 +9288,10 @@
          ],
          "tags" : {
             "highway" : "service"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9048,7 +9342,10 @@
          "tags" : {
             "highway" : "service",
             "surface" : "asphalt"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9098,7 +9395,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9148,7 +9448,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9194,7 +9497,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9244,7 +9550,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9294,7 +9603,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9336,7 +9648,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9386,7 +9701,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9436,7 +9754,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9479,7 +9800,10 @@
          "tags" : {
             "highway" : "service",
             "service" : "driveway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9521,7 +9845,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9563,7 +9890,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9609,7 +9939,10 @@
          ],
          "tags" : {
             "highway" : "footway"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9706,7 +10039,10 @@
             "mtb:scale" : "1",
             "surface" : "unpaved",
             "width" : "0.5"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9754,7 +10090,10 @@
             "footway" : "crossing",
             "highway" : "footway",
             "surface" : "paved"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       },
       {
          "bounds" : {
@@ -9796,7 +10135,10 @@
          ],
          "tags" : {
             "highway" : "path"
-         }
+         },
+         "tmCategory" : "Road",
+         "tmRoadPedestrian" : true,
+         "tmRoadType" : "pedestrian"
       }
    ]
 }
