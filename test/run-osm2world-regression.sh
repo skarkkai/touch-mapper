@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This regression test runs OSM2World and verifies its outputs (map.obj and map-meta.json) haven't changed.
+
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 data_dir="$repo_root/test/data"
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/tm-osm2world-test.XXXXXX")"

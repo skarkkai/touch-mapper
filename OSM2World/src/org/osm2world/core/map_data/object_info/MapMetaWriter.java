@@ -172,7 +172,8 @@ public final class MapMetaWriter {
 		OSMNode osmNode = node.getOsmNode();
 
 		addCommonFields(entry, "node", osmNode, node.getTags());
-		addRepresentationFields(entry, node.getRepresentations());
+		Set<String> repNames = addRepresentationFields(entry, node.getRepresentations());
+		addTouchMapperFields(entry, repNames, node.getTags(), node);
 
 		VectorXZ pos = node.getPos();
 		AxisAlignedBoundingBoxXZ bounds = new AxisAlignedBoundingBoxXZ(
@@ -191,7 +192,8 @@ public final class MapMetaWriter {
 		Map<String, Object> entry = new LinkedHashMap<String, Object>();
 
 		addCommonFields(entry, "way", way, way.tags);
-		addWayRepresentationFields(entry, segments);
+		Set<String> repNames = addWayRepresentationFields(entry, segments);
+		addTouchMapperFields(entry, repNames, way.tags, null);
 
 		AxisAlignedBoundingBoxXZ bounds = new AxisAlignedBoundingBoxXZ(positions);
 
@@ -214,7 +216,8 @@ public final class MapMetaWriter {
 		OSMElement element = area.getOsmObject();
 
 		addCommonFields(entry, "area", element, area.getTags());
-		addRepresentationFields(entry, area.getRepresentations());
+		Set<String> repNames = addRepresentationFields(entry, area.getRepresentations());
+		addTouchMapperFields(entry, repNames, area.getTags(), null);
 
 		List<List<Double>> outer = new ArrayList<List<Double>>();
 		for (MapNode node : area.getBoundaryNodes()) {
@@ -254,7 +257,7 @@ public final class MapMetaWriter {
 		entry.put("tags", tagsToMap(tags));
 	}
 
-	private static void addRepresentationFields(Map<String, Object> entry,
+	private static Set<String> addRepresentationFields(Map<String, Object> entry,
 			List<? extends WorldObject> representations) {
 		Set<String> repNames = new TreeSet<String>();
 		Set<String> groundStates = new TreeSet<String>();
@@ -273,9 +276,10 @@ public final class MapMetaWriter {
 		entry.put("groundStates", new ArrayList<String>(groundStates));
 		entry.put("primaryGroundState",
 				(primary == null) ? null : primary.getGroundState().name());
+		return repNames;
 	}
 
-	private static void addWayRepresentationFields(Map<String, Object> entry,
+	private static Set<String> addWayRepresentationFields(Map<String, Object> entry,
 			List<MapWaySegment> segments) {
 		Set<String> repNames = new TreeSet<String>();
 		Set<String> groundStates = new TreeSet<String>();
@@ -302,6 +306,22 @@ public final class MapMetaWriter {
 				(primaryGroundStates.size() == 1)
 						? primaryGroundStates.iterator().next()
 						: null);
+		return repNames;
+	}
+
+	private static void addTouchMapperFields(Map<String, Object> entry,
+			Set<String> repNames, TagGroup tags, MapNode node) {
+		String category = TouchMapperCategory.categoryForRepresentationNames(repNames);
+		if (category != null) {
+			entry.put("tmCategory", category);
+		}
+		if ("Road".equals(category) || "RoadArea".equals(category)) {
+			boolean pedestrian = (node != null)
+					? TouchMapperCategory.isPedestrian(node)
+					: TouchMapperCategory.isPedestrian(tags);
+			entry.put("tmRoadPedestrian", Boolean.valueOf(pedestrian));
+			entry.put("tmRoadType", pedestrian ? "pedestrian" : "car");
+		}
 	}
 
 	private static Map<String, String> tagsToMap(TagGroup tags) {

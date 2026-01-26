@@ -1,10 +1,12 @@
 all:
 	@echo "No default target exists"
 
-osm2world:
-	cd OSM2World && ant jar
+FORCE: ;
 
-test:
+osm2world:
+	cd OSM2World && ant clean jar
+
+test: FORCE
 	test/run-osm2world-regression.sh
 
 dev-aws-install:
