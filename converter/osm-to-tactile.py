@@ -43,24 +43,11 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
     output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
     print(output)
 
-    # Find bounds from output
-    m = re.compile('.*Map-boundary:\[ minX=([0-9.-]+) minZ=([0-9.-]+) maxX=([0-9.-]+) maxZ=([0-9.-]+) \]', re.DOTALL).match(output)
-    if not m:
-        raise Exception("Couldn't find map bounds from OSM2World output")
-    bounds = {
-        'minX': float(m.group(1)),
-        'minY': float(m.group(2)), # change from Z to Y
-        'maxX': float(m.group(3)),
-        'maxY': float(m.group(4)), # change from Z to Y
-    }
-
     meta_path = os.path.join(os.path.dirname(output_path), 'map-meta.json')
     if not os.path.exists(meta_path):
         raise Exception("Couldn't find map-meta.json from OSM2World output")
     with open(meta_path, 'r') as f:
         meta = json.load(f)
-
-    meta['bounds'] = bounds
 
     return meta
 
