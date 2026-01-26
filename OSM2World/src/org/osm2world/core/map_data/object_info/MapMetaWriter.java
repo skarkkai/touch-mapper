@@ -319,7 +319,6 @@ public final class MapMetaWriter {
 			boolean pedestrian = (node != null)
 					? TouchMapperCategory.isPedestrian(node)
 					: TouchMapperCategory.isPedestrian(tags);
-			entry.put("tmRoadPedestrian", Boolean.valueOf(pedestrian));
 			entry.put("tmRoadType", pedestrian ? "pedestrian" : "car");
 		}
 	}
