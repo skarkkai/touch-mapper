@@ -20,6 +20,9 @@ This file captures project-specific conventions and "gotchas" that help especial
   - Converts `{{ key }}` in ECT files to `@t('key')` for i18n.
   - Runs `metalsmith-i18next` over `web/locales/*/tm.json`. Available locales seen as folders in `web/locales`.
   - Compiles Less and concatenates JS bundles into `scripts/app-common.js` and `scripts/vendor-common.js`.
+- JavaScript should be as modern as possible while still working on the latest versions of Edge, Chrome, Firefox, and Safari (no legacy browser support).
+  - OK: `async/await`, `fetch`, optional chaining, nullish coalescing, `URL`, `URLSearchParams`, `AbortController`, `class`.
+  - Avoid: `var`-heavy patterns, manual `XMLHttpRequest`, or legacy polyfills aimed at IE/old Edge.
 - `web/src/index.html` is a small redirect page; the main page template is `web/pre-src/index.pre`.
 - `web/src/scripts/environment.js.*` are environment stubs; `web/create-env-js.sh` generates a real `environment.js` (requires AWS CLI + config).
 
