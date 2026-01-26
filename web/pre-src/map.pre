@@ -206,6 +206,11 @@ window.TM = { translations: {
     </div>
   </div>
 
+  <div class="map-meta-preview">
+    <h3>Map content</h3>
+    <p>This mock description is based on the current sample map-meta.json.txt: it contains a few named roads (like Nuuniitynkuja and Nuumaentie), a large set of unnamed road segments, about 28 buildings, and no POIs listed. The map bounds are roughly a 170m square centered around the chosen address.</p>
+  </div>
+
   <div class="no-data-available-msg" style="display: none">
     <span>{{ data_no_longer_available }}</span>
   </div>
