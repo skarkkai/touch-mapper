@@ -51,6 +51,7 @@ The human text must be generated deterministically from the structured descripti
 ### 4) Where it appears in the product
 
 * On the final/download page for the generated map.
+* In exported formats (optional in v1): include as downloadable `.txt` and as embedded metadata in the output package if such a package exists.
 
 UI requirements:
 
