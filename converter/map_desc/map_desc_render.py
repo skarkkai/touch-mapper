@@ -4,17 +4,20 @@ from __future__ import division
 import json
 import os
 from collections import OrderedDict
+from typing import Any, Dict, Iterable, Iterator, List, Optional
 
 MAX_ITEMS_PER_SUBCLASS = 10
 
 
-def _js_round(value):
+def _js_round(value: float) -> int:
+    # Match JS Math.round behavior for consistent output.
     if value >= 0:
         return int((value + 0.5) // 1)
     return int((value - 0.5) // 1)
 
 
-def _to_fixed(value, digits):
+def _to_fixed(value: float, digits: int) -> str:
+    # JS-like toFixed using JS rounding rules.
     scale = 10 ** digits
     rounded = _js_round(value * scale) / float(scale)
     if digits == 0:
@@ -23,7 +26,8 @@ def _to_fixed(value, digits):
     return fmt.format(rounded)
 
 
-def _get_name(tags):
+def _get_name(tags: Optional[Dict[str, Any]]) -> Optional[str]:
+    # Prefer the most human-friendly name available in tags.
     if not tags:
         return None
     return (
@@ -37,19 +41,22 @@ def _get_name(tags):
     )
 
 
-def _location_phrase(location):
+def _location_phrase(location: Optional[Dict[str, Any]]) -> Optional[str]:
+    # Extract the pre-built location phrase if available.
     if not location or not location.get("phrase"):
         return None
     return location.get("phrase")
 
 
-def _normalize_label(value):
+def _normalize_label(value: Optional[Any]) -> Optional[str]:
+    # Normalize tag values for display.
     if not value:
         return None
     return str(value).replace("_", " ")
 
 
-def _format_meters(length_meters):
+def _format_meters(length_meters: Optional[float]) -> Optional[str]:
+    # Format lengths in meters with coarse rounding like the JS renderer.
     if length_meters is None:
         return None
     length = max(0, length_meters)
@@ -62,7 +69,8 @@ def _format_meters(length_meters):
     return str(int(rounded)) + " m"
 
 
-def _format_area(area_sq_m):
+def _format_area(area_sq_m: Optional[float]) -> Optional[str]:
+    # Format areas using ha for large areas and m^2 otherwise.
     if area_sq_m is None:
         return None
     area = max(0, area_sq_m)
@@ -73,11 +81,13 @@ def _format_area(area_sq_m):
     return "~" + str(int(_js_round(area))) + " m^2"
 
 
-def _coord_key(coord):
+def _coord_key(coord: List[float]) -> str:
+    # Stable key for coordinate matching across ways/nodes.
     return _to_fixed(float(coord[0]), 3) + "," + _to_fixed(float(coord[1]), 3)
 
 
-def _iter_grouped_items(grouped):
+def _iter_grouped_items(grouped: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
+    # Iterate items from already-classified grouped data.
     if not isinstance(grouped, dict):
         return
     for main_group in grouped.values():
@@ -90,7 +100,8 @@ def _iter_grouped_items(grouped):
                 yield item
 
 
-def _build_road_names_by_coord(map_data):
+def _build_road_names_by_coord(map_data: Dict[str, Any]) -> Dict[str, List[str]]:
+    # Build a coordinate->road-names map for connectivity summaries.
     road_map = {}
     ways = []
     if isinstance(map_data, dict) and isinstance(map_data.get("ways"), list):
@@ -117,7 +128,8 @@ def _build_road_names_by_coord(map_data):
     return road_map
 
 
-def _compute_line_length(geometry):
+def _compute_line_length(geometry: Optional[Dict[str, Any]]) -> Optional[float]:
+    # Polyline length in local map units.
     if not geometry or geometry.get("type") != "line_string":
         return None
     coords = geometry.get("coordinates")
@@ -133,7 +145,8 @@ def _compute_line_length(geometry):
     return length
 
 
-def _ring_area(coords):
+def _ring_area(coords: List[List[float]]) -> float:
+    # Polygon ring area using the shoelace formula.
     if not coords or len(coords) < 3:
         return 0
     total = 0.0
@@ -144,7 +157,8 @@ def _ring_area(coords):
     return abs(total) / 2.0
 
 
-def _compute_area(geometry, bounds):
+def _compute_area(geometry: Optional[Dict[str, Any]], bounds: Optional[Dict[str, Any]]) -> Optional[float]:
+    # Polygon area (with holes) or bbox fallback.
     if geometry and geometry.get("type") == "polygon":
         area = 0.0
         outer = geometry.get("outer")
@@ -167,7 +181,8 @@ def _compute_area(geometry, bounds):
     return None
 
 
-def _modifiers_suffix(modifiers):
+def _modifiers_suffix(modifiers: Optional[List[Dict[str, Any]]]) -> str:
+    # Render bracketed modifiers like [bridge, layer=1].
     if not modifiers:
         return ""
     labels = []
@@ -179,7 +194,8 @@ def _modifiers_suffix(modifiers):
     return " [" + ", ".join(labels) + "]"
 
 
-def _summarize_linear_base(item):
+def _summarize_linear_base(item: Dict[str, Any]) -> Dict[str, Any]:
+    # Summary for linear features: name, modifiers, and location phrase.
     name = _get_name(item.get("tags")) or "(unnamed)"
     mod_suffix = _modifiers_suffix(item.get("_classification", {}).get("modifiers"))
     cls = item.get("_classification", {})
@@ -207,7 +223,8 @@ def _summarize_linear_base(item):
     }
 
 
-def _connected_road_names(item, road_names_by_coord):
+def _connected_road_names(item: Dict[str, Any], road_names_by_coord: Dict[str, List[str]]) -> List[str]:
+    # Resolve road names touching a node by coordinate.
     coords = item.get("geometry", {}).get("coordinates")
     if not isinstance(coords, list):
         return []
@@ -215,7 +232,9 @@ def _connected_road_names(item, road_names_by_coord):
     return list(road_names_by_coord.get(key, []))
 
 
-def _summarize_connectivity_base(item, road_names_by_coord):
+def _summarize_connectivity_base(item: Dict[str, Any],
+                                 road_names_by_coord: Dict[str, List[str]]) -> Dict[str, Any]:
+    # Summary for junction/connector/crossing nodes.
     role = item.get("_classification", {}).get("role") or "node"
     names = _connected_road_names(item, road_names_by_coord)
     if names:
@@ -225,7 +244,8 @@ def _summarize_connectivity_base(item, road_names_by_coord):
     return {"label": label, "hasName": len(names) > 0}
 
 
-def _summarize_building_base(item):
+def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
+    # Summary for buildings with type/name/address and location.
     tags = item.get("tags") or {}
     amenity = _normalize_label(tags.get("amenity"))
     building_use = _normalize_label(tags.get("building:use"))
@@ -261,7 +281,8 @@ def _summarize_building_base(item):
     }
 
 
-def _summarize_poi_base(item):
+def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
+    # Summary for POIs with category/qualifier and location.
     tags = item.get("tags") or {}
     subtype = item.get("_classification", {}).get("subClass")
     category = "poi"
@@ -297,7 +318,8 @@ def _summarize_poi_base(item):
     }
 
 
-def _area_type_label(sub_class):
+def _area_type_label(sub_class: Optional[str]) -> str:
+    # Human-facing labels for area subclasses.
     mapping = {
         "B1_lakes": "lake",
         "B1_ponds": "pond",
@@ -319,7 +341,8 @@ def _area_type_label(sub_class):
     return mapping.get(sub_class, "area")
 
 
-def _summarize_area_base(item):
+def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
+    # Summary for area features with type/name/size and location.
     subtype = item.get("_classification", {}).get("subClass")
     label = _area_type_label(subtype)
     name = _get_name(item.get("tags"))
@@ -332,7 +355,8 @@ def _summarize_area_base(item):
     }
 
 
-def _summarize_boundary_base(item):
+def _summarize_boundary_base(item: Dict[str, Any]) -> Dict[str, Any]:
+    # Summary for boundary/edge features with length and location.
     subtype = item.get("_classification", {}).get("subClass")
     label = _area_type_label(subtype)
     name = _get_name(item.get("tags"))
@@ -345,7 +369,8 @@ def _summarize_boundary_base(item):
     }
 
 
-def _sort_groups(groups, kind):
+def _sort_groups(groups: List[Dict[str, Any]], kind: str) -> List[Dict[str, Any]]:
+    # Sort grouped summaries by salience: named first, then size/length.
     def sort_key(entry):
         if kind in ("linear", "boundary"):
             metric = entry.get("totalLength", 0)
@@ -359,7 +384,9 @@ def _sort_groups(groups, kind):
     return sorted(groups, key=sort_key)
 
 
-def _build_groups(items, kind, road_names_by_coord):
+def _build_groups(items: List[Dict[str, Any]], kind: str,
+                  road_names_by_coord: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+    # Collapse repeated items into grouped summaries for compact output.
     groups = OrderedDict()
     for item in items:
         if kind == "connectivity":
@@ -397,7 +424,8 @@ def _build_groups(items, kind, road_names_by_coord):
     return list(groups.values())
 
 
-def _render_group_line(group, kind):
+def _render_group_line(group: Dict[str, Any], kind: str) -> str:
+    # Render a single summary line, with totals for grouped items.
     if group.get("count") == 1:
         if kind == "linear":
             length = _format_meters(group.get("totalLength"))
@@ -440,7 +468,9 @@ def _render_group_line(group, kind):
     return prefix + " — " + group.get("locationText") if group.get("locationText") else prefix
 
 
-def render_grouped(grouped, spec, map_data=None):
+def render_grouped(grouped: Dict[str, Any], spec: Dict[str, Any],
+                   map_data: Optional[Dict[str, Any]] = None) -> str:
+    # Produce human-readable classification output from grouped data.
     lines = []
     road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
     classes = spec.get("classes") or OrderedDict()
@@ -499,20 +529,25 @@ def render_grouped(grouped, spec, map_data=None):
     return "\n".join(lines).strip()
 
 
-def _load_json(path):
+def _load_json(path: str) -> OrderedDict:
+    # Read JSON with stable key ordering for deterministic output.
     with open(path, "r") as handle:
         return json.load(handle, object_pairs_hook=OrderedDict)
 
 
-def run_standalone(args):
+def run_standalone(args: List[str]) -> str:
+    # CLI entry: load grouped JSON and print the text summary.
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    spec_path = os.path.normpath(os.path.join(base_dir, "..", "map-description-classifications.json"))
+    spec_path = os.path.join(base_dir, "map-description-classifications.json")
     spec = _load_json(spec_path)
     input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta.json")
     grouped = _load_json(input_path)
     output = render_grouped(grouped, spec, grouped)
     print(output)
     return output
+
+
+__all__ = ["render_grouped", "run_standalone"]
 
 
 if __name__ == "__main__":

@@ -45,6 +45,7 @@ This file captures project-specific conventions and "gotchas" that help especial
   - Logging: use `print` for CLI scripts and one-off tooling; use `logging` for long-running processes or code that may be imported.
   - Avoid: mutable default arguments, implicit `None` returns for data-producing functions, and excessive global state.
   - Use type hints when they clarify tricky data shapes or interfaces; keep them lightweight.
+- Type checking: conform to Pylance/Pyright "standard" level (see pyrightconfig.json).
 
 ## AWS / deployment notes (for code changes)
 - Root `Makefile` has targets for AWS installs and packaging (dev/test/prod).

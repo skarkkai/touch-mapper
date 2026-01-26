@@ -1,44 +1,15 @@
 # Python 3.5
 from __future__ import division
 
-import importlib.machinery
 import json
 import os
 from collections import OrderedDict
+from typing import Any, Dict, Iterable, List, Optional
 
+from . import map_desc_render
+from .map_desc_loc_segments import classify_location
 
-def _load_module(module_name, path):
-    loader = importlib.machinery.SourceFileLoader(module_name, path)
-    return loader.load_module()
-
-
-def _load_loc_segments():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    loc_path = os.path.join(base_dir, "map-desc-loc-segments.py")
-    if not os.path.exists(loc_path):
-        return None
-    try:
-        module = _load_module("map_description_loc_segments", loc_path)
-        return module.classify_location
-    except Exception:
-        return None
-
-
-classify_location = _load_loc_segments()
-
-
-def _load_renderer():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    render_path = os.path.join(base_dir, "map-desc-render.py")
-    if not os.path.exists(render_path):
-        return None
-    try:
-        return _load_module("map_desc_render", render_path)
-    except Exception:
-        return None
-
-
-def _get_field(item, path):
+def _get_field(item: Dict[str, Any], path: Optional[str]) -> Optional[Any]:
     if not path:
         return None
     cur = item
@@ -49,7 +20,7 @@ def _get_field(item, path):
     return cur
 
 
-def _match_tags_any(tags, conditions):
+def _match_tags_any(tags: Optional[Dict[str, Any]], conditions: Optional[List[Dict[str, Any]]]) -> bool:
     if not conditions:
         return True
     for cond in conditions:
@@ -67,7 +38,7 @@ def _match_tags_any(tags, conditions):
     return False
 
 
-def _match_tags_all(tags, conditions):
+def _match_tags_all(tags: Optional[Dict[str, Any]], conditions: Optional[List[Dict[str, Any]]]) -> bool:
     if not conditions:
         return True
     for cond in conditions:
@@ -85,7 +56,7 @@ def _match_tags_all(tags, conditions):
     return True
 
 
-def _match_any_field(item, field_name, values):
+def _match_any_field(item: Dict[str, Any], field_name: str, values: Optional[List[Any]]) -> bool:
     if not values:
         return False
     val = item.get(field_name)
@@ -99,7 +70,7 @@ def _match_any_field(item, field_name, values):
     return val in values
 
 
-def _match_rule(item, rule, inputs):
+def _match_rule(item: Dict[str, Any], rule: Dict[str, Any], inputs: Dict[str, Any]) -> bool:
     if "elementTypes" in rule:
         if item.get(inputs.get("elementTypeField")) not in rule["elementTypes"]:
             return False
@@ -142,7 +113,7 @@ def _match_rule(item, rule, inputs):
     return True
 
 
-def _collect_modifiers(item, spec, options):
+def _collect_modifiers(item: Dict[str, Any], spec: Dict[str, Any], options: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
     inputs = spec.get("inputs", {})
     modifiers = []
     for rule in spec.get("modifierRules", []):
@@ -157,7 +128,8 @@ def _collect_modifiers(item, spec, options):
     return modifiers
 
 
-def classify_item(item, spec, options_override=None):
+def classify_item(item: Dict[str, Any], spec: Dict[str, Any],
+                  options_override: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     inputs = spec.get("inputs", {})
     options = {}
     options.update(spec.get("options", {}))
@@ -192,7 +164,7 @@ def classify_item(item, spec, options_override=None):
     return None
 
 
-def _map_bbox_from_meta(map_data):
+def _map_bbox_from_meta(map_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     meta = map_data.get("meta")
     if not meta:
         return None
@@ -203,7 +175,7 @@ def _map_bbox_from_meta(map_data):
     return None
 
 
-def _map_bbox_from_items(map_data):
+def _map_bbox_from_items(map_data: Dict[str, Any]) -> Optional[Dict[str, float]]:
     min_x = float("inf")
     min_y = float("inf")
     max_x = float("-inf")
@@ -235,11 +207,11 @@ def _map_bbox_from_items(map_data):
     return {"minX": min_x, "minY": min_y, "maxX": max_x, "maxY": max_y}
 
 
-def _get_map_bbox(map_data):
+def _get_map_bbox(map_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     return _map_bbox_from_meta(map_data) or _map_bbox_from_items(map_data)
 
 
-def _center_from_bounds(bounds):
+def _center_from_bounds(bounds: Optional[Dict[str, Any]]) -> Optional[Dict[str, float]]:
     if not bounds:
         return None
     return {
@@ -248,13 +220,13 @@ def _center_from_bounds(bounds):
     }
 
 
-def _point_from_coords(coords):
+def _point_from_coords(coords: Any) -> Optional[Dict[str, float]]:
     if not isinstance(coords, list) or len(coords) < 2:
         return None
     return {"x": coords[0], "y": coords[1]}
 
 
-def _average_point(coords):
+def _average_point(coords: Any) -> Optional[Dict[str, float]]:
     if not isinstance(coords, list) or not coords:
         return None
     sum_x = 0.0
@@ -271,7 +243,7 @@ def _average_point(coords):
     return {"x": sum_x / count, "y": sum_y / count}
 
 
-def _polygon_points(geometry):
+def _polygon_points(geometry: Optional[Dict[str, Any]]) -> Optional[List[Any]]:
     if not geometry:
         return None
     if isinstance(geometry.get("outer"), list):
@@ -283,7 +255,7 @@ def _polygon_points(geometry):
     return None
 
 
-def _attach_locations(entry, item, bbox):
+def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optional[Dict[str, Any]]) -> None:
     if not bbox or not classify_location:
         return
     geom = item.get("geometry") or {}
@@ -330,7 +302,8 @@ def _attach_locations(entry, item, bbox):
             entry["_classification"]["location"] = entry["_classification"]["locationCenter"]
 
 
-def group_map_data(map_data, spec, options_override=None):
+def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
+                   options_override: Optional[Dict[str, Any]] = None) -> OrderedDict:
     grouped = OrderedDict()
     for main_key in spec.get("classes", OrderedDict()).keys():
         grouped[main_key] = OrderedDict()
@@ -371,21 +344,22 @@ def group_map_data(map_data, spec, options_override=None):
     return grouped
 
 
-def _load_json(path):
+def _load_json(path: str) -> OrderedDict:
     with open(path, "r") as handle:
         return json.load(handle, object_pairs_hook=OrderedDict)
 
 
-def run_standalone(args):
+def run_standalone(args: List[str]) -> OrderedDict:
     input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta-raw.json")
     if not os.path.exists(input_path):
         input_path = os.path.join(os.getcwd(), "test/data/map-meta.indented.json")
     return run_map_desc(input_path)
 
 
-def run_map_desc(input_path, output_path=None, options_override=None):
+def run_map_desc(input_path: str, output_path: Optional[str] = None,
+                 options_override: Optional[Dict[str, Any]] = None) -> OrderedDict:
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    spec_path = os.path.normpath(os.path.join(base_dir, "..", "map-description-classifications.json"))
+    spec_path = os.path.join(base_dir, "map-description-classifications.json")
     spec = _load_json(spec_path)
     map_data = _load_json(input_path)
     grouped = group_map_data(map_data, spec, options_override)
@@ -394,11 +368,17 @@ def run_map_desc(input_path, output_path=None, options_override=None):
     with open(output_path, "w") as handle:
         json.dump(grouped, handle, indent=2)
     print(json.dumps(grouped, indent=2))
-    renderer = _load_renderer()
-    if renderer:
-        output = renderer.render_grouped(grouped, spec, map_data)
-        print(output)
+    output = map_desc_render.render_grouped(grouped, spec, map_data)
+    print(output)
     return grouped
+
+
+__all__ = [
+    "classify_item",
+    "group_map_data",
+    "run_map_desc",
+    "run_standalone"
+]
 
 
 if __name__ == "__main__":

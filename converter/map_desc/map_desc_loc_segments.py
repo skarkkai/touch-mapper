@@ -1,6 +1,8 @@
 # Python 3.5
 from __future__ import division
 
+from typing import Any, Dict, Optional
+
 
 CENTER_MIN = 0.375
 CENTER_MAX = 0.625
@@ -9,7 +11,7 @@ OFFSET_MIN = EDGE_THICKNESS
 OFFSET_MAX = 1 - EDGE_THICKNESS
 
 
-def _clamp(value, min_value, max_value):
+def _clamp(value: float, min_value: float, max_value: float) -> float:
     if value < min_value:
         return min_value
     if value > max_value:
@@ -17,7 +19,7 @@ def _clamp(value, min_value, max_value):
     return value
 
 
-def _diag_dir(x_dir, y_dir):
+def _diag_dir(x_dir: Optional[str], y_dir: Optional[str]) -> Optional[str]:
     if not x_dir and not y_dir:
         return None
     if not x_dir:
@@ -27,7 +29,7 @@ def _diag_dir(x_dir, y_dir):
     return y_dir + x_dir
 
 
-def _diag_phrase(direction):
+def _diag_phrase(direction: Optional[str]) -> Optional[str]:
     if not direction:
         return None
     if direction == "northwest":
@@ -41,7 +43,7 @@ def _diag_phrase(direction):
     return direction
 
 
-def _edge_phrase(direction):
+def _edge_phrase(direction: Optional[str]) -> Optional[str]:
     if direction == "west":
         return "near the western edge of the map"
     if direction == "east":
@@ -53,7 +55,7 @@ def _edge_phrase(direction):
     return None
 
 
-def _corner_phrase(direction):
+def _corner_phrase(direction: Optional[str]) -> Optional[str]:
     if direction == "northwest":
         return "near the top-left corner of the map"
     if direction == "northeast":
@@ -65,7 +67,8 @@ def _corner_phrase(direction):
     return None
 
 
-def classify_location(point, bbox):
+def classify_location(point: Optional[Dict[str, float]],
+                      bbox: Optional[Dict[str, float]]) -> Optional[Dict[str, Any]]:
     if not point or not bbox:
         return None
     width = bbox.get("maxX") - bbox.get("minX")
