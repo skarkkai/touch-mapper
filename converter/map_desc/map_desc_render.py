@@ -5,7 +5,7 @@ import json
 import os
 import sys
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, Iterator, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing_extensions import TypedDict  # type: ignore[import-not-found]
@@ -16,7 +16,12 @@ else:  # pragma: no cover - blender python may not have typing_extensions
         def TypedDict(name, fields, total=True):  # type: ignore[no-redef]
             return dict
 
+from .map_desc_loc_segments import classify_location
+
 MAX_ITEMS_PER_SUBCLASS = 10
+SAMPLE_TS = (0.0, 0.25, 0.5, 0.75, 1.0)
+EDGE_EPS = 1e-6
+CONNECTOR_EPS = 1e-6
 
 
 Bounds = TypedDict(
@@ -24,6 +29,29 @@ Bounds = TypedDict(
     {"minX": float, "minY": float, "maxX": float, "maxY": float},
     total=False
 )
+Boundary = TypedDict(
+    "Boundary",
+    {"minX": float, "minY": float, "maxX": float, "maxY": float}
+)
+
+
+def _coerce_boundary(boundary: Optional[Dict[str, Any]]) -> Optional[Boundary]:
+    if not boundary:
+        return None
+    min_x = boundary.get("minX")
+    min_y = boundary.get("minY")
+    max_x = boundary.get("maxX")
+    max_y = boundary.get("maxY")
+    if not isinstance(min_x, (int, float)) or not isinstance(min_y, (int, float)):
+        return None
+    if not isinstance(max_x, (int, float)) or not isinstance(max_y, (int, float)):
+        return None
+    return {
+        "minX": float(min_x),
+        "minY": float(min_y),
+        "maxX": float(max_x),
+        "maxY": float(max_y)
+    }
 
 
 def _js_round(value: float) -> int:
@@ -147,6 +175,199 @@ def _coord_key(coord: List[float]) -> str:
     return _to_fixed(float(coord[0]), 3) + "," + _to_fixed(float(coord[1]), 3)
 
 
+def _polyline_length(coords: List[List[float]]) -> float:
+    length = 0.0
+    for i in range(1, len(coords)):
+        a = coords[i - 1]
+        b = coords[i]
+        dx = b[0] - a[0]
+        dy = b[1] - a[1]
+        length += (dx * dx + dy * dy) ** 0.5
+    return length
+
+
+def _sample_point(coords: List[List[float]], t: float) -> Tuple[float, float]:
+    total = _polyline_length(coords)
+    if total <= 0 or len(coords) == 1:
+        return coords[0][0], coords[0][1]
+    target = max(0.0, min(1.0, t)) * total
+    walked = 0.0
+    for i in range(1, len(coords)):
+        a = coords[i - 1]
+        b = coords[i]
+        dx = b[0] - a[0]
+        dy = b[1] - a[1]
+        seg_len = (dx * dx + dy * dy) ** 0.5
+        if seg_len == 0:
+            continue
+        if walked + seg_len >= target:
+            ratio = (target - walked) / seg_len
+            return a[0] + ratio * dx, a[1] + ratio * dy
+        walked += seg_len
+    return coords[-1][0], coords[-1][1]
+
+
+def _location_zone_for_point(point: Tuple[float, float],
+                             boundary: Optional[Boundary]) -> Optional[str]:
+    if not boundary:
+        return None
+    classification = classify_location({"x": point[0], "y": point[1]}, boundary)
+    if not classification:
+        return None
+    return classification.get("phrase")
+
+
+def _sample_location_samples(coords: List[List[float]],
+                             boundary: Optional[Boundary]) -> List[Dict[str, Any]]:
+    samples = []
+    for t in SAMPLE_TS:
+        pt = _sample_point(coords, t)
+        zone = _location_zone_for_point(pt, boundary) or "unknown"
+        samples.append({"t": t, "zone": zone})
+    return samples
+
+
+def _closest_point_t(coords: List[List[float]],
+                     point: Tuple[float, float]) -> Tuple[float, float, Tuple[float, float]]:
+    total = _polyline_length(coords)
+    if total <= 0 or len(coords) == 1:
+        return 0.0, 0.0, (coords[0][0], coords[0][1])
+    best_dist2 = None
+    best_t = 0.0
+    best_point = (coords[0][0], coords[0][1])
+    walked = 0.0
+    px, py = point
+    for i in range(1, len(coords)):
+        ax, ay = coords[i - 1]
+        bx, by = coords[i]
+        dx = bx - ax
+        dy = by - ay
+        seg_len2 = dx * dx + dy * dy
+        if seg_len2 == 0:
+            continue
+        t_local = ((px - ax) * dx + (py - ay) * dy) / seg_len2
+        t_clamped = max(0.0, min(1.0, t_local))
+        cx = ax + t_clamped * dx
+        cy = ay + t_clamped * dy
+        dist2 = (px - cx) ** 2 + (py - cy) ** 2
+        if best_dist2 is None or dist2 < best_dist2:
+            seg_len = seg_len2 ** 0.5
+            best_dist2 = dist2
+            best_point = (cx, cy)
+            best_t = (walked + t_clamped * seg_len) / total
+        walked += seg_len2 ** 0.5
+    return best_t, (best_dist2 or 0.0) ** 0.5, best_point
+
+
+def _edge_contact(point: Tuple[float, float], boundary: Boundary, eps: float) -> Optional[Dict[str, Any]]:
+    x, y = point
+    edges = []
+    if abs(x - boundary["minX"]) <= eps:
+        edges.append("west")
+    if abs(x - boundary["maxX"]) <= eps:
+        edges.append("east")
+    if abs(y - boundary["minY"]) <= eps:
+        edges.append("south")
+    if abs(y - boundary["maxY"]) <= eps:
+        edges.append("north")
+    if not edges:
+        return None
+    if len(edges) >= 2:
+        corner = None
+        if "north" in edges and "west" in edges:
+            corner = "northwest"
+        elif "north" in edges and "east" in edges:
+            corner = "northeast"
+        elif "south" in edges and "west" in edges:
+            corner = "southwest"
+        elif "south" in edges and "east" in edges:
+            corner = "southeast"
+        return {"edge": "corner", "cornerName": corner, "edges": edges}
+    return {"edge": edges[0]}
+
+
+def _event_sort_key(event: Dict[str, Any]) -> Tuple[float, int]:
+    order = {
+        "map_edge_crossing": 0,
+        "junction": 1,
+        "continues_as": 2,
+        "terminates": 3
+    }
+    evt_type = event.get("type") or ""
+    return event.get("t", 0.0), order.get(evt_type, 99)
+
+
+def _segment_events(coords: List[List[float]],
+                    boundary: Optional[Boundary],
+                    connectors: List[Dict[str, Any]],
+                    connections_index: Dict[str, List[Dict[str, Any]]],
+                    emit_connectivity: bool) -> List[Dict[str, Any]]:
+    events = []
+    if not coords:
+        return events
+    start = (coords[0][0], coords[0][1])
+    end = (coords[-1][0], coords[-1][1])
+
+    if boundary:
+        for t_val, point in ((0.0, start), (1.0, end)):
+            edge_info = _edge_contact(point, boundary, EDGE_EPS)
+            if edge_info:
+                zone = _location_zone_for_point(point, boundary) or "unknown"
+                event = {"t": t_val, "type": "map_edge_crossing", "zone": zone}
+                event.update(edge_info)
+                events.append(event)
+
+    junction_events = []
+    if emit_connectivity and connectors:
+        for connector in connectors:
+            t_val, dist, closest = _closest_point_t(coords, connector["point"])
+            if dist <= CONNECTOR_EPS:
+                zone = _location_zone_for_point(closest, boundary) or "unknown"
+                event = {
+                    "t": t_val,
+                    "type": "junction",
+                    "zone": zone,
+                    "connectorType": connector["connectorType"]
+                }
+                connections = connections_index.get(_coord_key([connector["point"][0], connector["point"][1]]))
+                if connections:
+                    event["connections"] = connections
+                events.append(event)
+                junction_events.append(event)
+
+    for t_val, point in ((0.0, start), (1.0, end)):
+        if boundary and _edge_contact(point, boundary, EDGE_EPS):
+            continue
+        if any(abs(evt.get("t", 0.0) - t_val) <= 1e-6 for evt in junction_events):
+            continue
+        zone = _location_zone_for_point(point, boundary) or "unknown"
+        events.append({"t": t_val, "type": "terminates", "zone": zone})
+
+    return sorted(events, key=_event_sort_key)
+
+
+def _build_visible_segments(item: Dict[str, Any],
+                            boundary: Optional[Boundary],
+                            connectors: List[Dict[str, Any]],
+                            connections_index: Dict[str, List[Dict[str, Any]]],
+                            emit_connectivity: bool) -> List[Dict[str, Any]]:
+    segments = []
+    segment_list = _iter_line_segments(item)
+    if not segment_list:
+        return segments
+    # Order segments by descending length, then stable index.
+    indexed = []
+    for idx, coords in enumerate(segment_list):
+        if not isinstance(coords, list) or not coords:
+            continue
+        indexed.append((idx, coords, _polyline_length(coords)))
+    for _, coords, length in sorted(indexed, key=lambda entry: (-entry[2], entry[0])):
+        segments.append({
+            "locationSamples": _sample_location_samples(coords, boundary),
+            "events": _segment_events(coords, boundary, connectors, connections_index, emit_connectivity)
+        })
+    return segments
+
 def _iter_grouped_items(grouped: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     # Iterate items from already-classified grouped data.
     if not isinstance(grouped, dict):
@@ -159,6 +380,82 @@ def _iter_grouped_items(grouped: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
                 continue
             for item in items:
                 yield item
+
+
+def _connector_type_for_item(item: Dict[str, Any]) -> Optional[str]:
+    cls = item.get("_classification", {})
+    role = cls.get("role")
+    if role == "junction":
+        return "RoadJunction"
+    if role == "connector":
+        return "RoadConnector"
+    if role == "crossing":
+        return "RoadCrossingAtConnector"
+    pr = item.get("primaryRepresentation")
+    if pr in ("RoadJunction", "RoadConnector", "RoadCrossingAtConnector"):
+        return pr
+    return None
+
+
+def _collect_connectors(grouped: Dict[str, Any]) -> List[Dict[str, Any]]:
+    connectors = []
+    for item in _iter_grouped_items(grouped):
+        if item.get("elementType") != "node":
+            continue
+        geom = item.get("geometry") or {}
+        if geom.get("type") != "point":
+            continue
+        coords = geom.get("coordinates")
+        if not isinstance(coords, list) or len(coords) < 2:
+            continue
+        connector_type = _connector_type_for_item(item)
+        if not connector_type:
+            continue
+        connectors.append({
+            "point": (coords[0], coords[1]),
+            "connectorType": connector_type,
+            "osmType": item.get("osmType"),
+            "osmId": item.get("osmId")
+        })
+    return connectors
+
+
+def _feature_info(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    osm_id = item.get("osmId")
+    osm_type = item.get("osmType")
+    if osm_id is None or osm_type is None:
+        return None
+    name = _get_name(item.get("tags"))
+    sub_class = item.get("_classification", {}).get("subClass")
+    return {
+        "osmType": osm_type,
+        "osmId": osm_id,
+        "name": name,
+        "subClass": sub_class
+    }
+
+
+def _build_connections_index(grouped: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+    index = {}
+    for item in _iter_grouped_items(grouped):
+        geom = item.get("geometry") or {}
+        if geom.get("type") != "line_string":
+            continue
+        info = _feature_info(item)
+        if not info:
+            continue
+        for coords in _iter_line_segments(item):
+            for coord in coords:
+                key = _coord_key(coord)
+                entry = index.get(key)
+                if not entry:
+                    index[key] = [info]
+                else:
+                    if not any(info.get("osmId") == existing.get("osmId") and
+                               info.get("osmType") == existing.get("osmType")
+                               for existing in entry):
+                        entry.append(info)
+    return index
 
 
 def _iter_line_segments(item: Dict[str, Any]) -> List[List[List[float]]]:
@@ -283,25 +580,23 @@ def _modifiers_suffix(modifiers: Optional[List[Dict[str, Any]]]) -> str:
     return " [" + ", ".join(labels) + "]"
 
 
-def _summarize_linear_base(item: Dict[str, Any]) -> Dict[str, Any]:
-    # Summary for linear features: name, modifiers, and location phrase.
+def _summarize_linear_base(item: Dict[str, Any],
+                           boundary: Optional[Boundary],
+                           connectors: List[Dict[str, Any]],
+                           connections_index: Dict[str, List[Dict[str, Any]]],
+                           emit_connectivity: bool) -> Dict[str, Any]:
+    # Summary for linear features: name, modifiers, and visible segment metadata.
     name = _get_name(item.get("tags"))
     mod_suffix = _modifiers_suffix(item.get("_classification", {}).get("modifiers"))
-    cls = item.get("_classification", {})
-    start_phrase = _location_phrase(cls.get("locationStart"))
-    end_phrase = _location_phrase(cls.get("locationEnd"))
-    center_phrase = _location_phrase(cls.get("locationCenter"))
-    location = None
-    if start_phrase or end_phrase or center_phrase:
-        location = {
-            "start": start_phrase,
-            "end": end_phrase,
-            "center": center_phrase
-        }
+    visible_segments = _build_visible_segments(
+        item, boundary, connectors, connections_index, emit_connectivity
+    )
     return {
+        "osmId": item.get("osmId"),
+        "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": (name if name else "(unnamed)") + mod_suffix,
-        "location": location,
+        "visibleSegments": visible_segments,
         "length": _compute_line_length(item),
         "hasName": bool(name)
     }
@@ -325,7 +620,7 @@ def _summarize_connectivity_base(item: Dict[str, Any],
         label = role + ": " + " x ".join(names)
     else:
         label = role + ": (unnamed)"
-    return {"label": label, "hasName": len(names) > 0}
+    return {"osmId": item.get("osmId"), "osmType": item.get("osmType"), "label": label, "hasName": len(names) > 0}
 
 
 def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
@@ -359,6 +654,8 @@ def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
     if address:
         parts.append(address)
     return {
+        "osmId": item.get("osmId"),
+        "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": ", ".join(parts),
         "location": _location_struct_from_phrase(
@@ -395,6 +692,8 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
     label = qualifier or category
     if name:
         return {
+            "osmId": item.get("osmId"),
+            "osmType": item.get("osmType"),
             "label": name,
             "displayLabel": label + ": " + name,
             "location": _location_struct_from_phrase(
@@ -404,6 +703,8 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
             "hasName": True
         }
     return {
+        "osmId": item.get("osmId"),
+        "osmType": item.get("osmType"),
         "label": None,
         "displayLabel": label,
         "location": _location_struct_from_phrase(
@@ -446,6 +747,8 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
     name = _get_name(item.get("tags"))
     base = label + ": " + name if name else label + " (unnamed)"
     return {
+        "osmId": item.get("osmId"),
+        "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": base,
         "location": _location_struct_from_phrase(
@@ -457,18 +760,23 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _summarize_boundary_base(item: Dict[str, Any]) -> Dict[str, Any]:
-    # Summary for boundary/edge features with length and location.
+def _summarize_boundary_base(item: Dict[str, Any],
+                             boundary: Optional[Boundary],
+                             connectors: List[Dict[str, Any]],
+                             connections_index: Dict[str, List[Dict[str, Any]]],
+                             emit_connectivity: bool) -> Dict[str, Any]:
+    # Summary for boundary/edge features with length and visible segment metadata.
     subtype = item.get("_classification", {}).get("subClass")
     label = _area_type_label(subtype)
     name = _get_name(item.get("tags"))
     summary = label + ": " + name if name else label
     return {
+        "osmId": item.get("osmId"),
+        "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": summary,
-        "location": _location_struct_from_phrase(
-            _location_phrase(item.get("_classification", {}).get("locationCenter")),
-            "center"
+        "visibleSegments": _build_visible_segments(
+            item, boundary, connectors, connections_index, emit_connectivity
         ),
         "length": _compute_line_length(item),
         "hasName": bool(name)
@@ -491,7 +799,11 @@ def _sort_groups(groups: List[Dict[str, Any]], kind: str) -> List[Dict[str, Any]
 
 
 def _build_groups(items: List[Dict[str, Any]], kind: str,
-                  road_names_by_coord: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+                  road_names_by_coord: Dict[str, List[str]],
+                  boundary: Optional[Boundary],
+                  connectors: List[Dict[str, Any]],
+                  connections_index: Dict[str, List[Dict[str, Any]]],
+                  emit_connectivity: bool) -> List[Dict[str, Any]]:
     # Collapse repeated items into grouped summaries for compact output.
     groups = OrderedDict()
     for item in items:
@@ -504,9 +816,13 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
         elif kind == "area":
             base = _summarize_area_base(item)
         elif kind == "boundary":
-            base = _summarize_boundary_base(item)
+            base = _summarize_boundary_base(
+                item, boundary, connectors, connections_index, emit_connectivity
+            )
         else:
-            base = _summarize_linear_base(item)
+            base = _summarize_linear_base(
+                item, boundary, connectors, connections_index, emit_connectivity
+            )
 
         key = (base.get("displayLabel") or "") + "||" + _location_key(base.get("location"))
         group = groups.get(key)
@@ -585,10 +901,23 @@ def _render_group_line(group: Dict[str, Any], kind: str) -> str:
     return prefix + " — " + location_text if location_text else prefix
 
 
+def _resolve_options(spec: Dict[str, Any], options_override: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    options = {}
+    options.update(spec.get("options", {}))
+    options.update(options_override or {})
+    return options
+
+
 def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
-                       map_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                       map_data: Optional[Dict[str, Any]] = None,
+                       options_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     # Build a structured intermediate representation for later rendering.
     road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
+    options = _resolve_options(spec, options_override)
+    emit_connectivity = bool(options.get("emitConnectivityNodes", True))
+    boundary = _coerce_boundary((map_data or {}).get("meta", {}).get("boundary"))
+    connectors = _collect_connectors(grouped) if emit_connectivity else []
+    connections_index = _build_connections_index(grouped) if emit_connectivity else {}
     classes = spec.get("classes") or OrderedDict()
     main_keys = sorted(classes.keys())
     raw = []  # type: List[Dict[str, Any]]
@@ -640,7 +969,9 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
                 geom_type = items[0].get("geometry", {}).get("type")
                 kind = "area" if geom_type == "polygon" else "linear"
 
-            grouped_items = _build_groups(items, kind, road_names_by_coord)
+            grouped_items = _build_groups(
+                items, kind, road_names_by_coord, boundary, connectors, connections_index, emit_connectivity
+            )
             sort_kind = "boundary" if (kind == "linear" and main_key == "E") else kind
             sorted_groups = _sort_groups(grouped_items, sort_kind)
 
@@ -690,9 +1021,10 @@ def render_from_intermediate(intermediate: Dict[str, Any]) -> str:
 
 
 def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
-                      output_path: str, map_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                      output_path: str, map_data: Optional[Dict[str, Any]] = None,
+                      options_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     # Persist intermediate data with cooked summaries embedded per subclass.
-    intermediate = build_intermediate(grouped, spec, map_data)
+    intermediate = build_intermediate(grouped, spec, map_data, options_override)
     content = OrderedDict()  # type: OrderedDict
     for main_entry in intermediate.get("raw", []):
         subclasses = main_entry.get("subclasses") or []

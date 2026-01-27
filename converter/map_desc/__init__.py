@@ -501,7 +501,7 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
     with open(augmented_path, "w") as handle:
         json.dump(map_data, handle, indent=2)
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
-    map_desc_render.write_map_content(grouped, spec, output_path, map_data)
+    map_desc_render.write_map_content(grouped, spec, output_path, map_data, options_override)
     return grouped
 
 
