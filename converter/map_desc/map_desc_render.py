@@ -3,10 +3,19 @@ from __future__ import division
 
 import json
 import os
+import sys
 from collections import OrderedDict
 from typing import Any, Dict, Iterable, Iterator, List, Optional
+from typing_extensions import TypedDict  # type: ignore[import-not-found]
 
 MAX_ITEMS_PER_SUBCLASS = 10
+
+
+class Bounds(TypedDict, total=False):
+    minX: float
+    minY: float
+    maxX: float
+    maxY: float
 
 
 def _js_round(value: float) -> int:
@@ -201,7 +210,7 @@ def _ring_area(coords: List[List[float]]) -> float:
     return abs(total) / 2.0
 
 
-def _compute_area(geometry: Optional[Dict[str, Any]], bounds: Optional[Dict[str, Any]]) -> Optional[float]:
+def _compute_area(geometry: Optional[Dict[str, Any]], bounds: Optional[Bounds]) -> Optional[float]:
     # Polygon area (with holes) or bbox fallback.
     if geometry and geometry.get("type") == "polygon":
         area = 0.0
@@ -218,10 +227,15 @@ def _compute_area(geometry: Optional[Dict[str, Any]], bounds: Optional[Dict[str,
                 area -= _ring_area(hole)
         return abs(area)
     if bounds:
-        width = abs(bounds.get("maxX") - bounds.get("minX"))
-        height = abs(bounds.get("maxY") - bounds.get("minY"))
-        if width is not None and height is not None:
-            return width * height
+        min_x = bounds.get("minX")
+        min_y = bounds.get("minY")
+        max_x = bounds.get("maxX")
+        max_y = bounds.get("maxY")
+        if min_x is None or min_y is None or max_x is None or max_y is None:
+            return None
+        width = abs(max_x - min_x)
+        height = abs(max_y - min_y)
+        return width * height
     return None
 
 
@@ -231,10 +245,15 @@ def _modifiers_suffix(modifiers: Optional[List[Dict[str, Any]]]) -> str:
         return ""
     labels = []
     for mod in modifiers:
+        name = mod.get("name")
+        if not name:
+            continue
         if "value" in mod and mod.get("value") is not None:
-            labels.append(mod.get("name") + "=" + str(mod.get("value")))
+            labels.append(name + "=" + str(mod.get("value")))
         else:
-            labels.append(mod.get("name"))
+            labels.append(name)
+    if not labels:
+        return ""
     return " [" + ", ".join(labels) + "]"
 
 
@@ -389,6 +408,8 @@ def _area_type_label(sub_class: Optional[str]) -> str:
         "E2_coastlines": "coastline",
         "E3_fences_walls": "fence/wall"
     }
+    if sub_class is None:
+        return "area"
     return mapping.get(sub_class, "area")
 
 
@@ -488,35 +509,36 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
 
 def _render_group_line(group: Dict[str, Any], kind: str) -> str:
     # Render a single summary line, with totals for grouped items.
+    display_label = group.get("displayLabel") or "(unnamed)"
     if group.get("count") == 1:
         if kind == "linear":
             length = _format_meters(group.get("totalLength"))
             location_text = _render_location_text(group.get("location"), kind)
             if length and location_text:
-                return group.get("displayLabel") + " — " + length + " — " + location_text
+                return display_label + " — " + length + " — " + location_text
             if length:
-                return group.get("displayLabel") + " — " + length
-            return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
+                return display_label + " — " + length
+            return display_label + " — " + location_text if location_text else display_label
         if kind == "boundary":
             b_len = _format_meters(group.get("totalLength"))
             location_text = _render_location_text(group.get("location"), kind)
             if b_len and location_text:
-                return group.get("displayLabel") + " — " + b_len + " — " + location_text
+                return display_label + " — " + b_len + " — " + location_text
             if b_len:
-                return group.get("displayLabel") + " — " + b_len
-            return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
+                return display_label + " — " + b_len
+            return display_label + " — " + location_text if location_text else display_label
         if kind == "area":
             area = _format_area(group.get("totalArea"))
             location_text = _render_location_text(group.get("location"), kind)
             if area and location_text:
-                return group.get("displayLabel") + ", " + area + " — " + location_text
+                return display_label + ", " + area + " — " + location_text
             if area:
-                return group.get("displayLabel") + ", " + area
-            return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
+                return display_label + ", " + area
+            return display_label + " — " + location_text if location_text else display_label
         location_text = _render_location_text(group.get("location"), kind)
-        return group.get("displayLabel") + " — " + location_text if location_text else group.get("displayLabel")
+        return display_label + " — " + location_text if location_text else display_label
 
-    prefix = str(group.get("count")) + " x " + group.get("displayLabel")
+    prefix = str(group.get("count")) + " x " + display_label
     if kind in ("linear", "boundary"):
         total_len = _format_meters(group.get("totalLength"))
         location_text = _render_location_text(group.get("location"), kind)
@@ -733,4 +755,4 @@ __all__ = ["build_intermediate", "render_from_intermediate", "write_map_content"
 
 
 if __name__ == "__main__":
-    run_standalone(os.sys.argv[1:])
+    run_standalone(sys.argv[1:])

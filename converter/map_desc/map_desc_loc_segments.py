@@ -2,6 +2,19 @@
 from __future__ import division
 
 from typing import Any, Dict, Optional
+from typing_extensions import TypedDict  # type: ignore[import-not-found]
+
+
+class Point(TypedDict):
+    x: float
+    y: float
+
+
+class BBox(TypedDict):
+    minX: float
+    minY: float
+    maxX: float
+    maxY: float
 
 
 CENTER_MIN = 0.375
@@ -67,17 +80,27 @@ def _corner_phrase(direction: Optional[str]) -> Optional[str]:
     return None
 
 
-def classify_location(point: Optional[Dict[str, float]],
-                      bbox: Optional[Dict[str, float]]) -> Optional[Dict[str, Any]]:
+def classify_location(point: Optional[Point],
+                      bbox: Optional[BBox]) -> Optional[Dict[str, Any]]:
     if not point or not bbox:
         return None
-    width = bbox.get("maxX") - bbox.get("minX")
-    height = bbox.get("maxY") - bbox.get("minY")
+    min_x = bbox.get("minX")
+    max_x = bbox.get("maxX")
+    min_y = bbox.get("minY")
+    max_y = bbox.get("maxY")
+    point_x = point.get("x")
+    point_y = point.get("y")
+    if min_x is None or max_x is None or min_y is None or max_y is None:
+        return None
+    if point_x is None or point_y is None:
+        return None
+    width = max_x - min_x
+    height = max_y - min_y
     if width == 0 or height == 0:
         return None
 
-    nx = (point["x"] - bbox.get("minX")) / width
-    ny = (point["y"] - bbox.get("minY")) / height
+    nx = (point_x - min_x) / width
+    ny = (point_y - min_y) / height
     nx = _clamp(nx, 0, 1)
     ny = _clamp(ny, 0, 1)
 
@@ -99,6 +122,12 @@ def classify_location(point: Optional[Dict[str, float]],
     if offset_x or offset_y:
         direction = _diag_dir(offset_x, offset_y)
         phrase_dir = _diag_phrase(direction)
+        if phrase_dir is None:
+            return {
+                "zone": "offset_of_center",
+                "dir": direction,
+                "phrase": "near the center of the map"
+            }
         return {
             "zone": "offset_of_center",
             "dir": direction,
@@ -109,6 +138,8 @@ def classify_location(point: Optional[Dict[str, float]],
     part_y = "south" if ny < 0.5 else "north"
     part_dir = _diag_dir(part_x, part_y)
     part_phrase = _diag_phrase(part_dir)
+    if part_phrase is None:
+        part_phrase = "center"
     return {
         "zone": "part",
         "dir": part_dir,

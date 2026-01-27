@@ -3,11 +3,30 @@ from __future__ import division
 
 import json
 import os
+import sys
 from collections import OrderedDict
 from typing import Any, Dict, Iterable, List, Optional
+from typing_extensions import TypedDict  # type: ignore[import-not-found]
 
 from . import map_desc_render
-from .map_desc_loc_segments import classify_location
+from .map_desc_loc_segments import BBox, Point, classify_location
+
+
+class Bounds(TypedDict, total=False):
+    minX: float
+    minY: float
+    maxX: float
+    maxY: float
+
+
+class RuleInputs(TypedDict, total=False):
+    elementTypeField: str
+    geometryTypeField: str
+    primaryRepresentationField: str
+    representationsField: str
+    tmCategoryField: str
+    tmRoadTypeField: str
+    tagsField: str
 
 def _get_field(item: Dict[str, Any], path: Optional[str]) -> Optional[Any]:
     if not path:
@@ -20,11 +39,18 @@ def _get_field(item: Dict[str, Any], path: Optional[str]) -> Optional[Any]:
     return cur
 
 
+def _input_field(inputs: RuleInputs, name: str) -> Optional[str]:
+    value = inputs.get(name)
+    return value if isinstance(value, str) else None
+
+
 def _match_tags_any(tags: Optional[Dict[str, Any]], conditions: Optional[List[Dict[str, Any]]]) -> bool:
     if not conditions:
         return True
     for cond in conditions:
         key = cond.get("key")
+        if not isinstance(key, str):
+            continue
         if not tags or key not in tags:
             continue
         val = tags.get(key)
@@ -43,6 +69,8 @@ def _match_tags_all(tags: Optional[Dict[str, Any]], conditions: Optional[List[Di
         return True
     for cond in conditions:
         key = cond.get("key")
+        if not isinstance(key, str):
+            return False
         if not tags or key not in tags:
             return False
         val = tags.get(key)
@@ -70,28 +98,37 @@ def _match_any_field(item: Dict[str, Any], field_name: str, values: Optional[Lis
     return val in values
 
 
-def _match_rule(item: Dict[str, Any], rule: Dict[str, Any], inputs: Dict[str, Any]) -> bool:
+def _match_rule(item: Dict[str, Any], rule: Dict[str, Any], inputs: RuleInputs) -> bool:
     if "elementTypes" in rule:
-        if item.get(inputs.get("elementTypeField")) not in rule["elementTypes"]:
+        field_name = _input_field(inputs, "elementTypeField")
+        if not field_name or item.get(field_name) not in rule["elementTypes"]:
             return False
     if "geometryTypes" in rule:
-        geom_type = _get_field(item, inputs.get("geometryTypeField"))
+        field_name = _input_field(inputs, "geometryTypeField")
+        if not field_name:
+            return False
+        geom_type = _get_field(item, field_name)
         if geom_type not in rule["geometryTypes"]:
             return False
     if "primaryRepresentationAny" in rule:
-        if not _match_any_field(item, inputs.get("primaryRepresentationField"), rule["primaryRepresentationAny"]):
+        field_name = _input_field(inputs, "primaryRepresentationField")
+        if not field_name or not _match_any_field(item, field_name, rule["primaryRepresentationAny"]):
             return False
     if "representationsAny" in rule:
-        if not _match_any_field(item, inputs.get("representationsField"), rule["representationsAny"]):
+        field_name = _input_field(inputs, "representationsField")
+        if not field_name or not _match_any_field(item, field_name, rule["representationsAny"]):
             return False
     if "tmCategoryAny" in rule:
-        if not _match_any_field(item, inputs.get("tmCategoryField"), rule["tmCategoryAny"]):
+        field_name = _input_field(inputs, "tmCategoryField")
+        if not field_name or not _match_any_field(item, field_name, rule["tmCategoryAny"]):
             return False
     if "tmRoadTypeAny" in rule:
-        if not _match_any_field(item, inputs.get("tmRoadTypeField"), rule["tmRoadTypeAny"]):
+        field_name = _input_field(inputs, "tmRoadTypeField")
+        if not field_name or not _match_any_field(item, field_name, rule["tmRoadTypeAny"]):
             return False
 
-    tags = item.get(inputs.get("tagsField")) or {}
+    tags_field = _input_field(inputs, "tagsField")
+    tags = item.get(tags_field) if tags_field else {}
     if "tagsAny" in rule and not _match_tags_any(tags, rule["tagsAny"]):
         return False
     if "tagsAll" in rule and not _match_tags_all(tags, rule["tagsAll"]):
@@ -114,7 +151,7 @@ def _match_rule(item: Dict[str, Any], rule: Dict[str, Any], inputs: Dict[str, An
 
 
 def _collect_modifiers(item: Dict[str, Any], spec: Dict[str, Any], options: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    inputs = spec.get("inputs", {})
+    inputs: RuleInputs = spec.get("inputs", {})
     modifiers = []
     for rule in spec.get("modifierRules", []):
         if not _match_rule(item, rule, inputs):
@@ -122,7 +159,9 @@ def _collect_modifiers(item: Dict[str, Any], spec: Dict[str, Any], options: Opti
         for mod in rule.get("modifiers", []):
             entry = {"name": mod.get("name")}
             if mod.get("valueFromTag"):
-                tags = item.get(inputs.get("tagsField")) or {}
+                tags_field = _input_field(inputs, "tagsField")
+                tags_value = item.get(tags_field) if tags_field else {}
+                tags = tags_value if isinstance(tags_value, dict) else {}
                 entry["value"] = tags.get(mod.get("valueFromTag"))
             modifiers.append(entry)
     return modifiers
@@ -130,7 +169,7 @@ def _collect_modifiers(item: Dict[str, Any], spec: Dict[str, Any], options: Opti
 
 def classify_item(item: Dict[str, Any], spec: Dict[str, Any],
                   options_override: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-    inputs = spec.get("inputs", {})
+    inputs: RuleInputs = spec.get("inputs", {})
     options = {}
     options.update(spec.get("options", {}))
     options.update(options_override or {})
@@ -175,7 +214,7 @@ def _map_bbox_from_meta(map_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     return None
 
 
-def _map_bbox_from_items(map_data: Dict[str, Any]) -> Optional[Dict[str, float]]:
+def _map_bbox_from_items(map_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     min_x = float("inf")
     min_y = float("inf")
     max_x = float("-inf")
@@ -204,29 +243,41 @@ def _map_bbox_from_items(map_data: Dict[str, Any]) -> Optional[Dict[str, float]]
             found = True
     if not found:
         return None
-    return {"minX": min_x, "minY": min_y, "maxX": max_x, "maxY": max_y}
+    return {"minX": float(min_x), "minY": float(min_y), "maxX": float(max_x), "maxY": float(max_y)}
 
 
 def _get_map_bbox(map_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     return _map_bbox_from_meta(map_data) or _map_bbox_from_items(map_data)
 
 
-def _center_from_bounds(bounds: Optional[Dict[str, Any]]) -> Optional[Dict[str, float]]:
+def _center_from_bounds(bounds: Optional[Bounds]) -> Optional[Point]:
     if not bounds:
         return None
+    min_x = bounds.get("minX")
+    min_y = bounds.get("minY")
+    max_x = bounds.get("maxX")
+    max_y = bounds.get("maxY")
+    if not isinstance(min_x, (int, float)) or not isinstance(min_y, (int, float)):
+        return None
+    if not isinstance(max_x, (int, float)) or not isinstance(max_y, (int, float)):
+        return None
     return {
-        "x": (bounds.get("minX") + bounds.get("maxX")) / 2,
-        "y": (bounds.get("minY") + bounds.get("maxY")) / 2
+        "x": (float(min_x) + float(max_x)) / 2,
+        "y": (float(min_y) + float(max_y)) / 2
     }
 
 
-def _point_from_coords(coords: Any) -> Optional[Dict[str, float]]:
+def _point_from_coords(coords: Any) -> Optional[Point]:
     if not isinstance(coords, list) or len(coords) < 2:
         return None
-    return {"x": coords[0], "y": coords[1]}
+    x = coords[0]
+    y = coords[1]
+    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+        return None
+    return {"x": float(x), "y": float(y)}
 
 
-def _average_point(coords: Any) -> Optional[Dict[str, float]]:
+def _average_point(coords: Any) -> Optional[Point]:
     if not isinstance(coords, list) or not coords:
         return None
     sum_x = 0.0
@@ -235,8 +286,12 @@ def _average_point(coords: Any) -> Optional[Dict[str, float]]:
     for p in coords:
         if not isinstance(p, list) or len(p) < 2:
             continue
-        sum_x += p[0]
-        sum_y += p[1]
+        x = p[0]
+        y = p[1]
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            continue
+        sum_x += float(x)
+        sum_y += float(y)
         count += 1
     if not count:
         return None
@@ -255,8 +310,28 @@ def _polygon_points(geometry: Optional[Dict[str, Any]]) -> Optional[List[Any]]:
     return None
 
 
+def _coerce_bbox(bbox: Optional[Dict[str, Any]]) -> Optional[BBox]:
+    if not bbox:
+        return None
+    min_x = bbox.get("minX")
+    min_y = bbox.get("minY")
+    max_x = bbox.get("maxX")
+    max_y = bbox.get("maxY")
+    if not isinstance(min_x, (int, float)) or not isinstance(min_y, (int, float)):
+        return None
+    if not isinstance(max_x, (int, float)) or not isinstance(max_y, (int, float)):
+        return None
+    return {
+        "minX": float(min_x),
+        "minY": float(min_y),
+        "maxX": float(max_x),
+        "maxY": float(max_y)
+    }
+
+
 def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optional[Dict[str, Any]]) -> None:
-    if not bbox or not classify_location:
+    bbox_typed = _coerce_bbox(bbox)
+    if not bbox_typed or not classify_location:
         return
     geom = item.get("geometry") or {}
     point = None
@@ -264,7 +339,7 @@ def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optiona
     if geom.get("type") == "point":
         point = _point_from_coords(geom.get("coordinates"))
         if point:
-            entry["_classification"]["location"] = classify_location(point, bbox)
+            entry["_classification"]["location"] = classify_location(point, bbox_typed)
         return
 
     if geom.get("type") == "line_string":
@@ -274,11 +349,11 @@ def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optiona
             end = _point_from_coords(coords[-1])
             center = _average_point(coords) or _center_from_bounds(item.get("bounds"))
             if start:
-                entry["_classification"]["locationStart"] = classify_location(start, bbox)
+                entry["_classification"]["locationStart"] = classify_location(start, bbox_typed)
             if end:
-                entry["_classification"]["locationEnd"] = classify_location(end, bbox)
+                entry["_classification"]["locationEnd"] = classify_location(end, bbox_typed)
             if center:
-                entry["_classification"]["locationCenter"] = classify_location(center, bbox)
+                entry["_classification"]["locationCenter"] = classify_location(center, bbox_typed)
         if entry["_classification"].get("mainClass") == "D" and not entry["_classification"].get("location"):
             if entry["_classification"].get("locationCenter"):
                 entry["_classification"]["location"] = entry["_classification"]["locationCenter"]
@@ -288,7 +363,7 @@ def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optiona
         points = _polygon_points(geom)
         point = _average_point(points) or _center_from_bounds(item.get("bounds"))
         if point:
-            entry["_classification"]["locationCenter"] = classify_location(point, bbox)
+            entry["_classification"]["locationCenter"] = classify_location(point, bbox_typed)
         if entry["_classification"].get("mainClass") == "D" and not entry["_classification"].get("location"):
             if entry["_classification"].get("locationCenter"):
                 entry["_classification"]["location"] = entry["_classification"]["locationCenter"]
@@ -296,7 +371,7 @@ def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optiona
 
     point = _center_from_bounds(item.get("bounds"))
     if point:
-        entry["_classification"]["locationCenter"] = classify_location(point, bbox)
+        entry["_classification"]["locationCenter"] = classify_location(point, bbox_typed)
     if entry["_classification"].get("mainClass") == "D" and not entry["_classification"].get("location"):
         if entry["_classification"].get("locationCenter"):
             entry["_classification"]["location"] = entry["_classification"]["locationCenter"]
@@ -381,4 +456,4 @@ __all__ = [
 
 
 if __name__ == "__main__":
-    run_standalone(os.sys.argv[1:])
+    run_standalone(sys.argv[1:])
