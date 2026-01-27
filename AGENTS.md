@@ -40,12 +40,12 @@ This file captures project-specific conventions and "gotchas" that help especial
 
 ## Python conventions
 - Write modern Python; avoid Python 2 compatibility hacks.
-  - Python runtime is always `blender//2.78/python/bin/python3.5m` or similar; when starting, find out its version.
+  - Python runtime is always `blender/2.78/python/bin/python3.5m` or similar; when starting, find out its version.
   - Prefer: f-strings, `pathlib`, context managers (`with`), and `enumerate`/`zip` over index loops.
   - Prefer: explicit exceptions (no bare `except`), and small pure functions with clear inputs/outputs.
   - Logging: use `print` for CLI scripts and one-off tooling; use `logging` for long-running processes or code that may be imported.
   - Avoid: mutable default arguments, implicit `None` returns for data-producing functions, and excessive global state.
-  - Use type hints broadly and TypeDicts for maximal type checking.
+  - Use type hints broadly and TypeDicts (using the functional form) for maximal type checking.
 - Type checking: conform to Pylance/Pyright "standard" level (see pyrightconfig.json).
   - After making changes, always run `pyright` for files you have changed, and fix any errors it flags.
 

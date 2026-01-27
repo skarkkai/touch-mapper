@@ -1,20 +1,20 @@
 # Python 3.5
 from __future__ import division
 
-from typing import Any, Dict, Optional
-from typing_extensions import TypedDict  # type: ignore[import-not-found]
+from typing import Any, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import TypedDict  # type: ignore[import-not-found]
+else:  # pragma: no cover - blender python may not have typing_extensions
+    try:
+        from typing_extensions import TypedDict  # type: ignore[import-not-found]
+    except ImportError:
+        def TypedDict(name, fields, total=True):  # type: ignore[no-redef]
+            return dict
 
 
-class Point(TypedDict):
-    x: float
-    y: float
-
-
-class BBox(TypedDict):
-    minX: float
-    minY: float
-    maxX: float
-    maxY: float
+Point = TypedDict("Point", {"x": float, "y": float})
+BBox = TypedDict("BBox", {"minX": float, "minY": float, "maxX": float, "maxY": float})
 
 
 CENTER_MIN = 0.375

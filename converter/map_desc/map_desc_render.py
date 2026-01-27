@@ -5,17 +5,25 @@ import json
 import os
 import sys
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, Iterator, List, Optional
-from typing_extensions import TypedDict  # type: ignore[import-not-found]
+from typing import Any, Dict, Iterable, Iterator, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import TypedDict  # type: ignore[import-not-found]
+else:  # pragma: no cover - blender python may not have typing_extensions
+    try:
+        from typing_extensions import TypedDict  # type: ignore[import-not-found]
+    except ImportError:
+        def TypedDict(name, fields, total=True):  # type: ignore[no-redef]
+            return dict
 
 MAX_ITEMS_PER_SUBCLASS = 10
 
 
-class Bounds(TypedDict, total=False):
-    minX: float
-    minY: float
-    maxX: float
-    maxY: float
+Bounds = TypedDict(
+    "Bounds",
+    {"minX": float, "minY": float, "maxX": float, "maxY": float},
+    total=False
+)
 
 
 def _js_round(value: float) -> int:
@@ -153,6 +161,16 @@ def _iter_grouped_items(grouped: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
                 yield item
 
 
+def _iter_line_segments(item: Dict[str, Any]) -> List[List[List[float]]]:
+    visible = item.get("visibleGeometry")
+    if isinstance(visible, list):
+        return [seg for seg in visible if isinstance(seg, list)]
+    coords = item.get("geometry", {}).get("coordinates")
+    if isinstance(coords, list):
+        return [coords]
+    return []
+
+
 def _build_road_names_by_coord(map_data: Dict[str, Any]) -> Dict[str, List[str]]:
     # Build a coordinate->road-names map for connectivity summaries.
     road_map = {}
@@ -164,30 +182,22 @@ def _build_road_names_by_coord(map_data: Dict[str, Any]) -> Dict[str, List[str]]
             if item.get("elementType") == "way":
                 ways.append(item)
     for way in ways:
-        coords = way.get("geometry", {}).get("coordinates")
-        if not isinstance(coords, list):
-            continue
         name = _get_name(way.get("tags"))
         if not name:
             continue
-        for coord in coords:
-            key = _coord_key(coord)
-            entry = road_map.get(key)
-            if not entry:
-                road_map[key] = [name]
-            else:
-                if name not in entry:
-                    entry.append(name)
+        for coords in _iter_line_segments(way):
+            for coord in coords:
+                key = _coord_key(coord)
+                entry = road_map.get(key)
+                if not entry:
+                    road_map[key] = [name]
+                else:
+                    if name not in entry:
+                        entry.append(name)
     return road_map
 
 
-def _compute_line_length(geometry: Optional[Dict[str, Any]]) -> Optional[float]:
-    # Polyline length in local map units.
-    if not geometry or geometry.get("type") != "line_string":
-        return None
-    coords = geometry.get("coordinates")
-    if not isinstance(coords, list):
-        return None
+def _segment_length(coords: List[List[float]]) -> float:
     length = 0.0
     for i in range(1, len(coords)):
         a = coords[i - 1]
@@ -196,6 +206,22 @@ def _compute_line_length(geometry: Optional[Dict[str, Any]]) -> Optional[float]:
         dy = b[1] - a[1]
         length += (dx * dx + dy * dy) ** 0.5
     return length
+
+
+def _compute_line_length(item: Dict[str, Any]) -> Optional[float]:
+    # Polyline length in local map units.
+    geom = item.get("geometry") or {}
+    if geom.get("type") != "line_string":
+        return None
+    segments = _iter_line_segments(item)
+    if not segments:
+        return None
+    total = 0.0
+    for coords in segments:
+        if len(coords) < 2:
+            continue
+        total += _segment_length(coords)
+    return total
 
 
 def _ring_area(coords: List[List[float]]) -> float:
@@ -276,7 +302,7 @@ def _summarize_linear_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "label": name if name else None,
         "displayLabel": (name if name else "(unnamed)") + mod_suffix,
         "location": location,
-        "length": _compute_line_length(item.get("geometry")),
+        "length": _compute_line_length(item),
         "hasName": bool(name)
     }
 
@@ -444,7 +470,7 @@ def _summarize_boundary_base(item: Dict[str, Any]) -> Dict[str, Any]:
             _location_phrase(item.get("_classification", {}).get("locationCenter")),
             "center"
         ),
-        "length": _compute_line_length(item.get("geometry")),
+        "length": _compute_line_length(item),
         "hasName": bool(name)
     }
 
@@ -565,7 +591,7 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
     road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
     classes = spec.get("classes") or OrderedDict()
     main_keys = sorted(classes.keys())
-    raw: List[Dict[str, Any]] = []
+    raw = []  # type: List[Dict[str, Any]]
 
     for main_key in main_keys:
         main_name = classes.get(main_key, {}).get("name", main_key)
@@ -577,7 +603,7 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
             if key not in sub_keys and sub_groups.get(key):
                 sub_keys.append(key)
 
-        main_entry: Dict[str, Any] = {
+        main_entry = {  # type: Dict[str, Any]
             "key": main_key,
             "name": main_name,
             "subclasses": []
@@ -633,7 +659,7 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
 
 def render_from_intermediate(intermediate: Dict[str, Any]) -> str:
     # Render human-readable output from the intermediate representation.
-    lines: List[str] = []
+    lines = []  # type: List[str]
     for main_entry in intermediate.get("raw", []):
         main_key = main_entry.get("key")
         main_name = main_entry.get("name") or main_key
@@ -667,7 +693,7 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
                       output_path: str, map_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     # Persist intermediate data with cooked summaries embedded per subclass.
     intermediate = build_intermediate(grouped, spec, map_data)
-    content: "OrderedDict[str, Any]" = OrderedDict()
+    content = OrderedDict()  # type: OrderedDict
     for main_entry in intermediate.get("raw", []):
         subclasses = main_entry.get("subclasses") or []
         for sub_entry in subclasses:
@@ -728,6 +754,11 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
             sub_entry["cooked"] = cooked_lines
         key = main_entry.get("key") or "unknown"
         content[key] = main_entry
+    if map_data:
+        meta = map_data.get("meta") or {}
+        boundary = meta.get("boundary")
+        if boundary:
+            content["boundary"] = boundary
     with open(output_path, "w") as handle:
         json.dump(content, handle, indent=2)
     return content

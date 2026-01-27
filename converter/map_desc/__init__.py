@@ -5,28 +5,43 @@ import json
 import os
 import sys
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, List, Optional
-from typing_extensions import TypedDict  # type: ignore[import-not-found]
+from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import TypedDict  # type: ignore[import-not-found]
+else:  # pragma: no cover - blender python may not have typing_extensions
+    try:
+        from typing_extensions import TypedDict  # type: ignore[import-not-found]
+    except ImportError:
+        def TypedDict(name, fields, total=True):  # type: ignore[no-redef]
+            return dict
 
 from . import map_desc_render
+from .geometry_clip import BBox as ClipBBox
+from .geometry_clip import clip_line_string
 from .map_desc_loc_segments import BBox, Point, classify_location
 
 
-class Bounds(TypedDict, total=False):
-    minX: float
-    minY: float
-    maxX: float
-    maxY: float
+Bounds = TypedDict(
+    "Bounds",
+    {"minX": float, "minY": float, "maxX": float, "maxY": float},
+    total=False
+)
 
 
-class RuleInputs(TypedDict, total=False):
-    elementTypeField: str
-    geometryTypeField: str
-    primaryRepresentationField: str
-    representationsField: str
-    tmCategoryField: str
-    tmRoadTypeField: str
-    tagsField: str
+RuleInputs = TypedDict(
+    "RuleInputs",
+    {
+        "elementTypeField": str,
+        "geometryTypeField": str,
+        "primaryRepresentationField": str,
+        "representationsField": str,
+        "tmCategoryField": str,
+        "tmRoadTypeField": str,
+        "tagsField": str
+    },
+    total=False
+)
 
 def _get_field(item: Dict[str, Any], path: Optional[str]) -> Optional[Any]:
     if not path:
@@ -151,7 +166,7 @@ def _match_rule(item: Dict[str, Any], rule: Dict[str, Any], inputs: RuleInputs) 
 
 
 def _collect_modifiers(item: Dict[str, Any], spec: Dict[str, Any], options: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    inputs: RuleInputs = spec.get("inputs", {})
+    inputs = spec.get("inputs", {})  # type: RuleInputs
     modifiers = []
     for rule in spec.get("modifierRules", []):
         if not _match_rule(item, rule, inputs):
@@ -169,7 +184,7 @@ def _collect_modifiers(item: Dict[str, Any], spec: Dict[str, Any], options: Opti
 
 def classify_item(item: Dict[str, Any], spec: Dict[str, Any],
                   options_override: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-    inputs: RuleInputs = spec.get("inputs", {})
+    inputs = spec.get("inputs", {})  # type: RuleInputs
     options = {}
     options.update(spec.get("options", {}))
     options.update(options_override or {})
@@ -377,6 +392,44 @@ def _attach_locations(entry: Dict[str, Any], item: Dict[str, Any], bbox: Optiona
             entry["_classification"]["location"] = entry["_classification"]["locationCenter"]
 
 
+def _coerce_clip_bbox(bbox: Optional[Dict[str, Any]]) -> Optional[ClipBBox]:
+    if not bbox:
+        return None
+    min_x = bbox.get("minX")
+    min_y = bbox.get("minY")
+    max_x = bbox.get("maxX")
+    max_y = bbox.get("maxY")
+    if not isinstance(min_x, (int, float)) or not isinstance(min_y, (int, float)):
+        return None
+    if not isinstance(max_x, (int, float)) or not isinstance(max_y, (int, float)):
+        return None
+    return {
+        "minX": float(min_x),
+        "minY": float(min_y),
+        "maxX": float(max_x),
+        "maxY": float(max_y)
+    }
+
+
+def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
+                             boundary: Optional[Dict[str, Any]]) -> None:
+    geom = item.get("geometry") or {}
+    if geom.get("type") != "line_string":
+        return
+    coords = geom.get("coordinates")
+    if not isinstance(coords, list):
+        return
+    boundary_box = _coerce_clip_bbox(boundary)
+    if not boundary_box:
+        visible = [coords]
+        entry["visibleGeometry"] = visible
+        item["visibleGeometry"] = visible
+        return
+    visible = clip_line_string(coords, boundary_box)
+    entry["visibleGeometry"] = visible
+    item["visibleGeometry"] = visible
+
+
 def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
                    options_override: Optional[Dict[str, Any]] = None) -> OrderedDict:
     grouped = OrderedDict()
@@ -384,6 +437,7 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
         grouped[main_key] = OrderedDict()
 
     bbox = _get_map_bbox(map_data)
+    boundary = (map_data.get("meta") or {}).get("boundary")
 
     def add_item(item):
         classification = classify_item(item, spec, options_override)
@@ -400,6 +454,7 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
             "modifiers": modifiers
         }
         _attach_locations(entry, item, bbox)
+        _attach_visible_geometry(entry, item, boundary)
         main_group = grouped.get(classification.get("mainClass"))
         if main_group is None:
             grouped[classification.get("mainClass")] = OrderedDict()
@@ -442,6 +497,9 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
         output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
     with open(output_path, "w") as handle:
         json.dump(grouped, handle, indent=2)
+    augmented_path = os.path.join(os.path.dirname(output_path), "map-meta.augmented.json")
+    with open(augmented_path, "w") as handle:
+        json.dump(map_data, handle, indent=2)
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
     map_desc_render.write_map_content(grouped, spec, output_path, map_data)
     return grouped
