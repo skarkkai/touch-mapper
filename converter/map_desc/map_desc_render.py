@@ -297,6 +297,64 @@ def _event_sort_key(event: Dict[str, Any]) -> Tuple[float, int]:
     return event.get("t", 0.0), order.get(evt_type, 99)
 
 
+def _merge_samples_events(location_samples: List[Dict[str, Any]],
+                          events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    samples_by_t = {}
+    for sample in location_samples:
+        t_val = sample.get("t")
+        if t_val is None:
+            continue
+        samples_by_t[float(t_val)] = sample
+    events_by_t = {}
+    for event in events:
+        t_val = event.get("t")
+        if t_val is None:
+            continue
+        events_by_t.setdefault(float(t_val), []).append(event)
+    for t_val in events_by_t:
+        events_by_t[t_val] = sorted(events_by_t[t_val], key=_event_sort_key)
+
+    merged = []
+    all_ts = sorted(set(list(samples_by_t.keys()) + list(events_by_t.keys())))
+    for t_val in all_ts:
+        events_at_t = events_by_t.get(t_val, [])
+        for event in events_at_t:
+            merged.append(dict(event))
+        sample = samples_by_t.get(t_val)
+        if sample:
+            if events_at_t:
+                has_zone = any(event.get("zone") for event in events_at_t)
+                if has_zone:
+                    continue
+            merged.append({"type": "location_sample", "t": sample.get("t"), "zone": sample.get("zone")})
+
+    collapsed = []
+    for idx, token in enumerate(merged):
+        if token.get("type") != "location_sample":
+            collapsed.append(token)
+            continue
+        prev_token = merged[idx - 1] if idx > 0 else None
+        next_token = merged[idx + 1] if idx + 1 < len(merged) else None
+        zone = token.get("zone")
+        if prev_token and prev_token.get("zone") == zone:
+            continue
+        if next_token and next_token.get("zone") == zone:
+            continue
+        if collapsed and collapsed[-1].get("type") == "location_sample" and collapsed[-1].get("zone") == zone:
+            continue
+        collapsed.append(token)
+    return collapsed
+
+
+def _build_cooked_segments(base: Dict[str, Any]) -> List[Dict[str, Any]]:
+    segments = []
+    for segment in base.get("visibleSegments") or []:
+        samples = segment.get("locationSamples") or []
+        events = segment.get("events") or []
+        segments.append({"sequence": _merge_samples_events(samples, events)})
+    return segments
+
+
 def _segment_events(coords: List[List[float]],
                     boundary: Optional[Boundary],
                     connectors: List[Dict[str, Any]],
@@ -1035,6 +1093,25 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
             groups = sub_entry.get("groups") or []
             kind = sub_entry.get("kind", "")
             cooked_lines = []
+            if kind in ("linear", "boundary"):
+                for group in groups:
+                    items = group.get("items") or []
+                    if group.get("count", 0) <= 1 or not items:
+                        base = items[0] if items else {}
+                        cooked_lines.append({
+                            "displayLabel": group.get("displayLabel"),
+                            "segments": _build_cooked_segments(base)
+                        })
+                        continue
+                    for idx, item in enumerate(items, start=1):
+                        base_label = group.get("displayLabel") or group.get("label") or "(unnamed)"
+                        cooked_lines.append({
+                            "displayLabel": base_label + " (" + str(idx) + ")",
+                            "segments": _build_cooked_segments(item)
+                        })
+                sub_entry["cooked"] = cooked_lines
+                continue
+
             unnamed_groups = [group for group in groups if group.get("label") is None]
             named_groups = [group for group in groups if group.get("label") is not None]
 
