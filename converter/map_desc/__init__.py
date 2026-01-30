@@ -17,6 +17,7 @@ else:  # pragma: no cover - blender python may not have typing_extensions
             return dict
 
 from . import map_desc_render
+from .feature_semantics import build_feature_semantics
 from .geometry_clip import BBox as ClipBBox
 from .geometry_clip import clip_line_string
 from .map_desc_loc_segments import BBox, Point, classify_location
@@ -442,6 +443,9 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
     boundary = (map_data.get("meta") or {}).get("boundary")
 
     def add_item(item):
+        semantics = build_feature_semantics(item)
+        if semantics:
+            item["semantics"] = semantics
         classification = classify_item(item, spec, options_override)
         if not classification or classification.get("ignore"):
             return

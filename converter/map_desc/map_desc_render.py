@@ -112,6 +112,12 @@ def _location_key(location: Optional[Dict[str, Optional[str]]]) -> str:
     return "|".join(parts)
 
 
+def _attach_semantics(entry: Dict[str, Any], item: Dict[str, Any]) -> None:
+    semantics = item.get("semantics")
+    if semantics is not None:
+        entry["semantics"] = semantics
+
+
 def _render_location_text(location: Optional[Dict[str, Optional[str]]], kind: str) -> Optional[str]:
     # Render a human-readable location string from structured phrases.
     if not location:
@@ -649,7 +655,7 @@ def _summarize_linear_base(item: Dict[str, Any],
     visible_segments = _build_visible_segments(
         item, boundary, connectors, connections_index, emit_connectivity
     )
-    return {
+    summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
         "label": name if name else None,
@@ -658,6 +664,8 @@ def _summarize_linear_base(item: Dict[str, Any],
         "length": _compute_line_length(item),
         "hasName": bool(name)
     }
+    _attach_semantics(summary, item)
+    return summary
 
 
 def _connected_road_names(item: Dict[str, Any], road_names_by_coord: Dict[str, List[str]]) -> List[str]:
@@ -678,7 +686,14 @@ def _summarize_connectivity_base(item: Dict[str, Any],
         label = role + ": " + " x ".join(names)
     else:
         label = role + ": (unnamed)"
-    return {"osmId": item.get("osmId"), "osmType": item.get("osmType"), "label": label, "hasName": len(names) > 0}
+    summary = {
+        "osmId": item.get("osmId"),
+        "osmType": item.get("osmType"),
+        "label": label,
+        "hasName": len(names) > 0
+    }
+    _attach_semantics(summary, item)
+    return summary
 
 
 def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
@@ -711,7 +726,7 @@ def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
         parts.append(name)
     if address:
         parts.append(address)
-    return {
+    summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
         "label": name if name else None,
@@ -722,6 +737,8 @@ def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
         ),
         "hasName": bool(name)
     }
+    _attach_semantics(summary, item)
+    return summary
 
 
 def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
@@ -749,7 +766,7 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
     name = _get_name(tags)
     label = qualifier or category
     if name:
-        return {
+        summary = {
             "osmId": item.get("osmId"),
             "osmType": item.get("osmType"),
             "label": name,
@@ -760,7 +777,9 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
             ),
             "hasName": True
         }
-    return {
+        _attach_semantics(summary, item)
+        return summary
+    summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
         "label": None,
@@ -771,6 +790,8 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
         ),
         "hasName": False
     }
+    _attach_semantics(summary, item)
+    return summary
 
 
 def _area_type_label(sub_class: Optional[str]) -> str:
@@ -804,7 +825,7 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
     label = _area_type_label(subtype)
     name = _get_name(item.get("tags"))
     base = label + ": " + name if name else label + " (unnamed)"
-    return {
+    summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
         "label": name if name else None,
@@ -816,6 +837,8 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "area": _compute_area(item.get("geometry"), item.get("bounds")),
         "hasName": bool(name)
     }
+    _attach_semantics(summary, item)
+    return summary
 
 
 def _summarize_boundary_base(item: Dict[str, Any],
@@ -828,7 +851,7 @@ def _summarize_boundary_base(item: Dict[str, Any],
     label = _area_type_label(subtype)
     name = _get_name(item.get("tags"))
     summary = label + ": " + name if name else label
-    return {
+    summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
         "label": name if name else None,
@@ -839,6 +862,8 @@ def _summarize_boundary_base(item: Dict[str, Any],
         "length": _compute_line_length(item),
         "hasName": bool(name)
     }
+    _attach_semantics(summary, item)
+    return summary
 
 
 def _sort_groups(groups: List[Dict[str, Any]], kind: str) -> List[Dict[str, Any]]:

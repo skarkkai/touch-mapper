@@ -64,7 +64,37 @@
                   }
                 ],
                 "length": 16.966932720523957,
-                "hasName": true
+                "hasName": true,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "lit": "yes",
+                    "lanes": "1",
+                    "oneway": "yes",
+                    "maxspeed": "30",
+                    "highway": "secondary"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  },
+                  "lit": {
+                    "value": "yes"
+                  },
+                  "lanes": {
+                    "total": 1,
+                    "forward": null,
+                    "backward": null,
+                    "source": "lanes"
+                  },
+                  "oneway": {
+                    "value": "yes"
+                  },
+                  "maxspeed_kmh": {
+                    "value": 30,
+                    "source": "maxspeed"
+                  }
+                }
               }
             ]
           }
@@ -153,7 +183,26 @@
                   }
                 ],
                 "length": 16.0926347889242,
-                "hasName": true
+                "hasName": true,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "lit": "yes",
+                    "maxspeed": "30",
+                    "highway": "residential"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  },
+                  "lit": {
+                    "value": "yes"
+                  },
+                  "maxspeed_kmh": {
+                    "value": 30,
+                    "source": "maxspeed"
+                  }
+                }
               },
               {
                 "osmId": 140383769,
@@ -380,7 +429,22 @@
                   }
                 ],
                 "length": 302.9625695395819,
-                "hasName": true
+                "hasName": true,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "maxspeed": "30",
+                    "highway": "residential"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  },
+                  "maxspeed_kmh": {
+                    "value": 30,
+                    "source": "maxspeed"
+                  }
+                }
               }
             ]
           },
@@ -458,7 +522,17 @@
                   }
                 ],
                 "length": 36.41522743963166,
-                "hasName": true
+                "hasName": true,
+                "semantics": {
+                  "raw": {
+                    "maxspeed": "30",
+                    "highway": "residential"
+                  },
+                  "maxspeed_kmh": {
+                    "value": 30,
+                    "source": "maxspeed"
+                  }
+                }
               }
             ]
           }
@@ -866,7 +940,12 @@
                   }
                 ],
                 "length": 55.35991572506152,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958710,
@@ -962,7 +1041,12 @@
                   }
                 ],
                 "length": 40.17609794794471,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958712,
@@ -1043,7 +1127,12 @@
                   }
                 ],
                 "length": 36.07313272787226,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958713,
@@ -1124,7 +1213,12 @@
                   }
                 ],
                 "length": 40.79980512004592,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958714,
@@ -1330,7 +1424,12 @@
                   }
                 ],
                 "length": 70.47328960088342,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958718,
@@ -1412,7 +1511,12 @@
                   }
                 ],
                 "length": 131.22360364789728,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958719,
@@ -1533,7 +1637,12 @@
                   }
                 ],
                 "length": 130.45481817559906,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958722,
@@ -1594,7 +1703,12 @@
                   }
                 ],
                 "length": 14.587132206160328,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958724,
@@ -1655,7 +1769,12 @@
                   }
                 ],
                 "length": 48.1461601722197,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958725,
@@ -1716,7 +1835,12 @@
                   }
                 ],
                 "length": 28.34439283118525,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958726,
@@ -1783,7 +1907,12 @@
                   }
                 ],
                 "length": 31.26883261332281,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958728,
@@ -1870,7 +1999,12 @@
                   }
                 ],
                 "length": 26.07194970608792,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457958729,
@@ -1931,7 +2065,12 @@
                   }
                 ],
                 "length": 15.366409762856124,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 457959169,
@@ -1978,7 +2117,12 @@
                   }
                 ],
                 "length": 5.353118161673352,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 520982743,
@@ -2039,7 +2183,12 @@
                   }
                 ],
                 "length": 51.94729401707427,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 520982744,
@@ -2140,7 +2289,12 @@
                   }
                 ],
                 "length": 58.064255068449356,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 520982745,
@@ -2201,7 +2355,12 @@
                   }
                 ],
                 "length": 54.730551322115055,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 520982746,
@@ -2277,7 +2436,12 @@
                   }
                 ],
                 "length": 25.424056796664054,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 520982747,
@@ -2338,7 +2502,12 @@
                   }
                 ],
                 "length": 50.188664805397096,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 655212465,
@@ -2400,7 +2569,12 @@
                   }
                 ],
                 "length": 38.8347682016924,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               },
               {
                 "osmId": 655212467,
@@ -2461,7 +2635,17 @@
                   }
                 ],
                 "length": 16.63364706030776,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "highway": "service"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  }
+                }
               },
               {
                 "osmId": 796466321,
@@ -2508,7 +2692,12 @@
                   }
                 ],
                 "length": 27.64035445629487,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "service"
+                  }
+                }
               }
             ]
           }
@@ -3825,7 +4014,17 @@
                   }
                 ],
                 "length": 257.1883554134748,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "highway": "footway"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  }
+                }
               },
               {
                 "osmId": 25365012,
@@ -3907,7 +4106,17 @@
                   }
                 ],
                 "length": 30.453397213983944,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "paved",
+                    "highway": "footway"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "paved"
+                  }
+                }
               },
               {
                 "osmId": 457958716,
@@ -4003,7 +4212,12 @@
                   }
                 ],
                 "length": 45.275098800307426,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 457958720,
@@ -4079,7 +4293,12 @@
                   }
                 ],
                 "length": 40.97598631784877,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 525693383,
@@ -4175,7 +4394,17 @@
                   }
                 ],
                 "length": 82.6864855488189,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "highway": "footway"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  }
+                }
               },
               {
                 "osmId": 655212919,
@@ -4236,7 +4465,12 @@
                   }
                 ],
                 "length": 16.362217215259026,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466272,
@@ -4297,7 +4531,12 @@
                   }
                 ],
                 "length": 38.79053506404736,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466273,
@@ -4358,7 +4597,12 @@
                   }
                 ],
                 "length": 16.783060929921234,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466274,
@@ -4419,7 +4663,12 @@
                   }
                 ],
                 "length": 15.551830209080276,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466275,
@@ -4480,7 +4729,12 @@
                   }
                 ],
                 "length": 14.220536479313235,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466276,
@@ -4541,7 +4795,12 @@
                   }
                 ],
                 "length": 9.332144233776074,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466277,
@@ -4602,7 +4861,12 @@
                   }
                 ],
                 "length": 9.806908791259684,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796466278,
@@ -4663,7 +4927,12 @@
                   }
                 ],
                 "length": 10.442586996351242,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796469204,
@@ -4724,7 +4993,12 @@
                   }
                 ],
                 "length": 9.229429126441136,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796469205,
@@ -4785,7 +5059,12 @@
                   }
                 ],
                 "length": 3.7973983199027197,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 796469206,
@@ -4846,7 +5125,12 @@
                   }
                 ],
                 "length": 8.226874406547488,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "footway"
+                  }
+                }
               },
               {
                 "osmId": 1282562992,
@@ -4928,7 +5212,22 @@
                   }
                 ],
                 "length": 178.61656885894612,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "unpaved",
+                    "width": "0.5",
+                    "highway": "path"
+                  },
+                  "surface": {
+                    "class": "unpaved",
+                    "value": "unpaved"
+                  },
+                  "width_m": {
+                    "value": 0.5,
+                    "source": "width"
+                  }
+                }
               },
               {
                 "osmId": 1327887801,
@@ -5004,7 +5303,17 @@
                   }
                 ],
                 "length": 7.20314296486216,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "paved",
+                    "highway": "footway"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "paved"
+                  }
+                }
               },
               {
                 "osmId": 1355154126,
@@ -5080,7 +5389,12 @@
                   }
                 ],
                 "length": 2.8370824802955603,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "path"
+                  }
+                }
               }
             ]
           }
@@ -6082,7 +6396,25 @@
                   }
                 ],
                 "length": 36.100407943031364,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "lit": "yes",
+                    "segregated": "no",
+                    "highway": "cycleway"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  },
+                  "lit": {
+                    "value": "yes"
+                  },
+                  "segregated": {
+                    "value": "no"
+                  }
+                }
               },
               {
                 "osmId": 426104083,
@@ -6144,7 +6476,29 @@
                   }
                 ],
                 "length": 3.785341988246539,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "surface": "asphalt",
+                    "lit": "yes",
+                    "cycleway": "crossing",
+                    "segregated": "no",
+                    "highway": "cycleway"
+                  },
+                  "surface": {
+                    "class": "paved",
+                    "value": "asphalt"
+                  },
+                  "lit": {
+                    "value": "yes"
+                  },
+                  "cycleway": {
+                    "value": "unknown"
+                  },
+                  "segregated": {
+                    "value": "no"
+                  }
+                }
               },
               {
                 "osmId": 457958723,
@@ -6190,7 +6544,12 @@
                   }
                 ],
                 "length": 64.43008251585589,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "cycleway"
+                  }
+                }
               }
             ]
           },
@@ -6248,7 +6607,12 @@
                   }
                 ],
                 "length": 5.412099054355507,
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "cycleway"
+                  }
+                }
               }
             ]
           }
@@ -6645,13 +7009,29 @@
                 "osmId": 276457277,
                 "osmType": "node",
                 "label": "crossing: (unnamed)",
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "crossing",
+                    "crossing": "uncontrolled"
+                  },
+                  "crossing": {
+                    "type": "uncontrolled",
+                    "markings": "unknown",
+                    "tactile_paving": "unknown"
+                  }
+                }
               },
               {
                 "osmId": 276457280,
                 "osmType": "node",
                 "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "hasName": true,
+                "semantics": {
+                  "raw": {
+                    "highway": "turning_circle"
+                  }
+                }
               },
               {
                 "osmId": 1538138535,
@@ -6687,13 +7067,35 @@
                 "osmId": 4254168966,
                 "osmType": "node",
                 "label": "crossing: (unnamed)",
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "crossing",
+                    "crossing:markings": "yes"
+                  },
+                  "crossing": {
+                    "type": "unknown",
+                    "markings": "yes",
+                    "tactile_paving": "unknown"
+                  }
+                }
               },
               {
                 "osmId": 4254168969,
                 "osmType": "node",
                 "label": "crossing: (unnamed)",
-                "hasName": false
+                "hasName": false,
+                "semantics": {
+                  "raw": {
+                    "highway": "crossing",
+                    "crossing:markings": "yes"
+                  },
+                  "crossing": {
+                    "type": "unknown",
+                    "markings": "yes",
+                    "tactile_paving": "unknown"
+                  }
+                }
               },
               {
                 "osmId": 4540138274,
