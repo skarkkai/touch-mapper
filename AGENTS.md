@@ -69,6 +69,40 @@ This file captures project-specific conventions and "gotchas" that help especial
 
 1. OSM data is fetched from OSM servers for the requested areas.
 
-2. OSM data is read by OSM2World, which outputs both files `map.obj` and `map-meta.json`.
+2. OSM data is read by OSM2World, which outputs both files `map.obj` and `map-meta.json` (metadata).
 
 3. Browser UI fetches map-meta.json from Touch Mapper S3 bucket, and presents its content to the user in a way described above.
+
+### Metadata processing stages in the converter
+
+Any time you make changes to code verify this list is still up-to-date. Each code file referenced below contains a comment that says where in that file the data for the stage is created, in a format "Code below creates stage "<stage name>" data" -- update it too as needed.
+
+#### Stage name: "OSM2World raw meta"
+
+Created at: osm-to-tactile.py
+Stored as: map-meta-raw.json
+Diff from previous: baseline semantic output from OSM2World; no Touch Mapper enrichment yet.
+
+#### Stage name: "Raw meta with visibility augmentation"
+
+Created at: __init__.py
+Stored as: map-meta.augmented.json
+Diff from previous: adds visibleGeometry to line strings (clipped to boundary when possible).
+
+#### Stage name: "Grouped + classified meta"
+
+Created at: __init__.py
+Stored as: map-meta.json
+Diff from previous: reorganized into TM classes/subclasses with _classification and location annotations.
+
+#### Stage name: "Render-ready intermediate"
+
+Created at: map_desc_render.py
+Stored as: in-memory (not written to disk)
+Diff from previous: items are grouped/sorted with display labels, counts, lengths/areas, and connectivity.
+
+#### Stage name: "Final map content"
+
+Created at: map_desc_render.py
+Stored as: map-content.json
+Diff from previous: adds “cooked” human‑readable summaries/segments per subclass.

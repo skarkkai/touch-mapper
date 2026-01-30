@@ -413,6 +413,7 @@ def _coerce_clip_bbox(bbox: Optional[Dict[str, Any]]) -> Optional[ClipBBox]:
 
 def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
                              boundary: Optional[Dict[str, Any]]) -> None:
+    # Code below creates stage "Raw meta with visibility augmentation" data.
     geom = item.get("geometry") or {}
     if geom.get("type") != "line_string":
         return
@@ -432,6 +433,7 @@ def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
 
 def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
                    options_override: Optional[Dict[str, Any]] = None) -> OrderedDict:
+    # Code below creates stage "Grouped + classified meta" data.
     grouped = OrderedDict()
     for main_key in spec.get("classes", OrderedDict()).keys():
         grouped[main_key] = OrderedDict()
@@ -501,6 +503,7 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
     with open(augmented_path, "w") as handle:
         json.dump(map_data, handle, indent=2)
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
+    # Code below creates stage "Final map content" data.
     map_desc_render.write_map_content(grouped, spec, output_path, map_data, options_override)
     return grouped
 

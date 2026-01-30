@@ -33,6 +33,7 @@ def subprocess_output(cmd, env=None):
         raise e
 
 def run_osm2world(input_path, output_path, scale, exclude_buildings):
+    # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     #print(osm2world_path + " " + input_path + " " + output_path)
     cmd = [

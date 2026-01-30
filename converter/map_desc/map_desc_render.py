@@ -969,6 +969,7 @@ def _resolve_options(spec: Dict[str, Any], options_override: Optional[Dict[str, 
 def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
                        map_data: Optional[Dict[str, Any]] = None,
                        options_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    # Code below creates stage "Render-ready intermediate" data.
     # Build a structured intermediate representation for later rendering.
     road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
     options = _resolve_options(spec, options_override)
@@ -1081,6 +1082,7 @@ def render_from_intermediate(intermediate: Dict[str, Any]) -> str:
 def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
                       output_path: str, map_data: Optional[Dict[str, Any]] = None,
                       options_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    # Code below creates stage "Final map content" data.
     # Persist intermediate data with cooked summaries embedded per subclass.
     intermediate = build_intermediate(grouped, spec, map_data, options_override)
     content = OrderedDict()  # type: OrderedDict
