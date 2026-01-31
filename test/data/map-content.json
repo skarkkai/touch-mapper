@@ -7351,7 +7351,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "east"
+                    {
+                      "east": 13.3
+                    }
                   ],
                   "components": [
                     {
@@ -7630,7 +7632,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "east"
+                    {
+                      "east": 3.3
+                    }
                   ],
                   "components": [
                     {
@@ -8965,7 +8969,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "north"
+                    {
+                      "north": 3.3
+                    }
                   ],
                   "components": [
                     {
@@ -9685,7 +9691,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "north"
+                    {
+                      "north": 20.0
+                    }
                   ],
                   "components": [
                     {
@@ -9750,7 +9758,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "north"
+                    {
+                      "north": 3.3
+                    }
                   ],
                   "components": [
                     {
@@ -9804,7 +9814,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "north"
+                    {
+                      "north": 5.0
+                    }
                   ],
                   "components": [
                     {
@@ -9869,7 +9881,9 @@
                     ]
                   },
                   "edgesTouched": [
-                    "south"
+                    {
+                      "south": 3.3
+                    }
                   ],
                   "components": [
                     {

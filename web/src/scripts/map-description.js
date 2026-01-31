@@ -40,11 +40,14 @@
 
     function splitLabel(label) {
       if (!label || typeof label !== 'string') {
-        return { title: t("map_content_building_fallback", "Building") };
+        return { title: t("map_content_building_unnamed", "Unnamed building") };
       }
       const parts = label.split(",");
       let title = parts[0] ? parts[0].trim() : label.trim();
-      title = title ? capitalizeFirst(title) : t("map_content_building_fallback", "Building");
+      if (!title) {
+        return { title: t("map_content_building_unnamed", "Unnamed building") };
+      }
+      title = capitalizeFirst(title);
       if (parts.length <= 1) {
         return { title: title };
       }
@@ -83,19 +86,57 @@
       return edge;
     }
 
-    function edgesText(edgesTouched) {
+    function joinWithAnd(parts) {
+      if (!parts.length) {
+        return "";
+      }
+      if (parts.length === 1) {
+        return parts[0];
+      }
+      if (parts.length === 2) {
+        return parts[0] + " and " + parts[1];
+      }
+      return parts.slice(0, -1).join(", ") + ", and " + parts[parts.length - 1];
+    }
+
+    function parseEdgeTouches(edgesTouched) {
       if (!edgesTouched || !edgesTouched.length) {
+        return [];
+      }
+      const touches = [];
+      edgesTouched.forEach(function(entry){
+        if (typeof entry === 'string') {
+          touches.push({ edge: entry, percent: null });
+          return;
+        }
+        if (entry && typeof entry === 'object') {
+          Object.keys(entry).forEach(function(edge){
+            touches.push({ edge: edge, percent: entry[edge] });
+          });
+        }
+      });
+      return touches;
+    }
+
+    function edgesText(edgesTouched) {
+      const touches = parseEdgeTouches(edgesTouched);
+      if (!touches.length) {
         return null;
       }
-      const labels = edgesTouched.map(edgeLabel).filter(Boolean);
-      if (!labels.length) {
-        return null;
-      }
-      const joined = labels.join(", ");
-      if (labels.length === 1) {
-        return interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), { edge: joined });
-      }
-      return interpolate(t("map_content_touches_edges", "Touches __edges__ edges"), { edges: joined });
+      const parts = touches.map(function(touch){
+        const edge = edgeLabel(touch.edge);
+        if (!edge) {
+          return null;
+        }
+        if (touch.percent !== null && touch.percent !== undefined && !isNaN(touch.percent)) {
+          return interpolate(t("map_content_touches_edge_percent", "touches __percent__% of __edge__ edge"), {
+            edge: edge,
+            percent: formatPercent(touch.percent)
+          });
+        }
+        return interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), { edge: edge });
+      }).filter(Boolean);
+      return joinWithAnd(parts);
     }
 
     function formatPercent(value) {
@@ -207,11 +248,19 @@
         const segmentText = tidySegmentPhrase(rawPhrase);
         return interpolate(t(qualifierKey, "some of __segment__"), { segment: segmentText || rawPhrase });
       });
-      const coverageText = phrases.filter(Boolean).join(", ");
+      const cleanedPhrases = phrases.filter(Boolean);
+      let coverageText = "";
+      if (cleanedPhrases.length === 1) {
+        coverageText = cleanedPhrases[0];
+      } else if (cleanedPhrases.length === 2) {
+        coverageText = cleanedPhrases[0] + " and " + cleanedPhrases[1];
+      } else {
+        coverageText = cleanedPhrases.slice(0, -1).join(", ") + ", and " + cleanedPhrases[cleanedPhrases.length - 1];
+      }
       if (!coverageText) {
         return null;
       }
-      return interpolate(t("map_content_coverage_label", "Coverage: __segments__"), { segments: coverageText });
+      return coverageText;
     }
 
     function collectBuildingGroups(mapContent) {
@@ -235,18 +284,53 @@
           });
         });
       });
+      groups.sort(function(a, b){
+        return groupCoveragePercent(b) - groupCoveragePercent(a);
+      });
       return groups;
     }
 
-    function appendLine(listItem, text, className) {
-      if (!text) {
+    function appendLine(listItem, parts, className) {
+      if (!parts || !parts.length) {
         return;
       }
-      const line = $("<div>").text(text);
+      const line = $("<div>");
       if (className) {
         line.addClass(className);
       }
+      parts.forEach(function(part){
+        if (!part || part.text === undefined || part.text === null || part.text === "") {
+          return;
+        }
+        const span = $("<span>").text(part.text);
+        if (part.className) {
+          span.addClass(part.className);
+        }
+        line.append(span);
+      });
+      if (!line.text()) {
+        return;
+      }
       listItem.append(line);
+    }
+
+    function appendTextLine(listItem, text, className, spanClassName) {
+      if (!text) {
+        return;
+      }
+      appendLine(listItem, [{ text: text, className: spanClassName }], className);
+    }
+
+    function groupCoveragePercent(group) {
+      const primary = pickPrimaryItem(group);
+      if (!primary || !primary.visibleGeometry || !primary.visibleGeometry.coverage) {
+        return 0;
+      }
+      const percent = primary.visibleGeometry.coverage.coveragePercent;
+      if (percent === undefined || percent === null || isNaN(percent)) {
+        return 0;
+      }
+      return Number(percent) || 0;
     }
 
     function renderBuilding(group, listElem) {
@@ -264,20 +348,31 @@
       const touches = edgesText(edges);
 
       const listItem = $("<li>").addClass("map-content-building");
-      appendLine(listItem, nameParts.title, "map-content-title");
-      if (nameParts.subtitle) {
-        appendLine(listItem, nameParts.subtitle, "map-content-subtitle");
+      if (primary && primary.osmId !== undefined && primary.osmId !== null) {
+        listItem.attr("data-osm-id", String(primary.osmId));
       }
+      const titleParts = [{ text: nameParts.title, className: "map-content-title" }];
+      if (nameParts.subtitle) {
+        titleParts.push({ text: " at ", className: "map-content-title-sep" });
+        titleParts.push({ text: nameParts.subtitle, className: "map-content-subtitle" });
+      }
+      appendLine(listItem, titleParts, "map-content-title-line");
 
       const locationLine = [];
       if (location) {
-        locationLine.push(capitalizeFirst(location));
+        locationLine.push({ text: capitalizeFirst(location), className: "map-content-location-text" });
       }
       if (touches) {
-        locationLine.push(touches);
+        if (locationLine.length) {
+          locationLine.push({ text: " (", className: "map-content-location-paren" });
+          locationLine.push({ text: touches, className: "map-content-touches" });
+          locationLine.push({ text: ")", className: "map-content-location-paren" });
+        } else {
+          locationLine.push({ text: touches, className: "map-content-touches" });
+        }
       }
       if (locationLine.length) {
-        appendLine(listItem, locationLine.join(" - "), "map-content-location");
+        appendLine(listItem, locationLine, "map-content-location");
       }
 
       const components = visibleGeometry && Array.isArray(visibleGeometry.components)
@@ -285,21 +380,26 @@
         : [];
       const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
       const partsLine = [];
+      let coveragePercentText = null;
       if (components && components.length > 1) {
-        partsLine.push(interpolate(t("map_content_parts_many", "__count__ parts"), { count: components.length }));
+        partsLine.push({
+          text: interpolate(t("map_content_parts_many", "__count__ parts"), { count: components.length }),
+          className: "map-content-parts-count"
+        });
       }
       if (coverage && coverage.coveragePercent !== undefined) {
         const percentText = formatPercent(coverage.coveragePercent);
         if (percentText !== null) {
-          partsLine.push(interpolate(t("map_content_total_area", "total ~__percent__% of map"), {
-            percent: percentText
-          }));
+          coveragePercentText = interpolate(t("map_content_total_area", "Covers __percent__% of map"), { percent: percentText });
+          if (partsLine.length) {
+            partsLine.push({ text: ", ", className: "map-content-parts-sep" });
+          }
+          partsLine.push({
+            text: coveragePercentText,
+            className: "map-content-parts-coverage"
+          });
         }
       }
-      if (partsLine.length) {
-        appendLine(listItem, partsLine.join(", "), "map-content-parts");
-      }
-
       const shape = visibleGeometry && visibleGeometry.shape ? visibleGeometry.shape : null;
       if (shape && shape.type && shape.type !== "regular") {
         const shapeLineParts = [];
@@ -307,40 +407,64 @@
         const aspectText = formatAspect(aspectRatio);
         let descriptor = null;
         if (aspectRatio >= 3.5) {
-          descriptor = t("map_content_shape_long_thin", "Long & thin");
+          descriptor = t("map_content_shape_long_thin", "Long and thin");
         } else if (aspectRatio >= 2) {
           descriptor = t("map_content_shape_elongated", "Elongated");
         }
         if (descriptor) {
           if (aspectText) {
             const aspectLabel = interpolate(t("map_content_aspect_label", "aspect __ratio__"), { ratio: aspectText });
-            shapeLineParts.push(descriptor + " (" + aspectLabel + ")");
+            shapeLineParts.push({
+              text: descriptor + " (" + aspectLabel + ")",
+              className: "map-content-shape-aspect"
+            });
           } else {
-            shapeLineParts.push(descriptor);
+            shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
           }
         }
         if (aspectRatio > 2 && shape.orientationLabel) {
           const orientationLabel = orientationAbbrev(shape.orientationLabel);
           const degrees = formatDegrees(shape.orientationDeg);
           if (orientationLabel && degrees) {
-            shapeLineParts.push(interpolate(t("map_content_orientation", "orientation __label__ (__deg__)"), {
-              label: orientationLabel,
-              deg: degrees
-            }));
+            if (shapeLineParts.length) {
+              shapeLineParts.push({ text: ", ", className: "map-content-shape-sep" });
+            }
+            shapeLineParts.push({
+              text: interpolate(t("map_content_orientation", "orientation __label__ (__deg__)"), {
+                label: orientationLabel,
+                deg: degrees
+              }),
+              className: "map-content-shape-orientation"
+            });
           }
         }
         const shapeType = shapeTypeLabel(shape.type);
         if (shapeType) {
-          shapeLineParts.push(shapeType);
+          if (shapeLineParts.length) {
+            shapeLineParts.push({ text: ", ", className: "map-content-shape-sep" });
+          }
+          shapeLineParts.push({ text: shapeType, className: "map-content-shape-type" });
         }
         if (shapeLineParts.length) {
-          appendLine(listItem, shapeLineParts.join(", "), "map-content-shape");
+          appendLine(listItem, shapeLineParts, "map-content-shape");
         }
       }
 
       const coverageLine = coverageBreakdown(coverage);
-      if (coverageLine) {
-        appendLine(listItem, coverageLine, "map-content-coverage");
+      if (coverageLine && coveragePercentText && partsLine.length) {
+        partsLine.push({ text: " ", className: "map-content-coverage-space" });
+        partsLine.push({ text: "(", className: "map-content-coverage-paren" });
+        partsLine.push({ text: coverageLine, className: "map-content-coverage-segments" });
+        partsLine.push({ text: ")", className: "map-content-coverage-paren" });
+      } else if (coverageLine) {
+        appendLine(listItem, [
+          { text: t("map_content_coverage_label", "Covers:"), className: "map-content-coverage-label" },
+          { text: " ", className: "map-content-coverage-sep" },
+          { text: coverageLine, className: "map-content-coverage-segments" }
+        ], "map-content-coverage");
+      }
+      if (partsLine.length) {
+        appendLine(listItem, partsLine, "map-content-parts");
       }
 
       listElem.append(listItem);

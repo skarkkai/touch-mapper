@@ -215,6 +215,12 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
     segment_counts = {}  # type: Dict[Tuple[str, Optional[str], str], int]
     considered_count = 0
     inside_count = 0
+    edge_hits = {
+        "north": set(),
+        "south": set(),
+        "east": set(),
+        "west": set()
+    }
 
     for row in range(min_row, max_row + 1):
         y = boundary["minY"] + (row + 0.5) * dy
@@ -228,6 +234,14 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
             mask[row][col] = True
             true_cells.append((row, col))
             inside_count += 1
+            if row == 0:
+                edge_hits["south"].add(col)
+            if row == grid_size - 1:
+                edge_hits["north"].add(col)
+            if col == 0:
+                edge_hits["west"].add(row)
+            if col == grid_size - 1:
+                edge_hits["east"].add(row)
             seg_key = _segment_key(_make_point(x, y), boundary)
             segment_counts[seg_key] = segment_counts.get(seg_key, 0) + 1
 
@@ -302,6 +316,13 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
 
     if components:
         components.sort(key=lambda entry: -entry.get("cellCount", 0))
+    edges_percent = []
+    if grid_size > 0:
+        for edge in ("north", "east", "south", "west"):
+            hit_count = len(edge_hits.get(edge, []))
+            if hit_count:
+                percent = round(100.0 * hit_count / grid_size, 1)
+                edges_percent.append({edge: percent})
     if debug:
         print("[areas_raster] {} components={} edgesTouched={}".format(
             debug_tag, len(components), sorted(edges_touched)
@@ -315,7 +336,7 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
         "mask": mask,
         "segments": segments,
         "components": components,
-        "edgesTouched": sorted(edges_touched),
+        "edgesTouched": edges_percent,
         "componentCount": len(components)
     }
 

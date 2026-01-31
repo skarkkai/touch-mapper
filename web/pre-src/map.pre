@@ -76,11 +76,14 @@ window.TM = { translations: {
 
   "content__unnamed_roads": "{{ content__unnamed_roads }}",
   "location_general": "{{ location_general }}",
-  "map_content_building_fallback": "{{ map_content_building_fallback }}",
+  "map_content_heading": "{{ map_content_heading }}",
+  "map_content_subheading_buildings": "{{ map_content_subheading_buildings }}",
+  "map_content_building_unnamed": "{{ map_content_building_unnamed }}",
   "map_content_no_buildings": "{{ map_content_no_buildings }}",
   "map_content_unavailable": "{{ map_content_unavailable }}",
   "map_content_touches_edge": "{{ map_content_touches_edge }}",
   "map_content_touches_edges": "{{ map_content_touches_edges }}",
+  "map_content_touches_edge_percent": "{{ map_content_touches_edge_percent }}",
   "map_content_edge_north": "{{ map_content_edge_north }}",
   "map_content_edge_south": "{{ map_content_edge_south }}",
   "map_content_edge_east": "{{ map_content_edge_east }}",
@@ -202,10 +205,10 @@ window.TM = { translations: {
   </div>
 
   <div class="map-description map-content-row">
-    <h3><span>{{ what_is_the_map_like }}</span></h3>
+    <h2><span>{{ map_content_heading }}</span></h2>
     <div class="map-content">
       <div class="row map-content-buildings-row">
-        <h4>{{ what_is_the_map_like__buildings }}</h4>
+        <h3>{{ map_content_subheading_buildings }}</h3>
         <ul class="map-content-buildings"></ul>
       </div>
     </div>
