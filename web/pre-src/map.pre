@@ -75,7 +75,29 @@ window.TM = { translations: {
   "location3_mostly_left_column": "{{ location3_mostly_left_column }}",
 
   "content__unnamed_roads": "{{ content__unnamed_roads }}",
-  "location_general": "{{ location_general }}"
+  "location_general": "{{ location_general }}",
+  "map_content_building_fallback": "{{ map_content_building_fallback }}",
+  "map_content_no_buildings": "{{ map_content_no_buildings }}",
+  "map_content_unavailable": "{{ map_content_unavailable }}",
+  "map_content_touches_edge": "{{ map_content_touches_edge }}",
+  "map_content_touches_edges": "{{ map_content_touches_edges }}",
+  "map_content_edge_north": "{{ map_content_edge_north }}",
+  "map_content_edge_south": "{{ map_content_edge_south }}",
+  "map_content_edge_east": "{{ map_content_edge_east }}",
+  "map_content_edge_west": "{{ map_content_edge_west }}",
+  "map_content_parts_one": "{{ map_content_parts_one }}",
+  "map_content_parts_many": "{{ map_content_parts_many }}",
+  "map_content_total_area": "{{ map_content_total_area }}",
+  "map_content_shape_elongated": "{{ map_content_shape_elongated }}",
+  "map_content_shape_long_thin": "{{ map_content_shape_long_thin }}",
+  "map_content_shape_irregular": "{{ map_content_shape_irregular }}",
+  "map_content_shape_thin": "{{ map_content_shape_thin }}",
+  "map_content_aspect_label": "{{ map_content_aspect_label }}",
+  "map_content_orientation": "{{ map_content_orientation }}",
+  "map_content_coverage_label": "{{ map_content_coverage_label }}",
+  "map_content_coverage_much": "{{ map_content_coverage_much }}",
+  "map_content_coverage_some": "{{ map_content_coverage_some }}",
+  "map_content_coverage_little": "{{ map_content_coverage_little }}"
 } };
 </script>
 
@@ -179,10 +201,14 @@ window.TM = { translations: {
     </div>
   </div>
 
-  <div class="map-description">
-    <h3>Map content</h3>
-    
-    <p>This mock description is based on the current sample map-meta.json.txt: it contains a few named roads (like Nuuniitynkuja and Nuumaentie), a large set of unnamed road segments, about 28 buildings, and no POIs listed. The map bounds are roughly a 170m square centered around the chosen address.</p>
+  <div class="map-description map-content-row">
+    <h3><span>{{ what_is_the_map_like }}</span></h3>
+    <div class="map-content">
+      <div class="row map-content-buildings-row">
+        <h4>{{ what_is_the_map_like__buildings }}</h4>
+        <ul class="map-content-buildings"></ul>
+      </div>
+    </div>
   </div>
 
   <div class="no-data-available-msg" style="display: none">

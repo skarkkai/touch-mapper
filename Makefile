@@ -34,6 +34,7 @@ package:
 	install/package.sh
 
 test-install-ec2: package
+	# First run: eval "$(ssh-agent -s)"; ssh-add .../ssh-key
 	# "tm-ec2" needs to be defined as a Host in ~/.ssh/config
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2:touch-mapper/test/dist/
 

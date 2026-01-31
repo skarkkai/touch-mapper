@@ -25,6 +25,13 @@ ORIENTATION_LABELS = {
     67.5: "north-northeast to south-southwest"
 }
 
+DEBUG_OSM_ID = None
+
+
+def set_debug_osm_id(osm_id: Optional[int]) -> None:
+    global DEBUG_OSM_ID
+    DEBUG_OSM_ID = osm_id
+
 
 def _coerce_point(coord: Any) -> Optional[Tuple[float, float]]:
     if not isinstance(coord, list) or len(coord) < 2:
@@ -390,12 +397,14 @@ def analyze_area_visibility(geometry: Dict[str, Any],
                             osm_id: Optional[Any] = None) -> Optional[Dict[str, Any]]:
     debug = False
     debug_tag = ""
+    osm_id_num = None
     if osm_id is not None:
         try:
             osm_id_num = int(osm_id)
         except (TypeError, ValueError):
             osm_id_num = None
-        debug = osm_id_num == 322065714
+    if DEBUG_OSM_ID is not None and osm_id_num == DEBUG_OSM_ID:
+        debug = True
         debug_tag = "osmId={}".format(osm_id_num)
     outer, holes = _extract_polygon_rings(geometry)
     if not outer or not boundary:

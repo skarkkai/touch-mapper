@@ -134,6 +134,10 @@ function uriEncodeRequestId(rid) {
     return TM_HOST + dataPrefix(id) + '.blend';
   };
 
+  window.makeCloudFrontMapContentUrl = function(id) {
+    return TM_HOST + dataPrefix(id) + '.map-content.json';
+  };
+
   window.makeMapPageUrlRelative = function(id) {
     return "map?map=" + idStart(id);
   };

@@ -180,6 +180,9 @@ def main():
 
         # Enrich map-meta.json
         run_map_desc(raw_meta_path)
+        map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
+        with open(map_content_path, 'rb') as f:
+            map_content = f.read()
 
         # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of every map ever created.
         json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
@@ -214,6 +217,8 @@ def main():
             Key=name_base + '-rest.stl', Body=gzip.compress(stl_rest, compresslevel=5), **common_args, ContentType='application/sla')
         s3.Bucket(map_bucket_name).put_object(
             Key=name_base + '.blend',    Body=gzip.compress(blend, compresslevel=5), **common_args, ContentType='application/binary')
+        s3.Bucket(map_bucket_name).put_object(
+            Key=name_base + '.map-content.json', Body=gzip.compress(map_content, compresslevel=5), **common_args, ContentType='application/json')
 
         print("Processing entire request took " + str(time.clock() - t))
     except Exception as e:

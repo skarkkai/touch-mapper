@@ -2,6 +2,7 @@
 from __future__ import division
 
 import json
+import argparse
 import os
 import sys
 from collections import OrderedDict
@@ -17,7 +18,7 @@ else:  # pragma: no cover - blender python may not have typing_extensions
             return dict
 
 from . import map_desc_render
-from .areas_raster import analyze_area_visibility
+from .areas_raster import analyze_area_visibility, set_debug_osm_id
 from .feature_semantics import build_feature_semantics
 from .ways_clip import BBox as ClipBBox
 from .ways_clip import clip_line_string
@@ -510,7 +511,14 @@ def _load_json(path: str) -> OrderedDict:
 
 
 def run_standalone(args: List[str]) -> OrderedDict:
-    input_path = args[0] if args else os.path.join(os.getcwd(), "map-meta-raw.json")
+    parser = argparse.ArgumentParser(description="Touch Mapper map description generator")
+    parser.add_argument("input_path", nargs="?", help="Path to map-meta-raw.json")
+    parser.add_argument("--debug-osm-id", type=int, dest="debug_osm_id",
+                        help="Print areas_raster debug output for the given OSM id")
+    parsed = parser.parse_args(args)
+    if parsed.debug_osm_id is not None:
+        set_debug_osm_id(parsed.debug_osm_id)
+    input_path = parsed.input_path or os.path.join(os.getcwd(), "map-meta-raw.json")
     if not os.path.exists(input_path):
         input_path = os.path.join(os.getcwd(), "test/data/map-meta.indented.json")
     return run_map_desc(input_path)
