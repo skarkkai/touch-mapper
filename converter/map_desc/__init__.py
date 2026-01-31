@@ -18,8 +18,8 @@ else:  # pragma: no cover - blender python may not have typing_extensions
 
 from . import map_desc_render
 from .feature_semantics import build_feature_semantics
-from .geometry_clip import BBox as ClipBBox
-from .geometry_clip import clip_line_string
+from .ways_clip import BBox as ClipBBox
+from .ways_clip import clip_line_string
 from .map_desc_loc_segments import BBox, Point, classify_location
 
 
