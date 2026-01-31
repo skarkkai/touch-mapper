@@ -436,7 +436,7 @@ def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
         if not boundary_box:
             return
         # Code below creates stage "Raw meta with building area visibility raster" data.
-        visible = analyze_area_visibility(geom, boundary_box)
+        visible = analyze_area_visibility(geom, boundary_box, item.get("osmId"))
         if visible is None:
             return
         entry["visibleGeometry"] = visible

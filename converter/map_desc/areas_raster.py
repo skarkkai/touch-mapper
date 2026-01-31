@@ -364,7 +364,8 @@ def _shape_from_cells(cells: List[GridCell]) -> Optional[Dict[str, Any]]:
 
 
 def analyze_area_visibility(geometry: Dict[str, Any],
-                            boundary: Optional[BBox]) -> Optional[Dict[str, Any]]:
+                            boundary: Optional[BBox],
+                            osm_id: Optional[Any] = None) -> Optional[Dict[str, Any]]:
     outer, holes = _extract_polygon_rings(geometry)
     if not outer or not boundary:
         return None
@@ -387,6 +388,7 @@ def analyze_area_visibility(geometry: Dict[str, Any],
     analysis_60 = _rasterize_polygon(outer, holes, boundary, clip_bbox, GRID_BASE)
     analysis = analysis_60
     refined_from = None
+    analysis_120 = None
     if analysis_60.get("componentCount", 0) > 1:
         analysis_120 = _rasterize_polygon(outer, holes, boundary, clip_bbox, GRID_REFINED)
         if analysis_120.get("insideCells", 0) > 0:
@@ -423,6 +425,20 @@ def analyze_area_visibility(geometry: Dict[str, Any],
     if shape:
         result["shape"] = shape
         result["shapeGridSize"] = GRID_BASE
+
+    # Temporary debug print
+    if osm_id is not None:
+        try:
+            osm_id_num = int(osm_id)
+        except (TypeError, ValueError):
+            osm_id_num = None
+        if osm_id_num == 322065714:
+            from .areas_raster_debug import print_union_grid
+            mask_60 = analysis_60.get("mask")
+            mask_120 = None
+            if analysis is analysis_120:
+                mask_120 = analysis_120.get("mask") if analysis_120 else None
+            print_union_grid(mask_60, mask_120)
     return result
 
 
