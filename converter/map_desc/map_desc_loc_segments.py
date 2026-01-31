@@ -1,6 +1,8 @@
 # Python 3.5
 from __future__ import division
 
+import math
+
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -17,11 +19,9 @@ Point = TypedDict("Point", {"x": float, "y": float})
 BBox = TypedDict("BBox", {"minX": float, "minY": float, "maxX": float, "maxY": float})
 
 
-CENTER_MIN = 0.375
-CENTER_MAX = 0.625
-EDGE_THICKNESS = 0.125
-OFFSET_MIN = EDGE_THICKNESS
-OFFSET_MAX = 1 - EDGE_THICKNESS
+CENTER_BAND = 0.25
+NEAR_CENTER_BAND = 0.5
+PART_BAND = 0.75
 
 
 def _clamp(value: float, min_value: float, max_value: float) -> float:
@@ -54,6 +54,29 @@ def _diag_phrase(direction: Optional[str]) -> Optional[str]:
     if direction == "southeast":
         return "south-east"
     return direction
+
+
+def _angle_dir(dx: float, dy: float) -> Optional[str]:
+    if dx == 0 and dy == 0:
+        return None
+    angle = math.degrees(math.atan2(dy, dx))
+    if -25.0 <= angle < 25.0:
+        return "east"
+    if 25.0 <= angle < 65.0:
+        return "northeast"
+    if 65.0 <= angle < 115.0:
+        return "north"
+    if 115.0 <= angle < 155.0:
+        return "northwest"
+    if angle >= 155.0 or angle < -155.0:
+        return "west"
+    if -155.0 <= angle < -115.0:
+        return "southwest"
+    if -115.0 <= angle < -65.0:
+        return "south"
+    if -65.0 <= angle < -25.0:
+        return "southeast"
+    return None
 
 
 def _edge_phrase(direction: Optional[str]) -> Optional[str]:
@@ -104,24 +127,17 @@ def classify_location(point: Optional[Point],
     nx = _clamp(nx, 0, 1)
     ny = _clamp(ny, 0, 1)
 
-    in_center = (CENTER_MIN <= nx <= CENTER_MAX) and (CENTER_MIN <= ny <= CENTER_MAX)
-    if in_center:
+    dx = (nx - 0.5) * 2.0
+    dy = (ny - 0.5) * 2.0
+    r = max(abs(dx), abs(dy))
+
+    if r <= CENTER_BAND:
         return {"zone": "center", "dir": None, "phrase": "near the center of the map"}
 
-    edge_x = "west" if nx < EDGE_THICKNESS else ("east" if nx > 1 - EDGE_THICKNESS else None)
-    edge_y = "south" if ny < EDGE_THICKNESS else ("north" if ny > 1 - EDGE_THICKNESS else None)
-    if edge_x and edge_y:
-        direction = _diag_dir(edge_x, edge_y)
-        return {"zone": "corner", "dir": direction, "phrase": _corner_phrase(direction)}
-    if edge_x or edge_y:
-        direction = edge_x or edge_y
-        return {"zone": "edge", "dir": direction, "phrase": _edge_phrase(direction)}
+    direction = _angle_dir(dx, dy)
+    phrase_dir = _diag_phrase(direction)
 
-    offset_x = "west" if (OFFSET_MIN <= nx <= CENTER_MIN) else ("east" if (CENTER_MAX <= nx <= OFFSET_MAX) else None)
-    offset_y = "south" if (OFFSET_MIN <= ny <= CENTER_MIN) else ("north" if (CENTER_MAX <= ny <= OFFSET_MAX) else None)
-    if offset_x or offset_y:
-        direction = _diag_dir(offset_x, offset_y)
-        phrase_dir = _diag_phrase(direction)
+    if r <= NEAR_CENTER_BAND:
         if phrase_dir is None:
             return {
                 "zone": "offset_of_center",
@@ -134,17 +150,17 @@ def classify_location(point: Optional[Point],
             "phrase": "a little " + phrase_dir + " of the center of the map"
         }
 
-    part_x = "west" if nx < 0.5 else "east"
-    part_y = "south" if ny < 0.5 else "north"
-    part_dir = _diag_dir(part_x, part_y)
-    part_phrase = _diag_phrase(part_dir)
-    if part_phrase is None:
-        part_phrase = "center"
-    return {
-        "zone": "part",
-        "dir": part_dir,
-        "phrase": "in the " + part_phrase + " part of the map"
-    }
+    if r <= PART_BAND:
+        part_phrase = phrase_dir or "center"
+        return {
+            "zone": "part",
+            "dir": direction,
+            "phrase": "in the " + part_phrase + " part of the map"
+        }
+
+    if direction in ("northwest", "northeast", "southwest", "southeast"):
+        return {"zone": "edge", "dir": direction, "phrase": _corner_phrase(direction)}
+    return {"zone": "edge", "dir": direction, "phrase": _edge_phrase(direction)}
 
 
 __all__ = ["classify_location"]

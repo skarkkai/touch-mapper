@@ -210,7 +210,7 @@
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.5,
@@ -222,7 +222,7 @@
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       }
                     ],
                     "events": [
@@ -254,7 +254,7 @@
                       {
                         "t": 0.14895370977812578,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -374,7 +374,7 @@
                       {
                         "t": 0.9818690110057007,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -394,7 +394,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -456,7 +456,7 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.25,
@@ -479,7 +479,7 @@
                       {
                         "t": 0.0,
                         "type": "terminates",
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.5246664558870006,
@@ -579,7 +579,7 @@
                   {
                     "t": 0.14895370977812578,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -595,6 +595,11 @@
                         "subClass": "A1_service_roads"
                       }
                     ]
+                  },
+                  {
+                    "type": "location_sample",
+                    "t": 0.25,
+                    "zone": "in the north part of the map"
                   },
                   {
                     "t": 0.47608276443637876,
@@ -704,7 +709,7 @@
                   {
                     "t": 0.9818690110057007,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -724,7 +729,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -759,7 +764,7 @@
                   {
                     "t": 0.0,
                     "type": "terminates",
-                    "zone": "a little north-east of the center of the map"
+                    "zone": "in the north part of the map"
                   },
                   {
                     "t": 0.5246664558870006,
@@ -953,11 +958,11 @@
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little west of the center of the map"
+                        "zone": "a little north-west of the center of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little west of the center of the map"
+                        "zone": "a little north-west of the center of the map"
                       }
                     ],
                     "events": [
@@ -1004,7 +1009,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little west of the center of the map",
+                        "zone": "a little north-west of the center of the map",
                         "connectorType": "RoadConnector",
                         "connections": [
                           {
@@ -1211,11 +1216,11 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.5,
@@ -1223,23 +1228,23 @@
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "terminates",
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.05136730256931453,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1259,7 +1264,7 @@
                       {
                         "t": 0.10020786723960141,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1279,7 +1284,7 @@
                       {
                         "t": 0.1751207657142702,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1299,7 +1304,7 @@
                       {
                         "t": 0.21982820848082832,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1319,7 +1324,7 @@
                       {
                         "t": 0.25978723731641934,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1339,7 +1344,7 @@
                       {
                         "t": 0.30581747075327603,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1359,7 +1364,7 @@
                       {
                         "t": 0.3699043449729242,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1399,7 +1404,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ]
                   }
@@ -1429,15 +1434,15 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "near the northern edge of the map"
+                        "zone": "near the top-left corner of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "near the northern edge of the map"
+                        "zone": "near the top-left corner of the map"
                       }
                     ],
                     "events": [
@@ -1464,7 +1469,7 @@
                       {
                         "t": 0.15379087256084842,
                         "type": "junction",
-                        "zone": "a little north of the center of the map",
+                        "zone": "a little north-west of the center of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1484,7 +1489,7 @@
                       {
                         "t": 1.0,
                         "type": "map_edge_crossing",
-                        "zone": "near the northern edge of the map",
+                        "zone": "near the top-left corner of the map",
                         "edge": "north"
                       }
                     ]
@@ -1515,7 +1520,7 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south of the center of the map"
+                        "zone": "a little south-west of the center of the map"
                       },
                       {
                         "t": 0.75,
@@ -1523,7 +1528,7 @@
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little south-west of the center of the map"
+                        "zone": "in the south-west part of the map"
                       }
                     ],
                     "events": [
@@ -1590,7 +1595,7 @@
                       {
                         "t": 0.8820942109946125,
                         "type": "junction",
-                        "zone": "a little south-west of the center of the map",
+                        "zone": "in the south-west part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1610,7 +1615,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little south-west of the center of the map"
+                        "zone": "in the south-west part of the map"
                       }
                     ]
                   }
@@ -1640,15 +1645,15 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south of the center of the map"
+                        "zone": "in the south part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little south of the center of the map"
+                        "zone": "in the south part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little south of the center of the map"
+                        "zone": "in the south part of the map"
                       }
                     ],
                     "events": [
@@ -1675,7 +1680,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little south of the center of the map"
+                        "zone": "in the south part of the map"
                       }
                     ]
                   }
@@ -1705,11 +1710,11 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 1.0,
@@ -1762,30 +1767,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1805,7 +1810,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       }
                     ]
                   }
@@ -1827,30 +1832,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1876,7 +1881,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       }
                     ]
                   }
@@ -1898,30 +1903,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1947,7 +1952,7 @@
                       {
                         "t": 0.34251998308393483,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -1967,7 +1972,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ]
                   }
@@ -1989,30 +1994,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the south-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south-east of the center of the map"
+                        "zone": "in the east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little south-east of the center of the map",
+                        "zone": "in the south-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -2032,7 +2037,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ]
                   }
@@ -2054,36 +2059,36 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "map_edge_crossing",
-                        "zone": "near the southern edge of the map",
+                        "zone": "near the bottom-left corner of the map",
                         "edge": "south"
                       },
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       }
                     ]
                   }
@@ -2186,7 +2191,7 @@
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little west of the center of the map"
+                        "zone": "a little north-west of the center of the map"
                       }
                     ],
                     "events": [
@@ -2238,7 +2243,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little west of the center of the map",
+                        "zone": "a little north-west of the center of the map",
                         "connectorType": "RoadConnector",
                         "connections": [
                           {
@@ -2283,7 +2288,7 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little west of the center of the map"
+                        "zone": "in the west part of the map"
                       },
                       {
                         "t": 0.75,
@@ -2340,19 +2345,19 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little west of the center of the map"
+                        "zone": "a little north-west of the center of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little west of the center of the map"
+                        "zone": "a little north-west of the center of the map"
                       },
                       {
                         "t": 1.0,
@@ -2363,7 +2368,7 @@
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little north-west of the center of the map",
+                        "zone": "in the north-west part of the map",
                         "connectorType": "RoadConnector",
                         "connections": [
                           {
@@ -2420,19 +2425,19 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north of the center of the map"
+                        "zone": "a little north-west of the center of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 1.0,
@@ -2443,7 +2448,7 @@
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little north of the center of the map",
+                        "zone": "a little north-west of the center of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -2493,15 +2498,15 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "near the eastern edge of the map"
+                        "zone": "near the top-right corner of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "near the eastern edge of the map"
+                        "zone": "near the top-right corner of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "near the eastern edge of the map"
+                        "zone": "near the top-right corner of the map"
                       }
                     ],
                     "events": [
@@ -2528,7 +2533,7 @@
                       {
                         "t": 1.0,
                         "type": "map_edge_crossing",
-                        "zone": "near the eastern edge of the map",
+                        "zone": "near the top-right corner of the map",
                         "edge": "east"
                       }
                     ]
@@ -2551,30 +2556,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -2594,7 +2599,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ]
                   }
@@ -2814,7 +2819,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little west of the center of the map",
+                    "zone": "a little north-west of the center of the map",
                     "connectorType": "RoadConnector",
                     "connections": [
                       {
@@ -2951,12 +2956,12 @@
                   {
                     "t": 0.0,
                     "type": "terminates",
-                    "zone": "a little north-east of the center of the map"
+                    "zone": "in the north part of the map"
                   },
                   {
                     "t": 0.05136730256931453,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -2976,7 +2981,7 @@
                   {
                     "t": 0.10020786723960141,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -2996,7 +3001,7 @@
                   {
                     "t": 0.1751207657142702,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3016,7 +3021,7 @@
                   {
                     "t": 0.21982820848082832,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3036,7 +3041,7 @@
                   {
                     "t": 0.25978723731641934,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3056,7 +3061,7 @@
                   {
                     "t": 0.30581747075327603,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3076,7 +3081,7 @@
                   {
                     "t": 0.3699043449729242,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3114,9 +3119,14 @@
                     ]
                   },
                   {
+                    "type": "location_sample",
+                    "t": 0.75,
+                    "zone": "in the north-east part of the map"
+                  },
+                  {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little east of the center of the map"
+                    "zone": "in the east part of the map"
                   }
                 ]
               }
@@ -3150,7 +3160,7 @@
                   {
                     "t": 0.15379087256084842,
                     "type": "junction",
-                    "zone": "a little north of the center of the map",
+                    "zone": "a little north-west of the center of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3168,9 +3178,14 @@
                     ]
                   },
                   {
+                    "type": "location_sample",
+                    "t": 0.5,
+                    "zone": "in the north-west part of the map"
+                  },
+                  {
                     "t": 1.0,
                     "type": "map_edge_crossing",
-                    "zone": "near the northern edge of the map",
+                    "zone": "near the top-left corner of the map",
                     "edge": "north"
                   }
                 ]
@@ -3245,7 +3260,7 @@
                   {
                     "t": 0.8820942109946125,
                     "type": "junction",
-                    "zone": "a little south-west of the center of the map",
+                    "zone": "in the south-west part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3265,7 +3280,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little south-west of the center of the map"
+                    "zone": "in the south-west part of the map"
                   }
                 ]
               }
@@ -3299,7 +3314,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little south of the center of the map"
+                    "zone": "in the south part of the map"
                   }
                 ]
               }
@@ -3347,7 +3362,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3367,7 +3382,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little south-east of the center of the map"
+                    "zone": "in the south-east part of the map"
                   }
                 ]
               }
@@ -3381,7 +3396,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3407,7 +3422,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little south-east of the center of the map"
+                    "zone": "in the south-east part of the map"
                   }
                 ]
               }
@@ -3421,7 +3436,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3447,7 +3462,7 @@
                   {
                     "t": 0.34251998308393483,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3467,7 +3482,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little east of the center of the map"
+                    "zone": "in the east part of the map"
                   }
                 ]
               }
@@ -3481,7 +3496,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little south-east of the center of the map",
+                    "zone": "in the south-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3501,7 +3516,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little east of the center of the map"
+                    "zone": "in the east part of the map"
                   }
                 ]
               }
@@ -3515,13 +3530,13 @@
                   {
                     "t": 0.0,
                     "type": "map_edge_crossing",
-                    "zone": "near the southern edge of the map",
+                    "zone": "near the bottom-left corner of the map",
                     "edge": "south"
                   },
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "near the southern edge of the map"
+                    "zone": "near the bottom-left corner of the map"
                   }
                 ]
               }
@@ -3614,7 +3629,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little west of the center of the map",
+                    "zone": "a little north-west of the center of the map",
                     "connectorType": "RoadConnector",
                     "connections": [
                       {
@@ -3644,6 +3659,16 @@
                     "t": 0.0,
                     "type": "terminates",
                     "zone": "a little south-west of the center of the map"
+                  },
+                  {
+                    "type": "location_sample",
+                    "t": 0.25,
+                    "zone": "a little west of the center of the map"
+                  },
+                  {
+                    "type": "location_sample",
+                    "t": 0.5,
+                    "zone": "in the west part of the map"
                   },
                   {
                     "t": 1.0,
@@ -3677,7 +3702,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little north-west of the center of the map",
+                    "zone": "in the north-west part of the map",
                     "connectorType": "RoadConnector",
                     "connections": [
                       {
@@ -3726,7 +3751,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little north of the center of the map",
+                    "zone": "a little north-west of the center of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3780,7 +3805,7 @@
                   {
                     "t": 1.0,
                     "type": "map_edge_crossing",
-                    "zone": "near the eastern edge of the map",
+                    "zone": "near the top-right corner of the map",
                     "edge": "east"
                   }
                 ]
@@ -3795,7 +3820,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -3815,7 +3840,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little north-east of the center of the map"
+                    "zone": "in the north-east part of the map"
                   }
                 ]
               }
@@ -3869,11 +3894,11 @@
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.75,
@@ -3908,7 +3933,7 @@
                       {
                         "t": 0.2684792051976044,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -3928,7 +3953,7 @@
                       {
                         "t": 0.33325813747575733,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -3995,7 +4020,7 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.25,
@@ -4018,7 +4043,7 @@
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4090,7 +4115,7 @@
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north of the center of the map"
+                        "zone": "a little north-east of the center of the map"
                       },
                       {
                         "t": 0.5,
@@ -4186,7 +4211,7 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little south-west of the center of the map"
+                        "zone": "in the south-west part of the map"
                       },
                       {
                         "t": 0.25,
@@ -4209,7 +4234,7 @@
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little south-west of the center of the map",
+                        "zone": "in the south-west part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4274,15 +4299,15 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       }
                     ],
                     "events": [
@@ -4309,7 +4334,7 @@
                       {
                         "t": 0.8623200721309893,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4329,7 +4354,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4448,11 +4473,11 @@
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ],
                     "events": [
@@ -4479,7 +4504,7 @@
                       {
                         "t": 1.0,
                         "type": "terminates",
-                        "zone": "a little east of the center of the map"
+                        "zone": "in the east part of the map"
                       }
                     ]
                   }
@@ -4501,35 +4526,35 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "terminates",
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4566,35 +4591,35 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "terminates",
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4631,35 +4656,35 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "terminates",
-                        "zone": "a little north of the center of the map"
+                        "zone": "in the north part of the map"
                       },
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4696,35 +4721,35 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "terminates",
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4769,15 +4794,15 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
@@ -4789,7 +4814,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -4842,7 +4867,7 @@
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
@@ -4854,7 +4879,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -5090,7 +5115,7 @@
                       },
                       {
                         "t": 0.25,
-                        "zone": "near the western edge of the map"
+                        "zone": "near the top-left corner of the map"
                       },
                       {
                         "t": 0.5,
@@ -5115,7 +5140,7 @@
                       {
                         "t": 0.6567774186500721,
                         "type": "junction",
-                        "zone": "a little north-west of the center of the map",
+                        "zone": "in the north-west part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -5182,30 +5207,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-east of the center of the map"
+                        "zone": "in the north-east part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -5225,7 +5250,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-east of the center of the map",
+                        "zone": "in the north-east part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -5267,30 +5292,30 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "a little north-west of the center of the map"
+                        "zone": "in the north-west part of the map"
                       }
                     ],
                     "events": [
                       {
                         "t": 0.0,
                         "type": "junction",
-                        "zone": "a little north-west of the center of the map",
+                        "zone": "in the north-west part of the map",
                         "connectorType": "RoadConnector",
                         "connections": [
                           {
@@ -5310,7 +5335,7 @@
                       {
                         "t": 1.0,
                         "type": "junction",
-                        "zone": "a little north-west of the center of the map",
+                        "zone": "in the north-west part of the map",
                         "connectorType": "RoadJunction",
                         "connections": [
                           {
@@ -5369,7 +5394,7 @@
                   {
                     "t": 0.2684792051976044,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5389,7 +5414,7 @@
                   {
                     "t": 0.33325813747575733,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5448,7 +5473,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5521,11 +5546,6 @@
                     ]
                   },
                   {
-                    "type": "location_sample",
-                    "t": 0.25,
-                    "zone": "a little north of the center of the map"
-                  },
-                  {
                     "t": 0.8868646517006763,
                     "type": "junction",
                     "zone": "a little north-east of the center of the map",
@@ -5577,7 +5597,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little south-west of the center of the map",
+                    "zone": "in the south-west part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5593,6 +5613,11 @@
                         "subClass": "A1_service_roads"
                       }
                     ]
+                  },
+                  {
+                    "type": "location_sample",
+                    "t": 0.25,
+                    "zone": "a little south-west of the center of the map"
                   },
                   {
                     "t": 1.0,
@@ -5646,7 +5671,7 @@
                   {
                     "t": 0.8623200721309893,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5666,7 +5691,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5749,7 +5774,7 @@
                   {
                     "t": 1.0,
                     "type": "terminates",
-                    "zone": "a little east of the center of the map"
+                    "zone": "in the east part of the map"
                   }
                 ]
               }
@@ -5763,12 +5788,12 @@
                   {
                     "t": 0.0,
                     "type": "terminates",
-                    "zone": "a little north of the center of the map"
+                    "zone": "in the north part of the map"
                   },
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5797,12 +5822,12 @@
                   {
                     "t": 0.0,
                     "type": "terminates",
-                    "zone": "a little north of the center of the map"
+                    "zone": "in the north part of the map"
                   },
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5831,12 +5856,12 @@
                   {
                     "t": 0.0,
                     "type": "terminates",
-                    "zone": "a little north of the center of the map"
+                    "zone": "in the north part of the map"
                   },
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5865,12 +5890,12 @@
                   {
                     "t": 0.0,
                     "type": "terminates",
-                    "zone": "a little north-east of the center of the map"
+                    "zone": "in the north-east part of the map"
                   },
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5904,7 +5929,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -5938,7 +5963,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -6073,9 +6098,14 @@
                     "edge": "north"
                   },
                   {
+                    "type": "location_sample",
+                    "t": 0.5,
+                    "zone": "near the western edge of the map"
+                  },
+                  {
                     "t": 0.6567774186500721,
                     "type": "junction",
-                    "zone": "a little north-west of the center of the map",
+                    "zone": "in the north-west part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -6091,6 +6121,11 @@
                         "subClass": "A2_footpaths_trails"
                       }
                     ]
+                  },
+                  {
+                    "type": "location_sample",
+                    "t": 0.75,
+                    "zone": "a little north-west of the center of the map"
                   },
                   {
                     "t": 1.0,
@@ -6124,7 +6159,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -6144,7 +6179,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-east of the center of the map",
+                    "zone": "in the north-east part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -6173,7 +6208,7 @@
                   {
                     "t": 0.0,
                     "type": "junction",
-                    "zone": "a little north-west of the center of the map",
+                    "zone": "in the north-west part of the map",
                     "connectorType": "RoadConnector",
                     "connections": [
                       {
@@ -6193,7 +6228,7 @@
                   {
                     "t": 1.0,
                     "type": "junction",
-                    "zone": "a little north-west of the center of the map",
+                    "zone": "in the north-west part of the map",
                     "connectorType": "RoadJunction",
                     "connections": [
                       {
@@ -6238,7 +6273,7 @@
                     "locationSamples": [
                       {
                         "t": 0.0,
-                        "zone": "near the eastern edge of the map"
+                        "zone": "near the top-right corner of the map"
                       },
                       {
                         "t": 0.25,
@@ -6261,7 +6296,7 @@
                       {
                         "t": 0.0,
                         "type": "map_edge_crossing",
-                        "zone": "near the eastern edge of the map",
+                        "zone": "near the top-right corner of the map",
                         "edge": "east"
                       },
                       {
@@ -6450,11 +6485,11 @@
                       },
                       {
                         "t": 0.25,
-                        "zone": "a little south of the center of the map"
+                        "zone": "in the south part of the map"
                       },
                       {
                         "t": 0.5,
-                        "zone": "a little south of the center of the map"
+                        "zone": "in the south part of the map"
                       },
                       {
                         "t": 0.75,
@@ -6558,7 +6593,7 @@
                   {
                     "t": 0.0,
                     "type": "map_edge_crossing",
-                    "zone": "near the eastern edge of the map",
+                    "zone": "near the top-right corner of the map",
                     "edge": "east"
                   },
                   {
@@ -6737,15 +6772,15 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "a little south-west of the center of the map"
+                        "zone": "in the south-west part of the map"
                       },
                       {
                         "t": 1.0,
-                        "zone": "near the western edge of the map"
+                        "zone": "near the bottom-left corner of the map"
                       }
                     ],
                     "events": [
@@ -6758,7 +6793,7 @@
                       {
                         "t": 1.0,
                         "type": "map_edge_crossing",
-                        "zone": "near the western edge of the map",
+                        "zone": "near the bottom-left corner of the map",
                         "edge": "west"
                       }
                     ]
@@ -6775,11 +6810,11 @@
                       },
                       {
                         "t": 0.5,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-right corner of the map"
                       },
                       {
                         "t": 0.75,
-                        "zone": "near the southern edge of the map"
+                        "zone": "near the bottom-right corner of the map"
                       },
                       {
                         "t": 1.0,
@@ -6859,13 +6894,18 @@
                   },
                   {
                     "type": "location_sample",
+                    "t": 0.5,
+                    "zone": "near the bottom-left corner of the map"
+                  },
+                  {
+                    "type": "location_sample",
                     "t": 0.75,
-                    "zone": "a little south-west of the center of the map"
+                    "zone": "in the south-west part of the map"
                   },
                   {
                     "t": 1.0,
                     "type": "map_edge_crossing",
-                    "zone": "near the western edge of the map",
+                    "zone": "near the bottom-left corner of the map",
                     "edge": "west"
                   }
                 ]
@@ -7270,7 +7310,7 @@
             "label": null,
             "displayLabel": "kindergarten, Nuum\u00e4entie 2",
             "location": {
-              "center": "near the eastern edge of the map"
+              "center": "near the top-right corner of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -7281,7 +7321,7 @@
                 "label": null,
                 "displayLabel": "kindergarten, Nuum\u00e4entie 2",
                 "location": {
-                  "center": "near the eastern edge of the map"
+                  "center": "near the top-right corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -7292,14 +7332,20 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "east",
-                        "phrase": "near the eastern edge of the map",
-                        "insideCount": 63
+                        "dir": "northeast",
+                        "phrase": "near the top-right corner of the map",
+                        "insideCount": 42
                       },
                       {
-                        "zone": "offset_of_center",
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 21
+                      },
+                      {
+                        "zone": "part",
                         "dir": "northeast",
-                        "phrase": "a little north-east of the center of the map",
+                        "phrase": "in the north-east part of the map",
                         "insideCount": 5
                       }
                     ]
@@ -7316,8 +7362,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "east",
-                        "phrase": "near the eastern edge of the map"
+                        "dir": "northeast",
+                        "phrase": "near the top-right corner of the map"
                       },
                       "touchesEdge": true,
                       "edges": [
@@ -7341,7 +7387,7 @@
             "label": null,
             "displayLabel": "utility, Nuum\u00e4entie 5",
             "location": {
-              "center": "a little north of the center of the map"
+              "center": "in the north part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -7352,7 +7398,7 @@
                 "label": null,
                 "displayLabel": "utility, Nuum\u00e4entie 5",
                 "location": {
-                  "center": "a little north of the center of the map"
+                  "center": "in the north part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -7362,9 +7408,9 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "north",
-                        "phrase": "a little north of the center of the map",
+                        "phrase": "in the north part of the map",
                         "insideCount": 1
                       }
                     ]
@@ -7378,9 +7424,9 @@
                         "y": 77.28505
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "north",
-                        "phrase": "a little north of the center of the map"
+                        "phrase": "in the north part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -7443,7 +7489,7 @@
             "label": null,
             "displayLabel": "building",
             "location": {
-              "center": "a little north-east of the center of the map"
+              "center": "in the north-east part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -7454,7 +7500,7 @@
                 "label": null,
                 "displayLabel": "building",
                 "location": {
-                  "center": "a little north-east of the center of the map"
+                  "center": "in the north-east part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -7464,9 +7510,9 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northeast",
-                        "phrase": "a little north-east of the center of the map",
+                        "phrase": "in the north-east part of the map",
                         "insideCount": 4
                       }
                     ]
@@ -7480,9 +7526,9 @@
                         "y": 41.615949999999984
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northeast",
-                        "phrase": "a little north-east of the center of the map"
+                        "phrase": "in the north-east part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -7504,7 +7550,7 @@
                 "label": null,
                 "displayLabel": "building",
                 "location": {
-                  "center": "a little north-east of the center of the map"
+                  "center": "in the north-east part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -7514,9 +7560,9 @@
                     "gridSize": 120,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northeast",
-                        "phrase": "a little north-east of the center of the map",
+                        "phrase": "in the north-east part of the map",
                         "insideCount": 12
                       }
                     ]
@@ -7530,9 +7576,9 @@
                         "y": 63.24859861111113
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northeast",
-                        "phrase": "a little north-east of the center of the map"
+                        "phrase": "in the north-east part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -7555,7 +7601,7 @@
             "label": null,
             "displayLabel": "building",
             "location": {
-              "center": "near the eastern edge of the map"
+              "center": "near the top-right corner of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -7566,7 +7612,7 @@
                 "label": null,
                 "displayLabel": "building",
                 "location": {
-                  "center": "near the eastern edge of the map"
+                  "center": "near the top-right corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -7577,8 +7623,8 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "east",
-                        "phrase": "near the eastern edge of the map",
+                        "dir": "northeast",
+                        "phrase": "near the top-right corner of the map",
                         "insideCount": 3
                       }
                     ]
@@ -7595,8 +7641,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "east",
-                        "phrase": "near the eastern edge of the map"
+                        "dir": "northeast",
+                        "phrase": "near the top-right corner of the map"
                       },
                       "touchesEdge": true,
                       "edges": [
@@ -7620,7 +7666,7 @@
             "label": null,
             "displayLabel": "building, Nuum\u00e4entie 13",
             "location": {
-              "center": "near the southern edge of the map"
+              "center": "near the bottom-right corner of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -7631,7 +7677,7 @@
                 "label": null,
                 "displayLabel": "building, Nuum\u00e4entie 13",
                 "location": {
-                  "center": "near the southern edge of the map"
+                  "center": "near the bottom-right corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -7642,8 +7688,8 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "south",
-                        "phrase": "near the southern edge of the map",
+                        "dir": "southeast",
+                        "phrase": "near the bottom-right corner of the map",
                         "insideCount": 1
                       }
                     ]
@@ -7658,8 +7704,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "south",
-                        "phrase": "near the southern edge of the map"
+                        "dir": "southeast",
+                        "phrase": "near the bottom-right corner of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -7702,10 +7748,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
+                        "zone": "part",
+                        "dir": "north",
+                        "phrase": "in the north part of the map",
+                        "insideCount": 2
+                      },
+                      {
                         "zone": "offset_of_center",
                         "dir": "north",
                         "phrase": "a little north of the center of the map",
-                        "insideCount": 3
+                        "insideCount": 1
                       }
                     ]
                   },
@@ -7718,9 +7770,9 @@
                         "y": 60.11103888888888
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "north",
-                        "phrase": "a little north of the center of the map"
+                        "phrase": "in the north part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -7766,13 +7818,13 @@
                         "zone": "offset_of_center",
                         "dir": "northwest",
                         "phrase": "a little north-west of the center of the map",
-                        "insideCount": 5
+                        "insideCount": 7
                       },
                       {
                         "zone": "offset_of_center",
                         "dir": "north",
                         "phrase": "a little north of the center of the map",
-                        "insideCount": 3
+                        "insideCount": 1
                       }
                     ]
                   },
@@ -7948,8 +8000,8 @@
                     "segments": [
                       {
                         "zone": "offset_of_center",
-                        "dir": "south",
-                        "phrase": "a little south of the center of the map",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
                         "insideCount": 2
                       }
                     ]
@@ -7964,8 +8016,8 @@
                       },
                       "location": {
                         "zone": "offset_of_center",
-                        "dir": "south",
-                        "phrase": "a little south of the center of the map"
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8170,7 +8222,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 10b",
             "location": {
-              "center": "a little east of the center of the map"
+              "center": "in the east part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8181,7 +8233,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 10b",
                 "location": {
-                  "center": "a little east of the center of the map"
+                  "center": "in the east part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8191,9 +8243,9 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "east",
-                        "phrase": "a little east of the center of the map",
+                        "phrase": "in the east part of the map",
                         "insideCount": 6
                       }
                     ]
@@ -8207,9 +8259,9 @@
                         "y": -13.869316666666663
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "east",
-                        "phrase": "a little east of the center of the map"
+                        "phrase": "in the east part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8231,7 +8283,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 11a",
             "location": {
-              "center": "a little south of the center of the map"
+              "center": "in the south part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8242,7 +8294,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 11a",
                 "location": {
-                  "center": "a little south of the center of the map"
+                  "center": "in the south part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8252,16 +8304,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
-                        "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map",
-                        "insideCount": 6
+                        "zone": "part",
+                        "dir": "south",
+                        "phrase": "in the south part of the map",
+                        "insideCount": 7
                       },
                       {
-                        "zone": "offset_of_center",
-                        "dir": "south",
-                        "phrase": "a little south of the center of the map",
-                        "insideCount": 5
+                        "zone": "part",
+                        "dir": "southeast",
+                        "phrase": "in the south-east part of the map",
+                        "insideCount": 4
                       }
                     ]
                   },
@@ -8274,9 +8326,9 @@
                         "y": -65.03105606060605
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "south",
-                        "phrase": "a little south of the center of the map"
+                        "phrase": "in the south part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8325,16 +8377,10 @@
                         "insideCount": 9
                       },
                       {
-                        "zone": "offset_of_center",
-                        "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map",
-                        "insideCount": 6
-                      },
-                      {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "south",
-                        "phrase": "a little south of the center of the map",
-                        "insideCount": 2
+                        "phrase": "in the south part of the map",
+                        "insideCount": 8
                       }
                     ]
                   },
@@ -8395,7 +8441,13 @@
                         "zone": "edge",
                         "dir": "east",
                         "phrase": "near the eastern edge of the map",
-                        "insideCount": 6
+                        "insideCount": 4
+                      },
+                      {
+                        "zone": "edge",
+                        "dir": "southeast",
+                        "phrase": "near the bottom-right corner of the map",
+                        "insideCount": 2
                       }
                     ]
                   },
@@ -8425,14 +8477,25 @@
                   },
                   "shapeGridSize": 60
                 }
-              },
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Nuum\u00e4entie 12",
+            "location": {
+              "center": "near the bottom-right corner of the map"
+            },
+            "totalLength": 0.0,
+            "totalArea": 0.0,
+            "items": [
               {
                 "osmId": 190330161,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 12",
                 "location": {
-                  "center": "near the eastern edge of the map"
+                  "center": "near the bottom-right corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8443,8 +8506,8 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "east",
-                        "phrase": "near the eastern edge of the map",
+                        "dir": "southeast",
+                        "phrase": "near the bottom-right corner of the map",
                         "insideCount": 6
                       }
                     ]
@@ -8459,8 +8522,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "east",
-                        "phrase": "near the eastern edge of the map"
+                        "dir": "southeast",
+                        "phrase": "near the bottom-right corner of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8482,7 +8545,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 13",
             "location": {
-              "center": "a little south-east of the center of the map"
+              "center": "in the south-east part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8493,7 +8556,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 13",
                 "location": {
-                  "center": "a little south-east of the center of the map"
+                  "center": "in the south-east part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8503,9 +8566,9 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map",
+                        "phrase": "in the south-east part of the map",
                         "insideCount": 6
                       }
                     ]
@@ -8519,9 +8582,9 @@
                         "y": -83.2259
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map"
+                        "phrase": "in the south-east part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8543,7 +8606,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 13",
                 "location": {
-                  "center": "a little south-east of the center of the map"
+                  "center": "in the south-east part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8553,10 +8616,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
+                        "zone": "part",
+                        "dir": "southeast",
+                        "phrase": "in the south-east part of the map",
+                        "insideCount": 4
+                      },
+                      {
                         "zone": "offset_of_center",
                         "dir": "southeast",
                         "phrase": "a little south-east of the center of the map",
-                        "insideCount": 6
+                        "insideCount": 2
                       }
                     ]
                   },
@@ -8569,9 +8638,9 @@
                         "y": -61.428116666666654
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map"
+                        "phrase": "in the south-east part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8593,7 +8662,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 14",
             "location": {
-              "center": "a little south-east of the center of the map"
+              "center": "in the south-east part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8604,7 +8673,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 14",
                 "location": {
-                  "center": "a little south-east of the center of the map"
+                  "center": "in the south-east part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8614,9 +8683,9 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map",
+                        "phrase": "in the south-east part of the map",
                         "insideCount": 11
                       }
                     ]
@@ -8630,9 +8699,9 @@
                         "y": -75.83987424242423
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map"
+                        "phrase": "in the south-east part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8721,7 +8790,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 4",
             "location": {
-              "center": "a little north of the center of the map"
+              "center": "in the north part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8732,7 +8801,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 4",
                 "location": {
-                  "center": "a little north of the center of the map"
+                  "center": "in the north part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8742,16 +8811,28 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "north",
-                        "phrase": "a little north of the center of the map",
-                        "insideCount": 11
+                        "phrase": "in the north part of the map",
+                        "insideCount": 9
                       },
                       {
                         "zone": "offset_of_center",
                         "dir": "northeast",
                         "phrase": "a little north-east of the center of the map",
-                        "insideCount": 9
+                        "insideCount": 8
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map",
+                        "insideCount": 2
+                      },
+                      {
+                        "zone": "part",
+                        "dir": "northeast",
+                        "phrase": "in the north-east part of the map",
+                        "insideCount": 1
                       }
                     ]
                   },
@@ -8788,7 +8869,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 4",
             "location": {
-              "center": "a little east of the center of the map"
+              "center": "a little north-east of the center of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8799,7 +8880,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 4",
                 "location": {
-                  "center": "a little east of the center of the map"
+                  "center": "a little north-east of the center of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8810,15 +8891,15 @@
                     "segments": [
                       {
                         "zone": "offset_of_center",
-                        "dir": "east",
-                        "phrase": "a little east of the center of the map",
-                        "insideCount": 9
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 10
                       },
                       {
                         "zone": "offset_of_center",
-                        "dir": "northeast",
-                        "phrase": "a little north-east of the center of the map",
-                        "insideCount": 8
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map",
+                        "insideCount": 7
                       }
                     ]
                   },
@@ -8832,8 +8913,8 @@
                       },
                       "location": {
                         "zone": "offset_of_center",
-                        "dir": "east",
-                        "phrase": "a little east of the center of the map"
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8855,7 +8936,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 5",
             "location": {
-              "center": "near the northern edge of the map"
+              "center": "near the top-left corner of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8866,7 +8947,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 5",
                 "location": {
-                  "center": "near the northern edge of the map"
+                  "center": "near the top-left corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8877,8 +8958,8 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "north",
-                        "phrase": "near the northern edge of the map",
+                        "dir": "northwest",
+                        "phrase": "near the top-left corner of the map",
                         "insideCount": 5
                       }
                     ]
@@ -8895,8 +8976,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "north",
-                        "phrase": "near the northern edge of the map"
+                        "dir": "northwest",
+                        "phrase": "near the top-left corner of the map"
                       },
                       "touchesEdge": true,
                       "edges": [
@@ -8920,7 +9001,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 5",
                 "location": {
-                  "center": "near the northern edge of the map"
+                  "center": "near the top-left corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -8931,21 +9012,15 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "north",
-                        "phrase": "near the northern edge of the map",
-                        "insideCount": 9
-                      },
-                      {
-                        "zone": "offset_of_center",
                         "dir": "northwest",
-                        "phrase": "a little north-west of the center of the map",
-                        "insideCount": 6
+                        "phrase": "near the top-left corner of the map",
+                        "insideCount": 11
                       },
                       {
-                        "zone": "edge",
-                        "dir": "west",
-                        "phrase": "near the western edge of the map",
-                        "insideCount": 2
+                        "zone": "part",
+                        "dir": "northwest",
+                        "phrase": "in the north-west part of the map",
+                        "insideCount": 6
                       }
                     ]
                   },
@@ -8958,9 +9033,9 @@
                         "y": 88.24222450980392
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northwest",
-                        "phrase": "a little north-west of the center of the map"
+                        "phrase": "in the north-west part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -8982,7 +9057,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 5",
             "location": {
-              "center": "a little north-west of the center of the map"
+              "center": "in the north-west part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -8993,7 +9068,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 5",
                 "location": {
-                  "center": "a little north-west of the center of the map"
+                  "center": "in the north-west part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9003,16 +9078,28 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northwest",
-                        "phrase": "a little north-west of the center of the map",
-                        "insideCount": 11
+                        "phrase": "in the north-west part of the map",
+                        "insideCount": 9
                       },
                       {
                         "zone": "edge",
                         "dir": "north",
                         "phrase": "near the northern edge of the map",
-                        "insideCount": 8
+                        "insideCount": 4
+                      },
+                      {
+                        "zone": "edge",
+                        "dir": "northwest",
+                        "phrase": "near the top-left corner of the map",
+                        "insideCount": 4
+                      },
+                      {
+                        "zone": "part",
+                        "dir": "north",
+                        "phrase": "in the north part of the map",
+                        "insideCount": 2
                       }
                     ]
                   },
@@ -9025,9 +9112,9 @@
                         "y": 85.21151666666665
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northwest",
-                        "phrase": "a little north-west of the center of the map"
+                        "phrase": "in the north-west part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9049,7 +9136,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 5",
                 "location": {
-                  "center": "a little north-west of the center of the map"
+                  "center": "in the north-west part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9059,10 +9146,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
+                        "zone": "part",
+                        "dir": "northwest",
+                        "phrase": "in the north-west part of the map",
+                        "insideCount": 15
+                      },
+                      {
                         "zone": "offset_of_center",
                         "dir": "northwest",
                         "phrase": "a little north-west of the center of the map",
-                        "insideCount": 16
+                        "insideCount": 1
                       }
                     ]
                   },
@@ -9075,9 +9168,9 @@
                         "y": 53.50564999999999
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "northwest",
-                        "phrase": "a little north-west of the center of the map"
+                        "phrase": "in the north-west part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9099,7 +9192,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 6",
             "location": {
-              "center": "a little east of the center of the map"
+              "center": "a little south-east of the center of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9110,7 +9203,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 6",
                 "location": {
-                  "center": "a little east of the center of the map"
+                  "center": "a little south-east of the center of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9119,6 +9212,12 @@
                     "consideredCells": 32,
                     "gridSize": 60,
                     "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 9
+                      },
                       {
                         "zone": "center",
                         "dir": null,
@@ -9129,13 +9228,7 @@
                         "zone": "offset_of_center",
                         "dir": "east",
                         "phrase": "a little east of the center of the map",
-                        "insideCount": 5
-                      },
-                      {
-                        "zone": "offset_of_center",
-                        "dir": "southeast",
-                        "phrase": "a little south-east of the center of the map",
-                        "insideCount": 5
+                        "insideCount": 1
                       }
                     ]
                   },
@@ -9149,8 +9242,8 @@
                       },
                       "location": {
                         "zone": "offset_of_center",
-                        "dir": "east",
-                        "phrase": "a little east of the center of the map"
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9257,7 +9350,13 @@
                         "zone": "offset_of_center",
                         "dir": "east",
                         "phrase": "a little east of the center of the map",
-                        "insideCount": 11
+                        "insideCount": 9
+                      },
+                      {
+                        "zone": "part",
+                        "dir": "east",
+                        "phrase": "in the east part of the map",
+                        "insideCount": 2
                       }
                     ]
                   },
@@ -9294,7 +9393,7 @@
             "label": null,
             "displayLabel": "residential building, Nuum\u00e4entie 9",
             "location": {
-              "center": "a little south of the center of the map"
+              "center": "a little south-west of the center of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9305,7 +9404,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 9",
                 "location": {
-                  "center": "a little south of the center of the map"
+                  "center": "a little south-west of the center of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9316,15 +9415,15 @@
                     "segments": [
                       {
                         "zone": "offset_of_center",
-                        "dir": "south",
-                        "phrase": "a little south of the center of the map",
-                        "insideCount": 12
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map",
+                        "insideCount": 10
                       },
                       {
                         "zone": "offset_of_center",
-                        "dir": "southwest",
-                        "phrase": "a little south-west of the center of the map",
-                        "insideCount": 3
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 5
                       }
                     ]
                   },
@@ -9338,8 +9437,8 @@
                       },
                       "location": {
                         "zone": "offset_of_center",
-                        "dir": "south",
-                        "phrase": "a little south of the center of the map"
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9354,14 +9453,92 @@
                   },
                   "shapeGridSize": 60
                 }
-              },
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Nuum\u00e4entie 9",
+            "location": {
+              "center": "in the south-west part of the map"
+            },
+            "totalLength": 0.0,
+            "totalArea": 0.0,
+            "items": [
+              {
+                "osmId": 190330024,
+                "osmType": "way",
+                "label": null,
+                "displayLabel": "residential building, Nuum\u00e4entie 9",
+                "location": {
+                  "center": "in the south-west part of the map"
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.8,
+                    "insideCells": 28,
+                    "consideredCells": 90,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "part",
+                        "dir": "southwest",
+                        "phrase": "in the south-west part of the map",
+                        "insideCount": 27
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map",
+                        "insideCount": 1
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 28,
+                      "centroid": {
+                        "x": -55.25295476190477,
+                        "y": -63.97590952380953
+                      },
+                      "location": {
+                        "zone": "part",
+                        "dir": "southwest",
+                        "phrase": "in the south-west part of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 45.0,
+                    "orientationLabel": "northeast-southwest",
+                    "fillRatio": 0.63,
+                    "aspectRatio": 3.032,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Nuum\u00e4entie 9",
+            "location": {
+              "center": "in the south part of the map"
+            },
+            "totalLength": 0.0,
+            "totalArea": 0.0,
+            "items": [
               {
                 "osmId": 190330059,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 9",
                 "location": {
-                  "center": "a little south of the center of the map"
+                  "center": "in the south part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9371,9 +9548,9 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "south",
-                        "phrase": "a little south of the center of the map",
+                        "phrase": "in the south part of the map",
                         "insideCount": 12
                       },
                       {
@@ -9393,9 +9570,9 @@
                         "y": -83.2259
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "south",
-                        "phrase": "a little south of the center of the map"
+                        "phrase": "in the south part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9417,7 +9594,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuum\u00e4entie 9",
                 "location": {
-                  "center": "a little south of the center of the map"
+                  "center": "in the south part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9427,10 +9604,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
+                        "zone": "part",
+                        "dir": "south",
+                        "phrase": "in the south part of the map",
+                        "insideCount": 8
+                      },
+                      {
                         "zone": "offset_of_center",
                         "dir": "south",
                         "phrase": "a little south of the center of the map",
-                        "insideCount": 11
+                        "insideCount": 3
                       }
                     ]
                   },
@@ -9443,9 +9626,9 @@
                         "y": -64.6707621212121
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "south",
-                        "phrase": "a little south of the center of the map"
+                        "phrase": "in the south part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9465,70 +9648,9 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 9",
-            "location": {
-              "center": "a little south-west of the center of the map"
-            },
-            "totalLength": 0.0,
-            "totalArea": 0.0,
-            "items": [
-              {
-                "osmId": 190330024,
-                "osmType": "way",
-                "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 9",
-                "location": {
-                  "center": "a little south-west of the center of the map"
-                },
-                "visibleGeometry": {
-                  "coverage": {
-                    "coveragePercent": 0.8,
-                    "insideCells": 28,
-                    "consideredCells": 90,
-                    "gridSize": 60,
-                    "segments": [
-                      {
-                        "zone": "offset_of_center",
-                        "dir": "southwest",
-                        "phrase": "a little south-west of the center of the map",
-                        "insideCount": 28
-                      }
-                    ]
-                  },
-                  "edgesTouched": [],
-                  "components": [
-                    {
-                      "cellCount": 28,
-                      "centroid": {
-                        "x": -55.25295476190477,
-                        "y": -63.97590952380953
-                      },
-                      "location": {
-                        "zone": "offset_of_center",
-                        "dir": "southwest",
-                        "phrase": "a little south-west of the center of the map"
-                      },
-                      "touchesEdge": false,
-                      "edges": []
-                    }
-                  ],
-                  "shape": {
-                    "orientationDeg": 45.0,
-                    "orientationLabel": "northeast-southwest",
-                    "fillRatio": 0.63,
-                    "aspectRatio": 3.032,
-                    "type": "thin"
-                  },
-                  "shapeGridSize": 60
-                }
-              }
-            ]
-          },
-          {
-            "label": null,
             "displayLabel": "residential building, Nuuniitynkuja 1",
             "location": {
-              "center": "near the northern edge of the map"
+              "center": "near the top-right corner of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9539,7 +9661,7 @@
                 "label": null,
                 "displayLabel": "residential building, Nuuniitynkuja 1",
                 "location": {
-                  "center": "near the northern edge of the map"
+                  "center": "near the top-right corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9550,9 +9672,15 @@
                     "segments": [
                       {
                         "zone": "edge",
+                        "dir": "northeast",
+                        "phrase": "near the top-right corner of the map",
+                        "insideCount": 35
+                      },
+                      {
+                        "zone": "edge",
                         "dir": "north",
                         "phrase": "near the northern edge of the map",
-                        "insideCount": 43
+                        "insideCount": 8
                       }
                     ]
                   },
@@ -9568,8 +9696,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "north",
-                        "phrase": "near the northern edge of the map"
+                        "dir": "northeast",
+                        "phrase": "near the top-right corner of the map"
                       },
                       "touchesEdge": true,
                       "edges": [
@@ -9712,7 +9840,7 @@
             "label": null,
             "displayLabel": "residential building, Tuokkostie 9",
             "location": {
-              "center": "near the southern edge of the map"
+              "center": "near the bottom-left corner of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9723,7 +9851,7 @@
                 "label": null,
                 "displayLabel": "residential building, Tuokkostie 9",
                 "location": {
-                  "center": "near the southern edge of the map"
+                  "center": "near the bottom-left corner of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9734,8 +9862,8 @@
                     "segments": [
                       {
                         "zone": "edge",
-                        "dir": "south",
-                        "phrase": "near the southern edge of the map",
+                        "dir": "southwest",
+                        "phrase": "near the bottom-left corner of the map",
                         "insideCount": 2
                       }
                     ]
@@ -9752,8 +9880,8 @@
                       },
                       "location": {
                         "zone": "edge",
-                        "dir": "south",
-                        "phrase": "near the southern edge of the map"
+                        "dir": "southwest",
+                        "phrase": "near the bottom-left corner of the map"
                       },
                       "touchesEdge": true,
                       "edges": [
@@ -9777,7 +9905,7 @@
             "label": null,
             "displayLabel": "residential, Nuum\u00e4entie 7",
             "location": {
-              "center": "a little west of the center of the map"
+              "center": "in the west part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9788,7 +9916,7 @@
                 "label": null,
                 "displayLabel": "residential, Nuum\u00e4entie 7",
                 "location": {
-                  "center": "a little west of the center of the map"
+                  "center": "in the west part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9798,16 +9926,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "west",
-                        "phrase": "a little west of the center of the map",
-                        "insideCount": 13
+                        "phrase": "in the west part of the map",
+                        "insideCount": 10
                       },
                       {
                         "zone": "offset_of_center",
-                        "dir": "northwest",
-                        "phrase": "a little north-west of the center of the map",
-                        "insideCount": 1
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map",
+                        "insideCount": 4
                       }
                     ]
                   },
@@ -9820,9 +9948,9 @@
                         "y": 21.233607142857142
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "west",
-                        "phrase": "a little west of the center of the map"
+                        "phrase": "in the west part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9866,9 +9994,15 @@
                     "segments": [
                       {
                         "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map",
+                        "insideCount": 2
+                      },
+                      {
+                        "zone": "offset_of_center",
                         "dir": "west",
                         "phrase": "a little west of the center of the map",
-                        "insideCount": 4
+                        "insideCount": 2
                       },
                       {
                         "zone": "center",
@@ -9888,8 +10022,8 @@
                       },
                       "location": {
                         "zone": "offset_of_center",
-                        "dir": "west",
-                        "phrase": "a little west of the center of the map"
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9911,7 +10045,7 @@
             "label": null,
             "displayLabel": "storage, Nuum\u00e4entie 4",
             "location": {
-              "center": "a little north of the center of the map"
+              "center": "a little north-east of the center of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9922,7 +10056,7 @@
                 "label": null,
                 "displayLabel": "storage, Nuum\u00e4entie 4",
                 "location": {
-                  "center": "a little north of the center of the map"
+                  "center": "a little north-east of the center of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9933,9 +10067,15 @@
                     "segments": [
                       {
                         "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 9
+                      },
+                      {
+                        "zone": "offset_of_center",
                         "dir": "north",
                         "phrase": "a little north of the center of the map",
-                        "insideCount": 11
+                        "insideCount": 2
                       }
                     ]
                   },
@@ -9949,8 +10089,8 @@
                       },
                       "location": {
                         "zone": "offset_of_center",
-                        "dir": "north",
-                        "phrase": "a little north of the center of the map"
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -9973,7 +10113,7 @@
             "label": null,
             "displayLabel": "terrace building, Nuum\u00e4entie 7",
             "location": {
-              "center": "a little west of the center of the map"
+              "center": "in the west part of the map"
             },
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9984,7 +10124,7 @@
                 "label": null,
                 "displayLabel": "terrace building, Nuum\u00e4entie 7",
                 "location": {
-                  "center": "a little west of the center of the map"
+                  "center": "in the west part of the map"
                 },
                 "visibleGeometry": {
                   "coverage": {
@@ -9994,16 +10134,16 @@
                     "gridSize": 60,
                     "segments": [
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "west",
-                        "phrase": "a little west of the center of the map",
-                        "insideCount": 11
+                        "phrase": "in the west part of the map",
+                        "insideCount": 13
                       },
                       {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "southwest",
-                        "phrase": "a little south-west of the center of the map",
-                        "insideCount": 4
+                        "phrase": "in the south-west part of the map",
+                        "insideCount": 2
                       }
                     ]
                   },
@@ -10016,9 +10156,9 @@
                         "y": -21.267352222222218
                       },
                       "location": {
-                        "zone": "offset_of_center",
+                        "zone": "part",
                         "dir": "west",
-                        "phrase": "a little west of the center of the map"
+                        "phrase": "in the west part of the map"
                       },
                       "touchesEdge": false,
                       "edges": []
@@ -10033,7 +10173,18 @@
                   },
                   "shapeGridSize": 60
                 }
-              },
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "terrace building, Nuum\u00e4entie 7",
+            "location": {
+              "center": "a little west of the center of the map"
+            },
+            "totalLength": 0.0,
+            "totalArea": 0.0,
+            "items": [
               {
                 "osmId": 190330155,
                 "osmType": "way",
@@ -10053,7 +10204,13 @@
                         "zone": "offset_of_center",
                         "dir": "west",
                         "phrase": "a little west of the center of the map",
-                        "insideCount": 13
+                        "insideCount": 8
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map",
+                        "insideCount": 5
                       }
                     ]
                   },

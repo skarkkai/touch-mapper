@@ -155,7 +155,9 @@ def _segment_key(point: Point, boundary: BBox) -> Tuple[str, Optional[str], str]
 
 def _rasterize_polygon(outer: Ring, holes: List[Ring],
                        boundary: BBox, clip_bbox: BBox,
-                       grid_size: int) -> Dict[str, Any]:
+                       grid_size: int,
+                       debug: bool = False,
+                       debug_tag: str = "") -> Dict[str, Any]:
     dx = (boundary["maxX"] - boundary["minX"]) / grid_size
     dy = (boundary["maxY"] - boundary["minY"]) / grid_size
     if dx <= 0 or dy <= 0:
@@ -193,6 +195,13 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
 
     outer_bbox = _bbox_from_ring(outer)
     hole_bboxes = [_bbox_from_ring(hole) for hole in holes]
+    if debug:
+        print("[areas_raster] {} grid={} dx={:.3f} dy={:.3f}".format(debug_tag, grid_size, dx, dy))
+        print("[areas_raster] {} clip rows {}..{} cols {}..{}".format(
+            debug_tag, min_row, max_row, min_col, max_col
+        ))
+        print("[areas_raster] {} outer_bbox={}".format(debug_tag, outer_bbox))
+        print("[areas_raster] {} holes={}".format(debug_tag, len(holes)))
 
     mask = [[False for _ in range(grid_size)] for _ in range(grid_size)]
     true_cells = []  # type: List[GridCell]
@@ -225,6 +234,15 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
                 "insideCount": count
             })
         segments.sort(key=lambda entry: (-entry["insideCount"], entry.get("phrase") or ""))
+    if debug:
+        top_segments = [
+            "{}:{}={}".format(seg.get("zone"), seg.get("dir"), seg.get("insideCount"))
+            for seg in segments[:5]
+        ]
+        print("[areas_raster] {} insideCells={} consideredCells={}".format(
+            debug_tag, inside_count, considered_count
+        ))
+        print("[areas_raster] {} segments(top5)={}".format(debug_tag, top_segments))
 
     components = []
     edges_touched = set()
@@ -277,6 +295,10 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
 
     if components:
         components.sort(key=lambda entry: -entry.get("cellCount", 0))
+    if debug:
+        print("[areas_raster] {} components={} edgesTouched={}".format(
+            debug_tag, len(components), sorted(edges_touched)
+        ))
 
     return {
         "gridSize": grid_size,
@@ -366,9 +388,23 @@ def _shape_from_cells(cells: List[GridCell]) -> Optional[Dict[str, Any]]:
 def analyze_area_visibility(geometry: Dict[str, Any],
                             boundary: Optional[BBox],
                             osm_id: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+    debug = False
+    debug_tag = ""
+    if osm_id is not None:
+        try:
+            osm_id_num = int(osm_id)
+        except (TypeError, ValueError):
+            osm_id_num = None
+        debug = osm_id_num == 322065714
+        debug_tag = "osmId={}".format(osm_id_num)
     outer, holes = _extract_polygon_rings(geometry)
     if not outer or not boundary:
         return None
+    if debug:
+        print("[areas_raster] {} start outer_points={} holes={}".format(
+            debug_tag, len(outer), len(holes)
+        ))
+        print("[areas_raster] {} boundary={}".format(debug_tag, boundary))
 
     outer_bbox = _bbox_from_ring(outer)
     clip_bbox = _bbox_intersection(outer_bbox, boundary)
@@ -384,13 +420,22 @@ def analyze_area_visibility(geometry: Dict[str, Any],
             "edgesTouched": [],
             "components": []
         }
+    if debug:
+        print("[areas_raster] {} outer_bbox={}".format(debug_tag, outer_bbox))
+        print("[areas_raster] {} clip_bbox={}".format(debug_tag, clip_bbox))
 
-    analysis_60 = _rasterize_polygon(outer, holes, boundary, clip_bbox, GRID_BASE)
+    analysis_60 = _rasterize_polygon(
+        outer, holes, boundary, clip_bbox, GRID_BASE,
+        debug=debug, debug_tag=debug_tag + ":60"
+    )
     analysis = analysis_60
     refined_from = None
     analysis_120 = None
     if analysis_60.get("componentCount", 0) > 1:
-        analysis_120 = _rasterize_polygon(outer, holes, boundary, clip_bbox, GRID_REFINED)
+        analysis_120 = _rasterize_polygon(
+            outer, holes, boundary, clip_bbox, GRID_REFINED,
+            debug=debug, debug_tag=debug_tag + ":120"
+        )
         if analysis_120.get("insideCells", 0) > 0:
             analysis = analysis_120
             refined_from = GRID_BASE
@@ -405,8 +450,16 @@ def analyze_area_visibility(geometry: Dict[str, Any],
             coverage_percent = 0.0
         if coverage_percent > 100:
             coverage_percent = 100.0
+    if debug:
+        print("[areas_raster] {} gridSize={} insideCells={} coveragePercent={}".format(
+            debug_tag, grid_size, inside_count, coverage_percent
+        ))
+        if refined_from:
+            print("[areas_raster] {} refinedFrom={}".format(debug_tag, refined_from))
 
     shape = _shape_from_cells(analysis_60.get("trueCells") or [])
+    if debug:
+        print("[areas_raster] {} shape={}".format(debug_tag, shape))
 
     coverage = {
         "coveragePercent": coverage_percent,
@@ -426,19 +479,13 @@ def analyze_area_visibility(geometry: Dict[str, Any],
         result["shape"] = shape
         result["shapeGridSize"] = GRID_BASE
 
-    # Temporary debug print
-    if osm_id is not None:
-        try:
-            osm_id_num = int(osm_id)
-        except (TypeError, ValueError):
-            osm_id_num = None
-        if osm_id_num == 322065714:
-            from .areas_raster_debug import print_union_grid
-            mask_60 = analysis_60.get("mask")
-            mask_120 = None
-            if analysis is analysis_120:
-                mask_120 = analysis_120.get("mask") if analysis_120 else None
-            print_union_grid(mask_60, mask_120)
+    if debug:
+        from .areas_raster_debug import print_union_grid
+        mask_60 = analysis_60.get("mask")
+        mask_120 = None
+        if analysis is analysis_120:
+            mask_120 = analysis_120.get("mask") if analysis_120 else None
+        print_union_grid(mask_60, mask_120, boundary)
     return result
 
 
