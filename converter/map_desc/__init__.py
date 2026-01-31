@@ -17,6 +17,7 @@ else:  # pragma: no cover - blender python may not have typing_extensions
             return dict
 
 from . import map_desc_render
+from .areas_raster import analyze_area_visibility
 from .feature_semantics import build_feature_semantics
 from .ways_clip import BBox as ClipBBox
 from .ways_clip import clip_line_string
@@ -412,11 +413,34 @@ def _coerce_clip_bbox(bbox: Optional[Dict[str, Any]]) -> Optional[ClipBBox]:
     }
 
 
+def _is_building(entry: Dict[str, Any], item: Dict[str, Any]) -> bool:
+    cls = entry.get("_classification", {})
+    main_class = cls.get("mainClass")
+    sub_class = cls.get("subClass")
+    if isinstance(main_class, str) and main_class.startswith("C"):
+        return True
+    if isinstance(sub_class, str) and sub_class.startswith("C"):
+        return True
+    tags = item.get("tags") or {}
+    return bool(tags.get("building") or tags.get("building:part"))
+
+
 def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
                              boundary: Optional[Dict[str, Any]]) -> None:
     # Code below creates stage "Raw meta with visibility augmentation" data.
     geom = item.get("geometry") or {}
     if geom.get("type") != "line_string":
+        if geom.get("type") != "polygon" or not _is_building(entry, item):
+            return
+        boundary_box = _coerce_bbox(boundary)
+        if not boundary_box:
+            return
+        # Code below creates stage "Raw meta with building area visibility raster" data.
+        visible = analyze_area_visibility(geom, boundary_box)
+        if visible is None:
+            return
+        entry["visibleGeometry"] = visible
+        item["visibleGeometry"] = visible
         return
     coords = geom.get("coordinates")
     if not isinstance(coords, list):

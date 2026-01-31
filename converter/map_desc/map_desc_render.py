@@ -661,8 +661,7 @@ def _summarize_linear_base(item: Dict[str, Any],
         "label": name if name else None,
         "displayLabel": (name if name else "(unnamed)") + mod_suffix,
         "visibleSegments": visible_segments,
-        "length": _compute_line_length(item),
-        "hasName": bool(name)
+        "length": _compute_line_length(item)
     }
     _attach_semantics(summary, item)
     return summary
@@ -689,8 +688,7 @@ def _summarize_connectivity_base(item: Dict[str, Any],
     summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
-        "label": label,
-        "hasName": len(names) > 0
+        "label": label
     }
     _attach_semantics(summary, item)
     return summary
@@ -734,9 +732,10 @@ def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "location": _location_struct_from_phrase(
             _location_phrase(item.get("_classification", {}).get("locationCenter")),
             "center"
-        ),
-        "hasName": bool(name)
+        )
     }
+    if "visibleGeometry" in item:
+        summary["visibleGeometry"] = item.get("visibleGeometry")
     _attach_semantics(summary, item)
     return summary
 
@@ -774,8 +773,7 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
             "location": _location_struct_from_phrase(
                 _location_phrase(item.get("_classification", {}).get("location")),
                 "point"
-            ),
-            "hasName": True
+            )
         }
         _attach_semantics(summary, item)
         return summary
@@ -787,8 +785,7 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "location": _location_struct_from_phrase(
             _location_phrase(item.get("_classification", {}).get("location")),
             "point"
-        ),
-        "hasName": False
+        )
     }
     _attach_semantics(summary, item)
     return summary
@@ -835,8 +832,9 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
             "center"
         ),
         "area": _compute_area(item.get("geometry"), item.get("bounds")),
-        "hasName": bool(name)
     }
+    if "visibleGeometry" in item:
+        summary["visibleGeometry"] = item.get("visibleGeometry")
     _attach_semantics(summary, item)
     return summary
 
@@ -859,8 +857,7 @@ def _summarize_boundary_base(item: Dict[str, Any],
         "visibleSegments": _build_visible_segments(
             item, boundary, connectors, connections_index, emit_connectivity
         ),
-        "length": _compute_line_length(item),
-        "hasName": bool(name)
+        "length": _compute_line_length(item)
     }
     _attach_semantics(summary, item)
     return summary
@@ -874,11 +871,21 @@ def _sort_groups(groups: List[Dict[str, Any]], kind: str) -> List[Dict[str, Any]
         elif kind == "area":
             metric = entry.get("totalArea", 0)
         elif kind == "connectivity":
-            metric = entry.get("count", 0)
+            metric = _group_count(entry)
         else:
             metric = 0
-        return (not entry.get("hasName"), -metric, entry.get("displayLabel") or "")
+        return (entry.get("label") is None, -metric, entry.get("displayLabel") or "")
     return sorted(groups, key=sort_key)
+
+
+def _group_count(group: Dict[str, Any]) -> int:
+    count = group.get("count")
+    if isinstance(count, int):
+        return count
+    items = group.get("items")
+    if isinstance(items, list):
+        return len(items)
+    return 0
 
 
 def _build_groups(items: List[Dict[str, Any]], kind: str,
@@ -914,15 +921,11 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
                 "label": base.get("label"),
                 "displayLabel": base.get("displayLabel"),
                 "location": base.get("location"),
-                "count": 0,
-                "hasName": base.get("hasName"),
                 "totalLength": 0.0,
                 "totalArea": 0.0,
                 "items": []
             }
             group = groups[key]
-        group["count"] += 1
-        group["hasName"] = group["hasName"] or base.get("hasName")
         if base.get("length"):
             group["totalLength"] += base.get("length")
         if base.get("area"):
@@ -935,7 +938,7 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
 def _render_group_line(group: Dict[str, Any], kind: str) -> str:
     # Render a single summary line, with totals for grouped items.
     display_label = group.get("displayLabel") or "(unnamed)"
-    if group.get("count") == 1:
+    if _group_count(group) == 1:
         if kind == "linear":
             length = _format_meters(group.get("totalLength"))
             location_text = _render_location_text(group.get("location"), kind)
@@ -963,7 +966,7 @@ def _render_group_line(group: Dict[str, Any], kind: str) -> str:
         location_text = _render_location_text(group.get("location"), kind)
         return display_label + " — " + location_text if location_text else display_label
 
-    prefix = str(group.get("count")) + " x " + display_label
+    prefix = str(_group_count(group)) + " x " + display_label
     if kind in ("linear", "boundary"):
         total_len = _format_meters(group.get("totalLength"))
         location_text = _render_location_text(group.get("location"), kind)
@@ -1026,7 +1029,6 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
             main_entry["subclasses"].append({
                 "key": None,
                 "name": None,
-                "count": 0,
                 "kind": None,
                 "groups": [],
                 "empty": True
@@ -1062,7 +1064,6 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
             main_entry["subclasses"].append({
                 "key": sub_key,
                 "name": sub_name,
-                "count": len(items),
                 "kind": sort_kind,
                 "groups": sorted_groups
             })
@@ -1089,10 +1090,10 @@ def render_from_intermediate(intermediate: Dict[str, Any]) -> str:
         for sub_entry in subclasses:
             sub_key = sub_entry.get("key")
             sub_name = sub_entry.get("name") or sub_key
-            count = sub_entry.get("count", 0)
+            groups = sub_entry.get("groups") or []
+            count = sum(_group_count(group) for group in groups)
             lines.append("  " + str(sub_key) + " — " + str(sub_name) + " (" + str(count) + ")")
 
-            groups = sub_entry.get("groups") or []
             display = groups[:MAX_ITEMS_PER_SUBCLASS]
             for group in display:
                 lines.append("    - " + _render_group_line(group, sub_entry.get("kind", "")))
@@ -1123,7 +1124,7 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
             if kind in ("linear", "boundary"):
                 for group in groups:
                     items = group.get("items") or []
-                    if group.get("count", 0) <= 1 or not items:
+                    if _group_count(group) <= 1 or not items:
                         base = items[0] if items else {}
                         cooked_lines.append({
                             "displayLabel": group.get("displayLabel"),
@@ -1144,7 +1145,7 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
 
             for group in named_groups:
                 items = group.get("items") or []
-                if group.get("count", 0) <= 1 or not items:
+                if _group_count(group) <= 1 or not items:
                     cooked_lines.append("- " + _render_group_line(group, kind))
                     continue
                 for idx, item in enumerate(items, start=1):
@@ -1165,7 +1166,7 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
                 location_keys = set()
                 location_value = None
                 for group in unnamed_groups:
-                    total_count += group.get("count", 0)
+                    total_count += _group_count(group)
                     total_length += group.get("totalLength", 0.0)
                     total_area += group.get("totalArea", 0.0)
                     loc = group.get("location")

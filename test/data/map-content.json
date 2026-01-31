@@ -6,15 +6,12 @@
       {
         "key": "A1_secondary_roads",
         "name": "Secondary roads",
-        "count": 1,
         "kind": "linear",
         "groups": [
           {
             "label": "L\u00e4hderannantie",
             "displayLabel": "L\u00e4hderannantie",
             "location": null,
-            "count": 1,
-            "hasName": true,
             "totalLength": 16.966932720523957,
             "totalArea": 0.0,
             "items": [
@@ -64,7 +61,6 @@
                   }
                 ],
                 "length": 16.966932720523957,
-                "hasName": true,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -126,15 +122,12 @@
       {
         "key": "A1_local_streets",
         "name": "Local streets",
-        "count": 3,
         "kind": "linear",
         "groups": [
           {
             "label": "Nuum\u00e4entie",
             "displayLabel": "Nuum\u00e4entie",
             "location": null,
-            "count": 2,
-            "hasName": true,
             "totalLength": 319.05520432850614,
             "totalArea": 0.0,
             "items": [
@@ -183,7 +176,6 @@
                   }
                 ],
                 "length": 16.0926347889242,
-                "hasName": true,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -429,7 +421,6 @@
                   }
                 ],
                 "length": 302.9625695395819,
-                "hasName": true,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -452,8 +443,6 @@
             "label": "Nuuniitynkuja",
             "displayLabel": "Nuuniitynkuja",
             "location": null,
-            "count": 1,
-            "hasName": true,
             "totalLength": 36.41522743963166,
             "totalArea": 0.0,
             "items": [
@@ -522,7 +511,6 @@
                   }
                 ],
                 "length": 36.41522743963166,
-                "hasName": true,
                 "semantics": {
                   "raw": {
                     "maxspeed": "30",
@@ -808,15 +796,12 @@
       {
         "key": "A1_service_roads",
         "name": "Service roads",
-        "count": 22,
         "kind": "linear",
         "groups": [
           {
             "label": null,
             "displayLabel": "(unnamed)",
             "location": null,
-            "count": 22,
-            "hasName": false,
             "totalLength": 997.1622501268046,
             "totalArea": 0.0,
             "items": [
@@ -940,7 +925,6 @@
                   }
                 ],
                 "length": 55.35991572506152,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1041,7 +1025,6 @@
                   }
                 ],
                 "length": 40.17609794794471,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1127,7 +1110,6 @@
                   }
                 ],
                 "length": 36.07313272787226,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1213,7 +1195,6 @@
                   }
                 ],
                 "length": 40.79980512004592,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1424,7 +1405,6 @@
                   }
                 ],
                 "length": 70.47328960088342,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1511,7 +1491,6 @@
                   }
                 ],
                 "length": 131.22360364789728,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1637,7 +1616,6 @@
                   }
                 ],
                 "length": 130.45481817559906,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1703,7 +1681,6 @@
                   }
                 ],
                 "length": 14.587132206160328,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1769,7 +1746,6 @@
                   }
                 ],
                 "length": 48.1461601722197,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1835,7 +1811,6 @@
                   }
                 ],
                 "length": 28.34439283118525,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1907,7 +1882,6 @@
                   }
                 ],
                 "length": 31.26883261332281,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -1999,7 +1973,6 @@
                   }
                 ],
                 "length": 26.07194970608792,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2065,7 +2038,6 @@
                   }
                 ],
                 "length": 15.366409762856124,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2117,7 +2089,6 @@
                   }
                 ],
                 "length": 5.353118161673352,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2183,7 +2154,6 @@
                   }
                 ],
                 "length": 51.94729401707427,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2289,7 +2259,6 @@
                   }
                 ],
                 "length": 58.064255068449356,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2355,7 +2324,6 @@
                   }
                 ],
                 "length": 54.730551322115055,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2436,7 +2404,6 @@
                   }
                 ],
                 "length": 25.424056796664054,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2502,7 +2469,6 @@
                   }
                 ],
                 "length": 50.188664805397096,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2569,7 +2535,6 @@
                   }
                 ],
                 "length": 38.8347682016924,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -2635,7 +2600,6 @@
                   }
                 ],
                 "length": 16.63364706030776,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -2692,7 +2656,6 @@
                   }
                 ],
                 "length": 27.64035445629487,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "service"
@@ -3883,15 +3846,12 @@
       {
         "key": "A2_footpaths_trails",
         "name": "Footpaths / trails",
-        "count": 19,
         "kind": "linear",
         "groups": [
           {
             "label": null,
             "displayLabel": "(unnamed)",
             "location": null,
-            "count": 19,
-            "hasName": false,
             "totalLength": 797.7796393704372,
             "totalArea": 0.0,
             "items": [
@@ -4014,7 +3974,6 @@
                   }
                 ],
                 "length": 257.1883554134748,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -4106,7 +4065,6 @@
                   }
                 ],
                 "length": 30.453397213983944,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "paved",
@@ -4212,7 +4170,6 @@
                   }
                 ],
                 "length": 45.275098800307426,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4293,7 +4250,6 @@
                   }
                 ],
                 "length": 40.97598631784877,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4394,7 +4350,6 @@
                   }
                 ],
                 "length": 82.6864855488189,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -4465,7 +4420,6 @@
                   }
                 ],
                 "length": 16.362217215259026,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4531,7 +4485,6 @@
                   }
                 ],
                 "length": 38.79053506404736,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4597,7 +4550,6 @@
                   }
                 ],
                 "length": 16.783060929921234,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4663,7 +4615,6 @@
                   }
                 ],
                 "length": 15.551830209080276,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4729,7 +4680,6 @@
                   }
                 ],
                 "length": 14.220536479313235,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4795,7 +4745,6 @@
                   }
                 ],
                 "length": 9.332144233776074,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4861,7 +4810,6 @@
                   }
                 ],
                 "length": 9.806908791259684,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4927,7 +4875,6 @@
                   }
                 ],
                 "length": 10.442586996351242,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -4993,7 +4940,6 @@
                   }
                 ],
                 "length": 9.229429126441136,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -5059,7 +5005,6 @@
                   }
                 ],
                 "length": 3.7973983199027197,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -5125,7 +5070,6 @@
                   }
                 ],
                 "length": 8.226874406547488,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "footway"
@@ -5212,7 +5156,6 @@
                   }
                 ],
                 "length": 178.61656885894612,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "unpaved",
@@ -5303,7 +5246,6 @@
                   }
                 ],
                 "length": 7.20314296486216,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "paved",
@@ -5389,7 +5331,6 @@
                   }
                 ],
                 "length": 2.8370824802955603,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "path"
@@ -6278,15 +6219,12 @@
       {
         "key": "A2_cycleways",
         "name": "Cycleways",
-        "count": 4,
         "kind": "linear",
         "groups": [
           {
             "label": null,
             "displayLabel": "(unnamed)",
             "location": null,
-            "count": 3,
-            "hasName": false,
             "totalLength": 104.31583244713379,
             "totalArea": 0.0,
             "items": [
@@ -6396,7 +6334,6 @@
                   }
                 ],
                 "length": 36.100407943031364,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -6476,7 +6413,6 @@
                   }
                 ],
                 "length": 3.785341988246539,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "surface": "asphalt",
@@ -6544,7 +6480,6 @@
                   }
                 ],
                 "length": 64.43008251585589,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "cycleway"
@@ -6557,8 +6492,6 @@
             "label": null,
             "displayLabel": "(unnamed) [bridge, layer=1]",
             "location": null,
-            "count": 1,
-            "hasName": false,
             "totalLength": 5.412099054355507,
             "totalArea": 0.0,
             "items": [
@@ -6607,7 +6540,6 @@
                   }
                 ],
                 "length": 5.412099054355507,
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "cycleway"
@@ -6778,15 +6710,12 @@
       {
         "key": "A4_streams_canals",
         "name": "Streams / canals",
-        "count": 1,
         "kind": "linear",
         "groups": [
           {
             "label": null,
             "displayLabel": "(unnamed)",
             "location": null,
-            "count": 1,
-            "hasName": false,
             "totalLength": 237.4579757744891,
             "totalArea": 0.0,
             "items": [
@@ -6911,8 +6840,7 @@
                     ]
                   }
                 ],
-                "length": 237.4579757744891,
-                "hasName": false
+                "length": 237.4579757744891
               }
             ]
           }
@@ -6981,35 +6909,29 @@
       {
         "key": "A5_connectivity_nodes",
         "name": "Connectivity nodes",
-        "count": 49,
         "kind": "connectivity",
         "groups": [
           {
             "label": "connector: (unnamed)",
             "displayLabel": null,
             "location": null,
-            "count": 49,
-            "hasName": true,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
                 "osmId": 268724899,
                 "osmType": "node",
-                "label": "connector: (unnamed)",
-                "hasName": false
+                "label": "connector: (unnamed)"
               },
               {
                 "osmId": 268725041,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 276457277,
                 "osmType": "node",
                 "label": "crossing: (unnamed)",
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "crossing",
@@ -7026,7 +6948,6 @@
                 "osmId": 276457280,
                 "osmType": "node",
                 "label": "junction: Nuum\u00e4entie",
-                "hasName": true,
                 "semantics": {
                   "raw": {
                     "highway": "turning_circle"
@@ -7036,38 +6957,32 @@
               {
                 "osmId": 1538138535,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 1538139031,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 1539655844,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 1539656211,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 2921555993,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4254168966,
                 "osmType": "node",
                 "label": "crossing: (unnamed)",
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "crossing",
@@ -7084,7 +6999,6 @@
                 "osmId": 4254168969,
                 "osmType": "node",
                 "label": "crossing: (unnamed)",
-                "hasName": false,
                 "semantics": {
                   "raw": {
                     "highway": "crossing",
@@ -7100,230 +7014,192 @@
               {
                 "osmId": 4540138274,
                 "osmType": "node",
-                "label": "junction: Nuuniitynkuja",
-                "hasName": true
+                "label": "junction: Nuuniitynkuja"
               },
               {
                 "osmId": 4540138286,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152725,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 4540152727,
                 "osmType": "node",
-                "label": "connector: (unnamed)",
-                "hasName": false
+                "label": "connector: (unnamed)"
               },
               {
                 "osmId": 4540152732,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 4540152736,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152737,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152741,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152742,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152743,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152754,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 4540152768,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152780,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152782,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 4540152890,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 4540152893,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 4540152903,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 5076856678,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 5076867288,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 5076867294,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 5076867299,
                 "osmType": "node",
-                "label": "connector: (unnamed)",
-                "hasName": false
+                "label": "connector: (unnamed)"
               },
               {
                 "osmId": 5076867300,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 5076867301,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 5113592090,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 6139123141,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
-                "hasName": true
+                "label": "junction: Nuum\u00e4entie"
               },
               {
                 "osmId": 6139126877,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448817945,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448817965,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448817966,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448817969,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448817972,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448840427,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 7448840431,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 11901878576,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 11901878578,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 12285606746,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 12285606749,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               },
               {
                 "osmId": 12741249986,
                 "osmType": "node",
-                "label": "junction: (unnamed)",
-                "hasName": false
+                "label": "junction: (unnamed)"
               }
             ]
           }
@@ -7351,7 +7227,6 @@
       {
         "key": "B1_lakes",
         "name": "Lakes",
-        "count": 1,
         "kind": "area",
         "groups": [
           {
@@ -7360,8 +7235,6 @@
             "location": {
               "center": "near the bottom-left corner of the map"
             },
-            "count": 1,
-            "hasName": true,
             "totalLength": 0.0,
             "totalArea": 585814.0000454999,
             "items": [
@@ -7373,8 +7246,7 @@
                 "location": {
                   "center": "near the bottom-left corner of the map"
                 },
-                "area": 585814.0000454999,
-                "hasName": true
+                "area": 585814.0000454999
               }
             ]
           }
@@ -7392,7 +7264,6 @@
       {
         "key": "C2_public",
         "name": "Functional public buildings",
-        "count": 2,
         "kind": "building",
         "groups": [
           {
@@ -7401,8 +7272,6 @@
             "location": {
               "center": "near the eastern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7414,7 +7283,57 @@
                 "location": {
                   "center": "near the eastern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 1.9,
+                    "insideCells": 68,
+                    "consideredCells": 135,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 63
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 5
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "east"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 68,
+                      "centroid": {
+                        "x": 104.38793529411768,
+                        "y": 60.20817696078431
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "east"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "fillRatio": 0.62,
+                    "aspectRatio": 2.244,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7424,8 +7343,6 @@
             "location": {
               "center": "a little north of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7437,7 +7354,47 @@
                 "location": {
                   "center": "a little north of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.0,
+                    "insideCells": 1,
+                    "consideredCells": 1,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map",
+                        "insideCount": 1
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 1,
+                      "centroid": {
+                        "x": -17.805300000000003,
+                        "y": 77.28505
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           }
@@ -7449,7 +7406,6 @@
       {
         "key": "C3_other_buildings",
         "name": "Other buildings",
-        "count": 44,
         "kind": "building",
         "groups": [
           {
@@ -7458,8 +7414,6 @@
             "location": {
               "center": "near the southern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7471,7 +7425,17 @@
                 "location": {
                   "center": "near the southern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.0,
+                    "insideCells": 0,
+                    "consideredCells": 0,
+                    "gridSize": 60,
+                    "segments": []
+                  },
+                  "edgesTouched": [],
+                  "components": []
+                }
               }
             ]
           },
@@ -7481,8 +7445,6 @@
             "location": {
               "center": "a little north-east of the center of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7494,7 +7456,47 @@
                 "location": {
                   "center": "a little north-east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 4,
+                    "consideredCells": 4,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 4
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 4,
+                      "centroid": {
+                        "x": 83.0914,
+                        "y": 41.615949999999984
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 4.0,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 1376096431,
@@ -7504,7 +7506,48 @@
                 "location": {
                   "center": "a little north-east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 12,
+                    "consideredCells": 48,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 12
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 12,
+                      "centroid": {
+                        "x": 76.33198055555555,
+                        "y": 63.24859861111113
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "refinedFrom": 60,
+                  "shape": {
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "fillRatio": 0.603,
+                    "aspectRatio": 2.096,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7514,8 +7557,6 @@
             "location": {
               "center": "near the eastern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7527,7 +7568,51 @@
                 "location": {
                   "center": "near the eastern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 3,
+                    "consideredCells": 6,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 3
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "east"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 3,
+                      "centroid": {
+                        "x": 115.40472222222222,
+                        "y": 75.96397222222221
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "east"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.75,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7537,8 +7622,6 @@
             "location": {
               "center": "near the southern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7550,7 +7633,47 @@
                 "location": {
                   "center": "near the southern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.0,
+                    "insideCells": 1,
+                    "consideredCells": 1,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map",
+                        "insideCount": 1
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 1,
+                      "centroid": {
+                        "x": 61.32936666666666,
+                        "y": -93.13398333333333
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7560,8 +7683,6 @@
             "location": {
               "center": "a little north of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7573,7 +7694,47 @@
                 "location": {
                   "center": "a little north of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 3,
+                    "consideredCells": 4,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map",
+                        "insideCount": 3
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 3,
+                      "centroid": {
+                        "x": -20.443122222222225,
+                        "y": 60.11103888888888
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.75,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7583,8 +7744,6 @@
             "location": {
               "center": "a little north-west of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7596,7 +7755,53 @@
                 "location": {
                   "center": "a little north-west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 8,
+                    "consideredCells": 16,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map",
+                        "insideCount": 5
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map",
+                        "insideCount": 3
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 8,
+                      "centroid": {
+                        "x": -31.653866666666666,
+                        "y": 45.579183333333326
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 8.0,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7606,8 +7811,6 @@
             "location": {
               "center": "near the northern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7619,7 +7822,47 @@
                 "location": {
                   "center": "near the northern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 9,
+                    "consideredCells": 16,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 9
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 9,
+                      "centroid": {
+                        "x": 11.650381481481475,
+                        "y": 93.57834259259259
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.562,
+                    "aspectRatio": 4.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7629,8 +7872,6 @@
             "location": {
               "center": "a little south of the center of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7642,7 +7883,53 @@
                 "location": {
                   "center": "a little south of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 8,
+                    "consideredCells": 12,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 7
+                      },
+                      {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map",
+                        "insideCount": 1
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 8,
+                      "centroid": {
+                        "x": -7.105427357601002e-15,
+                        "y": -39.63033333333334
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.667,
+                    "aspectRatio": 3.0,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 190330146,
@@ -7652,7 +7939,47 @@
                 "location": {
                   "center": "a little south of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 2,
+                    "consideredCells": 2,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 2
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 2,
+                      "centroid": {
+                        "x": 17.80529999999999,
+                        "y": -35.667100000000005
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 2.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7662,8 +7989,6 @@
             "location": {
               "center": "near the eastern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7675,7 +8000,47 @@
                 "location": {
                   "center": "near the eastern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 3,
+                    "consideredCells": 6,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 3
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 3,
+                      "centroid": {
+                        "x": 94.30214444444444,
+                        "y": -23.11686111111111
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.75,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7685,8 +8050,6 @@
             "location": {
               "center": "near the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7698,7 +8061,47 @@
                 "location": {
                   "center": "near the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 2,
+                    "consideredCells": 2,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map",
+                        "insideCount": 2
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 2,
+                      "centroid": {
+                        "x": 13.84856666666667,
+                        "y": -19.814166666666665
+                      },
+                      "location": {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 2.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7708,8 +8111,6 @@
             "location": {
               "center": "near the eastern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7721,7 +8122,47 @@
                 "location": {
                   "center": "near the eastern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "insideCells": 10,
+                    "consideredCells": 15,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 10
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 10,
+                      "centroid": {
+                        "x": 102.47939333333333,
+                        "y": 19.02552
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.667,
+                    "aspectRatio": 1.667,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7731,8 +8172,6 @@
             "location": {
               "center": "a little east of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7744,7 +8183,47 @@
                 "location": {
                   "center": "a little east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 6,
+                    "consideredCells": 12,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map",
+                        "insideCount": 6
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "centroid": {
+                        "x": 85.72922222222222,
+                        "y": -13.869316666666663
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 67.5,
+                    "orientationLabel": "north-northeast to south-southwest",
+                    "fillRatio": 0.674,
+                    "aspectRatio": 1.466,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7754,8 +8233,6 @@
             "location": {
               "center": "a little south of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7767,7 +8244,53 @@
                 "location": {
                   "center": "a little south of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "insideCells": 11,
+                    "consideredCells": 12,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 6
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 5
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 11,
+                      "centroid": {
+                        "x": 28.23668787878787,
+                        "y": -65.03105606060605
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.917,
+                    "aspectRatio": 1.333,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7777,8 +8300,6 @@
             "location": {
               "center": "near the southern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7790,7 +8311,59 @@
                 "location": {
                   "center": "near the southern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.5,
+                    "insideCells": 17,
+                    "consideredCells": 24,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map",
+                        "insideCount": 9
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 6
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 2
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 17,
+                      "centroid": {
+                        "x": 32.00299019607843,
+                        "y": -91.73519509803921
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.708,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7800,8 +8373,6 @@
             "location": {
               "center": "near the eastern edge of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7813,7 +8384,47 @@
                 "location": {
                   "center": "near the eastern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 6,
+                    "consideredCells": 9,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 6
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "centroid": {
+                        "x": 98.25887777777778,
+                        "y": -42.933027777777774
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.667,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 190330161,
@@ -7823,7 +8434,47 @@
                 "location": {
                   "center": "near the eastern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 6,
+                    "consideredCells": 6,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map",
+                        "insideCount": 6
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "centroid": {
+                        "x": 104.85343333333333,
+                        "y": -55.48326666666666
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "east",
+                        "phrase": "near the eastern edge of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7833,8 +8484,6 @@
             "location": {
               "center": "a little south-east of the center of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7846,7 +8495,47 @@
                 "location": {
                   "center": "a little south-east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 6,
+                    "consideredCells": 12,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 6
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "centroid": {
+                        "x": 55.39426666666666,
+                        "y": -83.2259
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.75,
+                    "aspectRatio": 2.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 190330204,
@@ -7856,7 +8545,47 @@
                 "location": {
                   "center": "a little south-east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "insideCells": 6,
+                    "consideredCells": 6,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 6
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "centroid": {
+                        "x": 51.43753333333333,
+                        "y": -61.428116666666654
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7866,8 +8595,6 @@
             "location": {
               "center": "a little south-east of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7879,7 +8606,47 @@
                 "location": {
                   "center": "a little south-east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "insideCells": 11,
+                    "consideredCells": 15,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 11
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 11,
+                      "centroid": {
+                        "x": 81.11303333333332,
+                        "y": -75.83987424242423
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.733,
+                    "aspectRatio": 1.667,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7889,8 +8656,6 @@
             "location": {
               "center": "near the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7902,7 +8667,53 @@
                 "location": {
                   "center": "near the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "insideCells": 12,
+                    "consideredCells": 36,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map",
+                        "insideCount": 10
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map",
+                        "insideCount": 2
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 12,
+                      "centroid": {
+                        "x": 25.059311111111104,
+                        "y": 7.928466666666665
+                      },
+                      "location": {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 45.0,
+                    "orientationLabel": "northeast-southwest",
+                    "fillRatio": 0.616,
+                    "aspectRatio": 3.343,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7912,8 +8723,6 @@
             "location": {
               "center": "a little north of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7925,7 +8734,53 @@
                 "location": {
                   "center": "a little north of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.6,
+                    "insideCells": 20,
+                    "consideredCells": 64,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map",
+                        "insideCount": 11
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 9
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 20,
+                      "centroid": {
+                        "x": 27.10362333333332,
+                        "y": 59.45049999999999
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 45.0,
+                    "orientationLabel": "northeast-southwest",
+                    "fillRatio": 0.551,
+                    "aspectRatio": 2.478,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7935,8 +8790,6 @@
             "location": {
               "center": "a little east of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7948,7 +8801,53 @@
                 "location": {
                   "center": "a little east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.5,
+                    "insideCells": 17,
+                    "consideredCells": 32,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map",
+                        "insideCount": 9
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northeast",
+                        "phrase": "a little north-east of the center of the map",
+                        "insideCount": 8
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 17,
+                      "centroid": {
+                        "x": 51.3211588235294,
+                        "y": 26.695542156862743
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "fillRatio": 0.598,
+                    "aspectRatio": 2.383,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7958,8 +8857,6 @@
             "location": {
               "center": "near the northern edge of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -7971,7 +8868,51 @@
                 "location": {
                   "center": "near the northern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 5,
+                    "consideredCells": 18,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 5
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "north"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 5,
+                      "centroid": {
+                        "x": -72.40822,
+                        "y": 114.53944333333331
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.833,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 288603135,
@@ -7981,7 +8922,59 @@
                 "location": {
                   "center": "near the northern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.5,
+                    "insideCells": 17,
+                    "consideredCells": 54,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 9
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map",
+                        "insideCount": 6
+                      },
+                      {
+                        "zone": "edge",
+                        "dir": "west",
+                        "phrase": "near the western edge of the map",
+                        "insideCount": 2
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 17,
+                      "centroid": {
+                        "x": -83.6732725490196,
+                        "y": 88.24222450980392
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 67.5,
+                    "orientationLabel": "north-northeast to south-southwest",
+                    "fillRatio": 0.516,
+                    "aspectRatio": 2.986,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -7991,8 +8984,6 @@
             "location": {
               "center": "a little north-west of the center of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8004,7 +8995,53 @@
                 "location": {
                   "center": "a little north-west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.5,
+                    "insideCells": 19,
+                    "consideredCells": 27,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map",
+                        "insideCount": 11
+                      },
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 8
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 19,
+                      "centroid": {
+                        "x": -41.545700000000004,
+                        "y": 85.21151666666665
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.704,
+                    "aspectRatio": 3.0,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 288603350,
@@ -8014,7 +9051,47 @@
                 "location": {
                   "center": "a little north-west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 16,
+                    "consideredCells": 40,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map",
+                        "insideCount": 16
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 16,
+                      "centroid": {
+                        "x": -71.2212,
+                        "y": 53.50564999999999
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 67.5,
+                    "orientationLabel": "north-northeast to south-southwest",
+                    "fillRatio": 0.548,
+                    "aspectRatio": 2.321,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8024,8 +9101,6 @@
             "location": {
               "center": "a little east of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8037,7 +9112,59 @@
                 "location": {
                   "center": "a little east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.5,
+                    "insideCells": 18,
+                    "consideredCells": 32,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map",
+                        "insideCount": 8
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map",
+                        "insideCount": 5
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southeast",
+                        "phrase": "a little south-east of the center of the map",
+                        "insideCount": 5
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 18,
+                      "centroid": {
+                        "x": 31.65386666666666,
+                        "y": -23.777400000000007
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.75,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8047,8 +9174,6 @@
             "location": {
               "center": "near the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8060,7 +9185,47 @@
                 "location": {
                   "center": "near the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.5,
+                    "insideCells": 19,
+                    "consideredCells": 33,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map",
+                        "insideCount": 19
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 19,
+                      "centroid": {
+                        "x": -14.681563157894738,
+                        "y": -1.1452517543859648
+                      },
+                      "location": {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.576,
+                    "aspectRatio": 3.667,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8070,8 +9235,6 @@
             "location": {
               "center": "a little east of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8083,7 +9246,47 @@
                 "location": {
                   "center": "a little east of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "insideCells": 11,
+                    "consideredCells": 16,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map",
+                        "insideCount": 11
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 11,
+                      "centroid": {
+                        "x": 54.85471212121211,
+                        "y": -18.19284393939394
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "east",
+                        "phrase": "a little east of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.917,
+                    "aspectRatio": 1.333,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8093,8 +9296,6 @@
             "location": {
               "center": "a little south of the center of the map"
             },
-            "count": 3,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8106,7 +9307,53 @@
                 "location": {
                   "center": "a little south of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 15,
+                    "consideredCells": 20,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 12
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map",
+                        "insideCount": 3
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 15,
+                      "centroid": {
+                        "x": -21.76203333333333,
+                        "y": -43.197243333333326
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.75,
+                    "aspectRatio": 1.25,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 190330059,
@@ -8116,7 +9363,53 @@
                 "location": {
                   "center": "a little south of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 16,
+                    "consideredCells": 24,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 12
+                      },
+                      {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map",
+                        "insideCount": 4
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 16,
+                      "centroid": {
+                        "x": 2.4729583333333256,
+                        "y": -83.2259
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.667,
+                    "aspectRatio": 2.667,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 190330178,
@@ -8126,7 +9419,47 @@
                 "location": {
                   "center": "a little south of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "insideCells": 11,
+                    "consideredCells": 20,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map",
+                        "insideCount": 11
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 11,
+                      "centroid": {
+                        "x": -20.323221212121215,
+                        "y": -64.6707621212121
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "south",
+                        "phrase": "a little south of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.733,
+                    "aspectRatio": 1.667,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8136,8 +9469,6 @@
             "location": {
               "center": "a little south-west of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8149,7 +9480,47 @@
                 "location": {
                   "center": "a little south-west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.8,
+                    "insideCells": 28,
+                    "consideredCells": 90,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map",
+                        "insideCount": 28
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 28,
+                      "centroid": {
+                        "x": -55.25295476190477,
+                        "y": -63.97590952380953
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 45.0,
+                    "orientationLabel": "northeast-southwest",
+                    "fillRatio": 0.63,
+                    "aspectRatio": 3.032,
+                    "type": "thin"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8159,8 +9530,6 @@
             "location": {
               "center": "near the northern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8172,7 +9541,51 @@
                 "location": {
                   "center": "near the northern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 1.2,
+                    "insideCells": 43,
+                    "consideredCells": 60,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 43
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "north"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 43,
+                      "centroid": {
+                        "x": 65.28609999999999,
+                        "y": 111.2951220930233
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.717,
+                    "aspectRatio": 2.4,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8182,8 +9595,6 @@
             "location": {
               "center": "near the northern edge of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8195,7 +9606,51 @@
                 "location": {
                   "center": "near the northern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 4,
+                    "consideredCells": 4,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 4
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "north"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 4,
+                      "centroid": {
+                        "x": 11.870199999999997,
+                        "y": 114.93576666666665
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 1.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 288601098,
@@ -8205,7 +9660,51 @@
                 "location": {
                   "center": "near the northern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 15,
+                    "consideredCells": 30,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map",
+                        "insideCount": 15
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "north"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 15,
+                      "centroid": {
+                        "x": -18.069082222222224,
+                        "y": 108.46248555555557
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "north",
+                        "phrase": "near the northern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.625,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8215,8 +9714,6 @@
             "location": {
               "center": "near the southern edge of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8228,7 +9725,51 @@
                 "location": {
                   "center": "near the southern edge of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 2,
+                    "consideredCells": 3,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map",
+                        "insideCount": 2
+                      }
+                    ]
+                  },
+                  "edgesTouched": [
+                    "south"
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 2,
+                      "centroid": {
+                        "x": -79.13466666666667,
+                        "y": -116.91338333333333
+                      },
+                      "location": {
+                        "zone": "edge",
+                        "dir": "south",
+                        "phrase": "near the southern edge of the map"
+                      },
+                      "touchesEdge": true,
+                      "edges": [
+                        "south"
+                      ]
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 1.0,
+                    "aspectRatio": 2.0,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8238,8 +9779,6 @@
             "location": {
               "center": "a little west of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8251,7 +9790,53 @@
                 "location": {
                   "center": "a little west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 14,
+                    "consideredCells": 35,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map",
+                        "insideCount": 13
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "northwest",
+                        "phrase": "a little north-west of the center of the map",
+                        "insideCount": 1
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 14,
+                      "centroid": {
+                        "x": -64.43822857142858,
+                        "y": 21.233607142857142
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 67.5,
+                    "orientationLabel": "north-northeast to south-southwest",
+                    "fillRatio": 0.575,
+                    "aspectRatio": 2.43,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8261,8 +9846,6 @@
             "location": {
               "center": "a little west of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8274,7 +9857,53 @@
                 "location": {
                   "center": "a little west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 5,
+                    "consideredCells": 6,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map",
+                        "insideCount": 4
+                      },
+                      {
+                        "zone": "center",
+                        "dir": null,
+                        "phrase": "near the center of the map",
+                        "insideCount": 1
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 5,
+                      "centroid": {
+                        "x": -34.42358,
+                        "y": 16.25125666666667
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.833,
+                    "aspectRatio": 1.5,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8284,8 +9913,6 @@
             "location": {
               "center": "a little north of the center of the map"
             },
-            "count": 1,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8297,7 +9924,48 @@
                 "location": {
                   "center": "a little north of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "insideCells": 11,
+                    "consideredCells": 28,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map",
+                        "insideCount": 11
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 11,
+                      "centroid": {
+                        "x": 19.693740909090902,
+                        "y": 37.20234924242424
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "north",
+                        "phrase": "a little north of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "refinedFrom": 60,
+                  "shape": {
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "fillRatio": 0.603,
+                    "aspectRatio": 2.096,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           },
@@ -8307,8 +9975,6 @@
             "location": {
               "center": "a little west of the center of the map"
             },
-            "count": 2,
-            "hasName": false,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
@@ -8320,7 +9986,53 @@
                 "location": {
                   "center": "a little west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 15,
+                    "consideredCells": 28,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map",
+                        "insideCount": 11
+                      },
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "southwest",
+                        "phrase": "a little south-west of the center of the map",
+                        "insideCount": 4
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 15,
+                      "centroid": {
+                        "x": -68.18770444444446,
+                        "y": -21.267352222222218
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "fillRatio": 0.668,
+                    "aspectRatio": 2.379,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               },
               {
                 "osmId": 190330155,
@@ -8330,7 +10042,47 @@
                 "location": {
                   "center": "a little west of the center of the map"
                 },
-                "hasName": false
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "insideCells": 13,
+                    "consideredCells": 24,
+                    "gridSize": 60,
+                    "segments": [
+                      {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map",
+                        "insideCount": 13
+                      }
+                    ]
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 13,
+                      "centroid": {
+                        "x": -41.545700000000004,
+                        "y": -14.783908974358978
+                      },
+                      "location": {
+                        "zone": "offset_of_center",
+                        "dir": "west",
+                        "phrase": "a little west of the center of the map"
+                      },
+                      "touchesEdge": false,
+                      "edges": []
+                    }
+                  ],
+                  "shape": {
+                    "orientationDeg": 0.0,
+                    "orientationLabel": "east-west",
+                    "fillRatio": 0.619,
+                    "aspectRatio": 2.333,
+                    "type": "regular"
+                  },
+                  "shapeGridSize": 60
+                }
               }
             ]
           }
@@ -8348,7 +10100,6 @@
       {
         "key": null,
         "name": null,
-        "count": 0,
         "kind": null,
         "groups": [],
         "empty": true,
@@ -8363,7 +10114,6 @@
       {
         "key": null,
         "name": null,
-        "count": 0,
         "kind": null,
         "groups": [],
         "empty": true,
