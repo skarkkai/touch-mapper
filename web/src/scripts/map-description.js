@@ -161,7 +161,7 @@
       if (!isFinite(num)) {
         return null;
       }
-      return num.toFixed(2);
+      return num.toFixed(1);
     }
 
     function formatDegrees(value) {
@@ -199,7 +199,7 @@
         return t("map_content_shape_irregular", "Irregular shape");
       }
       if (shapeType === "thin") {
-        return t("map_content_shape_thin", "Thin shape");
+        return t("map_content_shape_thin", "thin shape");
       }
       return capitalizeFirst(shapeType) + " shape";
     }
@@ -212,6 +212,10 @@
       cleaned = cleaned.replace(/^near the /i, "");
       cleaned = cleaned.replace(/^in the /i, "");
       cleaned = cleaned.replace(/^a little /i, "");
+      cleaned = cleaned.replace(/\bnorthern\b/i, "north");
+      cleaned = cleaned.replace(/\bsouthern\b/i, "south");
+      cleaned = cleaned.replace(/\beastern\b/i, "east");
+      cleaned = cleaned.replace(/\bwestern\b/i, "west");
       cleaned = cleaned.replace(/ of the map$/i, "");
       return cleaned;
     }
@@ -285,7 +289,13 @@
         });
       });
       groups.sort(function(a, b){
-        return groupCoveragePercent(b) - groupCoveragePercent(a);
+        const coverageDiff = groupCoveragePercent(b) - groupCoveragePercent(a);
+        if (Math.abs(coverageDiff) > 1e-9) {
+          return coverageDiff;
+        }
+        const aTitle = groupTitleKey(a);
+        const bTitle = groupTitleKey(b);
+        return aTitle.localeCompare(bTitle);
       });
       return groups;
     }
@@ -300,6 +310,10 @@
       }
       parts.forEach(function(part){
         if (!part || part.text === undefined || part.text === null || part.text === "") {
+          return;
+        }
+        if (part.wrap === false) {
+          line.append(document.createTextNode(part.text));
           return;
         }
         const span = $("<span>").text(part.text);
@@ -319,6 +333,44 @@
         return;
       }
       appendLine(listItem, [{ text: text, className: spanClassName }], className);
+    }
+
+    function interpolatedParts(template, replacements, varClassName) {
+      if (!template || typeof template !== 'string') {
+        return [];
+      }
+      const parts = [];
+      const pattern = /__([a-zA-Z0-9_]+)__/g;
+      let lastIndex = 0;
+      let match = pattern.exec(template);
+      while (match) {
+        if (match.index > lastIndex) {
+          parts.push({ text: template.slice(lastIndex, match.index), wrap: false });
+        }
+        const key = match[1];
+        const replacement = replacements && replacements[key] !== undefined
+          ? String(replacements[key])
+          : match[0];
+        parts.push({ text: replacement, className: varClassName });
+        lastIndex = match.index + match[0].length;
+        match = pattern.exec(template);
+      }
+      if (lastIndex < template.length) {
+        parts.push({ text: template.slice(lastIndex), wrap: false });
+      }
+      return parts;
+    }
+
+    function groupTitleKey(group) {
+      const primary = pickPrimaryItem(group);
+      let labelSource = group && (group.displayLabel || group.label);
+      if (!labelSource && primary) {
+        labelSource = primary.displayLabel || primary.label;
+      }
+      const nameParts = splitLabel(labelSource);
+      const title = nameParts.title || "";
+      const subtitle = nameParts.subtitle || "";
+      return (title + " " + subtitle).trim().toLowerCase();
     }
 
     function groupCoveragePercent(group) {
@@ -353,7 +405,7 @@
       }
       const titleParts = [{ text: nameParts.title, className: "map-content-title" }];
       if (nameParts.subtitle) {
-        titleParts.push({ text: " at ", className: "map-content-title-sep" });
+        titleParts.push({ text: " at ", className: "map-content-title-sep", wrap: false });
         titleParts.push({ text: nameParts.subtitle, className: "map-content-subtitle" });
       }
       appendLine(listItem, titleParts, "map-content-title-line");
@@ -364,9 +416,9 @@
       }
       if (touches) {
         if (locationLine.length) {
-          locationLine.push({ text: " (", className: "map-content-location-paren" });
+          locationLine.push({ text: " (", className: "map-content-location-paren", wrap: false });
           locationLine.push({ text: touches, className: "map-content-touches" });
-          locationLine.push({ text: ")", className: "map-content-location-paren" });
+          locationLine.push({ text: ")", className: "map-content-location-paren", wrap: false });
         } else {
           locationLine.push({ text: touches, className: "map-content-touches" });
         }
@@ -382,22 +434,27 @@
       const partsLine = [];
       let coveragePercentText = null;
       if (components && components.length > 1) {
-        partsLine.push({
-          text: interpolate(t("map_content_parts_many", "__count__ parts"), { count: components.length }),
-          className: "map-content-parts-count"
-        });
+        partsLine.push.apply(partsLine, interpolatedParts(
+          t("map_content_parts_many", "__count__ parts"),
+          { count: components.length },
+          "map-content-parts-count"
+        ));
       }
       if (coverage && coverage.coveragePercent !== undefined) {
         const percentText = formatPercent(coverage.coveragePercent);
         if (percentText !== null) {
-          coveragePercentText = interpolate(t("map_content_total_area", "Covers __percent__% of map"), { percent: percentText });
+          coveragePercentText = interpolate(
+            t("map_content_total_area", "Covers __percent__% of map"),
+            { percent: percentText }
+          );
           if (partsLine.length) {
-            partsLine.push({ text: ", ", className: "map-content-parts-sep" });
+            partsLine.push({ text: ", ", className: "map-content-parts-sep", wrap: false });
           }
-          partsLine.push({
-            text: coveragePercentText,
-            className: "map-content-parts-coverage"
-          });
+          partsLine.push.apply(partsLine, interpolatedParts(
+            t("map_content_total_area", "Covers __percent__% of map"),
+            { percent: percentText },
+            "map-content-parts-coverage"
+          ));
         }
       }
       const shape = visibleGeometry && visibleGeometry.shape ? visibleGeometry.shape : null;
@@ -413,11 +470,14 @@
         }
         if (descriptor) {
           if (aspectText) {
-            const aspectLabel = interpolate(t("map_content_aspect_label", "aspect __ratio__"), { ratio: aspectText });
-            shapeLineParts.push({
-              text: descriptor + " (" + aspectLabel + ")",
-              className: "map-content-shape-aspect"
-            });
+            shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
+            shapeLineParts.push({ text: " (", className: "map-content-shape-paren", wrap: false });
+            shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
+              t("map_content_aspect_label", "aspect __ratio__"),
+              { ratio: aspectText },
+              "map-content-shape-aspect"
+            ));
+            shapeLineParts.push({ text: ")", className: "map-content-shape-paren", wrap: false });
           } else {
             shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
           }
@@ -427,21 +487,19 @@
           const degrees = formatDegrees(shape.orientationDeg);
           if (orientationLabel && degrees) {
             if (shapeLineParts.length) {
-              shapeLineParts.push({ text: ", ", className: "map-content-shape-sep" });
+              shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
             }
-            shapeLineParts.push({
-              text: interpolate(t("map_content_orientation", "orientation __label__ (__deg__)"), {
-                label: orientationLabel,
-                deg: degrees
-              }),
-              className: "map-content-shape-orientation"
-            });
+            shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
+              t("map_content_orientation", "orientation __label__ (__deg__)"),
+              { label: orientationLabel, deg: degrees },
+              "map-content-shape-orientation"
+            ));
           }
         }
         const shapeType = shapeTypeLabel(shape.type);
         if (shapeType) {
           if (shapeLineParts.length) {
-            shapeLineParts.push({ text: ", ", className: "map-content-shape-sep" });
+            shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
           }
           shapeLineParts.push({ text: shapeType, className: "map-content-shape-type" });
         }
@@ -452,14 +510,14 @@
 
       const coverageLine = coverageBreakdown(coverage);
       if (coverageLine && coveragePercentText && partsLine.length) {
-        partsLine.push({ text: " ", className: "map-content-coverage-space" });
-        partsLine.push({ text: "(", className: "map-content-coverage-paren" });
+        partsLine.push({ text: " ", className: "map-content-coverage-space", wrap: false });
+        partsLine.push({ text: "(", className: "map-content-coverage-paren", wrap: false });
         partsLine.push({ text: coverageLine, className: "map-content-coverage-segments" });
-        partsLine.push({ text: ")", className: "map-content-coverage-paren" });
+        partsLine.push({ text: ")", className: "map-content-coverage-paren", wrap: false });
       } else if (coverageLine) {
         appendLine(listItem, [
-          { text: t("map_content_coverage_label", "Covers:"), className: "map-content-coverage-label" },
-          { text: " ", className: "map-content-coverage-sep" },
+          { text: t("map_content_coverage_label", "Covers:"), className: "map-content-coverage-label", wrap: false },
+          { text: " ", className: "map-content-coverage-sep", wrap: false },
           { text: coverageLine, className: "map-content-coverage-segments" }
         ], "map-content-coverage");
       }

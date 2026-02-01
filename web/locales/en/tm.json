@@ -201,7 +201,7 @@
     "map_content_shape_elongated": "Elongated",
     "map_content_shape_long_thin": "Long and thin",
     "map_content_shape_irregular": "Irregular shape",
-    "map_content_shape_thin": "Thin shape",
+    "map_content_shape_thin": "thin shape",
     "map_content_aspect_label": "aspect __ratio__",
     "map_content_orientation": "orientation __label__ (__deg__)",
     "map_content_coverage_label": "Covers:",
