@@ -66,14 +66,27 @@
       const components = item && item.visibleGeometry && Array.isArray(item.visibleGeometry.components)
         ? item.visibleGeometry.components
         : null;
-      if (components && components.length && components[0].location && components[0].location.phrase) {
-        return components[0].location.phrase;
+      if (components && components.length && components[0].location) {
+        const locationText = locationPhraseFromLoc(components[0].location.loc, "full");
+        if (locationText) {
+          return locationText;
+        }
       }
       if (item && item.location && item.location.center) {
-        return item.location.center;
+        if (typeof item.location.center === 'string') {
+          return item.location.center;
+        }
+        if (item.location.center && typeof item.location.center === 'object') {
+          return locationPhraseFromLoc(item.location.center.loc, "full") || null;
+        }
       }
       if (group && group.location && group.location.center) {
-        return group.location.center;
+        if (typeof group.location.center === 'string') {
+          return group.location.center;
+        }
+        if (group.location.center && typeof group.location.center === 'object') {
+          return locationPhraseFromLoc(group.location.center.loc, "full") || null;
+        }
       }
       return null;
     }
@@ -84,6 +97,97 @@
       if (edge === "east") return t("map_content_edge_east", "east");
       if (edge === "west") return t("map_content_edge_west", "west");
       return edge;
+    }
+
+    function directionLabel(direction) {
+      if (direction === "north") return t("map_content_dir_north", "north");
+      if (direction === "northeast") return t("map_content_dir_northeast", "north-east");
+      if (direction === "east") return t("map_content_dir_east", "east");
+      if (direction === "southeast") return t("map_content_dir_southeast", "south-east");
+      if (direction === "south") return t("map_content_dir_south", "south");
+      if (direction === "southwest") return t("map_content_dir_southwest", "south-west");
+      if (direction === "west") return t("map_content_dir_west", "west");
+      if (direction === "northwest") return t("map_content_dir_northwest", "north-west");
+      return direction;
+    }
+
+    function cornerLabel(direction) {
+      if (direction === "northwest") return t("map_content_corner_northwest", "top-left corner");
+      if (direction === "northeast") return t("map_content_corner_northeast", "top-right corner");
+      if (direction === "southwest") return t("map_content_corner_southwest", "bottom-left corner");
+      if (direction === "southeast") return t("map_content_corner_southeast", "bottom-right corner");
+      return direction;
+    }
+
+    function locationPhraseFromLoc(loc, mode) {
+      if (!loc || typeof loc !== 'object') {
+        return null;
+      }
+      const kind = loc.kind;
+      const dirLabel = loc.dir ? directionLabel(loc.dir) : null;
+      const corner = loc.dir ? cornerLabel(loc.dir) : null;
+      const isFull = mode === "full";
+      if (kind === "center") {
+        return t(
+          isFull ? "map_content_loc_full_center" : "map_content_loc_center",
+          isFull ? "near the center of the map" : "center"
+        );
+      }
+      if (kind === "offset_center") {
+        if (!dirLabel) {
+          return t(
+            isFull ? "map_content_loc_full_center" : "map_content_loc_center",
+            isFull ? "near the center of the map" : "center"
+          );
+        }
+        return interpolate(
+          t(
+            isFull ? "map_content_loc_full_offset_center" : "map_content_loc_offset_center",
+            isFull ? "a little __dir__ of the center of the map" : "__dir__ of the center"
+          ),
+          { dir: dirLabel }
+        );
+      }
+      if (kind === "part") {
+        if (!dirLabel) {
+          return t(
+            isFull ? "map_content_loc_full_center" : "map_content_loc_center",
+            isFull ? "near the center of the map" : "center"
+          );
+        }
+        return interpolate(
+          t(
+            isFull ? "map_content_loc_full_part" : "map_content_loc_part",
+            isFull ? "in the __dir__ part of the map" : "__dir__ part"
+          ),
+          { dir: dirLabel }
+        );
+      }
+      if (kind === "edge") {
+        if (!dirLabel) {
+          return null;
+        }
+        return interpolate(
+          t(
+            isFull ? "map_content_loc_full_edge" : "map_content_loc_edge",
+            isFull ? "near the __dir__ edge of the map" : "__dir__ edge"
+          ),
+          { dir: dirLabel }
+        );
+      }
+      if (kind === "corner") {
+        if (!corner) {
+          return null;
+        }
+        return interpolate(
+          t(
+            isFull ? "map_content_loc_full_corner" : "map_content_loc_corner",
+            isFull ? "near the __corner__ of the map" : "__corner__"
+          ),
+          { corner: corner }
+        );
+      }
+      return null;
     }
 
     function joinWithAnd(parts) {
@@ -198,26 +302,10 @@
       if (shapeType === "complex") {
         return t("map_content_shape_irregular", "Irregular shape");
       }
-      if (shapeType === "thin") {
-        return t("map_content_shape_thin", "thin shape");
+      if (shapeType === "thin" || shapeType === "regular") {
+        return null;
       }
       return capitalizeFirst(shapeType) + " shape";
-    }
-
-    function tidySegmentPhrase(phrase) {
-      if (!phrase || typeof phrase !== 'string') {
-        return "";
-      }
-      let cleaned = phrase.trim();
-      cleaned = cleaned.replace(/^near the /i, "");
-      cleaned = cleaned.replace(/^in the /i, "");
-      cleaned = cleaned.replace(/^a little /i, "");
-      cleaned = cleaned.replace(/\bnorthern\b/i, "north");
-      cleaned = cleaned.replace(/\bsouthern\b/i, "south");
-      cleaned = cleaned.replace(/\beastern\b/i, "east");
-      cleaned = cleaned.replace(/\bwestern\b/i, "west");
-      cleaned = cleaned.replace(/ of the map$/i, "");
-      return cleaned;
     }
 
     function coverageBreakdown(coverage) {
@@ -248,9 +336,11 @@
         } else if (ratio >= 0.2) {
           qualifierKey = "map_content_coverage_some";
         }
-        const rawPhrase = segment.phrase || segment.dir || segment.zone || "";
-        const segmentText = tidySegmentPhrase(rawPhrase);
-        return interpolate(t(qualifierKey, "some of __segment__"), { segment: segmentText || rawPhrase });
+        const segmentText = locationPhraseFromLoc(segment.loc, "segment") || "";
+        if (!segmentText) {
+          return "";
+        }
+        return interpolate(t(qualifierKey, "some of __segment__"), { segment: segmentText });
       });
       const cleanedPhrases = phrases.filter(Boolean);
       let coverageText = "";
@@ -464,9 +554,9 @@
         const aspectText = formatAspect(aspectRatio);
         let descriptor = null;
         if (aspectRatio >= 3.5) {
-          descriptor = t("map_content_shape_long_thin", "Long and thin");
-        } else if (aspectRatio >= 2) {
-          descriptor = t("map_content_shape_elongated", "Elongated");
+          descriptor = t("map_content_shape_long_thin", "Very thin");
+        } else if (aspectRatio >= 2.5) {
+          descriptor = t("map_content_shape_elongated", "Thin");
         }
         if (descriptor) {
           if (aspectText) {
@@ -546,9 +636,29 @@
       if (!requestId || typeof makeCloudFrontMapContentUrl !== 'function') {
         return null;
       }
-      return $.ajax({
-        url: makeCloudFrontMapContentUrl(requestId)
-      });
+      const retryCount = 20;
+      const retryDelayMs = 500;
+      const deferred = $.Deferred();
+      let attemptsLeft = retryCount;
+
+      function attempt() {
+        const request = $.ajax({
+          url: makeCloudFrontMapContentUrl(requestId)
+        });
+        request.done(function(payload){
+          deferred.resolve(payload);
+        }).fail(function(){
+          if (attemptsLeft > 0) {
+            attemptsLeft -= 1;
+            setTimeout(attempt, retryDelayMs);
+          } else {
+            deferred.reject.apply(deferred, arguments);
+          }
+        });
+      }
+
+      attempt();
+      return deferred.promise();
     }
 
     function showMessage(listElem, message) {

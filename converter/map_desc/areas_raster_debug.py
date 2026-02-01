@@ -119,17 +119,20 @@ def add_mask_120(canvas: Grid, mask: Optional[Mask]) -> None:
                 canvas[row][col] = "X"
 
 
-def _segment_key(boundary: BBox, row: int, col: int, size: int) -> Tuple[str, Optional[str]]:
+def _segment_key(boundary: BBox, row: int, col: int, size: int) -> Tuple[Optional[str], Optional[str]]:
     if not boundary:
-        return "unknown", None
+        return None, None
     dx = (boundary["maxX"] - boundary["minX"]) / size
     dy = (boundary["maxY"] - boundary["minY"]) / size
     x = boundary["minX"] + (col + 0.5) * dx
     y = boundary["minY"] + (row + 0.5) * dy
     classification = classify_location({"x": x, "y": y}, boundary)
     if not classification:
-        return "unknown", None
-    return classification.get("zone") or "unknown", classification.get("dir")
+        return None, None
+    loc = classification.get("loc") if isinstance(classification, dict) else None
+    if not isinstance(loc, dict):
+        return None, None
+    return loc.get("kind"), loc.get("dir")
 
 
 def _segment_borders(boundary: BBox, size: int = 120) -> BorderMap:

@@ -6,11 +6,12 @@ sys.path.insert(1, "%s/py-lib/boto3" % (script_dir,))
 sys.path.insert(1, script_dir)
 
 import re
-import boto3
+import boto3  # type: ignore[import-not-found]
 import json
 import argparse
 import urllib.request
 import subprocess
+import concurrent.futures
 import functools
 import json
 import time
@@ -20,6 +21,7 @@ import gzip
 import copy
 
 STORE_AGE = 8640000
+time_clock = getattr(time, 'clock', time.time)
 
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Create STL and put into S3 based on a SQS request''')
@@ -117,10 +119,10 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
 
 # Receive a message from SQS and delete it. Poll up to "poll_time" seconds. Return parsed request, or None if no msg received.
 def receive_sqs_msg(queue_name, poll_time):
-    end = time.clock() + poll_time
+    end = time_clock() + poll_time
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName = queue_name)
-    while end - time.clock() > 20:
+    while end - time_clock() > 20:
         messages = queue.receive_messages(
             WaitTimeSeconds = 20
         )
@@ -142,10 +144,67 @@ def receive_sqs_msg(queue_name, poll_time):
 
 def svg_to_pdf(svg_path):
     try:
-        import cairosvg
+        import cairosvg  # type: ignore[import-not-found]
         return cairosvg.svg2pdf(url=svg_path)
     except Exception as e:
         raise Exception("Can't convert SVG to PDF: " + str(e))
+
+
+def upload_primary_assets(bucket, json_object_name, info, name_base,
+                          map_object_name, map_content, stl, common_args):
+    # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to
+    # parameters of created maps (obsolete logic since maps are now available for only a few months)
+    bucket.put_object(
+        Key=json_object_name,
+        Body=json.dumps(info).encode('utf8'),
+        ACL='public-read',
+        ContentType='application/json'
+    )
+
+    # Map content description is also read on the map display page, so make sure it's uploaded before STL
+    bucket.put_object(
+        Key=name_base + '.map-content.json',
+        Body=gzip.compress(map_content, compresslevel=5),
+        **common_args,
+        ContentType='application/json'
+    )
+
+    # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
+    bucket.put_object(
+        Key=map_object_name,
+        Body=gzip.compress(stl, compresslevel=5),
+        **common_args,
+        ContentType='application/sla'
+    )
+
+
+def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args):
+    def upload_blob(key, body, content_type):
+        try:
+            bucket.put_object(
+                Key=key,
+                Body=gzip.compress(body, compresslevel=5),
+                **common_args,
+                ContentType=content_type
+            )
+        except Exception as e:
+            print("upload failed for {}: {}".format(key, e))
+
+    uploads = [
+        (name_base + '.svg', svg, 'image/svg+xml'),
+        (name_base + '.pdf', pdf, 'application/pdf'),
+        (name_base + '-ways.stl', stl_ways, 'application/sla'),
+        (name_base + '-rest.stl', stl_rest, 'application/sla'),
+        (name_base + '.blend', blend, 'application/binary')
+    ]
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(uploads)) as executor:
+        futures = [executor.submit(upload_blob, key, body, content_type) for key, body, content_type in uploads]
+        for future in futures:
+            try:
+                future.result()
+            except Exception as e:
+                print("upload worker failed: {}".format(e))
 
 def run_map_desc(raw_meta_path):
     import map_desc
@@ -154,8 +213,11 @@ def run_map_desc(raw_meta_path):
 def main():
     # TODO: if output S3 object already exists, exit immediately
     s3 = None
+    map_bucket_name = None
+    map_object_name = None
+    name_base = None
     try:
-        t = time.clock()
+        t = time_clock()
         environment = os.environ['TM_ENVIRONMENT']
         queue_name = environment + "-requests-touch-mapper"
         map_bucket_name = environment + ".maps.touch-mapper"
@@ -171,8 +233,12 @@ def main():
         # Get OSM data
         s3 = boto3.resource('s3')
         map_object_name = 'map/data/' + request_body['requestId'] + '.stl'
+        name_base = map_object_name[:-4]
+        bucket = s3.Bucket(map_bucket_name)
         progress_updater = functools.partial(update_progress, s3, map_bucket_name, map_object_name)
         osm_path = get_osm(progress_updater, request_body, args.work_dir)
+        if osm_path is None:
+            raise Exception("OSM path not available")
 
         # Convert OSM => STL
         stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
@@ -184,47 +250,28 @@ def main():
         with open(map_content_path, 'rb') as f:
             map_content = f.read()
 
-        # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of every map ever created.
-        json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
-        info = copy.copy(request_body)
-        info.update(meta)
-        s3.Bucket(map_bucket_name).put_object(Key=json_object_name, \
-            Body=json.dumps(info).encode('utf8'), ACL='public-read', ContentType='application/json')
-
-        # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
             'CacheControl': 'max-age=8640000', 'StorageClass': 'GLACIER_IR',
         }
-        s3.Bucket(map_bucket_name).put_object(
-            Key=map_object_name, Body=gzip.compress(stl, compresslevel=5), **common_args, ContentType='application/sla')
-        print("Processing main request took " + str(time.clock() - t))
 
-        # Put SVG to S3. Will be available to the user quickly enough.
-        name_base = map_object_name[:-4]
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '.svg', Body=gzip.compress(svg, compresslevel=5), **common_args, ContentType='image/svg+xml')
+        # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of created maps.
+        json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
+        info = copy.copy(request_body)
+        info.update(meta)
+
+        upload_primary_assets(bucket, json_object_name, info, name_base, map_object_name, map_content, stl, common_args)
+        print("Processing main request took " + str(time_clock() - t))
 
         # Create PDF from SVG and put it to S3
         pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '.pdf', Body=gzip.compress(pdf, compresslevel=5), **common_args, ContentType='application/pdf')
+        upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args)
 
-        # Put the remaining files into S3
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '-ways.stl', Body=gzip.compress(stl_ways, compresslevel=5), **common_args, ContentType='application/sla')
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '-rest.stl', Body=gzip.compress(stl_rest, compresslevel=5), **common_args, ContentType='application/sla')
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '.blend',    Body=gzip.compress(blend, compresslevel=5), **common_args, ContentType='application/binary')
-        s3.Bucket(map_bucket_name).put_object(
-            Key=name_base + '.map-content.json', Body=gzip.compress(map_content, compresslevel=5), **common_args, ContentType='application/json')
-
-        print("Processing entire request took " + str(time.clock() - t))
+        print("Processing entire request took " + str(time_clock() - t))
     except Exception as e:
         try:
             print("process-request failed: " + str(e))
-            if s3 != None:
+            if s3 != None and map_bucket_name is not None and map_object_name is not None:
                 # Put map file that contains just the error message in metadata
                 s3.Bucket(map_bucket_name).put_object(Key=map_object_name, Body=b'', ACL='public-read', \
                     CacheControl='max-age=8640000', StorageClass='GLACIER_IR', Metadata={ 'error-msg': str(e) })

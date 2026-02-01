@@ -17,6 +17,7 @@ else:  # pragma: no cover - blender python may not have typing_extensions
 
 Point = TypedDict("Point", {"x": float, "y": float})
 BBox = TypedDict("BBox", {"minX": float, "minY": float, "maxX": float, "maxY": float})
+LocationLoc = TypedDict("LocationLoc", {"kind": str, "dir": Optional[str]})
 
 
 CENTER_BAND = 0.25
@@ -30,30 +31,6 @@ def _clamp(value: float, min_value: float, max_value: float) -> float:
     if value > max_value:
         return max_value
     return value
-
-
-def _diag_dir(x_dir: Optional[str], y_dir: Optional[str]) -> Optional[str]:
-    if not x_dir and not y_dir:
-        return None
-    if not x_dir:
-        return y_dir
-    if not y_dir:
-        return x_dir
-    return y_dir + x_dir
-
-
-def _diag_phrase(direction: Optional[str]) -> Optional[str]:
-    if not direction:
-        return None
-    if direction == "northwest":
-        return "north-west"
-    if direction == "northeast":
-        return "north-east"
-    if direction == "southwest":
-        return "south-west"
-    if direction == "southeast":
-        return "south-east"
-    return direction
 
 
 def _angle_dir(dx: float, dy: float) -> Optional[str]:
@@ -79,28 +56,8 @@ def _angle_dir(dx: float, dy: float) -> Optional[str]:
     return None
 
 
-def _edge_phrase(direction: Optional[str]) -> Optional[str]:
-    if direction == "west":
-        return "near the western edge of the map"
-    if direction == "east":
-        return "near the eastern edge of the map"
-    if direction == "north":
-        return "near the northern edge of the map"
-    if direction == "south":
-        return "near the southern edge of the map"
-    return None
-
-
-def _corner_phrase(direction: Optional[str]) -> Optional[str]:
-    if direction == "northwest":
-        return "near the top-left corner of the map"
-    if direction == "northeast":
-        return "near the top-right corner of the map"
-    if direction == "southwest":
-        return "near the bottom-left corner of the map"
-    if direction == "southeast":
-        return "near the bottom-right corner of the map"
-    return None
+def _location_loc(kind: str, direction: Optional[str]) -> LocationLoc:
+    return {"kind": kind, "dir": direction}
 
 
 def classify_location(point: Optional[Point],
@@ -132,35 +89,18 @@ def classify_location(point: Optional[Point],
     r = max(abs(dx), abs(dy))
 
     if r <= CENTER_BAND:
-        return {"zone": "center", "dir": None, "phrase": "near the center of the map"}
+        return {"loc": _location_loc("center", None)}
 
     direction = _angle_dir(dx, dy)
-    phrase_dir = _diag_phrase(direction)
-
     if r <= NEAR_CENTER_BAND:
-        if phrase_dir is None:
-            return {
-                "zone": "offset_of_center",
-                "dir": direction,
-                "phrase": "near the center of the map"
-            }
-        return {
-            "zone": "offset_of_center",
-            "dir": direction,
-            "phrase": "a little " + phrase_dir + " of the center of the map"
-        }
+        return {"loc": _location_loc("offset_center", direction)}
 
     if r <= PART_BAND:
-        part_phrase = phrase_dir or "center"
-        return {
-            "zone": "part",
-            "dir": direction,
-            "phrase": "in the " + part_phrase + " part of the map"
-        }
+        return {"loc": _location_loc("part", direction)}
 
     if direction in ("northwest", "northeast", "southwest", "southeast"):
-        return {"zone": "edge", "dir": direction, "phrase": _corner_phrase(direction)}
-    return {"zone": "edge", "dir": direction, "phrase": _edge_phrase(direction)}
+        return {"loc": _location_loc("corner", direction)}
+    return {"loc": _location_loc("edge", direction)}
 
 
 __all__ = ["classify_location"]

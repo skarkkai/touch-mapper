@@ -13,8 +13,6 @@ Ring = List[Tuple[float, float]]
 GRID_BASE = 60
 GRID_REFINED = 120
 
-THIN_ASPECT_RATIO = 3.0
-THIN_FILL_RATIO = 0.6
 COMPLEX_FILL_RATIO = 0.4
 
 ANGLE_DEGREES = (0.0, 22.5, 45.0, 67.5)
@@ -151,14 +149,14 @@ def _make_point(x: float, y: float) -> Point:
     return {"x": x, "y": y}
 
 
-def _segment_key(point: Point, boundary: BBox) -> Tuple[str, Optional[str], str]:
+def _segment_key(point: Point, boundary: BBox) -> Tuple[Optional[str], Optional[str]]:
     classification = classify_location(point, boundary)
     if not classification:
-        return "unknown", None, "unknown"
-    zone = classification.get("zone") or "unknown"
-    direction = classification.get("dir")
-    phrase = classification.get("phrase") or "unknown"
-    return zone, direction, phrase
+        return None, None
+    loc = classification.get("loc") if isinstance(classification, dict) else None
+    loc_kind = loc.get("kind") if isinstance(loc, dict) else None
+    loc_dir = loc.get("dir") if isinstance(loc, dict) else None
+    return loc_kind, loc_dir
 
 
 def _rasterize_polygon(outer: Ring, holes: List[Ring],
@@ -213,7 +211,7 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
 
     mask = [[False for _ in range(grid_size)] for _ in range(grid_size)]
     true_cells = []  # type: List[GridCell]
-    segment_counts = {}  # type: Dict[Tuple[str, Optional[str], str], int]
+    segment_counts = {}  # type: Dict[Tuple[Optional[str], Optional[str]], int]
     considered_count = 0
     inside_count = 0
     edge_hits = {
@@ -248,19 +246,23 @@ def _rasterize_polygon(outer: Ring, holes: List[Ring],
 
     segments = []
     if inside_count:
-        for (zone, direction, phrase), count in segment_counts.items():
-            segments.append({
-                "zone": zone,
-                "dir": direction,
-                "phrase": phrase,
-                "insideCount": count
-            })
-        segments.sort(key=lambda entry: (-entry["insideCount"], entry.get("phrase") or ""))
+        for (loc_kind, loc_dir), count in segment_counts.items():
+            entry = {"insideCount": count}  # type: Dict[str, Any]
+            if loc_kind:
+                entry["loc"] = {"kind": loc_kind, "dir": loc_dir}
+            segments.append(entry)
+        segments.sort(key=lambda entry: (
+            -entry["insideCount"],
+            (entry.get("loc") or {}).get("kind") or "",
+            (entry.get("loc") or {}).get("dir") or ""
+        ))
     if debug:
-        top_segments = [
-            "{}:{}={}".format(seg.get("zone"), seg.get("dir"), seg.get("insideCount"))
-            for seg in segments[:5]
-        ]
+        top_segments = []
+        for seg in segments[:5]:
+            loc = seg.get("loc") or {}
+            top_segments.append(
+                "{}:{}={}".format(loc.get("kind"), loc.get("dir"), seg.get("insideCount"))
+            )
         print("[areas_raster] {} insideCells={} consideredCells={}".format(
             debug_tag, inside_count, considered_count
         ))
@@ -427,27 +429,57 @@ def _shape_from_cells(cells: List[GridCell]) -> Optional[Dict[str, Any]]:
         "fillRatio": round(fill_ratio, 3),
         "aspectRatio": round(aspect_ratio, 3)
     }
-    if fill_ratio >= THIN_FILL_RATIO and aspect_ratio >= THIN_ASPECT_RATIO:
-        result["type"] = "thin"
-    elif fill_ratio <= COMPLEX_FILL_RATIO:
+    if fill_ratio <= COMPLEX_FILL_RATIO:
         result["type"] = "complex"
     else:
         result["type"] = "regular"
     return result
 
 
-def _tidy_segment_phrase(phrase: Optional[str]) -> str:
-    if not phrase or not isinstance(phrase, str):
-        return ""
-    cleaned = phrase.strip()
-    for prefix in ("near the ", "in the ", "a little "):
-        if cleaned.lower().startswith(prefix):
-            cleaned = cleaned[len(prefix):]
-            break
-    suffix = " of the map"
-    if cleaned.lower().endswith(suffix):
-        cleaned = cleaned[:-len(suffix)]
-    return cleaned.strip()
+def _dir_label(direction: Optional[str]) -> Optional[str]:
+    if not direction:
+        return None
+    if direction == "northwest":
+        return "north-west"
+    if direction == "northeast":
+        return "north-east"
+    if direction == "southwest":
+        return "south-west"
+    if direction == "southeast":
+        return "south-east"
+    return direction
+
+
+def _segment_label_from_loc(loc: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not loc or not isinstance(loc, dict):
+        return None
+    kind = loc.get("kind")
+    direction = loc.get("dir")
+    dir_label = _dir_label(direction)
+    if kind == "center":
+        return "center"
+    if kind == "offset_center":
+        if dir_label:
+            return "{} of center".format(dir_label)
+        return "center"
+    if kind == "part":
+        if dir_label:
+            return "{} part".format(dir_label)
+        return "center"
+    if kind == "edge":
+        if dir_label:
+            return "{} edge".format(dir_label)
+        return "edge"
+    if kind == "corner":
+        if direction == "northwest":
+            return "top-left corner"
+        if direction == "northeast":
+            return "top-right corner"
+        if direction == "southwest":
+            return "bottom-left corner"
+        if direction == "southeast":
+            return "bottom-right corner"
+    return None
 
 
 def _coverage_breakdown_text(segments: List[Dict[str, Any]],
@@ -472,8 +504,9 @@ def _coverage_breakdown_text(segments: List[Dict[str, Any]],
             qualifier = "some of"
         else:
             qualifier = "a little of"
-        raw_phrase = segment.get("phrase") or segment.get("dir") or segment.get("zone") or ""
-        segment_text = _tidy_segment_phrase(raw_phrase) or raw_phrase
+        segment_text = _segment_label_from_loc(segment.get("loc"))
+        if not segment_text:
+            continue
         phrases.append("{} {}".format(qualifier, segment_text))
         percent = 0.0
         if total_cells > 0:

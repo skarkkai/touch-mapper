@@ -86,29 +86,67 @@ def _get_name(tags: Optional[Dict[str, Any]]) -> Optional[str]:
     )
 
 
-def _location_phrase(location: Optional[Dict[str, Any]]) -> Optional[str]:
-    # Extract the pre-built location phrase if available.
-    if not location or not location.get("phrase"):
+def _loc_from_classification(location: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not location or not isinstance(location, dict):
         return None
-    return location.get("phrase")
+    loc = location.get("loc")
+    if isinstance(loc, dict):
+        return loc
+    zone = location.get("zone")
+    direction = location.get("dir")
+    if zone == "center":
+        return {"kind": "center", "dir": None}
+    if zone == "offset_of_center":
+        return {"kind": "offset_center", "dir": direction}
+    if zone == "part":
+        return {"kind": "part", "dir": direction}
+    if zone == "edge":
+        if direction in ("northwest", "northeast", "southwest", "southeast"):
+            return {"kind": "corner", "dir": direction}
+        return {"kind": "edge", "dir": direction}
+    return None
 
 
-def _location_struct_from_phrase(phrase: Optional[str], key: str) -> Optional[Dict[str, Optional[str]]]:
-    # Wrap a single location phrase in a structured container.
-    if not phrase:
+def _extract_loc(value: Optional[Any]) -> Optional[Dict[str, Any]]:
+    if not value or not isinstance(value, dict):
         return None
-    return {key: phrase}
+    loc = value.get("loc")
+    if isinstance(loc, dict):
+        return loc
+    if "kind" in value or "dir" in value:
+        return value
+    return None
 
 
-def _location_key(location: Optional[Dict[str, Optional[str]]]) -> str:
-    # Stable string key for grouping by location phrases.
+def _loc_key(loc: Optional[Dict[str, Any]]) -> str:
+    if not loc or not isinstance(loc, dict):
+        return ""
+    kind = loc.get("kind") or ""
+    direction = loc.get("dir") or ""
+    if direction:
+        return str(kind) + ":" + str(direction)
+    return str(kind)
+
+
+def _location_struct_from_loc(loc: Optional[Dict[str, Any]], key: str) -> Optional[Dict[str, Any]]:
+    if not loc:
+        return None
+    return {key: {"loc": loc}}
+
+
+def _location_key(location: Optional[Dict[str, Any]]) -> str:
+    # Stable string key for grouping by location locs.
     if not location:
         return ""
     parts = []
     for key in ("start", "end", "center", "point"):
         value = location.get(key)
-        if value:
-            parts.append(key + "=" + value)
+        if isinstance(value, dict):
+            loc = _extract_loc(value)
+            if loc:
+                parts.append(key + "=" + _loc_key(loc))
+        elif value:
+            parts.append(key + "=" + str(value))
     return "|".join(parts)
 
 
@@ -118,13 +156,78 @@ def _attach_semantics(entry: Dict[str, Any], item: Dict[str, Any]) -> None:
         entry["semantics"] = semantics
 
 
-def _render_location_text(location: Optional[Dict[str, Optional[str]]], kind: str) -> Optional[str]:
-    # Render a human-readable location string from structured phrases.
+def _dir_label(direction: Optional[str]) -> Optional[str]:
+    if not direction:
+        return None
+    if direction == "northwest":
+        return "north-west"
+    if direction == "northeast":
+        return "north-east"
+    if direction == "southwest":
+        return "south-west"
+    if direction == "southeast":
+        return "south-east"
+    return direction
+
+
+def _corner_label(direction: Optional[str]) -> Optional[str]:
+    if direction == "northwest":
+        return "top-left corner"
+    if direction == "northeast":
+        return "top-right corner"
+    if direction == "southwest":
+        return "bottom-left corner"
+    if direction == "southeast":
+        return "bottom-right corner"
+    return None
+
+
+def _loc_phrase(loc: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not loc or not isinstance(loc, dict):
+        return None
+    kind = loc.get("kind")
+    direction = loc.get("dir")
+    dir_label = _dir_label(direction)
+    if kind == "center":
+        return "near the center of the map"
+    if kind == "offset_center":
+        if dir_label:
+            return "a little " + dir_label + " of the center of the map"
+        return "near the center of the map"
+    if kind == "part":
+        if dir_label:
+            return "in the " + dir_label + " part of the map"
+        return "near the center of the map"
+    if kind == "edge":
+        if dir_label:
+            return "near the " + dir_label + " edge of the map"
+        return "near the edge of the map"
+    if kind == "corner":
+        corner = _corner_label(direction)
+        if corner:
+            return "near the " + corner + " of the map"
+        return "near the corner of the map"
+    return None
+
+
+def _location_value_phrase(value: Optional[Any]) -> Optional[str]:
+    if isinstance(value, dict):
+        loc = _extract_loc(value)
+        phrase = _loc_phrase(loc)
+        if phrase:
+            return phrase
+    if isinstance(value, str):
+        return value
+    return None
+
+
+def _render_location_text(location: Optional[Dict[str, Any]], kind: str) -> Optional[str]:
+    # Render a human-readable location string from structured locs.
     if not location:
         return None
-    start_phrase = location.get("start")
-    end_phrase = location.get("end")
-    center_phrase = location.get("center") or location.get("point")
+    start_phrase = _location_value_phrase(location.get("start"))
+    end_phrase = _location_value_phrase(location.get("end"))
+    center_phrase = _location_value_phrase(location.get("center")) or _location_value_phrase(location.get("point"))
     if kind in ("linear", "boundary"):
         if not start_phrase and not end_phrase and not center_phrase:
             return None
@@ -214,13 +317,16 @@ def _sample_point(coords: List[List[float]], t: float) -> Tuple[float, float]:
 
 
 def _location_zone_for_point(point: Tuple[float, float],
-                             boundary: Optional[Boundary]) -> Optional[str]:
+                             boundary: Optional[Boundary]) -> Optional[Dict[str, Any]]:
     if not boundary:
         return None
     classification = classify_location({"x": point[0], "y": point[1]}, boundary)
     if not classification:
         return None
-    return classification.get("phrase")
+    loc = classification.get("loc") if isinstance(classification, dict) else None
+    if isinstance(loc, dict):
+        return loc
+    return _loc_from_classification(classification)
 
 
 def _sample_location_samples(coords: List[List[float]],
@@ -335,20 +441,20 @@ def _merge_samples_events(location_samples: List[Dict[str, Any]],
             merged.append({"type": "location_sample", "t": sample.get("t"), "zone": sample.get("zone")})
 
     collapsed = []
-    for idx, token in enumerate(merged):
-        if token.get("type") != "location_sample":
-            collapsed.append(token)
+    for idx, entry in enumerate(merged):
+        if entry.get("type") != "location_sample":
+            collapsed.append(entry)
             continue
-        prev_token = merged[idx - 1] if idx > 0 else None
-        next_token = merged[idx + 1] if idx + 1 < len(merged) else None
-        zone = token.get("zone")
-        if prev_token and prev_token.get("zone") == zone:
+        prev_entry = merged[idx - 1] if idx > 0 else None
+        next_entry = merged[idx + 1] if idx + 1 < len(merged) else None
+        zone = entry.get("zone")
+        if prev_entry and prev_entry.get("zone") == zone:
             continue
-        if next_token and next_token.get("zone") == zone:
+        if next_entry and next_entry.get("zone") == zone:
             continue
         if collapsed and collapsed[-1].get("type") == "location_sample" and collapsed[-1].get("zone") == zone:
             continue
-        collapsed.append(token)
+        collapsed.append(entry)
     return collapsed
 
 
@@ -729,8 +835,8 @@ def _summarize_building_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": ", ".join(parts),
-        "location": _location_struct_from_phrase(
-            _location_phrase(item.get("_classification", {}).get("locationCenter")),
+        "location": _location_struct_from_loc(
+            _loc_from_classification(item.get("_classification", {}).get("locationCenter")),
             "center"
         )
     }
@@ -770,8 +876,8 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
             "osmType": item.get("osmType"),
             "label": name,
             "displayLabel": label + ": " + name,
-            "location": _location_struct_from_phrase(
-                _location_phrase(item.get("_classification", {}).get("location")),
+            "location": _location_struct_from_loc(
+                _loc_from_classification(item.get("_classification", {}).get("location")),
                 "point"
             )
         }
@@ -782,8 +888,8 @@ def _summarize_poi_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "osmType": item.get("osmType"),
         "label": None,
         "displayLabel": label,
-        "location": _location_struct_from_phrase(
-            _location_phrase(item.get("_classification", {}).get("location")),
+        "location": _location_struct_from_loc(
+            _loc_from_classification(item.get("_classification", {}).get("location")),
             "point"
         )
     }
@@ -827,8 +933,8 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
         "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": base,
-        "location": _location_struct_from_phrase(
-            _location_phrase(item.get("_classification", {}).get("locationCenter")),
+        "location": _location_struct_from_loc(
+            _loc_from_classification(item.get("_classification", {}).get("locationCenter")),
             "center"
         ),
         "area": _compute_area(item.get("geometry"), item.get("bounds")),
