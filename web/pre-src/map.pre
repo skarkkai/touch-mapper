@@ -227,10 +227,10 @@ window.TM = { translations: {
   </div>
 
   <div class="map-description map-content-row">
-    <h2><span>{{ map_content_heading }}</span></h2>
+    <h3>{{ map_content_heading }}</h3>
     <div class="map-content">
       <div class="row map-content-buildings-row">
-        <h3>{{ map_content_subheading_buildings }}</h3>
+        <h4>{{ map_content_subheading_buildings }}</h4>
         <ul class="map-content-buildings"></ul>
       </div>
     </div>
