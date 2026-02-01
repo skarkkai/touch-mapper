@@ -3,7 +3,7 @@ from __future__ import division
 
 from typing import List, Optional, Tuple
 
-from .map_desc_loc_segments import classify_location
+from .map_desc_loc_segments import BBox, classify_location
 
 
 Grid = List[List[str]]
@@ -119,15 +119,7 @@ def add_mask_120(canvas: Grid, mask: Optional[Mask]) -> None:
                 canvas[row][col] = "X"
 
 
-def _slot(mark: str) -> str:
-    if mark == "X":
-        return "X.  "
-    if mark == "*":
-        return "*.  "
-    return " .  "
-
-
-def _segment_key(boundary: dict, row: int, col: int, size: int) -> Tuple[str, Optional[str]]:
+def _segment_key(boundary: BBox, row: int, col: int, size: int) -> Tuple[str, Optional[str]]:
     if not boundary:
         return "unknown", None
     dx = (boundary["maxX"] - boundary["minX"]) / size
@@ -140,7 +132,7 @@ def _segment_key(boundary: dict, row: int, col: int, size: int) -> Tuple[str, Op
     return classification.get("zone") or "unknown", classification.get("dir")
 
 
-def _segment_borders(boundary: dict, size: int = 120) -> BorderMap:
+def _segment_borders(boundary: BBox, size: int = 120) -> BorderMap:
     borders = [[False for _ in range(size)] for _ in range(size)]
     if not boundary:
         return borders
@@ -209,7 +201,7 @@ def _union_mask(mask_60: Optional[Mask], mask_120: Optional[Mask]) -> Mask:
     return filled
 
 
-def print_union_grid(mask_60: Optional[Mask], mask_120: Optional[Mask], boundary: Optional[dict]) -> None:
+def print_union_grid(mask_60: Optional[Mask], mask_120: Optional[Mask], boundary: Optional[BBox]) -> None:
     canvas = make_canvas(120)
     add_mask_60(canvas, mask_60)
     add_mask_120(canvas, mask_120)

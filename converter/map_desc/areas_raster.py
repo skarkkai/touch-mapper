@@ -20,6 +20,7 @@ COMPLEX_FILL_RATIO = 0.4
 ANGLE_DEGREES = (0.0, 22.5, 45.0, 67.5)
 ORIENTATION_LABELS = {
     0.0: "east-west",
+    90.0: "north-south",
     22.5: "east-northeast to west-southwest",
     45.0: "northeast-southwest",
     67.5: "north-northeast to south-southwest"
@@ -345,8 +346,22 @@ def _shape_from_cells(cells: List[GridCell]) -> Optional[Dict[str, Any]]:
     if not cells:
         return None
     points = []
+    min_x = None
+    max_x = None
+    min_y = None
+    max_y = None
     for row, col in cells:
-        points.append((col + 0.5, row + 0.5))
+        x = col + 0.5
+        y = row + 0.5
+        points.append((x, y))
+        if min_x is None or x < min_x:
+            min_x = x
+        if max_x is None or x > max_x:
+            max_x = x
+        if min_y is None or y < min_y:
+            min_y = y
+        if max_y is None or y > max_y:
+            max_y = y
     area_cells = float(len(points))
 
     best = None
@@ -398,9 +413,17 @@ def _shape_from_cells(cells: List[GridCell]) -> Optional[Dict[str, Any]]:
     fill_ratio = best["fillRatio"]
     aspect_ratio = best["aspectRatio"]
     angle = best["angle"]
+    orientation_deg = angle
+    orientation_label = ORIENTATION_LABELS.get(angle)
+    if angle == 0.0 and min_x is not None and max_x is not None and min_y is not None and max_y is not None:
+        span_x = max_x - min_x
+        span_y = max_y - min_y
+        if span_y > span_x and aspect_ratio > 1.05:
+            orientation_deg = 90.0
+            orientation_label = ORIENTATION_LABELS.get(orientation_deg)
     result = {
-        "orientationDeg": angle,
-        "orientationLabel": ORIENTATION_LABELS.get(angle),
+        "orientationDeg": orientation_deg,
+        "orientationLabel": orientation_label,
         "fillRatio": round(fill_ratio, 3),
         "aspectRatio": round(aspect_ratio, 3)
     }
@@ -411,6 +434,60 @@ def _shape_from_cells(cells: List[GridCell]) -> Optional[Dict[str, Any]]:
     else:
         result["type"] = "regular"
     return result
+
+
+def _tidy_segment_phrase(phrase: Optional[str]) -> str:
+    if not phrase or not isinstance(phrase, str):
+        return ""
+    cleaned = phrase.strip()
+    for prefix in ("near the ", "in the ", "a little "):
+        if cleaned.lower().startswith(prefix):
+            cleaned = cleaned[len(prefix):]
+            break
+    suffix = " of the map"
+    if cleaned.lower().endswith(suffix):
+        cleaned = cleaned[:-len(suffix)]
+    return cleaned.strip()
+
+
+def _coverage_breakdown_text(segments: List[Dict[str, Any]],
+                             total_inside: int,
+                             total_cells: int) -> Tuple[Optional[str], List[str]]:
+    if not segments or total_inside <= 0:
+        return None, []
+    ordered = [seg for seg in segments if isinstance(seg, dict) and isinstance(seg.get("insideCount"), (int, float))]
+    if not ordered:
+        return None, []
+    ordered.sort(key=lambda entry: -entry.get("insideCount", 0))
+    phrases = []
+    percents = []
+    for segment in ordered:
+        inside_count = float(segment.get("insideCount", 0))
+        if inside_count <= 0:
+            continue
+        ratio = inside_count / float(total_inside)
+        if ratio >= 0.5:
+            qualifier = "much of"
+        elif ratio >= 0.2:
+            qualifier = "some of"
+        else:
+            qualifier = "a little of"
+        raw_phrase = segment.get("phrase") or segment.get("dir") or segment.get("zone") or ""
+        segment_text = _tidy_segment_phrase(raw_phrase) or raw_phrase
+        phrases.append("{} {}".format(qualifier, segment_text))
+        percent = 0.0
+        if total_cells > 0:
+            percent = round(100.0 * inside_count / float(total_cells), 1)
+        percents.append("{}={:.1f}%".format(segment_text, percent))
+    if not phrases:
+        return None, []
+    if len(phrases) == 1:
+        summary = phrases[0]
+    elif len(phrases) == 2:
+        summary = phrases[0] + " and " + phrases[1]
+    else:
+        summary = ", ".join(phrases[:-1]) + ", and " + phrases[-1]
+    return summary, percents
 
 
 def analyze_area_visibility(geometry: Dict[str, Any],
@@ -484,6 +561,13 @@ def analyze_area_visibility(geometry: Dict[str, Any],
         print("[areas_raster] {} gridSize={} insideCells={} coveragePercent={}".format(
             debug_tag, grid_size, inside_count, coverage_percent
         ))
+        coverage_summary, coverage_percents = _coverage_breakdown_text(
+            analysis.get("segments", []), inside_count, total_cells
+        )
+        if coverage_summary:
+            print("[areas_raster] {} coverageSegments={}".format(debug_tag, coverage_summary))
+        if coverage_percents:
+            print("[areas_raster] {} coverageSegmentsPercent={}".format(debug_tag, coverage_percents))
         if refined_from:
             print("[areas_raster] {} refinedFrom={}".format(debug_tag, refined_from))
 

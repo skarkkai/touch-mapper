@@ -7978,8 +7978,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.667,
                     "aspectRatio": 3.0,
                     "type": "thin"
@@ -8028,8 +8028,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 1.0,
                     "aspectRatio": 2.0,
                     "type": "regular"
@@ -8150,8 +8150,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 1.0,
                     "aspectRatio": 2.0,
                     "type": "regular"
@@ -8651,8 +8651,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 1.0,
                     "aspectRatio": 1.5,
                     "type": "regular"
@@ -9127,8 +9127,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.704,
                     "aspectRatio": 3.0,
                     "type": "thin"
@@ -9256,8 +9256,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.75,
                     "aspectRatio": 1.5,
                     "type": "regular"
@@ -9317,8 +9317,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.576,
                     "aspectRatio": 3.667,
                     "type": "regular"
@@ -9585,8 +9585,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.667,
                     "aspectRatio": 2.667,
                     "type": "regular"
@@ -9641,8 +9641,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.733,
                     "aspectRatio": 1.667,
                     "type": "regular"
@@ -9837,8 +9837,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.625,
                     "aspectRatio": 1.5,
                     "type": "regular"
@@ -10246,8 +10246,8 @@
                     }
                   ],
                   "shape": {
-                    "orientationDeg": 0.0,
-                    "orientationLabel": "east-west",
+                    "orientationDeg": 90.0,
+                    "orientationLabel": "north-south",
                     "fillRatio": 0.619,
                     "aspectRatio": 2.333,
                     "type": "regular"
