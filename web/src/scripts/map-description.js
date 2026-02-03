@@ -452,7 +452,7 @@
 
     function insertMapDescription(info, container) {
       if (! info.objectInfos) {
-        info.info.objectInfos = {};
+        info.objectInfos = {};
       }
       insertRoads(info, container);
       insertPois(info, container);

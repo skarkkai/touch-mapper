@@ -164,6 +164,7 @@
     "drag_map": "Karte ziehen, um Gebiet anzupassen",
     "map_diameter": "Kartendurchmesser",
     "label_3d_preview": "3D-Vorschau der taktilen Karte",
+    "map_preview_controls_hint": "Sie können die Karte zoomen, drehen und verschieben",
     "tooltip_selected_address": "Gewählte Adresse",
     "meters": "Meter",
     "yards": "Yards",

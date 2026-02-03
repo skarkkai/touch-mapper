@@ -170,6 +170,7 @@
     "drag_map": "Drag the map to adjust location",
     "map_diameter": "Map diameter",
     "label_3d_preview": "3D preview of the tactile map",
+    "map_preview_controls_hint": "You can zoom, rotate and pan the map",
     "tooltip_selected_address": "Selected address",
     "meters": "meters",
     "yards": "yards",

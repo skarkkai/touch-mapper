@@ -164,6 +164,7 @@
     "drag_map": "Sleep de kaart om de locatie aan te passen",
     "map_diameter": "Kaartdiameter",
     "label_3d_preview": "3D-preview van de tactiele kaart",
+    "map_preview_controls_hint": "U kunt inzoomen, roteren en de kaart verschuiven",
     "tooltip_selected_address": "Geselecteerd adres",
     "meters": "meter",
     "yards": "yard",

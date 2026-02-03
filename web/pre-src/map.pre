@@ -1,6 +1,17 @@
 <div class="show-on-load" style="display: none">
-  <script src="../scripts/three-20160121.min.js"></script>
-  <script src="../scripts/three-STLLoader-20160122.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "three": "../scripts/three-r182.module.js",
+    "three/addons/": "../scripts/three-addons/"
+  }
+}
+  </script>
+  <script type="module">
+window.tmImportModule = function(modulePath) {
+  return import(modulePath);
+};
+  </script>
   <script>
 window.TM = { translations: {
   "location2_bottom_left": "{{ location2_bottom_left }}",
@@ -185,6 +196,7 @@ window.TM = { translations: {
             <div class="preview-3d square-block" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></div>
           </div>
       </div>
+      <p class="preview-3d-hint">{{ map_preview_controls_hint }}</p>
     </div>
   </div>
 
