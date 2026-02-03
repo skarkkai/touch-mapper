@@ -1,4 +1,8 @@
 {
     "makefile.configureOnOpen": false,
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "eslint.useFlatConfig": true,
+    "eslint.workingDirectories": [
+        { "directory": "web", "changeProcessCWD": true }
+    ]
 }
