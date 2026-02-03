@@ -128,7 +128,7 @@
     return parts.slice(0, -1).join(", ") + ", and " + parts[parts.length - 1];
   }
 
-  function collectWayItems(mapContent) {
+  function collectWayGroups(mapContent) {
     const ways = [];
     const classA = mapContent && typeof mapContent === 'object' ? mapContent.A : null;
     const subclasses = classA && Array.isArray(classA.subclasses) ? classA.subclasses : [];
@@ -138,18 +138,13 @@
         return;
       }
       subclass.groups.forEach(function(group){
-        if (!group || !Array.isArray(group.items)) {
+        if (!group || typeof group !== 'object') {
           return;
         }
-        group.items.forEach(function(item){
-          if (!item || typeof item !== 'object') {
-            return;
-          }
-          ways.push({
-            item: item,
-            subclassOrder: subclassOrder,
-            subclassType: singularSubclassType(subclass.key, subclass.name)
-          });
+        ways.push({
+          group: group,
+          subclassOrder: subclassOrder,
+          subclassType: singularSubclassType(subclass.key, subclass.name)
         });
       });
     });
@@ -158,17 +153,17 @@
       if (a.subclassOrder !== b.subclassOrder) {
         return a.subclassOrder - b.subclassOrder;
       }
-      const lengthDiff = wayLengthValue(b.item) - wayLengthValue(a.item);
+      const lengthDiff = wayLengthValue(b.group) - wayLengthValue(a.group);
       if (Math.abs(lengthDiff) > 1e-9) {
         return lengthDiff;
       }
-      return wayTitle(a.item).localeCompare(wayTitle(b.item));
+      return wayTitle(a.group).localeCompare(wayTitle(b.group));
     });
     return ways;
   }
 
-  function wayLengthValue(item) {
-    const value = item && item.length;
+  function wayLengthValue(group) {
+    const value = group && (group.totalLength !== undefined ? group.totalLength : group.length);
     if (value === null || value === undefined || isNaN(value)) {
       return 0;
     }
@@ -179,16 +174,16 @@
     return Math.max(0, number);
   }
 
-  function wayTitle(item) {
-    const label = item && (item.displayLabel || item.label);
+  function wayTitle(group) {
+    const label = group && (group.displayLabel || group.label);
     if (!label || label === "(unnamed)") {
       return t("map_content_way_unnamed", "Unnamed way");
     }
     return capitalizeFirst(label);
   }
 
-  function wayName(item) {
-    const label = item && (item.displayLabel || item.label);
+  function wayName(group) {
+    const label = group && (group.displayLabel || group.label);
     if (!label || label === "(unnamed)") {
       return null;
     }
@@ -291,8 +286,29 @@
     return null;
   }
 
-  function routeText(item) {
-    const segments = item && Array.isArray(item.visibleSegments) ? item.visibleSegments : [];
+  function segmentList(target) {
+    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : null;
+    if (visibleGeometry) {
+      if (!visibleGeometry.length) {
+        return [];
+      }
+      if (visibleGeometry[0] && Array.isArray(visibleGeometry[0].segments)) {
+        const flattened = [];
+        visibleGeometry.forEach(function(bucket){
+          const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
+          segments.forEach(function(segment){
+            flattened.push(segment);
+          });
+        });
+        return flattened;
+      }
+      return visibleGeometry;
+    }
+    return target && Array.isArray(target.visibleSegments) ? target.visibleSegments : [];
+  }
+
+  function routeText(target) {
+    const segments = segmentList(target);
     if (!segments.length) {
       return null;
     }
@@ -318,8 +334,8 @@
     return null;
   }
 
-  function collectEdges(item) {
-    const segments = item && Array.isArray(item.visibleSegments) ? item.visibleSegments : [];
+  function collectEdges(target) {
+    const segments = segmentList(target);
     const found = {};
     segments.forEach(function(segment){
       const events = segment && Array.isArray(segment.events) ? segment.events : [];
@@ -344,8 +360,8 @@
     return ordered;
   }
 
-  function edgesText(item) {
-    const edges = collectEdges(item);
+  function edgesText(target) {
+    const edges = collectEdges(target);
     if (!edges.length) {
       return null;
     }
@@ -386,8 +402,20 @@
     return null;
   }
 
-  function wayDetailsText(item) {
+  function primaryWay(group) {
+    const ways = group && Array.isArray(group.ways) ? group.ways : [];
+    if (!ways.length) {
+      return null;
+    }
+    return ways[0];
+  }
+
+  function wayDetailsText(group) {
     const parts = [];
+    const item = primaryWay(group);
+    if (!item) {
+      return "";
+    }
     const lanes = lanesText(item);
     if (lanes) {
       parts.push(lanes);
@@ -399,13 +427,13 @@
     return parts.join(", ");
   }
 
-  function locationSummaryText(item) {
+  function locationSummaryText(group) {
     const parts = [];
-    const route = routeText(item);
+    const route = routeText(group);
     if (route) {
       parts.push(route);
     }
-    const edges = edgesText(item);
+    const edges = edgesText(group);
     if (edges) {
       parts.push(edges);
     }
@@ -441,18 +469,19 @@
   }
 
   function renderWay(entry, listElem) {
-    const item = entry && entry.item ? entry.item : null;
-    if (!item) {
+    const group = entry && entry.group ? entry.group : null;
+    if (!group) {
       return;
     }
     const listItem = $("<li>").addClass("map-content-way");
-    if (item.osmId !== undefined && item.osmId !== null) {
-      listItem.attr("data-osm-id", String(item.osmId));
+    const mainWay = primaryWay(group);
+    if (mainWay && mainWay.osmId !== undefined && mainWay.osmId !== null) {
+      listItem.attr("data-osm-id", String(mainWay.osmId));
     }
 
     const typeText = entry.subclassType || null;
-    const nameText = wayName(item);
-    const lengthText = formatLength(item);
+    const nameText = wayName(group);
+    const lengthText = formatLength(group);
     let lineText = "";
 
     if (!nameText) {
@@ -470,14 +499,14 @@
       { text: capitalizeFirst(lineText), className: "map-content-title" }
     ], "map-content-title-line");
 
-    const locationText = locationSummaryText(item);
+    const locationText = locationSummaryText(group);
     if (locationText) {
       appendLine(listItem, [
         { text: capitalizeFirst(locationText), className: "map-content-location-text" }
       ], "map-content-location");
     }
 
-    const detailsText = wayDetailsText(item);
+    const detailsText = wayDetailsText(group);
     if (detailsText) {
       appendLine(listItem, [
         { text: capitalizeFirst(detailsText), className: "map-content-way-details-text" }
@@ -492,7 +521,7 @@
       return 0;
     }
     setTranslator(helpers);
-    const entries = collectWayItems(mapContent);
+    const entries = collectWayGroups(mapContent);
     entries.forEach(function(entry){
       renderWay(entry, listElem);
     });

@@ -409,64 +409,6 @@ def _event_sort_key(event: Dict[str, Any]) -> Tuple[float, int]:
     return event.get("t", 0.0), order.get(evt_type, 99)
 
 
-def _merge_samples_events(location_samples: List[Dict[str, Any]],
-                          events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    samples_by_t = {}
-    for sample in location_samples:
-        t_val = sample.get("t")
-        if t_val is None:
-            continue
-        samples_by_t[float(t_val)] = sample
-    events_by_t = {}
-    for event in events:
-        t_val = event.get("t")
-        if t_val is None:
-            continue
-        events_by_t.setdefault(float(t_val), []).append(event)
-    for t_val in events_by_t:
-        events_by_t[t_val] = sorted(events_by_t[t_val], key=_event_sort_key)
-
-    merged = []
-    all_ts = sorted(set(list(samples_by_t.keys()) + list(events_by_t.keys())))
-    for t_val in all_ts:
-        events_at_t = events_by_t.get(t_val, [])
-        for event in events_at_t:
-            merged.append(dict(event))
-        sample = samples_by_t.get(t_val)
-        if sample:
-            if events_at_t:
-                has_zone = any(event.get("zone") for event in events_at_t)
-                if has_zone:
-                    continue
-            merged.append({"type": "location_sample", "t": sample.get("t"), "zone": sample.get("zone")})
-
-    collapsed = []
-    for idx, entry in enumerate(merged):
-        if entry.get("type") != "location_sample":
-            collapsed.append(entry)
-            continue
-        prev_entry = merged[idx - 1] if idx > 0 else None
-        next_entry = merged[idx + 1] if idx + 1 < len(merged) else None
-        zone = entry.get("zone")
-        if prev_entry and prev_entry.get("zone") == zone:
-            continue
-        if next_entry and next_entry.get("zone") == zone:
-            continue
-        if collapsed and collapsed[-1].get("type") == "location_sample" and collapsed[-1].get("zone") == zone:
-            continue
-        collapsed.append(entry)
-    return collapsed
-
-
-def _build_cooked_segments(base: Dict[str, Any]) -> List[Dict[str, Any]]:
-    segments = []
-    for segment in base.get("visibleSegments") or []:
-        samples = segment.get("locationSamples") or []
-        events = segment.get("events") or []
-        segments.append({"sequence": _merge_samples_events(samples, events)})
-    return segments
-
-
 def _segment_events(coords: List[List[float]],
                     boundary: Optional[Boundary],
                     connectors: List[Dict[str, Any]],
@@ -533,6 +475,7 @@ def _build_visible_segments(item: Dict[str, Any],
         indexed.append((idx, coords, _polyline_length(coords)))
     for _, coords, length in sorted(indexed, key=lambda entry: (-entry[2], entry[0])):
         segments.append({
+            "length": length,
             "locationSamples": _sample_location_samples(coords, boundary),
             "events": _segment_events(coords, boundary, connectors, connections_index, emit_connectivity)
         })
@@ -766,7 +709,7 @@ def _summarize_linear_base(item: Dict[str, Any],
         "osmType": item.get("osmType"),
         "label": name if name else None,
         "displayLabel": (name if name else "(unnamed)") + mod_suffix,
-        "visibleSegments": visible_segments,
+        "visibleGeometry": visible_segments,
         "length": _compute_line_length(item)
     }
     _attach_semantics(summary, item)
@@ -988,10 +931,68 @@ def _group_count(group: Dict[str, Any]) -> int:
     count = group.get("count")
     if isinstance(count, int):
         return count
+    ways = group.get("ways")
+    if isinstance(ways, list):
+        return len(ways)
     items = group.get("items")
     if isinstance(items, list):
         return len(items)
     return 0
+
+
+def _build_way_groups(items: List[Dict[str, Any]],
+                      boundary: Optional[Boundary],
+                      connectors: List[Dict[str, Any]],
+                      connections_index: Dict[str, List[Dict[str, Any]]],
+                      emit_connectivity: bool) -> List[Dict[str, Any]]:
+    # Ways are grouped by displayLabel to keep one top-level entry per logical way.
+    groups = OrderedDict()
+    for item in items:
+        base = _summarize_linear_base(
+            item, boundary, connectors, connections_index, emit_connectivity
+        )
+        display_label = base.get("displayLabel") or ""
+        is_unnamed = (base.get("label") is None) or display_label.startswith("(unnamed)")
+        if is_unnamed:
+            key = display_label + "||" + str(base.get("osmType") or "") + ":" + str(base.get("osmId"))
+        else:
+            key = display_label
+        group = groups.get(key)
+        if not group:
+            groups[key] = {
+                "label": base.get("label"),
+                "displayLabel": display_label,
+                "totalLength": 0.0,
+                "totalArea": 0.0,
+                "ways": [],
+                "visibleGeometry": []
+            }
+            group = groups[key]
+        if base.get("length"):
+            group["totalLength"] += base.get("length")
+        group["ways"].append(base)
+
+    for group in groups.values():
+        ways = group.get("ways") or []
+        sorted_ways = sorted(
+            ways,
+            key=lambda entry: (
+                -(entry.get("length") or 0.0),
+                entry.get("osmId") is None,
+                entry.get("osmId") or 0
+            )
+        )
+        group["ways"] = sorted_ways
+        buckets = []
+        for way in sorted_ways:
+            visible = way.get("visibleGeometry")
+            buckets.append({
+                "osmId": way.get("osmId"),
+                "segments": visible if isinstance(visible, list) else []
+            })
+        group["visibleGeometry"] = buckets
+
+    return list(groups.values())
 
 
 def _build_groups(items: List[Dict[str, Any]], kind: str,
@@ -1161,9 +1162,14 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
                 geom_type = items[0].get("geometry", {}).get("type")
                 kind = "area" if geom_type == "polygon" else "linear"
 
-            grouped_items = _build_groups(
-                items, kind, road_names_by_coord, boundary, connectors, connections_index, emit_connectivity
-            )
+            if main_key == "A" and kind == "linear":
+                grouped_items = _build_way_groups(
+                    items, boundary, connectors, connections_index, emit_connectivity
+                )
+            else:
+                grouped_items = _build_groups(
+                    items, kind, road_names_by_coord, boundary, connectors, connections_index, emit_connectivity
+                )
             sort_kind = "boundary" if (kind == "linear" and main_key == "E") else kind
             sorted_groups = _sort_groups(grouped_items, sort_kind)
 
@@ -1215,86 +1221,10 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
                       output_path: str, map_data: Optional[Dict[str, Any]] = None,
                       options_override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     # Code below creates stage "Final map content" data.
-    # Persist intermediate data with cooked summaries embedded per subclass.
+    # Persist structured grouped output for map content consumers.
     intermediate = build_intermediate(grouped, spec, map_data, options_override)
     content = OrderedDict()  # type: OrderedDict
     for main_entry in intermediate.get("raw", []):
-        subclasses = main_entry.get("subclasses") or []
-        for sub_entry in subclasses:
-            if sub_entry.get("empty"):
-                sub_entry["cooked"] = []
-                continue
-            groups = sub_entry.get("groups") or []
-            kind = sub_entry.get("kind", "")
-            cooked_lines = []
-            if kind in ("linear", "boundary"):
-                for group in groups:
-                    items = group.get("items") or []
-                    if _group_count(group) <= 1 or not items:
-                        base = items[0] if items else {}
-                        cooked_lines.append({
-                            "displayLabel": group.get("displayLabel"),
-                            "segments": _build_cooked_segments(base)
-                        })
-                        continue
-                    for idx, item in enumerate(items, start=1):
-                        base_label = group.get("displayLabel") or group.get("label") or "(unnamed)"
-                        cooked_lines.append({
-                            "displayLabel": base_label + " (" + str(idx) + ")",
-                            "segments": _build_cooked_segments(item)
-                        })
-                sub_entry["cooked"] = cooked_lines
-                continue
-
-            unnamed_groups = [group for group in groups if group.get("label") is None]
-            named_groups = [group for group in groups if group.get("label") is not None]
-
-            for group in named_groups:
-                items = group.get("items") or []
-                if _group_count(group) <= 1 or not items:
-                    cooked_lines.append("- " + _render_group_line(group, kind))
-                    continue
-                for idx, item in enumerate(items, start=1):
-                    base_label = group.get("displayLabel") or group.get("label") or "(unnamed)"
-                    item_group = {
-                        "displayLabel": base_label + " (" + str(idx) + ")",
-                        "location": item.get("location"),
-                        "count": 1,
-                        "totalLength": item.get("length"),
-                        "totalArea": item.get("area")
-                    }
-                    cooked_lines.append("- " + _render_group_line(item_group, kind))
-
-            if unnamed_groups:
-                total_count = 0
-                total_length = 0.0
-                total_area = 0.0
-                location_keys = set()
-                location_value = None
-                for group in unnamed_groups:
-                    total_count += _group_count(group)
-                    total_length += group.get("totalLength", 0.0)
-                    total_area += group.get("totalArea", 0.0)
-                    loc = group.get("location")
-                    location_keys.add(_location_key(loc))
-                    if location_value is None:
-                        location_value = loc
-                if len(location_keys) > 1:
-                    location_value = {"center": "multiple locations"}
-                combined = {
-                    "displayLabel": "(unnamed)",
-                    "location": location_value,
-                    "count": total_count,
-                    "totalLength": total_length,
-                    "totalArea": total_area
-                }
-                cooked_lines.append("- " + _render_group_line(combined, kind))
-
-            if len(cooked_lines) > MAX_ITEMS_PER_SUBCLASS:
-                cooked_lines = cooked_lines[:MAX_ITEMS_PER_SUBCLASS] + [
-                    "- ... (+" + str(len(cooked_lines) - MAX_ITEMS_PER_SUBCLASS) + " more)"
-                ]
-            sub_entry["cooked"] = cooked_lines
         key = main_entry.get("key") or "unknown"
         content[key] = main_entry
     if map_data:

@@ -115,4 +115,4 @@ Diff from previous: items are grouped/sorted with display labels, counts, length
 
 Created at: map_desc_render.py
 Stored as: map-content.json
-Diff from previous: adds “cooked” human‑readable summaries/segments per subclass.
+Diff from previous: serializes structured grouped data for all classes.
