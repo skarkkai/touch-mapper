@@ -67,14 +67,35 @@
     listElem.append($("<li>").text(message));
   }
 
-  function getAreaRenderer() {
-    if (!window.TM || !window.TM.mapDescAreas) {
+  function getRenderer(name) {
+    if (!window.TM || !window.TM[name]) {
       return null;
     }
-    if (typeof window.TM.mapDescAreas.render !== 'function') {
+    if (typeof window.TM[name].render !== 'function') {
       return null;
     }
-    return window.TM.mapDescAreas;
+    return window.TM[name];
+  }
+
+  function renderSection(listElem, renderer, mapContent, helpers, fallbackKey, fallbackText) {
+    if (!listElem || !listElem.length) {
+      return;
+    }
+    if (!renderer) {
+      showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
+      return;
+    }
+
+    listElem.empty();
+    const count = renderer.render(mapContent, listElem, helpers);
+    if (count > 0) {
+      return;
+    }
+    if (typeof renderer.emptyMessage === 'function') {
+      showMessage(listElem, renderer.emptyMessage(helpers));
+      return;
+    }
+    showMessage(listElem, t(fallbackKey, fallbackText));
   }
 
   // Entry point: read map-content.json and populate "Map content" block.
@@ -82,38 +103,59 @@
     if (!container || !container.length) {
       return;
     }
-    const listElem = container.find(".map-content-buildings");
-    if (!listElem.length) {
+    const waysListElem = container.find(".map-content-ways");
+    const buildingsListElem = container.find(".map-content-buildings");
+    if (!waysListElem.length && !buildingsListElem.length) {
       return;
     }
-    listElem.empty();
+    waysListElem.empty();
+    buildingsListElem.empty();
 
-    const renderer = getAreaRenderer();
-    if (!renderer) {
-      showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
-      return;
-    }
+    const waysRenderer = getRenderer("mapDescWays");
+    const buildingsRenderer = getRenderer("mapDescAreas");
 
     const requestId = info ? info.requestId : null;
     const request = loadMapContent(requestId);
     if (!request) {
-      showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
+      if (waysListElem.length) {
+        showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      if (buildingsListElem.length) {
+        showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
+      }
       return;
     }
 
     request.done(function(payload){
       const mapContent = parseMapContent(payload);
-      const count = renderer.render(mapContent, listElem, { t: t });
-      if (count > 0) {
-        return;
+      const helpers = { t: t };
+      if (waysListElem.length) {
+        renderSection(
+          waysListElem,
+          waysRenderer,
+          mapContent,
+          helpers,
+          "map_content_no_ways",
+          "No ways listed for this map."
+        );
       }
-      if (typeof renderer.emptyMessage === 'function') {
-        showMessage(listElem, renderer.emptyMessage({ t: t }));
-        return;
+      if (buildingsListElem.length) {
+        renderSection(
+          buildingsListElem,
+          buildingsRenderer,
+          mapContent,
+          helpers,
+          "map_content_no_buildings",
+          "No buildings listed for this map."
+        );
       }
-      showMessage(listElem, t("map_content_no_features", "No map features listed for this map."));
     }).fail(function(){
-      showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
+      if (waysListElem.length) {
+        showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      if (buildingsListElem.length) {
+        showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
+      }
     });
   }
 

@@ -77,7 +77,21 @@ window.TM = { translations: {
   "content__unnamed_roads": "{{ content__unnamed_roads }}",
   "location_general": "{{ location_general }}",
   "map_content_heading": "{{ map_content_heading }}",
+  "map_content_subheading_ways": "{{ map_content_subheading_ways }}",
   "map_content_subheading_buildings": "{{ map_content_subheading_buildings }}",
+  "map_content_way_unnamed": "{{ map_content_way_unnamed }}",
+  "map_content_no_ways": "{{ map_content_no_ways }}",
+  "map_content_way_route_from_to": "{{ map_content_way_route_from_to }}",
+  "map_content_way_route_near": "{{ map_content_way_route_near }}",
+  "map_content_way_junction_one": "{{ map_content_way_junction_one }}",
+  "map_content_way_junction_many": "{{ map_content_way_junction_many }}",
+  "map_content_way_length_m": "{{ map_content_way_length_m }}",
+  "map_content_way_lanes_many": "{{ map_content_way_lanes_many }}",
+  "map_content_way_surface_paved": "{{ map_content_way_surface_paved }}",
+  "map_content_way_surface_unpaved": "{{ map_content_way_surface_unpaved }}",
+  "map_content_way_meta": "{{ map_content_way_meta }}",
+  "map_content_way_meta_type_only": "{{ map_content_way_meta_type_only }}",
+  "map_content_way_meta_length_only": "{{ map_content_way_meta_length_only }}",
   "map_content_building_unnamed": "{{ map_content_building_unnamed }}",
   "map_content_no_buildings": "{{ map_content_no_buildings }}",
   "map_content_unavailable": "{{ map_content_unavailable }}",
@@ -229,6 +243,10 @@ window.TM = { translations: {
   <div class="map-description map-content-row">
     <h3>{{ map_content_heading }}</h3>
     <div class="map-content">
+      <div class="row map-content-ways-row">
+        <h4>{{ map_content_subheading_ways }}</h4>
+        <ul class="map-content-ways"></ul>
+      </div>
       <div class="row map-content-buildings-row">
         <h4>{{ map_content_subheading_buildings }}</h4>
         <ul class="map-content-buildings"></ul>
