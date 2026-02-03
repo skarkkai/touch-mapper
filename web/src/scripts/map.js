@@ -3,6 +3,20 @@
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 (function(){
+  function showMapDescriptionError(error) {
+    var errMsg = error && error.message ? error.message : String(error || "Unknown error");
+    var row = $(".map-content-row");
+    if (!row.length) {
+      return;
+    }
+    row.show();
+    row.find(".map-content")
+      .removeClass("initial-state")
+      .empty()
+      .append($("<p>").addClass("error-msg").text(errMsg));
+    row.find(".show-more").hide();
+  }
+
   function initPrintingMethod() {
 
     $("#printing-method-order").change(function(){
@@ -56,7 +70,14 @@
         permaUrl: makeMapPermaUrl(info.requestId),
     };
 
-    insertMapDescription(info, $(".map-content")); // from map-description.js
+    try {
+      insertMapDescription(info, $(".map-content")); // from map-description.js
+    } catch (error) {
+      if (window.console && window.console.error) {
+        window.console.error("Failed to render map description", error);
+      }
+      showMapDescriptionError(error);
+    }
 
     //$("#order-map").attr("href", PLAYFUL_PIXELS_URL
     //  + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))

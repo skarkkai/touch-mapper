@@ -164,6 +164,7 @@
     "drag_map": "Raahaa karttaa sopivaan kohtaan",
     "map_diameter": "Kartan halkaisija",
     "label_3d_preview": "Kohokartan 3D-esikatselu",
+    "map_preview_controls_hint": "Voit zoomata, kiertää ja siirtää karttaa",
     "tooltip_selected_address": "Valittu osoite",
     "meters": "metriä",
     "yards": "jaardia",
