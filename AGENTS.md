@@ -62,6 +62,10 @@ Don't try to preserve backward compatibility in the converter portion (folder "c
 - See `README.md` for full local setup steps (dependencies, AWS CLI, and web dev workflow).
 - `init.sh` installs system dependencies and builds `OSM2World` (use it for full setup).
 
+## Deployed map inspection
+- For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.
+- Keep that guide in sync with live deployed behavior in `web/src/scripts/app-common.js` and `web/src/scripts/map.js`.
+
 ## OSM2World
 - `OSM2World/` is a modified upstream dependency, rarely modified.
 - To build, it's safest to run `ant clean jar`
