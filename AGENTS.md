@@ -42,6 +42,8 @@ This file captures project-specific conventions and "gotchas" that help especial
 
 Don't try to preserve backward compatibility in the converter portion (folder "converter"): any time changes are made to how data is produced, matching changes will made to the final consumer which is the UI. However when making changes to just UI, ask if backward compatibility should be maintained.
 
+Pay a lot of attention to accessibility of UI and the content presented on it, because this is a tool for visually impaired people.
+
 ## Python conventions
 - Write modern Python; avoid Python 2 compatibility hacks.
   - Python runtime is always `blender/2.78/python/bin/python3.5m` or similar; when starting, find out its version.

@@ -7,6 +7,8 @@
 (function(){
   'use strict';
 
+  const MAX_VISIBLE_BUILDINGS = 10;
+
   function translations() {
     return window.TM && window.TM.translations ? window.TM.translations : {};
   }
@@ -17,6 +19,67 @@
       return dict[key];
     }
     return fallback !== undefined ? fallback : key;
+  }
+
+  function interpolate(text, replacements) {
+    if (!replacements) {
+      return text;
+    }
+    return text.replace(/__([a-zA-Z0-9_]+)__/g, function(match, name) {
+      if (replacements[name] === undefined) {
+        return match;
+      }
+      return replacements[name];
+    });
+  }
+
+  function showMoreBuildingsLabel(hiddenCount) {
+    if (hiddenCount === 1) {
+      return t("map_content_show_more_buildings_one", "Show 1 more building");
+    }
+    return interpolate(
+      t("map_content_show_more_buildings_many", "Show __count__ more buildings"),
+      { count: hiddenCount }
+    );
+  }
+
+  function applyBuildingsListLimit(listElem, maxVisible) {
+    if (!listElem || !listElem.length) {
+      return;
+    }
+    const row = listElem.closest(".map-content-buildings-row");
+    row.find(".map-content-buildings-toggle").remove();
+
+    const buildingItems = listElem.children("li.map-content-building");
+    if (buildingItems.length <= maxVisible) {
+      return;
+    }
+
+    const hiddenItems = buildingItems.slice(maxVisible);
+    hiddenItems.hide();
+
+    const button = $("<button>")
+      .attr("type", "button")
+      .addClass("map-content-buildings-toggle")
+      .attr("aria-expanded", "false")
+      .text(showMoreBuildingsLabel(hiddenItems.length));
+
+    button.on("click", function(){
+      const isExpanded = button.attr("aria-expanded") === "true";
+      if (isExpanded) {
+        hiddenItems.hide();
+        button
+          .attr("aria-expanded", "false")
+          .text(showMoreBuildingsLabel(hiddenItems.length));
+        return;
+      }
+      hiddenItems.show();
+      button
+        .attr("aria-expanded", "true")
+        .text(t("map_content_show_less_buildings", "Show fewer buildings"));
+    });
+
+    listElem.after(button);
   }
 
   function parseMapContent(payload) {
@@ -79,23 +142,27 @@
 
   function renderSection(listElem, renderer, mapContent, helpers, fallbackKey, fallbackText) {
     if (!listElem || !listElem.length) {
-      return;
+      return 0;
     }
     if (!renderer) {
       showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
-      return;
+      return 0;
     }
 
     listElem.empty();
-    const count = renderer.render(mapContent, listElem, helpers);
+    const renderedCount = renderer.render(mapContent, listElem, helpers);
+    const count = (typeof renderedCount === "number" && isFinite(renderedCount))
+      ? renderedCount
+      : (parseInt(renderedCount, 10) || 0);
     if (count > 0) {
-      return;
+      return count;
     }
     if (typeof renderer.emptyMessage === 'function') {
       showMessage(listElem, renderer.emptyMessage(helpers));
-      return;
+      return 0;
     }
     showMessage(listElem, t(fallbackKey, fallbackText));
+    return 0;
   }
 
   // Entry point: read map-content.json and populate "Map content" block.
@@ -148,6 +215,7 @@
           "map_content_no_buildings",
           "No buildings listed for this map."
         );
+        applyBuildingsListLimit(buildingsListElem, MAX_VISIBLE_BUILDINGS);
       }
     }).fail(function(){
       if (waysListElem.length) {
