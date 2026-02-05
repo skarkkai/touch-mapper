@@ -75,6 +75,8 @@ window.TM = { translations: {
   "location3_mostly_left_column": "{{ location3_mostly_left_column }}",
 
   "content__unnamed_roads": "{{ content__unnamed_roads }}",
+  "map_content_unnamed_roads_one": "{{ map_content_unnamed_roads_one }}",
+  "map_content_unnamed_roads_many": "{{ map_content_unnamed_roads_many }}",
   "location_general": "{{ location_general }}",
   "map_content_heading": "{{ map_content_heading }}",
   "map_content_subheading_ways": "{{ map_content_subheading_ways }}",
@@ -89,6 +91,7 @@ window.TM = { translations: {
   "map_content_way_lanes_many": "{{ map_content_way_lanes_many }}",
   "map_content_way_surface_paved": "{{ map_content_way_surface_paved }}",
   "map_content_way_surface_unpaved": "{{ map_content_way_surface_unpaved }}",
+  "map_content_way_surface_unknown": "{{ map_content_way_surface_unknown }}",
   "map_content_way_meta": "{{ map_content_way_meta }}",
   "map_content_way_meta_type_only": "{{ map_content_way_meta_type_only }}",
   "map_content_way_meta_length_only": "{{ map_content_way_meta_length_only }}",

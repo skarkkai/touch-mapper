@@ -249,6 +249,24 @@
     return interpolate(t("map_content_way_length_m", "__meters__ meters"), { meters: rounded });
   }
 
+  function unnamedRoadsCountText(count) {
+    if (count === null || count === undefined || isNaN(count)) {
+      return null;
+    }
+    const rounded = Math.max(0, Math.round(Number(count)));
+    if (!rounded) {
+      return null;
+    }
+    const isOne = rounded === 1;
+    return interpolate(
+      t(
+        isOne ? "map_content_unnamed_roads_one" : "map_content_unnamed_roads_many",
+        isOne ? "__count__ unnamed road" : "__count__ unnamed roads"
+      ),
+      { count: rounded }
+    );
+  }
+
   function collectSegmentPoints(segment) {
     const points = [];
     const events = segment && Array.isArray(segment.events) ? segment.events : [];
@@ -390,16 +408,31 @@
   }
 
   function surfacePavingText(item) {
+    const klass = surfaceClass(item);
+    return surfacePavingTextFromClass(klass);
+  }
+
+  function surfaceClass(item) {
     const sem = item && item.semantics && typeof item.semantics === 'object' ? item.semantics : null;
     const surface = sem && sem.surface && typeof sem.surface === 'object' ? sem.surface : null;
     const klass = surface && typeof surface.class === 'string' ? surface.class : null;
+    if (klass === "paved") {
+      return "paved";
+    }
+    if (klass === "unpaved") {
+      return "unpaved";
+    }
+    return "unknown";
+  }
+
+  function surfacePavingTextFromClass(klass) {
     if (klass === "paved") {
       return t("map_content_way_surface_paved", "Paved surface");
     }
     if (klass === "unpaved") {
       return t("map_content_way_surface_unpaved", "Unpaved surface");
     }
-    return null;
+    return t("map_content_way_surface_unknown", "Paving not known");
   }
 
   function primaryWay(group) {
@@ -423,19 +456,6 @@
     const surface = surfacePavingText(item);
     if (surface) {
       parts.push(surface);
-    }
-    return parts.join(", ");
-  }
-
-  function locationSummaryText(group) {
-    const parts = [];
-    const route = routeText(group);
-    if (route) {
-      parts.push(route);
-    }
-    const edges = edgesText(group);
-    if (edges) {
-      parts.push(edges);
     }
     return parts.join(", ");
   }
@@ -499,10 +519,17 @@
       { text: capitalizeFirst(lineText), className: "map-content-title" }
     ], "map-content-title-line");
 
-    const locationText = locationSummaryText(group);
-    if (locationText) {
+    const routeSummary = routeText(group);
+    if (routeSummary) {
       appendLine(listItem, [
-        { text: capitalizeFirst(locationText), className: "map-content-location-text" }
+        { text: capitalizeFirst(routeSummary), className: "map-content-location-text" }
+      ], "map-content-location");
+    }
+
+    const edgeSummary = edgesText(group);
+    if (edgeSummary) {
+      appendLine(listItem, [
+        { text: capitalizeFirst(edgeSummary), className: "map-content-location-text" }
       ], "map-content-location");
     }
 
@@ -516,16 +543,84 @@
     listElem.append(listItem);
   }
 
+  function unnamedSurfaceClass(entry) {
+    const item = primaryWay(entry && entry.group ? entry.group : null);
+    return surfaceClass(item);
+  }
+
+  function summarizeUnnamedWays(entries) {
+    const buckets = {
+      paved: { surfaceClass: "paved", count: 0, totalLength: 0 },
+      unpaved: { surfaceClass: "unpaved", count: 0, totalLength: 0 },
+      unknown: { surfaceClass: "unknown", count: 0, totalLength: 0 }
+    };
+    const orderedClasses = ["paved", "unpaved", "unknown"];
+
+    entries.forEach(function(entry){
+      const klass = unnamedSurfaceClass(entry);
+      const bucket = buckets[klass] || buckets.unknown;
+      bucket.count += 1;
+      bucket.totalLength += wayLengthValue(entry.group);
+    });
+
+    return orderedClasses
+      .map(function(klass){ return buckets[klass]; })
+      .filter(function(summary){ return summary.count > 0; });
+  }
+
+  function renderUnnamedWaySummary(summary, listElem) {
+    if (!summary || !listElem || !listElem.length) {
+      return;
+    }
+    const listItem = $("<li>").addClass("map-content-way");
+    listItem.attr("data-unnamed-surface", summary.surfaceClass);
+
+    const lengthText = formatLength({ totalLength: summary.totalLength });
+    let titleText = unnamedRoadsCountText(summary.count) || t("content__unnamed_roads", "Unnamed roads");
+    if (lengthText) {
+      titleText += ", " + lengthText;
+    }
+    appendLine(listItem, [
+      { text: capitalizeFirst(titleText), className: "map-content-title" }
+    ], "map-content-title-line");
+
+    const surfaceText = surfacePavingTextFromClass(summary.surfaceClass);
+    if (surfaceText) {
+      appendLine(listItem, [
+        { text: capitalizeFirst(surfaceText), className: "map-content-way-details-text" }
+      ], "map-content-way-details");
+    }
+
+    listElem.append(listItem);
+  }
+
   function render(mapContent, listElem, helpers) {
     if (!listElem || !listElem.length) {
       return 0;
     }
     setTranslator(helpers);
     const entries = collectWayGroups(mapContent);
+    const namedEntries = [];
+    const unnamedEntries = [];
+
     entries.forEach(function(entry){
+      if (wayName(entry.group)) {
+        namedEntries.push(entry);
+      } else {
+        unnamedEntries.push(entry);
+      }
+    });
+
+    namedEntries.forEach(function(entry){
       renderWay(entry, listElem);
     });
-    return entries.length;
+
+    const unnamedSummaries = summarizeUnnamedWays(unnamedEntries);
+    unnamedSummaries.forEach(function(summary){
+      renderUnnamedWaySummary(summary, listElem);
+    });
+
+    return namedEntries.length + unnamedSummaries.length;
   }
 
   function emptyMessage(helpers) {
