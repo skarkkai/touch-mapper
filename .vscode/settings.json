@@ -1,12 +1,8 @@
 {
     "makefile.configureOnOpen": false,
-    "files.exclude": {
-        "OSM2World": true
-    },
-    "search.exclude": {
-        "OSM2World": true
-    },
-    "files.watcherExclude": {
-        "OSM2World": true
-    }
+    "java.compile.nullAnalysis.mode": "automatic",
+    "eslint.useFlatConfig": true,
+    "eslint.workingDirectories": [
+        { "directory": "web", "changeProcessCWD": true }
+    ]
 }

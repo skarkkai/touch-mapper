@@ -149,7 +149,7 @@ public class RoadModule extends ConfigurableWorldModule {
 //		return tags.contains(new Tag("highway","steps"));
 	}
 
-	// See also ObjTarget.isPath()
+	// See also TouchMapperCategory.isPedestrian()
 	private static boolean isPath(TagGroup tags) {
 		if (tags.contains("man_made", "pier")
 				|| tags.contains("man_made", "breakwater")) {

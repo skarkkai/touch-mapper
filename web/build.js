@@ -65,7 +65,7 @@ var metalsmith = Metalsmith(__dirname)
     .use(concat({
         files: ['**/util.js', '**/map-calc.js', '**/model-preview.js', '**/language.js',
                 '**/email.js', '**/multipart-mode.js', '**/backbone-helpers.js', '**/map-creation.js',
-                '**/osm-preview.js', '**/map-description.js' ],
+                '**/osm-preview.js', '**/map-desc-ways.js', '**/map-desc-areas.js', '**/map-description.js' ],
         output: 'scripts/app-common.js'
     }))
     .use(concat({

@@ -1,470 +1,231 @@
-/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next */
+/* global $ */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0, space-infix-ops:0, camelcase:0, dot-notation:0 */
 
+/*
+ * Build short, human-friendly map descriptions from map-content.json.
+ */
 (function(){
-    'use strict';
+  'use strict';
 
-    /* TODO:
-     * - roads/rivers/rails edge crossings, intersections
-     * - building locations
-     * - water locations
-     * - road/river/rail total meters
-     * - building coverage %
-     * - water coverage %
-     */
+  const MAX_VISIBLE_BUILDINGS = 10;
 
+  function translations() {
+    return window.TM && window.TM.translations ? window.TM.translations : {};
+  }
 
-    var locMap2specs = {
-      base:
-         " tl tr bl br place_name" +
-         " x  .  .  .  top_left" +
-         " x  x  .  .  top_row" +
-         "",
-      locRotation: {
-        tl: 'tr',
-        tr: 'br',
-        br: 'bl',
-        bl: 'tl'
-      },
-      placeRotation: {
-        top_left: 'top_right',
-        top_row: 'right_column',
-        top_right: 'bottom_right',
-        right_column: 'bottom_row',
-        bottom_right: 'bottom_left',
-        bottom_row: 'left_column',
-        bottom_left: 'top_left',
-        left_column: 'top_row'
+  function t(key, fallback) {
+    const dict = translations();
+    if (dict[key] !== undefined && dict[key] !== null && dict[key] !== "") {
+      return dict[key];
+    }
+    return fallback !== undefined ? fallback : key;
+  }
+
+  function interpolate(text, replacements) {
+    if (!replacements) {
+      return text;
+    }
+    return text.replace(/__([a-zA-Z0-9_]+)__/g, function(match, name) {
+      if (replacements[name] === undefined) {
+        return match;
       }
-    };
+      return replacements[name];
+    });
+  }
 
-    var locMap3specs = {
-      base:
-         " tl tc tr   ml mc mr   bl bc br  place_name" +
-         " .  .  .    .  x  .    .  .  .   middle_center" +
-         " .  x  .    .  .  .    .  .  .   top_center" +
-         " x  .  .    .  .  .    .  .  .   top_left" +
-         " x  x  x    .  .  .    .  .  .   top_row" +
-         " x  x  x    x  .  .    .  .  .   mostly_top_row" +
-         " x  x  x    .  x  .    .  .  .   mostly_top_row" +
-         " x  x  x    .  .  x    .  .  .   mostly_top_row" +
-         " x  x  x    .  .  .    x  .  .   mostly_top_row" +
-         " x  x  x    .  .  .    .  x  .   mostly_top_row" +
-         " x  x  x    .  .  .    .  .  x   mostly_top_row" +
-         " .  .  .    x  x  x    .  .  .   middle_row" +
-         " x  .  .    x  x  x    .  .  .   middle_row" +
-         " .  x  .    x  x  x    .  .  .   middle_row" +
-         " .  .  x    x  x  x    .  .  .   middle_row" +
-         " .  .  .    x  x  x    x  .  .   middle_row" +
-         " .  .  .    x  x  x    .  x  .   middle_row" +
-         " .  .  .    x  x  x    .  .  x   middle_row" +
-         " x  .  .    x  x  x    x  .  .   middle_row" +
-         " x  .  .    .  x  .    .  .  x   top_left_diagonal" +
-         " x  x  .    .  x  .    .  .  x   top_left_diagonal" +
-         " x  .  .    x  x  .    .  .  x   top_left_diagonal" +
-         " x  .  .    .  x  x    .  .  x   top_left_diagonal" +
-         " x  .  .    .  x  .    .  x  x   top_left_diagonal" +
-         " x  x  .    .  x  x    .  .  x   top_left_diagonal" +
-         " x  x  .    .  x  .    .  x  x   top_left_diagonal" +
-         " x  .  .    x  x  .    .  x  x   top_left_diagonal" +
-         " x  .  .    x  x  x    .  .  x   top_left_diagonal" +
-         " x  x  .    x  x  .    .  .  x   top_left_diagonal" +
-         " x  x  .    x  x  x    .  .  x   top_left_diagonal" +
-         " x  x  .    x  x  .    .  x  x   top_left_diagonal" +
-         " x  x  .    x  x  x    .  x  x   top_left_diagonal" +
-         " x  .  .    .  x  .    .  .  .   top_left_to_mc" +
-         " x  x  .    .  x  .    .  .  .   top_left_to_mc" +
-         " x  .  .    x  x  .    .  .  .   top_left_to_mc" +
-         " x  x  .    x  x  .    .  .  .   top_left_to_mc" +
-         " x  x  .    .  .  .    .  .  .   top_left_and_center" +
-         " .  x  x    .  .  .    .  .  .   top_right_and_center" +
-         " .  .  x    x  x  .    .  x  x   top_right_and_center" +
-         " x  x  .    .  x  x    .  .  .   top_left_to_middle_right" +
-         " x  x  .    x  x  x    .  .  .   top_left_to_middle_right" +
-         " x  x  x    .  x  x    .  .  .   top_left_to_middle_right" +
-         " x  .  x    .  x  x    .  .  .   top_left_to_middle_right" +
-         " .  x  x    x  x  .    .  .  .   top_right_to_middle_left" +
-         " .  x  x    x  x  x    .  .  .   top_right_to_middle_left" +
-         " x  x  x    x  x  .    .  .  .   top_right_to_middle_left" +
-         " x  .  x    x  x  .    .  .  .   top_right_to_middle_left" +
-         " x  x  .    x  .  .    .  .  .   near_top_left" +
-         " .  x  .    x  x  .    .  .  .   top_center_to_middle_left" +
-         //tl tc tr   ml mc mr   bl bc br  place_name" +
-         "",
-         // mr+tc+tr
-              //  .  x  .
-              //  x  x  .
-              //  .  .  .
-      // Loc name mapping is center point symmetric, so only top portion combinations (and the center) are
-      // defined above. The rest are generated according to this rotation spec.
-      locRotation: {
-        tl: 'tr',
-        tc: 'mr',
-        tr: 'br',
-        mr: 'bc',
-        br: 'bl',
-        bc: 'ml',
-        bl: 'tl',
-        ml: 'tc',
-        mc: 'mc'
-      },
-      placeRotation: {
-        // orig
-        top_left: 'top_right',
-        top_row: 'right_column',
-        mostly_top_row: 'mostly_right_column',
-        top_left_to_mc: 'top_right_to_mc',
-        top_left_and_center: 'top_right_and_middle',
-        top_right_and_center: 'bottom_right_and_middle',
-        top_left_to_middle_right: 'top_right_to_bottom_center',
-        top_right_to_middle_left: 'bottom_right_to_top_center',
-        near_top_left: 'near_top_right',
-        top_center_to_middle_left: 'top_center_to_middle_right',
-        top_center: 'middle_right',
+  function showMoreBuildingsLabel(hiddenCount) {
+    if (hiddenCount === 1) {
+      return t("map_content_show_more_buildings_one", "Show 1 more building");
+    }
+    return interpolate(
+      t("map_content_show_more_buildings_many", "Show __count__ more buildings"),
+      { count: hiddenCount }
+    );
+  }
 
-        // 1. rotation
-        top_right: 'bottom_right',
-        right_column: 'bottom_row',
-        mostly_right_column: 'mostly_bottom_row',
-        top_right_to_mc: 'bottom_right_to_mc',
-        top_right_and_middle: 'bottom_right_and_center',
-        bottom_right_and_middle: 'bottom_left_and_center',
-        top_right_to_bottom_center: 'bottom_right_to_middle_left',
-        bottom_right_to_top_center: 'bottom_left_to_middle_right',
-        near_top_right: 'near_bottom_right',
-        top_center_to_middle_right: 'middle_right_to_bottom_center',
-        middle_right: 'bottom_center',
+  function applyBuildingsListLimit(listElem, maxVisible) {
+    if (!listElem || !listElem.length) {
+      return;
+    }
+    const row = listElem.closest(".map-content-buildings-row");
+    row.find(".map-content-buildings-toggle").remove();
 
-        // 2. rotation
-        bottom_right: 'bottom_left',
-        bottom_row: 'left_column',
-        mostly_bottom_row: 'mostly_left_column',
-        bottom_right_to_mc: 'bottom_left_to_mc',
-        bottom_right_and_center: 'bottom_left_and_middle',
-        bottom_left_and_center: 'top_left_and_middle',
-        bottom_right_to_middle_left: 'bottom_left_to_top_center',
-        bottom_left_to_middle_right: 'top_left_to_bottom_center',
-        near_bottom_right: 'near_bottom_left',
-        middle_right_to_bottom_center: 'middle_left_to_bottom_center',
-        bottom_center: 'middle_left',
+    const buildingItems = listElem.children("li.map-content-building");
+    if (buildingItems.length <= maxVisible) {
+      return;
+    }
 
-        // 3. rotation
-        bottom_left: 'top_left',
-        left_column: 'top_row',
-        mostly_left_column: 'mostly_top_row',
-        bottom_left_to_mc: 'top_left_to_mc',
-        bottom_left_and_middle: 'top_left_and_center',
-        top_left_and_middle: 'top_right_and_center',
-        bottom_left_to_top_center: 'top_left_to_middle_right',
-        top_left_to_bottom_center: 'top_right_to_middle_left',
-        near_bottom_left: 'near_top_left',
-        middle_left_to_bottom_center: 'top_center_to_middle_left',
-        middle_left: 'top_center',
+    const hiddenItems = buildingItems.slice(maxVisible);
+    hiddenItems.hide();
 
-        // Two states only
-        middle_row: 'center_column',
-        center_column: 'middle_row',
-        top_left_diagonal: 'top_right_diagonal',
-        top_right_diagonal: 'top_left_diagonal',
+    const button = $("<button>")
+      .attr("type", "button")
+      .addClass("map-content-buildings-toggle")
+      .attr("aria-expanded", "false")
+      .text(showMoreBuildingsLabel(hiddenItems.length));
 
-        // One state only
-        middle_center: 'middle_center'
+    button.on("click", function(){
+      const isExpanded = button.attr("aria-expanded") === "true";
+      if (isExpanded) {
+        hiddenItems.hide();
+        button
+          .attr("aria-expanded", "false")
+          .text(showMoreBuildingsLabel(hiddenItems.length));
+        return;
       }
-    };
+      hiddenItems.show();
+      button
+        .attr("aria-expanded", "true")
+        .text(t("map_content_show_less_buildings", "Show fewer buildings"));
+    });
 
-    function areEqualShallow(a, b) {
-      for(var key in a) {
-          if(!(key in b) || a[key] !== b[key]) { return false; }
-      }
-      for(var key in b) {
-          if(!(key in a) || a[key] !== b[key]) { return false; }
-      }
-      return true;
+    listElem.after(button);
+  }
+
+  function parseMapContent(payload) {
+    if (!payload) {
+      return null;
     }
-
-    function rotateLocs(source, specs) {
-      var locMap = specs.locRotation;
-      var placeMap = specs.placeRotation;
-      var out = {};
-      $.each(source, function(locStr, place){
-        var locs = locStr.split("+");
-        var newLocs = $.map(locs, function(loc){ return locMap[loc]; });
-        if (locs.length !== newLocs.length) {
-          console.log("locs:", locs, "newLocs:", newLocs);
-          throw "loc rotation mismatch";
-        }
-        var newPlace = placeMap[place];
-        if (! newPlace) {
-          throw "no rotation place name for " + place;
-        }
-        out[newLocs.sort().join("+")] = newPlace;
-      });
-      return out;
-    }
-
-    // Convert locMap2specs.base to { "tl+tr" => "top", ... } and add 3 rotations
-    function buildLocMap(specs) {
-      var names = specs.base.trim().split(/ +/);
-      var rowSize = Object.keys(specs.locRotation).length + 1;
-      if (names.length % rowSize !== 0) {
-        throw "locnames size " + names.length + " is not divisible by " + rowSize;
-      }
-      var places = names.splice(0, rowSize);
-      var baseMap = {}; // eg "tl tr" => "top"
-      while (names.length > 0) {
-        var row = names.splice(0, rowSize);
-        var name = row.splice(-1, 1)[0];
-        var rowLocs = {};
-        for (var i = 0; i < rowSize - 1; i++) {
-          if (row[i] === 'x') {
-            rowLocs[places[i]] = true;
-          }
-        }
-        var str = Object.keys(rowLocs).sort().join("+");
-        if (baseMap[str]) {
-          throw "duplicate: " + str;
-        }
-        baseMap[str] = name;
-      }
-
-      // Rotate 3 times
-      var out = {};
-      $.extend(out, baseMap);
-      var curMap = $.extend({}, baseMap);
-      $.each([1, 2, 3], function(i){
-        curMap = rotateLocs(curMap, specs);
-        //console.log("curMap", curMap);
-        $.extend(out, curMap);
-      });
-      curMap = rotateLocs(curMap, specs);
-      //console.log("curMap4", curMap);
-      if (! areEqualShallow(curMap, baseMap)) {
-        console.log("original locMap:", baseMap, "final:", curMap);
-        throw "locNames map with " + divCount + " changed after 4 rotations";
-      }
-      return out;
-    }
-
-    var LOC_2_MAP = buildLocMap(locMap2specs);
-    var LOC_3_MAP = buildLocMap(locMap3specs);
-
-    function uniqueSorted(a) {
-      var sorted = a.sort();
-      return $.grep(sorted, function(value, index, array) {
-          return (index === 0) || (value !== sorted[index-1]);
-      });
-    }
-
-    // Print out a translation injector string that can be pasted into HTML
-    function printPlaceTranslationLines(locMap, category) {
-      var list = [];
-      var placeNames = $.map(locMap, function(val, key) { return val; });
-      var prefix = 'location' + category + '_';
-      $.each(uniqueSorted(placeNames), function(i, placeName){
-        list.push('  "' + prefix + placeName + '": "{{ ' + prefix + placeName + ' }}",\n');
-      });
-      console.log(list.join(""));
-    }
-
-    function classesToPlaceName(classes, placeNames) {
-      var str = Object.keys(classes).sort().join("+");
-      //console.log(str, placeNames[str]);
-      return placeNames[str];
-    }
-
-    function pointClass2(posX, posY) {
-      var classes = {};
-      var y = posY > 0.5 ? 't' : 'b';
-      var x = posX < 0.5 ? 'l' : 'r';
-      return y + x;
-    }
-
-    function pointClass3(posX, posY) {
-      var y, x;
-      if (posY > 2/3) {
-        y = 't';
-      } else {
-        y = posY > 1/3 ? 'm' : 'b';
-      }
-      if (posX < 1/3) {
-        x = 'l';
-      } else {
-        x = posX < 2/3 ? 'c' : 'r';
-      }
-      return y + x;
-    }
-
-    function classifyRoadLocations(roads, bounds) {
-      var width = bounds.maxX - bounds.minX;
-      var height = bounds.maxY - bounds.minY;
-      $.each(roads, function(name, road){
-        var classes2 = {};
-        var classes3 = {};
-        var pos = [];
-        $.each(road.points, function(i, point){
-          var posX = (point.x - bounds.minX) / width;
-          var posY = (point.y - bounds.minY) / height;
-          if (posX < -0.1 || posX > 1.1 || posY < -0.1 || posY > 1.1) {
-            return;
-          }
-          classes2[pointClass2(posX, posY)] = true;
-          classes3[pointClass3(posX, posY)] = true;
-          pos.push("x: " + Math.round(posX*100)/100 + ", y:" + Math.round(posY*100)/100);
-        });
-        road.classes2 = classes2;
-        road.classes3 = classes3;
-        road.pos = pos;
-      });
-    }
-
-    function nameRoadPlaces(roads, bounds) {
-      classifyRoadLocations(roads, bounds);
-      //printPlaceTranslationLines(LOC_2_MAP, 2);
-      //printPlaceTranslationLines(LOC_3_MAP, 3);
-      $.each(roads, function(name, road){
-        var place = classesToPlaceName(road.classes3, LOC_3_MAP);
-        if (place) {
-          road.place = '3_' + place;
-        } else {
-          place = classesToPlaceName(road.classes2, LOC_2_MAP);
-          if (place) {
-            road.place = '2_' + place;
-          } else {
-            road.place = '_general';
-          }
-        }
-        //console.log(road.name, road.place, road.classes2, road.classes3); // XXXXXXXXXXXXXXXXXX uncomment to debug location => place assignments
-      });
-    }
-
-    function pointPlace(point, bounds) {
-      var width = bounds.maxX - bounds.minX;
-      var height = bounds.maxY - bounds.minY;
-      var posX = (point.x - bounds.minX) / width;
-      var posY = (point.y - bounds.minY) / height;
-      if (posX < -0.1 || posX > 1.1 || posY < -0.1 || posY > 1.1) {
+    if (typeof payload === 'string') {
+      try {
+        return JSON.parse(payload);
+      } catch (err) {
         return null;
       }
-      var classes = {};
-      classes[pointClass3(posX, posY)] = true;
-      var place = classesToPlaceName(classes, LOC_3_MAP);
-      if (place) {
-        return '3_' + place;
-      } else {
-        return null; // shouldn't happen
-      }
     }
+    return payload;
+  }
 
-    function insertPoisType(pois, container, bounds, poiType) {
-      //var names = Object.keys(pois).sort(function(a, b) { return pois[b].center.x - pois[b].center.x; });
-      var names = Object.keys(pois).sort(function(a, b) {
-        if (pois[a].street && ! pois[b].street) {
-          return -1;
-        } else if (pois[b].street && ! pois[a].street) {
-          return 1;
+  function loadMapContent(requestId) {
+    if (!requestId || typeof makeCloudFrontMapContentUrl !== 'function') {
+      return null;
+    }
+    const retryCount = 20;
+    const retryDelayMs = 500;
+    const deferred = $.Deferred();
+    let attemptsLeft = retryCount;
+
+    function attempt() {
+      const request = $.ajax({
+        url: makeCloudFrontMapContentUrl(requestId)
+      });
+      request.done(function(payload){
+        deferred.resolve(payload);
+      }).fail(function(){
+        if (attemptsLeft > 0) {
+          attemptsLeft -= 1;
+          setTimeout(attempt, retryDelayMs);
         } else {
-          return a.localeCompare(b, {'sensitivity': 'base'});
+          deferred.reject.apply(deferred, arguments);
         }
-      });
-      if (names.length === 0) {
-        return 0;
-      }
-
-      var lis = [];
-      $.each(names, function(i, name){
-        var poi = pois[name];
-        var where = [];
-        if (poi.street) {
-          where.push(poi.houseNumber ? poi.street + ' ' + poi.houseNumber : poi.street);
-        }
-        var place = pointPlace(poi.center, bounds);
-        if (! place) {
-          // outside of the map
-          return;
-        }
-        where.push(window.TM.translations["location" + place]);
-        //console.log(name, poi.center, place);
-        var li = $("<li>").text(name + ' (' + where.join(', ') + ')');
-        lis.push(li);
-      });
-      container.find(".row." + poiType).find(".list").append(lis);
-      return names.length;
-    }
-
-    function insertPois(info, container) {
-      insertPoisType(info.objectInfos.pois.restaurant || {}, container, info.bounds, 'restaurant');
-      insertPoisType(info.objectInfos.pois.shop || {}, container, info.bounds, 'shop');
-      insertPoisType(info.objectInfos.pois.bus_stop || {}, container, info.bounds, 'bus_stop');
-    }
-
-    function insertRoads(info, container) {
-      var roads = info.objectInfos.ways || {};
-      function roadPlaceTranslation(roadName) {
-        return window.TM.translations["location" + roads[roadName].place];
-      }
-      nameRoadPlaces(roads, info.bounds);
-      var roadNames = [];
-      var roadsLen = 0;
-      var unnamedRoadsLen = 0;
-      $.each(roads, function(name){
-        if (Object.keys(roads[name].classes2).length === 0) {
-          // If there are no location classes, it means all of the road's points are outside of the map
-          return;
-        }
-        roadsLen += roads[name].totalLength;
-        if (name === '_unnamed_roads') {
-          unnamedRoadsLen = roads[name].totalLength;
-        } else {
-          roadNames.push(name);
-        }
-      });
-      if (roadsLen > 0) {
-        roadNames = roadNames.sort(function(a, b){ return roads[b].totalLength - roads[a].totalLength; });
-        var lis = [];
-        $.each(roadNames, function(i, roadName){
-          var li = $("<li>").text(roadName + ' (' + window.TM.translations["location" + roads[roadName].place] + ')');
-          if (i >= 4) {
-            li.addClass("initially-hidden");
-          }
-          lis.push(li);
-        });
-        container.find(".row.road").show().find("ul").prepend(lis);
-        if (unnamedRoadsLen > 0) {
-          if (roadNames.length === 0) {
-            container.find(".unnamed-roads.percentage").remove();
-            var text = container.find(".unnamed-roads.meters").text();
-            text = text.replace("%LOCATION%", roadPlaceTranslation('_unnamed_roads'));
-            text = text.replace("%METERS%", Number(unnamedRoadsLen.toPrecision(2)).toFixed());
-            text = text.replace("%YARDS%", Number((unnamedRoadsLen / 1.0936133).toPrecision(2)).toFixed());
-          } else {
-            container.find(".unnamed-roads.meters").remove();
-            var text = container.find(".unnamed-roads.percentage").text();
-            text = text.replace("%LOCATION%", roadPlaceTranslation('_unnamed_roads'));
-            text = text.replace("%PERCENTAGE%", (unnamedRoadsLen / roadsLen * 100).toPrecision(2));
-          }
-          container.find(".unnamed-roads").text(text);
-        }
-        container.find("ul").show();
-      } else {
-        container.find(".no-roads").show();
-      }
-    }
-
-    function insertMapDescription(info, container) {
-      if (! info.objectInfos) {
-        info.objectInfos = {};
-      }
-      insertRoads(info, container);
-      insertPois(info, container);
-      if (! info.excludeBuildings && 'buildingCount' in info && info.buildingCount === 0) {
-        container.find('.warning-no-buildings').show();
-      }
-      $(".map-content-row .show-more").click(function(){
-        $(".map-content").toggleClass("initial-state");
-        $(".map-content-row").focus();
       });
     }
 
+    attempt();
+    return deferred.promise();
+  }
 
-    window.insertMapDescription = insertMapDescription;
+  function showMessage(listElem, message) {
+    listElem.empty();
+    listElem.append($("<li>").text(message));
+  }
+
+  function getRenderer(name) {
+    if (!window.TM || !window.TM[name]) {
+      return null;
+    }
+    if (typeof window.TM[name].render !== 'function') {
+      return null;
+    }
+    return window.TM[name];
+  }
+
+  function renderSection(listElem, renderer, mapContent, helpers, fallbackKey, fallbackText) {
+    if (!listElem || !listElem.length) {
+      return 0;
+    }
+    if (!renderer) {
+      showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
+      return 0;
+    }
+
+    listElem.empty();
+    const renderedCount = renderer.render(mapContent, listElem, helpers);
+    const count = (typeof renderedCount === "number" && isFinite(renderedCount))
+      ? renderedCount
+      : (parseInt(renderedCount, 10) || 0);
+    if (count > 0) {
+      return count;
+    }
+    if (typeof renderer.emptyMessage === 'function') {
+      showMessage(listElem, renderer.emptyMessage(helpers));
+      return 0;
+    }
+    showMessage(listElem, t(fallbackKey, fallbackText));
+    return 0;
+  }
+
+  // Entry point: read map-content.json and populate "Map content" block.
+  function insertMapDescription(info, container) {
+    if (!container || !container.length) {
+      return;
+    }
+    const waysListElem = container.find(".map-content-ways");
+    const buildingsListElem = container.find(".map-content-buildings");
+    if (!waysListElem.length && !buildingsListElem.length) {
+      return;
+    }
+    waysListElem.empty();
+    buildingsListElem.empty();
+
+    const waysRenderer = getRenderer("mapDescWays");
+    const buildingsRenderer = getRenderer("mapDescAreas");
+
+    const requestId = info ? info.requestId : null;
+    const request = loadMapContent(requestId);
+    if (!request) {
+      if (waysListElem.length) {
+        showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      if (buildingsListElem.length) {
+        showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      return;
+    }
+
+    request.done(function(payload){
+      const mapContent = parseMapContent(payload);
+      const helpers = { t: t };
+      if (waysListElem.length) {
+        renderSection(
+          waysListElem,
+          waysRenderer,
+          mapContent,
+          helpers,
+          "map_content_no_ways",
+          "No ways listed for this map."
+        );
+      }
+      if (buildingsListElem.length) {
+        renderSection(
+          buildingsListElem,
+          buildingsRenderer,
+          mapContent,
+          helpers,
+          "map_content_no_buildings",
+          "No buildings listed for this map."
+        );
+        applyBuildingsListLimit(buildingsListElem, MAX_VISIBLE_BUILDINGS);
+      }
+    }).fail(function(){
+      if (waysListElem.length) {
+        showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      if (buildingsListElem.length) {
+        showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+    });
+  }
+
+  window.insertMapDescription = insertMapDescription;
 })();

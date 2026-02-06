@@ -75,7 +75,107 @@ window.TM = { translations: {
   "location3_mostly_left_column": "{{ location3_mostly_left_column }}",
 
   "content__unnamed_roads": "{{ content__unnamed_roads }}",
-  "location_general": "{{ location_general }}"
+  "map_content_unnamed_roads_one": "{{ map_content_unnamed_roads_one }}",
+  "map_content_unnamed_roads_many": "{{ map_content_unnamed_roads_many }}",
+  "location_general": "{{ location_general }}",
+  "map_content_heading": "{{ map_content_heading }}",
+  "map_content_subheading_ways": "{{ map_content_subheading_ways }}",
+  "map_content_subheading_buildings": "{{ map_content_subheading_buildings }}",
+  "map_content_way_unnamed": "{{ map_content_way_unnamed }}",
+  "map_content_no_ways": "{{ map_content_no_ways }}",
+  "map_content_way_route_from_to": "{{ map_content_way_route_from_to }}",
+  "map_content_way_route_near": "{{ map_content_way_route_near }}",
+  "map_content_way_junction_one": "{{ map_content_way_junction_one }}",
+  "map_content_way_junction_many": "{{ map_content_way_junction_many }}",
+  "map_content_way_length_m": "{{ map_content_way_length_m }}",
+  "map_content_way_lanes_many": "{{ map_content_way_lanes_many }}",
+  "map_content_way_surface_paved": "{{ map_content_way_surface_paved }}",
+  "map_content_way_surface_unpaved": "{{ map_content_way_surface_unpaved }}",
+  "map_content_way_surface_unknown": "{{ map_content_way_surface_unknown }}",
+  "map_content_way_meta": "{{ map_content_way_meta }}",
+  "map_content_way_meta_type_only": "{{ map_content_way_meta_type_only }}",
+  "map_content_way_meta_length_only": "{{ map_content_way_meta_length_only }}",
+  "map_content_building_unnamed": "{{ map_content_building_unnamed }}",
+  "map_content_no_buildings": "{{ map_content_no_buildings }}",
+  "map_content_show_more_buildings_one": "{{ map_content_show_more_buildings_one }}",
+  "map_content_show_more_buildings_many": "{{ map_content_show_more_buildings_many }}",
+  "map_content_show_less_buildings": "{{ map_content_show_less_buildings }}",
+  "map_content_unavailable": "{{ map_content_unavailable }}",
+  "map_content_touches_edge": "{{ map_content_touches_edge }}",
+  "map_content_touches_edges": "{{ map_content_touches_edges }}",
+  "map_content_touches_items": "{{ map_content_touches_items }}",
+  "map_content_touches_edge_percent": "{{ map_content_touches_edge_percent }}",
+  "map_content_touch_pos_north": "{{ map_content_touch_pos_north }}",
+  "map_content_touch_pos_south": "{{ map_content_touch_pos_south }}",
+  "map_content_touch_pos_west": "{{ map_content_touch_pos_west }}",
+  "map_content_touch_pos_east": "{{ map_content_touch_pos_east }}",
+  "map_content_touch_pos_center": "{{ map_content_touch_pos_center }}",
+  "map_content_touch_pos_multiple": "{{ map_content_touch_pos_multiple }}",
+  "map_content_edge_north": "{{ map_content_edge_north }}",
+  "map_content_edge_south": "{{ map_content_edge_south }}",
+  "map_content_edge_east": "{{ map_content_edge_east }}",
+  "map_content_edge_west": "{{ map_content_edge_west }}",
+  "map_content_dir_north": "{{ map_content_dir_north }}",
+  "map_content_dir_northeast": "{{ map_content_dir_northeast }}",
+  "map_content_dir_east": "{{ map_content_dir_east }}",
+  "map_content_dir_southeast": "{{ map_content_dir_southeast }}",
+  "map_content_dir_south": "{{ map_content_dir_south }}",
+  "map_content_dir_southwest": "{{ map_content_dir_southwest }}",
+  "map_content_dir_west": "{{ map_content_dir_west }}",
+  "map_content_dir_northwest": "{{ map_content_dir_northwest }}",
+  "map_content_corner_northwest": "{{ map_content_corner_northwest }}",
+  "map_content_corner_northeast": "{{ map_content_corner_northeast }}",
+  "map_content_corner_southwest": "{{ map_content_corner_southwest }}",
+  "map_content_corner_southeast": "{{ map_content_corner_southeast }}",
+  "map_content_loc_center": "{{ map_content_loc_center }}",
+  "map_content_loc_offset_center": "{{ map_content_loc_offset_center }}",
+  "map_content_loc_part": "{{ map_content_loc_part }}",
+  "map_content_loc_edge": "{{ map_content_loc_edge }}",
+  "map_content_loc_corner": "{{ map_content_loc_corner }}",
+  "map_content_loc_near_edge": "{{ map_content_loc_near_edge }}",
+  "map_content_loc_near_corner": "{{ map_content_loc_near_corner }}",
+  "map_content_loc_full_center": "{{ map_content_loc_full_center }}",
+  "map_content_loc_full_offset_center": "{{ map_content_loc_full_offset_center }}",
+  "map_content_loc_full_part": "{{ map_content_loc_full_part }}",
+  "map_content_loc_full_edge": "{{ map_content_loc_full_edge }}",
+  "map_content_loc_full_corner": "{{ map_content_loc_full_corner }}",
+  "map_content_loc_full_near_edge": "{{ map_content_loc_full_near_edge }}",
+  "map_content_loc_full_near_corner": "{{ map_content_loc_full_near_corner }}",
+  "map_content_loc_endpoint_center": "{{ map_content_loc_endpoint_center }}",
+  "map_content_loc_endpoint_part": "{{ map_content_loc_endpoint_part }}",
+  "map_content_loc_endpoint_near_edge": "{{ map_content_loc_endpoint_near_edge }}",
+  "map_content_loc_endpoint_corner": "{{ map_content_loc_endpoint_corner }}",
+  "map_content_region_center": "{{ map_content_region_center }}",
+  "map_content_region_part": "{{ map_content_region_part }}",
+  "map_content_region_edge": "{{ map_content_region_edge }}",
+  "map_content_region_corner": "{{ map_content_region_corner }}",
+  "map_content_summary_in": "{{ map_content_summary_in }}",
+  "map_content_summary_near": "{{ map_content_summary_near }}",
+  "map_content_summary_mostly_in_lead": "{{ map_content_summary_mostly_in_lead }}",
+  "map_content_summary_mainly_near_lead": "{{ map_content_summary_mainly_near_lead }}",
+  "map_content_summary_mostly_extending": "{{ map_content_summary_mostly_extending }}",
+  "map_content_summary_in_and": "{{ map_content_summary_in_and }}",
+  "map_content_summary_in_and_near": "{{ map_content_summary_in_and_near }}",
+  "map_content_summary_near_and": "{{ map_content_summary_near_and }}",
+  "map_content_summary_mainly_in_and": "{{ map_content_summary_mainly_in_and }}",
+  "map_content_summary_mainly_in_and_near": "{{ map_content_summary_mainly_in_and_near }}",
+  "map_content_summary_mainly_near_and": "{{ map_content_summary_mainly_near_and }}",
+  "map_content_summary_mainly_near_and_in": "{{ map_content_summary_mainly_near_and_in }}",
+  "map_content_summary_several_mainly_in": "{{ map_content_summary_several_mainly_in }}",
+  "map_content_summary_several_mainly_near": "{{ map_content_summary_several_mainly_near }}",
+  "map_content_parts_one": "{{ map_content_parts_one }}",
+  "map_content_parts_many": "{{ map_content_parts_many }}",
+  "map_content_total_area": "{{ map_content_total_area }}",
+  "map_content_shape_elongated": "{{ map_content_shape_elongated }}",
+  "map_content_shape_long_thin": "{{ map_content_shape_long_thin }}",
+  "map_content_shape_irregular": "{{ map_content_shape_irregular }}",
+  "map_content_shape_thin": "{{ map_content_shape_thin }}",
+  "map_content_aspect_label": "{{ map_content_aspect_label }}",
+  "map_content_orientation": "{{ map_content_orientation }}",
+  "map_content_coverage_label": "{{ map_content_coverage_label }}",
+  "map_content_coverage_much": "{{ map_content_coverage_much }}",
+  "map_content_coverage_some": "{{ map_content_coverage_some }}",
+  "map_content_coverage_little": "{{ map_content_coverage_little }}"
 } };
 </script>
 
@@ -88,33 +188,6 @@ window.TM = { translations: {
   </nav>
 
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
-
-  <div class="map-content-row" tabindex="-1" style="display: none">
-    <h3><span>{{ map_content }}</span></h3>
-    <div class="map-content initial-state">
-      <div class="row road">
-        <h4>{{ content__road }}</h4>
-        <ul style="display: none">
-          <li class="unnamed-roads meters">{{ content__unnamed_roads }} (%LOCATION%, %METERS% meters / %YARDS% yards)</li>
-          <li class="unnamed-roads percentage">{{ content__unnamed_roads }} (%LOCATION%, %PERCENTAGE%% of all roads)</li>
-        </ul>
-        <span class="no-roads" style="display: none">{{ content__no_roads }}</span>
-      </div>
-      <div class="row bus_stop initially-hidden">
-        <h4>{{ content__bus_stop }}</h4>
-        <ul class="list"></ul>
-      </div>
-      <div class="row shop initially-hidden">
-        <h4>{{ content__shop }}</h4>
-        <ul class="list"></ul>
-      </div>
-      <div class="row restaurant initially-hidden">
-        <h4>{{ content__restaurant }}</h4>
-        <ul class="list"></ul>
-      </div>
-    </div>
-    <button class="show-more">Show more</button>
-  </div>
 
   <div class="hidden-for-2d">
     <!--div class="main-row">
@@ -203,6 +276,20 @@ window.TM = { translations: {
   <div class="hidden-for-3d">
     <div class="preview-2d-container" aria-hidden="true">
       <img id="svg-preview" />
+    </div>
+  </div>
+
+  <div class="map-description map-content-row">
+    <h3>{{ map_content_heading }}</h3>
+    <div class="map-content">
+      <div class="row map-content-ways-row">
+        <h4>{{ map_content_subheading_ways }}</h4>
+        <ul class="map-content-ways"></ul>
+      </div>
+      <div class="row map-content-buildings-row">
+        <h4>{{ map_content_subheading_buildings }}</h4>
+        <ul class="map-content-buildings"></ul>
+      </div>
     </div>
   </div>
 

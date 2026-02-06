@@ -10,6 +10,40 @@
     var splitBenchmarkMsPerTriangle;
     var splitProjectionThresholdMs = 450;
     var splitDebugEnabled;
+    var PREVIEW_VISUALS = {
+      renderer: {
+        toneMapping: "LinearToneMapping",
+        toneMappingExposure: 1.16
+      },
+      lights: {
+        ambient: {
+          color: 0xffffff,
+          intensity: 0.28
+        },
+        hemi: {
+          skyColor: 0xffffff,
+          groundColor: 0xa8a8a8,
+          intensity: 0.42
+        },
+        key: {
+          color: 0xffffff,
+          intensity: 1.9,
+          positionMultiplier: { x: 2.6, y: 2.8, z: 1.9 }
+        },
+        rim: {
+          color: 0xdcdcdc,
+          intensity: 1.0,
+          positionMultiplier: { x: -3.0, y: 1.2, z: -2.2 }
+        }
+      },
+      materials: {
+        featureColor: 0xf4f4f4,
+        baseColor: 0xc4c4c4,
+        fallbackColor: 0xd7d7d7,
+        roughness: 0.22,
+        metalness: 0.05
+      }
+    };
 
     function getNowMs() {
       if (typeof performance !== "undefined" && typeof performance.now === "function") {
@@ -541,6 +575,15 @@
       };
     }
 
+    function makePreviewMaterial(THREE, color) {
+      return new THREE.MeshStandardMaterial({
+        color: color,
+        roughness: PREVIEW_VISUALS.materials.roughness,
+        metalness: PREVIEW_VISUALS.materials.metalness,
+        side: THREE.DoubleSide
+      });
+    }
+
     function showError(elem, msg) {
       $(".preview-3d-container").css("opacity", 1);
       elem.empty().append("<p class='loading-3d-preview'>" + msg + "</p>");
@@ -572,8 +615,8 @@
         renderer.setSize(size.width, size.height, false);
         renderer.setClearColor(0x000000, 0);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.24;
+        renderer.toneMapping = THREE[PREVIEW_VISUALS.renderer.toneMapping] || THREE.NoToneMapping;
+        renderer.toneMappingExposure = PREVIEW_VISUALS.renderer.toneMappingExposure;
         renderer.shadowMap.enabled = false;
 
         var scene = new THREE.Scene();
@@ -581,9 +624,24 @@
 
         var camera = new THREE.PerspectiveCamera(34, size.width / size.height, 0.1, 1000);
 
-        var hemiLight = new THREE.HemisphereLight(0xffffff, 0xc6d0dd, 0.35);
-        var keyLight = new THREE.DirectionalLight(0xfff8ee, 1.9);
-        var rimLight = new THREE.DirectionalLight(0xe6eefb, 0.55);
+        var ambientLight = new THREE.AmbientLight(
+          PREVIEW_VISUALS.lights.ambient.color,
+          PREVIEW_VISUALS.lights.ambient.intensity
+        );
+        var hemiLight = new THREE.HemisphereLight(
+          PREVIEW_VISUALS.lights.hemi.skyColor,
+          PREVIEW_VISUALS.lights.hemi.groundColor,
+          PREVIEW_VISUALS.lights.hemi.intensity
+        );
+        var keyLight = new THREE.DirectionalLight(
+          PREVIEW_VISUALS.lights.key.color,
+          PREVIEW_VISUALS.lights.key.intensity
+        );
+        var rimLight = new THREE.DirectionalLight(
+          PREVIEW_VISUALS.lights.rim.color,
+          PREVIEW_VISUALS.lights.rim.intensity
+        );
+        scene.add(ambientLight);
         scene.add(hemiLight);
         scene.add(keyLight);
         scene.add(rimLight);
@@ -632,18 +690,8 @@
           }
 
           if (splitResult && splitResult.baseGeometry && splitResult.featureGeometry) {
-            var featureMaterial = new THREE.MeshStandardMaterial({
-              color: 0xfffdf8,
-              roughness: 0.2,
-              metalness: 0.04,
-              side: THREE.DoubleSide
-            });
-            var baseMaterial = new THREE.MeshStandardMaterial({
-              color: 0xe8edf2,
-              roughness: 0.2,
-              metalness: 0.02,
-              side: THREE.DoubleSide
-            });
+            var featureMaterial = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.featureColor);
+            var baseMaterial = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.baseColor);
             var baseMesh = new THREE.Mesh(splitResult.baseGeometry, baseMaterial);
             var featureMesh = new THREE.Mesh(splitResult.featureGeometry, featureMaterial);
 
@@ -656,12 +704,7 @@
             geometry.dispose();
           } else {
             splitDebugLog("single material fallback render path active");
-            var material = new THREE.MeshStandardMaterial({
-              color: 0xfffdf8,
-              roughness: 0.2,
-              metalness: 0.04,
-              side: THREE.DoubleSide
-            });
+            var material = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.fallbackColor);
             var mesh = new THREE.Mesh(geometry, material);
             modelGroup.add(mesh);
             managedGeometries.push(geometry);
@@ -675,8 +718,16 @@
           camera.lookAt(0, 0, 0);
           camera.updateProjectionMatrix();
 
-          keyLight.position.set(radius * 2.6, radius * 2.8, radius * 1.9);
-          rimLight.position.set(-radius * 3, radius * 1.2, radius * -2.2);
+          keyLight.position.set(
+            radius * PREVIEW_VISUALS.lights.key.positionMultiplier.x,
+            radius * PREVIEW_VISUALS.lights.key.positionMultiplier.y,
+            radius * PREVIEW_VISUALS.lights.key.positionMultiplier.z
+          );
+          rimLight.position.set(
+            radius * PREVIEW_VISUALS.lights.rim.positionMultiplier.x,
+            radius * PREVIEW_VISUALS.lights.rim.positionMultiplier.y,
+            radius * PREVIEW_VISUALS.lights.rim.positionMultiplier.z
+          );
 
           var controls = new OrbitControls(camera, renderer.domElement);
           controls.enableDamping = true;

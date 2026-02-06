@@ -1,0 +1,2108 @@
+{
+  "version": "1.3",
+  "source": "TOUCH_MAPPER_MAP_CONTENT_CLASSES.md",
+  "description": "Rule-based classification for map-meta.json items into Touch Mapper classes using both OSM tags and Touch Mapper fields. Rules are evaluated top-to-bottom with first match winning; rule fields are AND. anyOf/allOf allow nested matching; tagsAny/tagsAll accept objects {key, values} or {key, anyValue:true} where anyValue matches any non-empty tag value. actions may set role, poiImportance, ignore, and ignoreWhenOptionFalse (an option name in the options block). If ignoreWhenOptionFalse is set, ignore is applied only when that option is false; otherwise ignore defaults to false unless explicitly true without gating. modifierRules are applied after classification and add modifiers without changing class/subclass.",
+  "inputs": {
+    "elementTypeField": "elementType",
+    "geometryTypeField": "geometry.type",
+    "tagsField": "tags",
+    "primaryRepresentationField": "primaryRepresentation",
+    "representationsField": "representations",
+    "tmCategoryField": "tmCategory",
+    "tmRoadTypeField": "tmRoadType"
+  },
+  "matchPolicy": {
+    "firstMatchWins": true,
+    "caseSensitive": true,
+    "missingTagIsNoMatch": true
+  },
+  "options": {
+    "emitConnectivityNodes": true
+  },
+  "classes": {
+    "A": {
+      "name": "Linear features",
+      "subclasses": {
+        "A1_road_construction": "Roads under construction",
+        "A1_major_roads": "Major roads",
+        "A1_secondary_roads": "Secondary roads",
+        "A1_local_streets": "Local streets",
+        "A1_service_roads": "Service roads",
+        "A1_track_roads": "Tracks",
+        "A1_vehicle_unspecified": "Other vehicular roads",
+        "A2_pedestrian_streets": "Pedestrian streets",
+        "A2_footpaths_trails": "Footpaths / trails",
+        "A2_cycleways": "Cycleways",
+        "A2_steps_ramps": "Steps / ramps",
+        "A2_pedestrian_unspecified": "Other pedestrian paths",
+        "A3_rail_lines": "Rail lines",
+        "A3_tram_light_rail": "Tram / light rail",
+        "A3_subway_metro": "Subway / metro",
+        "A3_rail_yards_sidings": "Rail yards / sidings",
+        "A4_rivers": "Rivers",
+        "A4_streams_canals": "Streams / canals",
+        "A4_ditches_drains": "Ditches / drains",
+        "A4_other_waterways": "Other waterways",
+        "A5_connectivity_nodes": "Connectivity nodes",
+        "A_other_ways": "Other ways"
+      }
+    },
+    "B": {
+      "name": "Areal features",
+      "subclasses": {
+        "B1_lakes": "Lakes",
+        "B1_ponds": "Ponds",
+        "B1_reservoirs": "Reservoirs",
+        "B1_sea_coast": "Sea / coastline",
+        "B1_riverbanks": "Riverbanks",
+        "B1_other_water": "Other water bodies",
+        "B2_parks_recreation": "Parks / recreational areas",
+        "B2_forests": "Forests",
+        "B2_fields_open": "Fields / open land",
+        "B3_residential": "Residential areas",
+        "B3_commercial": "Commercial areas",
+        "B3_industrial": "Industrial areas",
+        "B_other_areas": "Other areas"
+      }
+    },
+    "C": {
+      "name": "Buildings",
+      "subclasses": {
+        "C1_landmark": "Landmark buildings",
+        "C2_public": "Functional public buildings",
+        "C3_other_buildings": "Other buildings"
+      }
+    },
+    "D": {
+      "name": "POIs",
+      "subclasses": {
+        "D1_transport": "Transport POIs",
+        "D2_civic": "Civic & essential services",
+        "D3_commercial": "Commercial POIs",
+        "D4_leisure_cultural": "Leisure / cultural POIs",
+        "D_other_pois": "Other POIs",
+        "D_other_nodes": "Other nodes"
+      }
+    },
+    "E": {
+      "name": "Boundaries and edges",
+      "subclasses": {
+        "E1_admin_boundaries": "Administrative boundaries",
+        "E2_coastlines": "Coastlines",
+        "E3_fences_walls": "Fences / walls"
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "E1_admin_boundaries",
+      "mainClass": "E",
+      "subClass": "E1_admin_boundaries",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "tagsAny": [
+        {
+          "key": "boundary",
+          "values": [
+            "administrative"
+          ]
+        }
+      ],
+      "notes": "Administrative boundaries should be surfaced separately from roads/landuse."
+    },
+    {
+      "id": "E2_coastlines",
+      "mainClass": "E",
+      "subClass": "E2_coastlines",
+      "elementTypes": [
+        "way"
+      ],
+      "tagsAny": [
+        {
+          "key": "natural",
+          "values": [
+            "coastline"
+          ]
+        }
+      ],
+      "notes": "Coastlines are boundary edges rather than water areas."
+    },
+    {
+      "id": "E3_fences_walls",
+      "mainClass": "E",
+      "subClass": "E3_fences_walls",
+      "elementTypes": [
+        "way"
+      ],
+      "tagsAny": [
+        {
+          "key": "barrier",
+          "values": [
+            "wall",
+            "fence",
+            "hedge",
+            "retaining_wall"
+          ]
+        }
+      ],
+      "notes": "Barriers are tactually important edges even when not rendered prominently."
+    },
+    {
+      "id": "A5_connectivity_crossing",
+      "mainClass": "A",
+      "subClass": "A5_connectivity_nodes",
+      "elementTypes": [
+        "node"
+      ],
+      "geometryTypes": [
+        "point"
+      ],
+      "anyOf": [
+        {
+          "primaryRepresentationAny": [
+            "RoadCrossingAtConnector"
+          ]
+        },
+        {
+          "representationsAny": [
+            "RoadCrossingAtConnector"
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "crossing"
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": {
+        "role": "crossing",
+        "ignoreWhenOptionFalse": "emitConnectivityNodes"
+      },
+      "notes": "Road crossing nodes provide intersection detail; role identifies crossings for text."
+    },
+    {
+      "id": "A5_connectivity_connector",
+      "mainClass": "A",
+      "subClass": "A5_connectivity_nodes",
+      "elementTypes": [
+        "node"
+      ],
+      "geometryTypes": [
+        "point"
+      ],
+      "anyOf": [
+        {
+          "primaryRepresentationAny": [
+            "RoadConnector"
+          ]
+        },
+        {
+          "representationsAny": [
+            "RoadConnector"
+          ]
+        }
+      ],
+      "actions": {
+        "role": "connector",
+        "ignoreWhenOptionFalse": "emitConnectivityNodes"
+      },
+      "notes": "Connector nodes link road segments; role identifies connectors for text."
+    },
+    {
+      "id": "A5_connectivity_junction",
+      "mainClass": "A",
+      "subClass": "A5_connectivity_nodes",
+      "elementTypes": [
+        "node"
+      ],
+      "geometryTypes": [
+        "point"
+      ],
+      "anyOf": [
+        {
+          "primaryRepresentationAny": [
+            "RoadJunction"
+          ]
+        },
+        {
+          "representationsAny": [
+            "RoadJunction"
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "turning_circle"
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": {
+        "role": "junction",
+        "ignoreWhenOptionFalse": "emitConnectivityNodes"
+      },
+      "notes": "Junction nodes mark intersections even when tags are sparse."
+    },
+    {
+      "id": "D1_transport_poi",
+      "mainClass": "D",
+      "subClass": "D1_transport",
+      "elementTypes": [
+        "node",
+        "way",
+        "area"
+      ],
+      "tagsAny": [
+        {
+          "key": "public_transport",
+          "values": [
+            "station",
+            "stop_position",
+            "platform",
+            "stop_area",
+            "stop_area_group"
+          ]
+        },
+        {
+          "key": "railway",
+          "values": [
+            "station",
+            "halt",
+            "tram_stop",
+            "subway_entrance"
+          ]
+        },
+        {
+          "key": "amenity",
+          "values": [
+            "bus_station",
+            "ferry_terminal",
+            "taxi"
+          ]
+        }
+      ],
+      "actions": {
+        "poiImportance": "high"
+      },
+      "notes": "Transport POIs are high-salience and should be listed by default."
+    },
+    {
+      "id": "D2_civic_poi",
+      "mainClass": "D",
+      "subClass": "D2_civic",
+      "elementTypes": [
+        "node",
+        "way",
+        "area"
+      ],
+      "tagsAny": [
+        {
+          "key": "amenity",
+          "values": [
+            "school",
+            "university",
+            "college",
+            "kindergarten",
+            "hospital",
+            "clinic",
+            "doctors",
+            "pharmacy",
+            "police",
+            "fire_station",
+            "post_office",
+            "library",
+            "townhall",
+            "courthouse",
+            "place_of_worship",
+            "community_centre"
+          ]
+        }
+      ],
+      "actions": {
+        "poiImportance": "high"
+      },
+      "notes": "Civic and essential services are high-priority description items."
+    },
+    {
+      "id": "D3_commercial_poi",
+      "mainClass": "D",
+      "subClass": "D3_commercial",
+      "elementTypes": [
+        "node",
+        "way",
+        "area"
+      ],
+      "tagsAny": [
+        {
+          "key": "shop",
+          "anyValue": true
+        },
+        {
+          "key": "amenity",
+          "values": [
+            "restaurant",
+            "cafe",
+            "bar",
+            "pub",
+            "fast_food",
+            "bank",
+            "atm",
+            "fuel",
+            "marketplace"
+          ]
+        }
+      ],
+      "actions": {
+        "poiImportance": "medium"
+      },
+      "notes": "Commercial POIs are useful but can be throttled in descriptions."
+    },
+    {
+      "id": "D4_leisure_cultural_poi",
+      "mainClass": "D",
+      "subClass": "D4_leisure_cultural",
+      "elementTypes": [
+        "node",
+        "way",
+        "area"
+      ],
+      "tagsAny": [
+        {
+          "key": "tourism",
+          "values": [
+            "museum",
+            "attraction",
+            "viewpoint",
+            "gallery",
+            "zoo",
+            "theme_park",
+            "aquarium",
+            "information"
+          ]
+        },
+        {
+          "key": "leisure",
+          "values": [
+            "playground",
+            "sports_centre",
+            "pitch",
+            "stadium",
+            "swimming_pool",
+            "fitness_centre",
+            "golf_course"
+          ]
+        }
+      ],
+      "actions": {
+        "poiImportance": "low"
+      },
+      "notes": "Leisure and cultural POIs are descriptive but usually lower priority."
+    },
+    {
+      "id": "D_other_pois",
+      "mainClass": "D",
+      "subClass": "D_other_pois",
+      "elementTypes": [
+        "node",
+        "way",
+        "area"
+      ],
+      "tagsAny": [
+        {
+          "key": "amenity",
+          "anyValue": true
+        },
+        {
+          "key": "shop",
+          "anyValue": true
+        },
+        {
+          "key": "tourism",
+          "anyValue": true
+        },
+        {
+          "key": "leisure",
+          "anyValue": true
+        },
+        {
+          "key": "public_transport",
+          "anyValue": true
+        },
+        {
+          "key": "railway",
+          "anyValue": true
+        }
+      ],
+      "actions": {
+        "poiImportance": "low"
+      },
+      "notes": "Catch-all for POI-tagged elements not matched above."
+    },
+    {
+      "id": "B1_lakes",
+      "mainClass": "B",
+      "subClass": "B1_lakes",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Water"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Water"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Water"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "natural",
+                  "values": [
+                    "water"
+                  ]
+                },
+                {
+                  "key": "water",
+                  "anyValue": true
+                },
+                {
+                  "key": "landuse",
+                  "values": [
+                    "reservoir"
+                  ]
+                },
+                {
+                  "key": "waterway",
+                  "values": [
+                    "riverbank"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "water",
+              "values": [
+                "lake",
+                "oxbow",
+                "lagoon"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Lake-like water bodies should be called out distinctly when tags exist."
+    },
+    {
+      "id": "B1_ponds",
+      "mainClass": "B",
+      "subClass": "B1_ponds",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Water"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Water"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Water"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "natural",
+                  "values": [
+                    "water"
+                  ]
+                },
+                {
+                  "key": "water",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "water",
+              "values": [
+                "pond",
+                "basin"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Ponds and basins are smaller water bodies with different salience."
+    },
+    {
+      "id": "B1_reservoirs",
+      "mainClass": "B",
+      "subClass": "B1_reservoirs",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Water"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Water"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Water"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "natural",
+                  "values": [
+                    "water"
+                  ]
+                },
+                {
+                  "key": "water",
+                  "anyValue": true
+                },
+                {
+                  "key": "landuse",
+                  "values": [
+                    "reservoir"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "water",
+              "values": [
+                "reservoir"
+              ]
+            },
+            {
+              "key": "landuse",
+              "values": [
+                "reservoir"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Reservoirs are significant water areas often worth naming."
+    },
+    {
+      "id": "B1_sea_coast",
+      "mainClass": "B",
+      "subClass": "B1_sea_coast",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Water"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Water"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Water"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "natural",
+                  "values": [
+                    "water"
+                  ]
+                },
+                {
+                  "key": "water",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "water",
+              "values": [
+                "sea",
+                "ocean"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Sea or ocean areas are handled separately from inland waters."
+    },
+    {
+      "id": "B1_riverbanks",
+      "mainClass": "B",
+      "subClass": "B1_riverbanks",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Water"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Water"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Water"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "natural",
+                  "values": [
+                    "water"
+                  ]
+                },
+                {
+                  "key": "water",
+                  "anyValue": true
+                },
+                {
+                  "key": "waterway",
+                  "values": [
+                    "riverbank"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "waterway",
+              "values": [
+                "riverbank"
+              ]
+            },
+            {
+              "key": "water",
+              "values": [
+                "river",
+                "canal"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Riverbanks are areal water edges that describe wide rivers or canals."
+    },
+    {
+      "id": "B1_other_water",
+      "mainClass": "B",
+      "subClass": "B1_other_water",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "anyOf": [
+        {
+          "tmCategoryAny": [
+            "Water"
+          ]
+        },
+        {
+          "primaryRepresentationAny": [
+            "Water"
+          ]
+        },
+        {
+          "representationsAny": [
+            "Water"
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "natural",
+              "values": [
+                "water"
+              ]
+            },
+            {
+              "key": "water",
+              "anyValue": true
+            },
+            {
+              "key": "landuse",
+              "values": [
+                "reservoir"
+              ]
+            },
+            {
+              "key": "waterway",
+              "values": [
+                "riverbank"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Fallback for water areas when no more specific water type is tagged."
+    },
+    {
+      "id": "A4_rivers",
+      "mainClass": "A",
+      "subClass": "A4_rivers",
+      "elementTypes": [
+        "way"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "waterway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "waterway",
+              "values": [
+                "river"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Rivers are linear waterways with higher prominence."
+    },
+    {
+      "id": "A4_streams_canals",
+      "mainClass": "A",
+      "subClass": "A4_streams_canals",
+      "elementTypes": [
+        "way"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "waterway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "waterway",
+              "values": [
+                "stream",
+                "canal"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Streams and canals are common linear water features."
+    },
+    {
+      "id": "A4_ditches_drains",
+      "mainClass": "A",
+      "subClass": "A4_ditches_drains",
+      "elementTypes": [
+        "way"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Waterway"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "waterway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "waterway",
+              "values": [
+                "ditch",
+                "drain"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Small drainage waterways can be called out separately."
+    },
+    {
+      "id": "A4_other_waterways",
+      "mainClass": "A",
+      "subClass": "A4_other_waterways",
+      "elementTypes": [
+        "way"
+      ],
+      "anyOf": [
+        {
+          "tmCategoryAny": [
+            "Waterway"
+          ]
+        },
+        {
+          "primaryRepresentationAny": [
+            "Waterway"
+          ]
+        },
+        {
+          "representationsAny": [
+            "Waterway"
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "waterway",
+              "anyValue": true
+            }
+          ]
+        }
+      ],
+      "notes": "Fallback for waterways when tags are missing or uncommon."
+    },
+    {
+      "id": "A3_subway_metro",
+      "mainClass": "A",
+      "subClass": "A3_subway_metro",
+      "elementTypes": [
+        "way"
+      ],
+      "tagsAny": [
+        {
+          "key": "railway",
+          "values": [
+            "subway",
+            "metro"
+          ]
+        }
+      ],
+      "notes": "Underground rail lines are distinct from surface rail."
+    },
+    {
+      "id": "A3_tram_light_rail",
+      "mainClass": "A",
+      "subClass": "A3_tram_light_rail",
+      "elementTypes": [
+        "way"
+      ],
+      "tagsAny": [
+        {
+          "key": "railway",
+          "values": [
+            "tram",
+            "light_rail"
+          ]
+        }
+      ],
+      "notes": "Tram and light rail lines are a distinct transit class."
+    },
+    {
+      "id": "A3_rail_yards_sidings",
+      "mainClass": "A",
+      "subClass": "A3_rail_yards_sidings",
+      "elementTypes": [
+        "way"
+      ],
+      "tagsAny": [
+        {
+          "key": "railway",
+          "values": [
+            "yard",
+            "siding"
+          ]
+        }
+      ],
+      "notes": "Rail yards and sidings provide context but lower prominence."
+    },
+    {
+      "id": "A3_rail_lines",
+      "mainClass": "A",
+      "subClass": "A3_rail_lines",
+      "elementTypes": [
+        "way"
+      ],
+      "tagsAny": [
+        {
+          "key": "railway",
+          "values": [
+            "rail",
+            "narrow_gauge"
+          ]
+        }
+      ],
+      "notes": "Standard rail lines are linear transport features."
+    },
+    {
+      "id": "A1_road_construction",
+      "mainClass": "A",
+      "subClass": "A1_road_construction",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "construction"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Construction roads are noted but not treated as normal roads."
+    },
+    {
+      "id": "A1_major_roads",
+      "mainClass": "A",
+      "subClass": "A1_major_roads",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "motorway",
+                "trunk",
+                "primary",
+                "motorway_link",
+                "trunk_link",
+                "primary_link"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Highest-order vehicular roads; use highway tags when available."
+    },
+    {
+      "id": "A1_secondary_roads",
+      "mainClass": "A",
+      "subClass": "A1_secondary_roads",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "secondary",
+                "tertiary",
+                "secondary_link",
+                "tertiary_link"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Secondary and tertiary roads support local movement."
+    },
+    {
+      "id": "A1_local_streets",
+      "mainClass": "A",
+      "subClass": "A1_local_streets",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "residential",
+                "living_street",
+                "unclassified",
+                "road"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Local streets are common, lower-speed vehicular roads."
+    },
+    {
+      "id": "A1_service_roads",
+      "mainClass": "A",
+      "subClass": "A1_service_roads",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "service"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Service roads include driveways and parking aisles."
+    },
+    {
+      "id": "A1_track_roads",
+      "mainClass": "A",
+      "subClass": "A1_track_roads",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "track"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Tracks are typically unpaved vehicular routes."
+    },
+    {
+      "id": "A2_cycleways",
+      "mainClass": "A",
+      "subClass": "A2_cycleways",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "cycleway"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Dedicated cycling paths are distinct from pedestrian routes."
+    },
+    {
+      "id": "A2_pedestrian_streets",
+      "mainClass": "A",
+      "subClass": "A2_pedestrian_streets",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "pedestrian"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Pedestrian streets are walkable linear features."
+    },
+    {
+      "id": "A2_footpaths_trails",
+      "mainClass": "A",
+      "subClass": "A2_footpaths_trails",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "footway",
+                "path",
+                "bridleway"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Footpaths and trails include footways, paths, and bridleways."
+    },
+    {
+      "id": "A2_steps_ramps",
+      "mainClass": "A",
+      "subClass": "A2_steps_ramps",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "primaryRepresentationAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Road",
+                "RoadArea"
+              ]
+            },
+            {
+              "tmCategoryAny": [
+                "Road"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "highway",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "highway",
+              "values": [
+                "steps"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Steps and ramps are distinct pedestrian routing cues."
+    },
+    {
+      "id": "A2_pedestrian_unspecified",
+      "mainClass": "A",
+      "subClass": "A2_pedestrian_unspecified",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "anyOf": [
+        {
+          "tmRoadTypeAny": [
+            "pedestrian"
+          ]
+        }
+      ],
+      "notes": "Fallback for pedestrian paths when highway tags are missing."
+    },
+    {
+      "id": "A1_vehicle_unspecified",
+      "mainClass": "A",
+      "subClass": "A1_vehicle_unspecified",
+      "elementTypes": [
+        "way",
+        "area"
+      ],
+      "anyOf": [
+        {
+          "primaryRepresentationAny": [
+            "Road",
+            "RoadArea"
+          ]
+        },
+        {
+          "representationsAny": [
+            "Road",
+            "RoadArea"
+          ]
+        },
+        {
+          "tmCategoryAny": [
+            "Road"
+          ]
+        },
+        {
+          "tmRoadTypeAny": [
+            "car"
+          ]
+        }
+      ],
+      "notes": "Fallback for vehicular roads when highway tags are missing."
+    },
+    {
+      "id": "C1_landmark_buildings",
+      "mainClass": "C",
+      "subClass": "C1_landmark",
+      "elementTypes": [
+        "area",
+        "way",
+        "relation"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Building"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Building"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Building"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "building",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "building",
+              "values": [
+                "church",
+                "cathedral",
+                "chapel",
+                "mosque",
+                "synagogue",
+                "temple",
+                "shrine",
+                "castle",
+                "palace"
+              ]
+            },
+            {
+              "key": "amenity",
+              "values": [
+                "place_of_worship"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Landmark buildings take precedence for descriptions when tagged."
+    },
+    {
+      "id": "C2_public_buildings",
+      "mainClass": "C",
+      "subClass": "C2_public",
+      "elementTypes": [
+        "area",
+        "way",
+        "relation"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "tmCategoryAny": [
+                "Building"
+              ]
+            },
+            {
+              "primaryRepresentationAny": [
+                "Building"
+              ]
+            },
+            {
+              "representationsAny": [
+                "Building"
+              ]
+            },
+            {
+              "tagsAny": [
+                {
+                  "key": "building",
+                  "anyValue": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "building",
+              "values": [
+                "school",
+                "university",
+                "college",
+                "kindergarten",
+                "hospital",
+                "public",
+                "government",
+                "civic",
+                "train_station",
+                "fire_station",
+                "police",
+                "townhall",
+                "library"
+              ]
+            },
+            {
+              "key": "building:use",
+              "values": [
+                "school",
+                "university",
+                "hospital",
+                "kindergarten",
+                "public",
+                "government",
+                "utility"
+              ]
+            },
+            {
+              "key": "amenity",
+              "values": [
+                "school",
+                "university",
+                "college",
+                "kindergarten",
+                "hospital",
+                "clinic",
+                "doctors",
+                "pharmacy",
+                "police",
+                "fire_station",
+                "townhall",
+                "courthouse",
+                "library"
+              ]
+            }
+          ]
+        }
+      ],
+      "notes": "Public buildings are identified via building or use tags when present."
+    },
+    {
+      "id": "C3_other_buildings",
+      "mainClass": "C",
+      "subClass": "C3_other_buildings",
+      "elementTypes": [
+        "area",
+        "way",
+        "relation"
+      ],
+      "anyOf": [
+        {
+          "tmCategoryAny": [
+            "Building"
+          ]
+        },
+        {
+          "primaryRepresentationAny": [
+            "Building"
+          ]
+        },
+        {
+          "representationsAny": [
+            "Building"
+          ]
+        },
+        {
+          "tagsAny": [
+            {
+              "key": "building",
+              "anyValue": true
+            }
+          ]
+        }
+      ],
+      "notes": "Fallback for buildings when no specific public/landmark tag exists."
+    },
+    {
+      "id": "B2_parks_recreation",
+      "mainClass": "B",
+      "subClass": "B2_parks_recreation",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "tagsAny": [
+        {
+          "key": "leisure",
+          "values": [
+            "park",
+            "garden",
+            "nature_reserve",
+            "recreation_ground"
+          ]
+        },
+        {
+          "key": "landuse",
+          "values": [
+            "recreation_ground",
+            "village_green"
+          ]
+        },
+        {
+          "key": "boundary",
+          "values": [
+            "protected_area"
+          ]
+        }
+      ],
+      "notes": "Park and recreation areas provide large-scale context."
+    },
+    {
+      "id": "B2_forests",
+      "mainClass": "B",
+      "subClass": "B2_forests",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "tagsAny": [
+        {
+          "key": "landuse",
+          "values": [
+            "forest"
+          ]
+        },
+        {
+          "key": "natural",
+          "values": [
+            "wood",
+            "scrub"
+          ]
+        }
+      ],
+      "notes": "Forests and woodland are common landscape features."
+    },
+    {
+      "id": "B2_fields_open",
+      "mainClass": "B",
+      "subClass": "B2_fields_open",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "tagsAny": [
+        {
+          "key": "landuse",
+          "values": [
+            "farmland",
+            "meadow",
+            "orchard",
+            "vineyard",
+            "grass",
+            "greenfield"
+          ]
+        }
+      ],
+      "notes": "Open land and fields affect large-area texture."
+    },
+    {
+      "id": "B3_residential",
+      "mainClass": "B",
+      "subClass": "B3_residential",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "tagsAny": [
+        {
+          "key": "landuse",
+          "values": [
+            "residential"
+          ]
+        }
+      ],
+      "notes": "Residential landuse helps describe neighborhood character."
+    },
+    {
+      "id": "B3_commercial",
+      "mainClass": "B",
+      "subClass": "B3_commercial",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "tagsAny": [
+        {
+          "key": "landuse",
+          "values": [
+            "commercial",
+            "retail"
+          ]
+        }
+      ],
+      "notes": "Commercial areas are large-scale contextual zones."
+    },
+    {
+      "id": "B3_industrial",
+      "mainClass": "B",
+      "subClass": "B3_industrial",
+      "elementTypes": [
+        "area",
+        "way"
+      ],
+      "geometryTypes": [
+        "polygon"
+      ],
+      "tagsAny": [
+        {
+          "key": "landuse",
+          "values": [
+            "industrial"
+          ]
+        }
+      ],
+      "notes": "Industrial areas are typically distinct and useful to mention."
+    }
+  ],
+  "modifierRules": [
+    {
+      "id": "M_bridge",
+      "tagsAny": [
+        {
+          "key": "bridge",
+          "values": [
+            "yes"
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "name": "bridge"
+        }
+      ],
+      "notes": "Bridge modifier for linear or areal features."
+    },
+    {
+      "id": "M_tunnel",
+      "tagsAny": [
+        {
+          "key": "tunnel",
+          "values": [
+            "yes"
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "name": "tunnel"
+        }
+      ],
+      "notes": "Tunnel modifier for underground features."
+    },
+    {
+      "id": "M_layer",
+      "tagsAny": [
+        {
+          "key": "layer",
+          "anyValue": true
+        }
+      ],
+      "modifiers": [
+        {
+          "name": "layer",
+          "valueFromTag": "layer"
+        }
+      ],
+      "notes": "Capture explicit layer values for height ordering."
+    },
+    {
+      "id": "M_ford",
+      "tagsAny": [
+        {
+          "key": "ford",
+          "anyValue": true
+        }
+      ],
+      "modifiers": [
+        {
+          "name": "ford"
+        }
+      ],
+      "notes": "Ford crossings can be referenced in text descriptions."
+    }
+  ],
+  "fallbacks": [
+    {
+      "id": "A_other_ways",
+      "mainClass": "A",
+      "subClass": "A_other_ways",
+      "elementTypes": [
+        "way"
+      ],
+      "notes": "Final fallback for unclassified ways."
+    },
+    {
+      "id": "B_other_areas",
+      "mainClass": "B",
+      "subClass": "B_other_areas",
+      "elementTypes": [
+        "area"
+      ],
+      "notes": "Final fallback for unclassified areas."
+    },
+    {
+      "id": "D_other_nodes",
+      "mainClass": "D",
+      "subClass": "D_other_nodes",
+      "elementTypes": [
+        "node"
+      ],
+      "notes": "Final fallback for unclassified nodes."
+    }
+  ]
+}

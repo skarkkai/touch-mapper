@@ -1,4 +1,5 @@
 /py-lib/*
 /OSM2World
 /blender
+*.sample/
 

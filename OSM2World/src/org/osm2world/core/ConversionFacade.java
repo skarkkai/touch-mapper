@@ -317,12 +317,6 @@ public class ConversionFacade {
 		MapData mapData = converter.createMapData(osmData);
 		
 		AxisAlignedBoundingBoxXZ boundary = mapData.getBoundary();
-		System.out.println("Map-boundary:["
-		    + " minX=" + boundary.minX
-		    + " minZ=" + boundary.minZ
-		    + " maxX=" + boundary.maxX
-		    + " maxZ=" + boundary.maxZ
-		    + " ]");
 		
 		/* apply world modules */
 		updatePhase(Phase.REPRESENTATION);
@@ -367,8 +361,6 @@ public class ConversionFacade {
 		}
 
 		AddressGatherer.gather(osmData, mapData);
-		
-		System.out.println("Object-infos:[" + ObjectInfoManager.getJsonLine() + "]");
 		
 		return new Results(mapProjection, mapData, eleData);
 		
