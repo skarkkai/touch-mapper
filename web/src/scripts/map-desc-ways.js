@@ -45,6 +45,47 @@
     return edge;
   }
 
+  function edgePositionBucketFromDirection(edge, direction) {
+    if (edge === "east") {
+      if (direction === "northeast") return "north";
+      if (direction === "east") return "center";
+      if (direction === "southeast") return "south";
+      return null;
+    }
+    if (edge === "west") {
+      if (direction === "northwest") return "north";
+      if (direction === "west") return "center";
+      if (direction === "southwest") return "south";
+      return null;
+    }
+    if (edge === "north") {
+      if (direction === "northwest") return "west";
+      if (direction === "north") return "center";
+      if (direction === "northeast") return "east";
+      return null;
+    }
+    if (edge === "south") {
+      if (direction === "southwest") return "west";
+      if (direction === "south") return "center";
+      if (direction === "southeast") return "east";
+      return null;
+    }
+    return null;
+  }
+
+  function edgePositionQualifier(position) {
+    if (!position) {
+      return null;
+    }
+    if (position === "multiple") return t("map_content_touch_pos_multiple", "in multiple places");
+    if (position === "center") return t("map_content_touch_pos_center", "near the center");
+    if (position === "north") return t("map_content_touch_pos_north", "in the north");
+    if (position === "south") return t("map_content_touch_pos_south", "in the south");
+    if (position === "east") return t("map_content_touch_pos_east", "in the east");
+    if (position === "west") return t("map_content_touch_pos_west", "in the west");
+    return null;
+  }
+
   function directionLabel(direction) {
     if (direction === "north") return t("map_content_dir_north", "north");
     if (direction === "northeast") return t("map_content_dir_northeast", "north-east");
@@ -58,58 +99,94 @@
   }
 
   function cornerLabel(direction) {
-    if (direction === "northwest") return t("map_content_corner_northwest", "top-left corner");
-    if (direction === "northeast") return t("map_content_corner_northeast", "top-right corner");
-    if (direction === "southwest") return t("map_content_corner_southwest", "bottom-left corner");
-    if (direction === "southeast") return t("map_content_corner_southeast", "bottom-right corner");
+    if (direction === "northwest") return t("map_content_corner_northwest", "north-west corner");
+    if (direction === "northeast") return t("map_content_corner_northeast", "north-east corner");
+    if (direction === "southwest") return t("map_content_corner_southwest", "south-west corner");
+    if (direction === "southeast") return t("map_content_corner_southeast", "south-east corner");
     return direction;
   }
 
-  function locationPhraseFromLoc(loc) {
+  function isCornerDirection(direction) {
+    return direction === "northwest" || direction === "northeast" ||
+      direction === "southwest" || direction === "southeast";
+  }
+
+  /**
+   * Location phrase grammar (distance classification only):
+   * 1) center, 2) part + dir, 3) near_edge + dir (diagonal near_edge means corner).
+   * Forms:
+   * - atom: "center", "east part", "north edge", "north-east corner"
+   * - clause: "in the center", "in the east part", "near the north edge", "in the north-east corner"
+   * - endpoint: "the center", "the east part", "near the north edge", "the north-east corner"
+   * Rules:
+   * - no "of the map" suffix
+   * - avoid duplicated prepositions ("Near near ...", "From in ...") by choosing form per context.
+   */
+  function locationPhraseFromLoc(loc, form) {
     if (!loc || typeof loc !== 'object') {
       return null;
     }
+    const phraseForm = form || "clause";
     const kind = loc.kind;
     const dirLabel = loc.dir ? directionLabel(loc.dir) : null;
     const corner = loc.dir ? cornerLabel(loc.dir) : null;
+    const atomCenter = t("map_content_loc_center", "center");
+    const clauseCenter = t("map_content_loc_full_center", "in the center");
+    const endpointCenter = t("map_content_loc_endpoint_center", "the center");
 
     if (kind === "center") {
-      return t("map_content_loc_full_center", "near the center of the map");
-    }
-    if (kind === "offset_center") {
-      if (!dirLabel) {
-        return t("map_content_loc_full_center", "near the center of the map");
+      if (phraseForm === "atom") {
+        return atomCenter;
       }
-      return interpolate(
-        t("map_content_loc_full_offset_center", "a little __dir__ of the center of the map"),
-        { dir: dirLabel }
-      );
+      if (phraseForm === "endpoint") {
+        return endpointCenter;
+      }
+      return clauseCenter;
     }
     if (kind === "part") {
       if (!dirLabel) {
-        return t("map_content_loc_full_center", "near the center of the map");
+        if (phraseForm === "atom") {
+          return atomCenter;
+        }
+        if (phraseForm === "endpoint") {
+          return endpointCenter;
+        }
+        return clauseCenter;
       }
-      return interpolate(
-        t("map_content_loc_full_part", "in the __dir__ part of the map"),
-        { dir: dirLabel }
-      );
+      const atomPart = interpolate(t("map_content_loc_part", "__dir__ part"), { dir: dirLabel });
+      if (phraseForm === "atom") {
+        return atomPart;
+      }
+      if (phraseForm === "endpoint") {
+        return interpolate(t("map_content_loc_endpoint_part", "the __dir__ part"), { dir: dirLabel });
+      }
+      return interpolate(t("map_content_loc_full_part", "in the __dir__ part"), { dir: dirLabel });
     }
-    if (kind === "edge") {
+    if (kind === "near_edge") {
+      if (isCornerDirection(loc.dir)) {
+        if (!corner) {
+          return null;
+        }
+        if (phraseForm === "atom") {
+          return interpolate(t("map_content_loc_corner", "__corner__"), { corner: corner });
+        }
+        if (phraseForm === "endpoint") {
+          return interpolate(t("map_content_loc_endpoint_corner", "the __corner__"), { corner: corner });
+        }
+        return interpolate(t("map_content_loc_full_near_corner", "in the __corner__"), { corner: corner });
+      }
       if (!dirLabel) {
         return null;
       }
-      return interpolate(
-        t("map_content_loc_full_edge", "near the __dir__ edge of the map"),
-        { dir: dirLabel }
-      );
-    }
-    if (kind === "corner") {
-      if (!corner) {
-        return null;
+      const atomEdge = interpolate(t("map_content_loc_edge", "__dir__ edge"), { dir: dirLabel });
+      if (phraseForm === "atom") {
+        return atomEdge;
       }
       return interpolate(
-        t("map_content_loc_full_corner", "near the __corner__ of the map"),
-        { corner: corner }
+        phraseForm === "endpoint"
+          ? t("map_content_loc_endpoint_near_edge", "near the __dir__ edge")
+          : t("map_content_loc_full_near_edge", "near the __dir__ edge"),
+        { dir: dirLabel }
       );
     }
     return null;
@@ -294,12 +371,9 @@
     return points;
   }
 
-  function locationTextFromZone(zone) {
-    if (typeof zone === 'string') {
-      return zone;
-    }
+  function locationTextFromZone(zone, form) {
     if (zone && typeof zone === 'object') {
-      return locationPhraseFromLoc(zone) || null;
+      return locationPhraseFromLoc(zone, form) || null;
     }
     return null;
   }
@@ -325,6 +399,12 @@
     return target && Array.isArray(target.visibleSegments) ? target.visibleSegments : [];
   }
 
+  /**
+   * Route line grammar:
+   * - single visible location: sentence(clause(loc))
+   * - start->end: "From " + endpoint(start) + " to " + endpoint(end)
+   * This avoids "Near near ..." and "From in ...".
+   */
   function routeText(target) {
     const segments = segmentList(target);
     if (!segments.length) {
@@ -334,25 +414,26 @@
     if (!points.length) {
       return null;
     }
-    const start = locationTextFromZone(points[0].zone);
-    const end = locationTextFromZone(points[points.length - 1].zone);
+    const startEndpoint = locationTextFromZone(points[0].zone, "endpoint");
+    const endEndpoint = locationTextFromZone(points[points.length - 1].zone, "endpoint");
 
-    if (start && end && start !== end) {
+    if (startEndpoint && endEndpoint && startEndpoint !== endEndpoint) {
       return interpolate(
         t("map_content_way_route_from_to", "From __start__ to __end__"),
-        { start: start, end: end }
+        { start: startEndpoint, end: endEndpoint }
       );
     }
-    if (start) {
+    const single = locationTextFromZone(points[0].zone, "clause") || startEndpoint;
+    if (single) {
       return interpolate(
-        t("map_content_way_route_near", "Near __location__"),
-        { location: start }
+        t("map_content_way_route_near", "__location__"),
+        { location: single.replace(/[.]+$/, "") }
       );
     }
     return null;
   }
 
-  function collectEdges(target) {
+  function collectEdgeDetails(target) {
     const segments = segmentList(target);
     const found = {};
     segments.forEach(function(segment){
@@ -361,36 +442,78 @@
         if (!event || event.type !== "map_edge_crossing" || !event.edge) {
           return;
         }
-        found[event.edge] = true;
+        if (!found[event.edge]) {
+          found[event.edge] = { edge: event.edge, buckets: {} };
+        }
+        const zone = event.zone && typeof event.zone === 'object'
+          ? (event.zone.loc && typeof event.zone.loc === 'object' ? event.zone.loc : event.zone)
+          : null;
+        if (!zone || zone.kind !== "near_edge") {
+          return;
+        }
+        const bucket = edgePositionBucketFromDirection(event.edge, zone.dir);
+        if (!bucket) {
+          return;
+        }
+        found[event.edge].buckets[bucket] = (found[event.edge].buckets[bucket] || 0) + 1;
       });
     });
     const preferred = ["north", "south", "east", "west"];
     const ordered = [];
     preferred.forEach(function(edge){
       if (found[edge]) {
-        ordered.push(edge);
+        ordered.push(found[edge]);
         delete found[edge];
       }
     });
     Object.keys(found).forEach(function(edge){
-      ordered.push(edge);
+      ordered.push(found[edge]);
     });
-    return ordered;
+    return ordered.map(function(detail){
+      const present = Object.keys(detail.buckets).filter(function(bucket){
+        return detail.buckets[bucket] > 0;
+      });
+      let position = null;
+      if (present.length > 1) {
+        position = "multiple";
+      } else if (present.length === 1) {
+        position = present[0];
+      }
+      return {
+        edge: detail.edge,
+        position: position
+      };
+    });
   }
 
   function edgesText(target) {
-    const edges = collectEdges(target);
-    if (!edges.length) {
+    const details = collectEdgeDetails(target);
+    if (!details.length) {
       return null;
     }
-    if (edges.length === 1) {
-      return interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), {
-        edge: edgeLabel(edges[0])
+    const detailTexts = details.map(function(detail){
+      const base = edgeLabel(detail.edge) + " edge";
+      const qualifier = edgePositionQualifier(detail.position);
+      return qualifier ? base + " " + qualifier : base;
+    });
+    const hasPosition = details.some(function(detail){ return !!detail.position; });
+    if (!hasPosition && details.length > 1) {
+      return interpolate(t("map_content_touches_edges", "Touches __edges__ edges"), {
+        edges: joinWithAnd(details.map(function(detail){ return edgeLabel(detail.edge); }))
       });
     }
-    return interpolate(t("map_content_touches_edges", "Touches __edges__ edges"), {
-      edges: joinWithAnd(edges.map(edgeLabel))
-    });
+    if (details.length === 1) {
+      const detail = details[0];
+      const base = interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), {
+        edge: edgeLabel(detail.edge)
+      });
+      const qualifier = edgePositionQualifier(detail.position);
+      return qualifier ? base + " " + qualifier : base;
+    }
+    return interpolate(
+      t("map_content_touches_items", "Touches __items__"),
+      { items: joinWithAnd(detailTexts) }
+    );
   }
 
   function lanesText(item) {

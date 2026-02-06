@@ -97,13 +97,11 @@ def _loc_from_classification(location: Optional[Dict[str, Any]]) -> Optional[Dic
     if zone == "center":
         return {"kind": "center", "dir": None}
     if zone == "offset_of_center":
-        return {"kind": "offset_center", "dir": direction}
+        return {"kind": "part", "dir": direction}
     if zone == "part":
         return {"kind": "part", "dir": direction}
     if zone == "edge":
-        if direction in ("northwest", "northeast", "southwest", "southeast"):
-            return {"kind": "corner", "dir": direction}
-        return {"kind": "edge", "dir": direction}
+        return {"kind": "near_edge", "dir": direction}
     return None
 
 
@@ -172,41 +170,61 @@ def _dir_label(direction: Optional[str]) -> Optional[str]:
 
 def _corner_label(direction: Optional[str]) -> Optional[str]:
     if direction == "northwest":
-        return "top-left corner"
+        return "north-west corner"
     if direction == "northeast":
-        return "top-right corner"
+        return "north-east corner"
     if direction == "southwest":
-        return "bottom-left corner"
+        return "south-west corner"
     if direction == "southeast":
-        return "bottom-right corner"
+        return "south-east corner"
     return None
 
 
 def _loc_phrase(loc: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Render location clauses
+
+    Location classes:
+    1) center
+    2) part + direction
+    3) near_edge + direction (diagonal near_edge means corner)
+
+    Clause form:
+    - "in the center"
+    - "in the <dir> part"
+    - "near the <dir> edge"
+    - "in the <dir> corner"
+
+    Rules:
+    - corner phrases use "in the ... corner"
+    """
     if not loc or not isinstance(loc, dict):
         return None
     kind = loc.get("kind")
     direction = loc.get("dir")
     dir_label = _dir_label(direction)
     if kind == "center":
-        return "near the center of the map"
+        return "in the center"
     if kind == "offset_center":
-        if dir_label:
-            return "a little " + dir_label + " of the center of the map"
-        return "near the center of the map"
+        # Backward-compatibility for old map-content style values.
+        kind = "part"
     if kind == "part":
         if dir_label:
-            return "in the " + dir_label + " part of the map"
-        return "near the center of the map"
-    if kind == "edge":
+            return "in the " + dir_label + " part"
+        return "in the center"
+    if kind == "near_edge" or kind == "edge" or kind == "corner":
+        if direction in ("northwest", "northeast", "southwest", "southeast"):
+            corner = _corner_label(direction)
+            if corner:
+                return "in the " + corner
+            return "in the corner"
         if dir_label:
-            return "near the " + dir_label + " edge of the map"
-        return "near the edge of the map"
-    if kind == "corner":
+            return "near the " + dir_label + " edge"
+        return "near the edge"
+    if kind == "near_corner":
         corner = _corner_label(direction)
         if corner:
-            return "near the " + corner + " of the map"
-        return "near the corner of the map"
+            return "in the " + corner
+        return "in the corner"
     return None
 
 

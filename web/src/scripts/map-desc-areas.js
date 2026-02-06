@@ -66,26 +66,16 @@
       ? item.visibleGeometry.components
       : null;
     if (components && components.length && components[0].location) {
-      const locationText = locationPhraseFromLoc(components[0].location.loc, "full");
+      const locationText = locationPhraseFromLoc(components[0].location.loc, "clause");
       if (locationText) {
         return locationText;
       }
     }
     if (item && item.location && item.location.center) {
-      if (typeof item.location.center === 'string') {
-        return item.location.center;
-      }
-      if (item.location.center && typeof item.location.center === 'object') {
-        return locationPhraseFromLoc(item.location.center.loc, "full") || null;
-      }
+      return locationTextFromValue(item.location.center, "clause");
     }
     if (group && group.location && group.location.center) {
-      if (typeof group.location.center === 'string') {
-        return group.location.center;
-      }
-      if (group.location.center && typeof group.location.center === 'object') {
-        return locationPhraseFromLoc(group.location.center.loc, "full") || null;
-      }
+      return locationTextFromValue(group.location.center, "clause");
     }
     return null;
   }
@@ -111,80 +101,98 @@
   }
 
   function cornerLabel(direction) {
-    if (direction === "northwest") return t("map_content_corner_northwest", "top-left corner");
-    if (direction === "northeast") return t("map_content_corner_northeast", "top-right corner");
-    if (direction === "southwest") return t("map_content_corner_southwest", "bottom-left corner");
-    if (direction === "southeast") return t("map_content_corner_southeast", "bottom-right corner");
+    if (direction === "northwest") return t("map_content_corner_northwest", "north-west corner");
+    if (direction === "northeast") return t("map_content_corner_northeast", "north-east corner");
+    if (direction === "southwest") return t("map_content_corner_southwest", "south-west corner");
+    if (direction === "southeast") return t("map_content_corner_southeast", "south-east corner");
     return direction;
   }
 
-  function locationPhraseFromLoc(loc, mode) {
+  /**
+   * Location phrase grammar (distance classification only):
+   * 1) center, 2) part + dir, 3) near_edge + dir (diagonal near_edge means corner).
+   * Forms:
+   * - atom: "center", "east part", "north edge", "north-east corner"
+   * - clause: "in the center", "in the east part", "near the north edge", "in the north-east corner"
+   * - endpoint: "the center", "the east part", "near the north edge", "the north-east corner"
+   * Rules:
+   * - no "of the map" suffix
+   * - avoid duplicated prepositions by selecting form by context.
+   */
+  function locationPhraseFromLoc(loc, form) {
     if (!loc || typeof loc !== 'object') {
       return null;
     }
+    const phraseForm = form || "clause";
     const kind = loc.kind;
     const dirLabel = loc.dir ? directionLabel(loc.dir) : null;
     const corner = loc.dir ? cornerLabel(loc.dir) : null;
-    const isFull = mode === "full";
+    const atomCenter = t("map_content_loc_center", "center");
+    const clauseCenter = t("map_content_loc_full_center", "in the center");
+    const endpointCenter = t("map_content_loc_endpoint_center", "the center");
     if (kind === "center") {
-      return t(
-        isFull ? "map_content_loc_full_center" : "map_content_loc_center",
-        isFull ? "near the center of the map" : "center"
-      );
-    }
-    if (kind === "offset_center") {
-      if (!dirLabel) {
-        return t(
-          isFull ? "map_content_loc_full_center" : "map_content_loc_center",
-          isFull ? "near the center of the map" : "center"
-        );
+      if (phraseForm === "atom") {
+        return atomCenter;
       }
-      return interpolate(
-        t(
-          isFull ? "map_content_loc_full_offset_center" : "map_content_loc_offset_center",
-          isFull ? "a little __dir__ of the center of the map" : "__dir__ of the center"
-        ),
-        { dir: dirLabel }
-      );
+      if (phraseForm === "endpoint") {
+        return endpointCenter;
+      }
+      return clauseCenter;
     }
     if (kind === "part") {
       if (!dirLabel) {
-        return t(
-          isFull ? "map_content_loc_full_center" : "map_content_loc_center",
-          isFull ? "near the center of the map" : "center"
-        );
+        if (phraseForm === "atom") {
+          return atomCenter;
+        }
+        if (phraseForm === "endpoint") {
+          return endpointCenter;
+        }
+        return clauseCenter;
       }
-      return interpolate(
-        t(
-          isFull ? "map_content_loc_full_part" : "map_content_loc_part",
-          isFull ? "in the __dir__ part of the map" : "__dir__ part"
-        ),
-        { dir: dirLabel }
-      );
+      const atomPart = interpolate(t("map_content_loc_part", "__dir__ part"), { dir: dirLabel });
+      if (phraseForm === "atom") {
+        return atomPart;
+      }
+      if (phraseForm === "endpoint") {
+        return interpolate(t("map_content_loc_endpoint_part", "the __dir__ part"), { dir: dirLabel });
+      }
+      return interpolate(t("map_content_loc_full_part", "in the __dir__ part"), { dir: dirLabel });
     }
-    if (kind === "edge") {
+    if (kind === "near_edge") {
+      if (loc.dir === "northwest" || loc.dir === "northeast" ||
+          loc.dir === "southwest" || loc.dir === "southeast") {
+        if (!corner) {
+          return null;
+        }
+        if (phraseForm === "atom") {
+          return interpolate(t("map_content_loc_corner", "__corner__"), { corner: corner });
+        }
+        if (phraseForm === "endpoint") {
+          return interpolate(t("map_content_loc_endpoint_corner", "the __corner__"), { corner: corner });
+        }
+        return interpolate(t("map_content_loc_full_near_corner", "in the __corner__"), { corner: corner });
+      }
       if (!dirLabel) {
         return null;
       }
+      const atomEdge = interpolate(t("map_content_loc_edge", "__dir__ edge"), { dir: dirLabel });
+      if (phraseForm === "atom") {
+        return atomEdge;
+      }
       return interpolate(
-        t(
-          isFull ? "map_content_loc_full_edge" : "map_content_loc_edge",
-          isFull ? "near the __dir__ edge of the map" : "__dir__ edge"
-        ),
+        phraseForm === "endpoint"
+          ? t("map_content_loc_endpoint_near_edge", "near the __dir__ edge")
+          : t("map_content_loc_full_near_edge", "near the __dir__ edge"),
         { dir: dirLabel }
       );
     }
-    if (kind === "corner") {
-      if (!corner) {
-        return null;
-      }
-      return interpolate(
-        t(
-          isFull ? "map_content_loc_full_corner" : "map_content_loc_corner",
-          isFull ? "near the __corner__ of the map" : "__corner__"
-        ),
-        { corner: corner }
-      );
+    return null;
+  }
+
+  function locationTextFromValue(value, form) {
+    if (value && typeof value === 'object') {
+      const loc = value.loc && typeof value.loc === 'object' ? value.loc : value;
+      return locationPhraseFromLoc(loc, form);
     }
     return null;
   }
@@ -221,7 +229,85 @@
     return touches;
   }
 
-  function edgesText(edgesTouched) {
+  function edgePositionBucketFromDirection(edge, direction) {
+    if (edge === "east") {
+      if (direction === "northeast") return "north";
+      if (direction === "east") return "center";
+      if (direction === "southeast") return "south";
+      return null;
+    }
+    if (edge === "west") {
+      if (direction === "northwest") return "north";
+      if (direction === "west") return "center";
+      if (direction === "southwest") return "south";
+      return null;
+    }
+    if (edge === "north") {
+      if (direction === "northwest") return "west";
+      if (direction === "north") return "center";
+      if (direction === "northeast") return "east";
+      return null;
+    }
+    if (edge === "south") {
+      if (direction === "southwest") return "west";
+      if (direction === "south") return "center";
+      if (direction === "southeast") return "east";
+      return null;
+    }
+    return null;
+  }
+
+  function edgePositionFromCoverage(coverage, edge) {
+    const segments = coverage && Array.isArray(coverage.segments) ? coverage.segments : [];
+    if (!segments.length) {
+      return null;
+    }
+    const buckets = { north: 0, center: 0, south: 0, east: 0, west: 0 };
+    let matchedSegments = 0;
+    segments.forEach(function(segment){
+      if (!segment || !segment.loc || segment.loc.kind !== "near_edge") {
+        return;
+      }
+      const direction = segment.loc.dir;
+      const bucket = edgePositionBucketFromDirection(edge, direction);
+      if (!bucket) {
+        return;
+      }
+      matchedSegments += 1;
+      const count = Number(segment.insideCount);
+      if (!isFinite(count) || count <= 0) {
+        return;
+      }
+      buckets[bucket] += count;
+    });
+    if (matchedSegments <= 1) {
+      return null;
+    }
+
+    const present = Object.keys(buckets).filter(function(bucket){ return buckets[bucket] > 0; });
+    if (present.length === 0) {
+      return null;
+    }
+    if (present.length > 1) {
+      return "multiple";
+    }
+    return present[0];
+  }
+
+  function edgePositionQualifier(position) {
+    if (!position) {
+      return null;
+    }
+    if (position === "multiple") return t("map_content_touch_pos_multiple", "in multiple places");
+    if (position === "center") return t("map_content_touch_pos_center", "near the center");
+    if (position === "north") return t("map_content_touch_pos_north", "in the north");
+    if (position === "south") return t("map_content_touch_pos_south", "in the south");
+    if (position === "east") return t("map_content_touch_pos_east", "in the east");
+    if (position === "west") return t("map_content_touch_pos_west", "in the west");
+    return null;
+  }
+
+  function edgesText(edgesTouched, coverage) {
     const touches = parseEdgeTouches(edgesTouched);
     if (!touches.length) {
       return null;
@@ -231,13 +317,18 @@
       if (!edge) {
         return null;
       }
+      let base = null;
       if (touch.percent !== null && touch.percent !== undefined && !isNaN(touch.percent)) {
-        return interpolate(t("map_content_touches_edge_percent", "touches __percent__% of __edge__ edge"), {
+        base = interpolate(t("map_content_touches_edge_percent", "touches __percent__% of __edge__ edge"), {
           edge: edge,
           percent: formatPercent(touch.percent)
         });
+      } else {
+        base = interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), { edge: edge });
       }
-      return interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), { edge: edge });
+      const position = edgePositionFromCoverage(coverage, touch.edge);
+      const qualifier = edgePositionQualifier(position);
+      return qualifier ? base + " " + qualifier : base;
     }).filter(Boolean);
     return joinWithAnd(parts);
   }
@@ -307,53 +398,254 @@
     return capitalizeFirst(shapeType) + " shape";
   }
 
-  function coverageBreakdown(coverage) {
+  function isDiagonalDirection(direction) {
+    return direction === "northwest" ||
+      direction === "northeast" ||
+      direction === "southwest" ||
+      direction === "southeast";
+  }
+
+  function normalizeCoverageLoc(loc) {
+    if (!loc || typeof loc !== 'object') {
+      return null;
+    }
+    const direction = loc.dir || null;
+    if (loc.kind === "center") {
+      return { kind: "center", dir: null };
+    }
+    if (loc.kind === "part") {
+      return direction ? { kind: "part", dir: direction } : { kind: "center", dir: null };
+    }
+    if (loc.kind === "near_edge") {
+      return direction ? { kind: "near_edge", dir: direction } : null;
+    }
+    return null;
+  }
+
+  function coverageBucketKey(bucket) {
+    if (!bucket) {
+      return "";
+    }
+    return bucket.kind + ":" + (bucket.dir || "");
+  }
+
+  function normalizedCoverageBuckets(coverage) {
     if (!coverage || !Array.isArray(coverage.segments) || !coverage.segments.length) {
-      return null;
+      return [];
     }
-    const segments = coverage.segments.filter(function(segment){
-      return segment && typeof segment.insideCount === 'number';
-    }).slice();
-    if (!segments.length) {
-      return null;
-    }
-    segments.sort(function(a, b){
-      return b.insideCount - a.insideCount;
-    });
+    const bucketMap = {};
     let total = 0;
-    segments.forEach(function(segment){
+    coverage.segments.forEach(function(segment){
+      if (!segment || typeof segment.insideCount !== 'number' || segment.insideCount <= 0) {
+        return;
+      }
+      const bucket = normalizeCoverageLoc(segment.loc);
+      if (!bucket) {
+        return;
+      }
+      const key = coverageBucketKey(bucket);
+      if (!key) {
+        return;
+      }
+      if (!bucketMap[key]) {
+        bucketMap[key] = { kind: bucket.kind, dir: bucket.dir, insideCount: 0 };
+      }
+      bucketMap[key].insideCount += segment.insideCount;
       total += segment.insideCount;
     });
     if (total <= 0) {
-      return null;
+      return [];
     }
-    const phrases = segments.map(function(segment){
-      const ratio = segment.insideCount / total;
-      let qualifierKey = "map_content_coverage_little";
-      if (ratio >= 0.5) {
-        qualifierKey = "map_content_coverage_much";
-      } else if (ratio >= 0.2) {
-        qualifierKey = "map_content_coverage_some";
-      }
-      const segmentText = locationPhraseFromLoc(segment.loc, "segment") || "";
-      if (!segmentText) {
-        return "";
-      }
-      return interpolate(t(qualifierKey, "some of __segment__"), { segment: segmentText });
+    const buckets = Object.keys(bucketMap).map(function(key){
+      const bucket = bucketMap[key];
+      return {
+        kind: bucket.kind,
+        dir: bucket.dir,
+        insideCount: bucket.insideCount,
+        share: bucket.insideCount / total
+      };
     });
-    const cleanedPhrases = phrases.filter(Boolean);
-    let coverageText = "";
-    if (cleanedPhrases.length === 1) {
-      coverageText = cleanedPhrases[0];
-    } else if (cleanedPhrases.length === 2) {
-      coverageText = cleanedPhrases[0] + " and " + cleanedPhrases[1];
-    } else {
-      coverageText = cleanedPhrases.slice(0, -1).join(", ") + ", and " + cleanedPhrases[cleanedPhrases.length - 1];
-    }
-    if (!coverageText) {
+    buckets.sort(function(a, b){
+      return b.share - a.share;
+    });
+    return buckets;
+  }
+
+  function bucketRegionText(bucket) {
+    if (!bucket) {
       return null;
     }
-    return coverageText;
+    if (bucket.kind === "center") {
+      return t("map_content_region_center", "center");
+    }
+    if (bucket.kind === "part") {
+      const dirText = bucket.dir ? directionLabel(bucket.dir) : null;
+      if (!dirText) {
+        return t("map_content_region_center", "center");
+      }
+      return interpolate(t("map_content_region_part", "__dir__ part"), { dir: dirText });
+    }
+    if (bucket.kind === "near_edge") {
+      if (isDiagonalDirection(bucket.dir)) {
+        const cornerText = bucket.dir ? cornerLabel(bucket.dir) : null;
+        if (!cornerText) {
+          return null;
+        }
+        return interpolate(t("map_content_region_corner", "__corner__"), { corner: cornerText });
+      }
+      const edgeDir = bucket.dir ? directionLabel(bucket.dir) : null;
+      if (!edgeDir) {
+        return null;
+      }
+      return interpolate(t("map_content_region_edge", "__dir__ edge"), { dir: edgeDir });
+    }
+    return null;
+  }
+
+  function isNearBucket(bucket) {
+    return !!bucket && bucket.kind === "near_edge" && !isDiagonalDirection(bucket.dir);
+  }
+
+  function coverageSingleSentence(bucket) {
+    const clause = locationPhraseFromLoc({ kind: bucket.kind, dir: bucket.dir }, "clause");
+    if (!clause) {
+      return null;
+    }
+    return capitalizeFirst(clause) + ".";
+  }
+
+  function coverageEqualSentence(first, second) {
+    const firstText = bucketRegionText(first);
+    const secondText = bucketRegionText(second);
+    if (!firstText || !secondText) {
+      return null;
+    }
+    const firstNear = isNearBucket(first);
+    const secondNear = isNearBucket(second);
+    if (firstNear && secondNear) {
+      return interpolate(t("map_content_summary_near_and", "Near the __first__ and __second__."), {
+        first: firstText,
+        second: secondText
+      });
+    }
+    if (!firstNear && !secondNear) {
+      return interpolate(t("map_content_summary_in_and", "In the __first__ and __second__."), {
+        first: firstText,
+        second: secondText
+      });
+    }
+    if (firstNear) {
+      return interpolate(t("map_content_summary_in_and_near", "In the __first__ and near the __second__."), {
+        first: secondText,
+        second: firstText
+      });
+    }
+    return interpolate(t("map_content_summary_in_and_near", "In the __first__ and near the __second__."), {
+      first: firstText,
+      second: secondText
+    });
+  }
+
+  function coverageMostlySentence(top, second) {
+    const topText = bucketRegionText(top);
+    const secondText = bucketRegionText(second);
+    if (!topText || !secondText) {
+      return null;
+    }
+    const leadTemplate = isNearBucket(top)
+      ? t("map_content_summary_mainly_near_lead", "Mostly near the __region__")
+      : t("map_content_summary_mostly_in_lead", "Mostly in the __region__");
+    const lead = interpolate(leadTemplate, { region: topText });
+    return interpolate(
+      t("map_content_summary_mostly_extending", "__lead__, extending toward the __target__."),
+      { lead: lead, target: secondText }
+    );
+  }
+
+  function coverageDistributedSentence(top, second) {
+    const topText = bucketRegionText(top);
+    if (!topText) {
+      return null;
+    }
+    if (!second || second.share < 0.15) {
+      if (isNearBucket(top)) {
+        return interpolate(
+          t("map_content_summary_several_mainly_near", "In several areas, mostly near the __region__."),
+          { region: topText }
+        );
+      }
+      return interpolate(
+        t("map_content_summary_several_mainly_in", "In several areas, mostly in the __region__."),
+        { region: topText }
+      );
+    }
+    const secondText = bucketRegionText(second);
+    if (!secondText) {
+      return null;
+    }
+    const topNear = isNearBucket(top);
+    const secondNear = isNearBucket(second);
+    if (topNear && secondNear) {
+      return interpolate(
+        t("map_content_summary_mainly_near_and", "In several areas, mostly near the __first__ and __second__."),
+        { first: topText, second: secondText }
+      );
+    }
+    if (!topNear && !secondNear) {
+      return interpolate(
+        t("map_content_summary_mainly_in_and", "In several areas, mostly in the __first__ and __second__."),
+        { first: topText, second: secondText }
+      );
+    }
+    if (!topNear && secondNear) {
+      return interpolate(
+        t("map_content_summary_mainly_in_and_near", "In several areas, mostly in the __first__ and near the __second__."),
+        { first: topText, second: secondText }
+      );
+    }
+    return interpolate(
+      t("map_content_summary_mainly_near_and_in", "In several areas, mostly near the __first__ and in the __second__."),
+      { first: topText, second: secondText }
+    );
+  }
+
+  /**
+   * Coverage phrase selection:
+   * - meaningful bucket threshold: share >= 0.15
+   * - distributed if:
+   *   a) >= 3 meaningful buckets, or
+   *   b) top share < 0.55, or
+   *   c) top + second < 0.80
+   * Non-distributed uses single / equal / mostly-extending templates.
+   * Distributed uses explicit "In several areas, mostly ..." templates.
+   */
+  function coverageBreakdown(coverage) {
+    const buckets = normalizedCoverageBuckets(coverage);
+    if (!buckets.length) {
+      return null;
+    }
+    const top = buckets[0];
+    const second = buckets.length > 1 ? buckets[1] : null;
+    const meaningful = buckets.filter(function(bucket){
+      return bucket.share >= 0.15;
+    });
+
+    const topShare = top ? top.share : 0;
+    const secondShare = second ? second.share : 0;
+    const moreDistributed = meaningful.length >= 3 ||
+      topShare < 0.55 ||
+      (topShare + secondShare) < 0.80;
+
+    if (moreDistributed) {
+      return coverageDistributedSentence(top, second);
+    }
+    if (!second || secondShare < 0.15 || meaningful.length <= 1 || topShare >= 0.85) {
+      return coverageSingleSentence(top);
+    }
+    if (Math.abs(topShare - secondShare) <= 0.07) {
+      return coverageEqualSentence(top, second);
+    }
+    return coverageMostlySentence(top, second);
   }
 
   function collectBuildingGroups(mapContent) {
@@ -474,12 +766,14 @@
       labelSource = primary.displayLabel || primary.label;
     }
     const nameParts = splitLabel(labelSource);
-    const location = locationPhrase(group, primary);
     const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
+    const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
+    const coverageLine = coverageBreakdown(coverage);
+    const location = locationPhrase(group, primary);
     const edges = visibleGeometry && Array.isArray(visibleGeometry.edgesTouched)
       ? visibleGeometry.edgesTouched
       : [];
-    const touches = edgesText(edges);
+    const touches = edgesText(edges, coverage);
 
     const listItem = $("<li>").addClass("map-content-building");
     if (primary && primary.osmId !== undefined && primary.osmId !== null) {
@@ -492,29 +786,23 @@
     }
     appendLine(listItem, titleParts, "map-content-title-line");
 
-    const locationLine = [];
-    if (location) {
-      locationLine.push({ text: capitalizeFirst(location), className: "map-content-location-text" });
+    const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
+    const primaryLocationText = primaryLocation ? primaryLocation.replace(/[.]+$/, "") : null;
+    if (primaryLocationText) {
+      appendLine(listItem, [
+        { text: primaryLocationText, className: "map-content-location-text" }
+      ], "map-content-location");
     }
     if (touches) {
-      if (locationLine.length) {
-        locationLine.push({ text: " (", className: "map-content-location-paren", wrap: false });
-        locationLine.push({ text: touches, className: "map-content-touches" });
-        locationLine.push({ text: ")", className: "map-content-location-paren", wrap: false });
-      } else {
-        locationLine.push({ text: touches, className: "map-content-touches" });
-      }
-    }
-    if (locationLine.length) {
-      appendLine(listItem, locationLine, "map-content-location");
+      appendLine(listItem, [
+        { text: capitalizeFirst(touches), className: "map-content-touches" }
+      ], "map-content-location");
     }
 
     const components = visibleGeometry && Array.isArray(visibleGeometry.components)
       ? visibleGeometry.components
       : [];
-    const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
     const partsLine = [];
-    let coveragePercentText = null;
     if (components && components.length > 1) {
       partsLine.push.apply(partsLine, interpolatedParts(
         t("map_content_parts_many", "__count__ parts"),
@@ -525,10 +813,6 @@
     if (coverage && coverage.coveragePercent !== undefined) {
       const percentText = formatPercent(coverage.coveragePercent);
       if (percentText !== null) {
-        coveragePercentText = interpolate(
-          t("map_content_total_area", "Covers __percent__% of map"),
-          { percent: percentText }
-        );
         if (partsLine.length) {
           partsLine.push({ text: ", ", className: "map-content-parts-sep", wrap: false });
         }
@@ -590,19 +874,6 @@
       }
     }
 
-    const coverageLine = coverageBreakdown(coverage);
-    if (coverageLine && coveragePercentText && partsLine.length) {
-      partsLine.push({ text: " ", className: "map-content-coverage-space", wrap: false });
-      partsLine.push({ text: "(", className: "map-content-coverage-paren", wrap: false });
-      partsLine.push({ text: coverageLine, className: "map-content-coverage-segments" });
-      partsLine.push({ text: ")", className: "map-content-coverage-paren", wrap: false });
-    } else if (coverageLine) {
-      appendLine(listItem, [
-        { text: t("map_content_coverage_label", "Covers:"), className: "map-content-coverage-label", wrap: false },
-        { text: " ", className: "map-content-coverage-sep", wrap: false },
-        { text: coverageLine, className: "map-content-coverage-segments" }
-      ], "map-content-coverage");
-    }
     if (partsLine.length) {
       appendLine(listItem, partsLine, "map-content-parts");
     }

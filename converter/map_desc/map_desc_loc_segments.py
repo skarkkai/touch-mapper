@@ -20,9 +20,11 @@ BBox = TypedDict("BBox", {"minX": float, "minY": float, "maxX": float, "maxY": f
 LocationLoc = TypedDict("LocationLoc", {"kind": str, "dir": Optional[str]})
 
 
-CENTER_BAND = 0.25
-NEAR_CENTER_BAND = 0.5
-PART_BAND = 0.75
+# Distance-from-center bands based on Chebyshev radius r=max(|dx|,|dy|),
+# where dx,dy are normalized to [-1, 1] from map center.
+# Code below creates stage "Grouped + classified meta" data.
+CENTER_BAND = 0.30
+PART_BAND = 0.68
 
 
 def _clamp(value: float, min_value: float, max_value: float) -> float:
@@ -92,15 +94,10 @@ def classify_location(point: Optional[Point],
         return {"loc": _location_loc("center", None)}
 
     direction = _angle_dir(dx, dy)
-    if r <= NEAR_CENTER_BAND:
-        return {"loc": _location_loc("offset_center", direction)}
-
     if r <= PART_BAND:
         return {"loc": _location_loc("part", direction)}
 
-    if direction in ("northwest", "northeast", "southwest", "southeast"):
-        return {"loc": _location_loc("corner", direction)}
-    return {"loc": _location_loc("edge", direction)}
+    return {"loc": _location_loc("near_edge", direction)}
 
 
 __all__ = ["classify_location"]
