@@ -68,6 +68,10 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.
 - Keep that guide in sync with live deployed behavior in `web/src/scripts/app-common.js` and `web/src/scripts/map.js`.
 
+## UI visual baseline
+- For visual/style guidance on the three main views (`start`, `area`, `map`), follow `doc/ui-visual-baseline.md`.
+- Keep that guide in sync when intentional visual design changes are made.
+
 ## OSM2World
 - `OSM2World/` is a modified upstream dependency, rarely modified.
 - To build, it's safest to run `ant clean jar`
