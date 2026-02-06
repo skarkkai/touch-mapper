@@ -54,6 +54,53 @@
     return { title: title, subtitle: subtitle || null };
   }
 
+  function slugifyOsmValue(value) {
+    if (!value || typeof value !== 'string') {
+      return "";
+    }
+    const normalized = value.normalize
+      ? value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      : value;
+    return normalized
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
+  function translatedOsmValue(value) {
+    const slug = slugifyOsmValue(value);
+    if (!slug) {
+      return null;
+    }
+    const key = "map_content_osm_value_" + slug;
+    const translated = t(key, key);
+    if (translated === key) {
+      return null;
+    }
+    return translated;
+  }
+
+  function localizeBuildingTitle(title) {
+    if (!title || typeof title !== 'string') {
+      return title;
+    }
+    const exact = translatedOsmValue(title);
+    if (exact) {
+      return exact;
+    }
+    const match = title.match(/^(.*)\s+building$/i);
+    if (match) {
+      const translatedValue = translatedOsmValue(match[1].trim());
+      if (translatedValue) {
+        return interpolate(
+          t("map_content_building_type_from_value", "__value__ building"),
+          { value: translatedValue }
+        );
+      }
+    }
+    return title;
+  }
+
   function pickPrimaryItem(group) {
     if (!group || !group.items || !group.items.length) {
       return null;
@@ -116,7 +163,6 @@
    * - clause: "in the center", "in the east part", "near the north edge", "in the north-east corner"
    * - endpoint: "the center", "the east part", "near the north edge", "the north-east corner"
    * Rules:
-   * - no "of the map" suffix
    * - avoid duplicated prepositions by selecting form by context.
    */
   function locationPhraseFromLoc(loc, form) {
@@ -131,6 +177,12 @@
     const clauseCenter = t("map_content_loc_full_center", "in the center");
     const endpointCenter = t("map_content_loc_endpoint_center", "the center");
     if (kind === "center") {
+      if (phraseForm === "route_from") {
+        return t("map_content_loc_route_from_center", endpointCenter);
+      }
+      if (phraseForm === "route_to") {
+        return t("map_content_loc_route_to_center", endpointCenter);
+      }
       if (phraseForm === "atom") {
         return atomCenter;
       }
@@ -149,6 +201,18 @@
         }
         return clauseCenter;
       }
+      if (phraseForm === "route_from") {
+        return interpolate(
+          t("map_content_loc_route_from_part", t("map_content_loc_endpoint_part", "the __dir__ part")),
+          { dir: dirLabel }
+        );
+      }
+      if (phraseForm === "route_to") {
+        return interpolate(
+          t("map_content_loc_route_to_part", t("map_content_loc_endpoint_part", "the __dir__ part")),
+          { dir: dirLabel }
+        );
+      }
       const atomPart = interpolate(t("map_content_loc_part", "__dir__ part"), { dir: dirLabel });
       if (phraseForm === "atom") {
         return atomPart;
@@ -164,6 +228,18 @@
         if (!corner) {
           return null;
         }
+        if (phraseForm === "route_from") {
+          return interpolate(
+            t("map_content_loc_route_from_corner", t("map_content_loc_endpoint_corner", "the __corner__")),
+            { corner: corner }
+          );
+        }
+        if (phraseForm === "route_to") {
+          return interpolate(
+            t("map_content_loc_route_to_corner", t("map_content_loc_endpoint_corner", "the __corner__")),
+            { corner: corner }
+          );
+        }
         if (phraseForm === "atom") {
           return interpolate(t("map_content_loc_corner", "__corner__"), { corner: corner });
         }
@@ -176,6 +252,18 @@
         return null;
       }
       const atomEdge = interpolate(t("map_content_loc_edge", "__dir__ edge"), { dir: dirLabel });
+      if (phraseForm === "route_from") {
+        return interpolate(
+          t("map_content_loc_route_from_near_edge", t("map_content_loc_endpoint_near_edge", "near the __dir__ edge")),
+          { dir: dirLabel }
+        );
+      }
+      if (phraseForm === "route_to") {
+        return interpolate(
+          t("map_content_loc_route_to_near_edge", t("map_content_loc_endpoint_near_edge", "near the __dir__ edge")),
+          { dir: dirLabel }
+        );
+      }
       if (phraseForm === "atom") {
         return atomEdge;
       }
@@ -198,6 +286,7 @@
   }
 
   function joinWithAnd(parts) {
+    const andWord = t("map_content_list_and", "and");
     if (!parts.length) {
       return "";
     }
@@ -205,9 +294,9 @@
       return parts[0];
     }
     if (parts.length === 2) {
-      return parts[0] + " and " + parts[1];
+      return parts[0] + " " + andWord + " " + parts[1];
     }
-    return parts.slice(0, -1).join(", ") + ", and " + parts[parts.length - 1];
+    return parts.slice(0, -1).join(", ") + ", " + andWord + " " + parts[parts.length - 1];
   }
 
   function parseEdgeTouches(edgesTouched) {
@@ -363,9 +452,9 @@
       return null;
     }
     if (Math.abs(num - Math.round(num)) < 0.01) {
-      return Math.round(num).toFixed(0) + " deg";
+      return Math.round(num).toFixed(0) + " " + t("map_content_degrees_abbrev", "deg");
     }
-    return num.toFixed(1) + " deg";
+    return num.toFixed(1) + " " + t("map_content_degrees_abbrev", "deg");
   }
 
   function orientationAbbrev(label) {
@@ -391,7 +480,10 @@
     if (shapeType === "thin" || shapeType === "regular") {
       return null;
     }
-    return capitalizeFirst(shapeType) + " shape";
+    return interpolate(
+      t("map_content_shape_generic", "__shape__ shape"),
+      { shape: capitalizeFirst(shapeType) }
+    );
   }
 
   function isDiagonalDirection(direction) {
@@ -467,39 +559,18 @@
     return buckets;
   }
 
-  function bucketRegionText(bucket) {
+  function bucketClauseText(bucket) {
     if (!bucket) {
       return null;
     }
-    if (bucket.kind === "center") {
-      return t("map_content_region_center", "center");
-    }
-    if (bucket.kind === "part") {
-      const dirText = bucket.dir ? directionLabel(bucket.dir) : null;
-      if (!dirText) {
-        return t("map_content_region_center", "center");
-      }
-      return interpolate(t("map_content_region_part", "__dir__ part"), { dir: dirText });
-    }
-    if (bucket.kind === "near_edge") {
-      if (isDiagonalDirection(bucket.dir)) {
-        const cornerText = bucket.dir ? cornerLabel(bucket.dir) : null;
-        if (!cornerText) {
-          return null;
-        }
-        return interpolate(t("map_content_region_corner", "__corner__"), { corner: cornerText });
-      }
-      const edgeDir = bucket.dir ? directionLabel(bucket.dir) : null;
-      if (!edgeDir) {
-        return null;
-      }
-      return interpolate(t("map_content_region_edge", "__dir__ edge"), { dir: edgeDir });
-    }
-    return null;
+    return locationPhraseFromLoc({ kind: bucket.kind, dir: bucket.dir }, "clause");
   }
 
-  function isNearBucket(bucket) {
-    return !!bucket && bucket.kind === "near_edge" && !isDiagonalDirection(bucket.dir);
+  function bucketTargetText(bucket) {
+    if (!bucket) {
+      return null;
+    }
+    return locationPhraseFromLoc({ kind: bucket.kind, dir: bucket.dir }, "atom");
   }
 
   function coverageSingleSentence(bucket) {
@@ -511,97 +582,56 @@
   }
 
   function coverageEqualSentence(first, second) {
-    const firstText = bucketRegionText(first);
-    const secondText = bucketRegionText(second);
+    const firstText = bucketClauseText(first);
+    const secondText = bucketClauseText(second);
     if (!firstText || !secondText) {
       return null;
     }
-    const firstNear = isNearBucket(first);
-    const secondNear = isNearBucket(second);
-    if (firstNear && secondNear) {
-      return interpolate(t("map_content_summary_near_and", "Near the __first__ and __second__."), {
+    return capitalizeFirst(interpolate(
+      t("map_content_summary_equal_clauses", "__first__ and __second__."),
+      {
         first: firstText,
         second: secondText
-      });
-    }
-    if (!firstNear && !secondNear) {
-      return interpolate(t("map_content_summary_in_and", "In the __first__ and __second__."), {
-        first: firstText,
-        second: secondText
-      });
-    }
-    if (firstNear) {
-      return interpolate(t("map_content_summary_in_and_near", "In the __first__ and near the __second__."), {
-        first: secondText,
-        second: firstText
-      });
-    }
-    return interpolate(t("map_content_summary_in_and_near", "In the __first__ and near the __second__."), {
-      first: firstText,
-      second: secondText
-    });
+      }
+    ));
   }
 
   function coverageMostlySentence(top, second) {
-    const topText = bucketRegionText(top);
-    const secondText = bucketRegionText(second);
-    if (!topText || !secondText) {
+    const lead = bucketClauseText(top);
+    const target = bucketTargetText(second);
+    if (!lead || !target) {
       return null;
     }
-    const leadTemplate = isNearBucket(top)
-      ? t("map_content_summary_mainly_near_lead", "Mostly near the __region__")
-      : t("map_content_summary_mostly_in_lead", "Mostly in the __region__");
-    const lead = interpolate(leadTemplate, { region: topText });
     return interpolate(
-      t("map_content_summary_mostly_extending", "__lead__, extending toward the __target__."),
-      { lead: lead, target: secondText }
+      t("map_content_summary_mostly_extending_clauses", "Mostly __lead__, extending toward __target__."),
+      {
+        lead: lead,
+        target: target
+      }
     );
   }
 
   function coverageDistributedSentence(top, second) {
-    const topText = bucketRegionText(top);
-    if (!topText) {
+    const first = bucketClauseText(top);
+    if (!first) {
       return null;
     }
     if (!second || second.share < 0.15) {
-      if (isNearBucket(top)) {
-        return interpolate(
-          t("map_content_summary_several_mainly_near", "In several areas, mostly near the __region__."),
-          { region: topText }
-        );
-      }
       return interpolate(
-        t("map_content_summary_several_mainly_in", "In several areas, mostly in the __region__."),
-        { region: topText }
+        t("map_content_summary_distributed_top1", "In several areas, mostly __first__."),
+        { first: first }
       );
     }
-    const secondText = bucketRegionText(second);
+    const secondText = bucketClauseText(second);
     if (!secondText) {
       return null;
     }
-    const topNear = isNearBucket(top);
-    const secondNear = isNearBucket(second);
-    if (topNear && secondNear) {
-      return interpolate(
-        t("map_content_summary_mainly_near_and", "In several areas, mostly near the __first__ and __second__."),
-        { first: topText, second: secondText }
-      );
-    }
-    if (!topNear && !secondNear) {
-      return interpolate(
-        t("map_content_summary_mainly_in_and", "In several areas, mostly in the __first__ and __second__."),
-        { first: topText, second: secondText }
-      );
-    }
-    if (!topNear && secondNear) {
-      return interpolate(
-        t("map_content_summary_mainly_in_and_near", "In several areas, mostly in the __first__ and near the __second__."),
-        { first: topText, second: secondText }
-      );
-    }
     return interpolate(
-      t("map_content_summary_mainly_near_and_in", "In several areas, mostly near the __first__ and in the __second__."),
-      { first: topText, second: secondText }
+      t("map_content_summary_distributed_top2", "In several areas, mostly __first__ and __second__."),
+      {
+        first: first,
+        second: secondText
+      }
     );
   }
 
@@ -775,9 +805,14 @@
     if (primary && primary.osmId !== undefined && primary.osmId !== null) {
       listItem.attr("data-osm-id", String(primary.osmId));
     }
-    const titleParts = [{ text: nameParts.title, className: "map-content-title" }];
+    const localizedTitle = capitalizeFirst(localizeBuildingTitle(nameParts.title));
+    const titleParts = [{ text: localizedTitle, className: "map-content-title" }];
     if (nameParts.subtitle) {
-      titleParts.push({ text: " at ", className: "map-content-title-sep", wrap: false });
+      titleParts.push({
+        text: " " + t("map_content_building_join_at", "at") + " ",
+        className: "map-content-title-sep",
+        wrap: false
+      });
       titleParts.push({ text: nameParts.subtitle, className: "map-content-subtitle" });
     }
     appendLine(listItem, titleParts, "map-content-title-line");

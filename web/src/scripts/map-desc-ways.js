@@ -135,6 +135,12 @@
     const endpointCenter = t("map_content_loc_endpoint_center", "the center");
 
     if (kind === "center") {
+      if (phraseForm === "route_from") {
+        return t("map_content_loc_route_from_center", endpointCenter);
+      }
+      if (phraseForm === "route_to") {
+        return t("map_content_loc_route_to_center", endpointCenter);
+      }
       if (phraseForm === "atom") {
         return atomCenter;
       }
@@ -153,6 +159,18 @@
         }
         return clauseCenter;
       }
+      if (phraseForm === "route_from") {
+        return interpolate(
+          t("map_content_loc_route_from_part", t("map_content_loc_endpoint_part", "the __dir__ part")),
+          { dir: dirLabel }
+        );
+      }
+      if (phraseForm === "route_to") {
+        return interpolate(
+          t("map_content_loc_route_to_part", t("map_content_loc_endpoint_part", "the __dir__ part")),
+          { dir: dirLabel }
+        );
+      }
       const atomPart = interpolate(t("map_content_loc_part", "__dir__ part"), { dir: dirLabel });
       if (phraseForm === "atom") {
         return atomPart;
@@ -167,6 +185,18 @@
         if (!corner) {
           return null;
         }
+        if (phraseForm === "route_from") {
+          return interpolate(
+            t("map_content_loc_route_from_corner", t("map_content_loc_endpoint_corner", "the __corner__")),
+            { corner: corner }
+          );
+        }
+        if (phraseForm === "route_to") {
+          return interpolate(
+            t("map_content_loc_route_to_corner", t("map_content_loc_endpoint_corner", "the __corner__")),
+            { corner: corner }
+          );
+        }
         if (phraseForm === "atom") {
           return interpolate(t("map_content_loc_corner", "__corner__"), { corner: corner });
         }
@@ -179,6 +209,18 @@
         return null;
       }
       const atomEdge = interpolate(t("map_content_loc_edge", "__dir__ edge"), { dir: dirLabel });
+      if (phraseForm === "route_from") {
+        return interpolate(
+          t("map_content_loc_route_from_near_edge", t("map_content_loc_endpoint_near_edge", "near the __dir__ edge")),
+          { dir: dirLabel }
+        );
+      }
+      if (phraseForm === "route_to") {
+        return interpolate(
+          t("map_content_loc_route_to_near_edge", t("map_content_loc_endpoint_near_edge", "near the __dir__ edge")),
+          { dir: dirLabel }
+        );
+      }
       if (phraseForm === "atom") {
         return atomEdge;
       }
@@ -193,6 +235,7 @@
   }
 
   function joinWithAnd(parts) {
+    const andWord = t("map_content_list_and", "and");
     if (!parts.length) {
       return "";
     }
@@ -200,9 +243,9 @@
       return parts[0];
     }
     if (parts.length === 2) {
-      return parts[0] + " and " + parts[1];
+      return parts[0] + " " + andWord + " " + parts[1];
     }
-    return parts.slice(0, -1).join(", ") + ", and " + parts[parts.length - 1];
+    return parts.slice(0, -1).join(", ") + ", " + andWord + " " + parts[parts.length - 1];
   }
 
   function collectWayGroups(mapContent) {
@@ -268,31 +311,12 @@
   }
 
   function singularSubclassType(subclassKey, fallbackName) {
-    const byKey = {
-      "A1_road_construction": "road under construction",
-      "A1_major_roads": "major road",
-      "A1_secondary_roads": "secondary road",
-      "A1_local_streets": "local street",
-      "A1_service_roads": "service road",
-      "A1_track_roads": "track road",
-      "A1_vehicle_unspecified": "other vehicular road",
-      "A2_pedestrian_streets": "pedestrian street",
-      "A2_footpaths_trails": "footpath / trail",
-      "A2_cycleways": "cycleway",
-      "A2_steps_ramps": "step / ramp",
-      "A2_pedestrian_unspecified": "other pedestrian path",
-      "A3_rail_lines": "rail line",
-      "A3_tram_light_rail": "tram / light rail",
-      "A3_subway_metro": "subway / metro",
-      "A3_rail_yards_sidings": "rail yard / siding",
-      "A4_rivers": "river",
-      "A4_streams_canals": "stream / canal",
-      "A4_ditches_drains": "ditch / drain",
-      "A4_other_waterways": "other waterway",
-      "A_other_ways": "other way"
-    };
-    if (subclassKey && byKey[subclassKey]) {
-      return byKey[subclassKey];
+    if (subclassKey) {
+      const typeKey = "map_content_way_type_" + subclassKey;
+      const translated = t(typeKey, typeKey);
+      if (translated !== typeKey) {
+        return translated;
+      }
     }
     if (!fallbackName || typeof fallbackName !== 'string') {
       return null;
@@ -392,8 +416,10 @@
     if (!points.length) {
       return null;
     }
-    const startEndpoint = locationTextFromZone(points[0].zone, "endpoint");
-    const endEndpoint = locationTextFromZone(points[points.length - 1].zone, "endpoint");
+    const startEndpoint = locationTextFromZone(points[0].zone, "route_from") ||
+      locationTextFromZone(points[0].zone, "endpoint");
+    const endEndpoint = locationTextFromZone(points[points.length - 1].zone, "route_to") ||
+      locationTextFromZone(points[points.length - 1].zone, "endpoint");
 
     if (startEndpoint && endEndpoint && startEndpoint !== endEndpoint) {
       return interpolate(
@@ -468,7 +494,9 @@
       return null;
     }
     const detailTexts = details.map(function(detail){
-      const base = edgeLabel(detail.edge) + " edge";
+      const base = interpolate(t("map_content_edge_phrase", "__edge__ edge"), {
+        edge: edgeLabel(detail.edge)
+      });
       const qualifier = edgePositionQualifier(detail.position);
       return qualifier ? base + " " + qualifier : base;
     });
