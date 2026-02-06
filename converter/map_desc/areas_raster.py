@@ -458,13 +458,11 @@ def _segment_label_from_loc(loc: Optional[Dict[str, Any]]) -> Optional[str]:
     dir_label = _dir_label(direction)
     if kind == "center":
         return "center"
-    if kind == "offset_center":
-        kind = "part"
     if kind == "part":
         if dir_label:
             return "{} part".format(dir_label)
         return "center"
-    if kind == "near_edge" or kind == "edge" or kind == "corner":
+    if kind == "near_edge":
         if direction == "northwest":
             return "near north-west corner"
         if direction == "northeast":
@@ -476,15 +474,6 @@ def _segment_label_from_loc(loc: Optional[Dict[str, Any]]) -> Optional[str]:
         if dir_label:
             return "near {} edge".format(dir_label)
         return "near edge"
-    if kind == "near_corner":
-        if direction == "northwest":
-            return "near north-west corner"
-        if direction == "northeast":
-            return "near north-east corner"
-        if direction == "southwest":
-            return "near south-west corner"
-        if direction == "southeast":
-            return "near south-east corner"
     return None
 
 

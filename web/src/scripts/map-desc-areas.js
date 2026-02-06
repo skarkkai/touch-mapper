@@ -216,10 +216,6 @@
     }
     const touches = [];
     edgesTouched.forEach(function(entry){
-      if (typeof entry === 'string') {
-        touches.push({ edge: entry, percent: null });
-        return;
-      }
       if (entry && typeof entry === 'object') {
         Object.keys(entry).forEach(function(edge){
           touches.push({ edge: edge, percent: entry[edge] });
@@ -737,9 +733,9 @@
 
   function groupTitleKey(group) {
     const primary = pickPrimaryItem(group);
-    let labelSource = group && (group.displayLabel || group.label);
+    let labelSource = group && group.displayLabel;
     if (!labelSource && primary) {
-      labelSource = primary.displayLabel || primary.label;
+      labelSource = primary.displayLabel;
     }
     const nameParts = splitLabel(labelSource);
     const title = nameParts.title || "";
@@ -761,9 +757,9 @@
 
   function renderBuilding(group, listElem) {
     const primary = pickPrimaryItem(group);
-    let labelSource = group && (group.displayLabel || group.label);
+    let labelSource = group && group.displayLabel;
     if (!labelSource && primary) {
-      labelSource = primary.displayLabel || primary.label;
+      labelSource = primary.displayLabel;
     }
     const nameParts = splitLabel(labelSource);
     const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;

@@ -90,17 +90,15 @@ def _loc_from_classification(location: Optional[Dict[str, Any]]) -> Optional[Dic
     if not location or not isinstance(location, dict):
         return None
     loc = location.get("loc")
-    if isinstance(loc, dict):
-        return loc
-    zone = location.get("zone")
-    direction = location.get("dir")
-    if zone == "center":
+    if not isinstance(loc, dict):
+        return None
+    kind = loc.get("kind")
+    direction = loc.get("dir")
+    if kind == "center":
         return {"kind": "center", "dir": None}
-    if zone == "offset_of_center":
+    if kind == "part":
         return {"kind": "part", "dir": direction}
-    if zone == "part":
-        return {"kind": "part", "dir": direction}
-    if zone == "edge":
+    if kind == "near_edge":
         return {"kind": "near_edge", "dir": direction}
     return None
 
@@ -143,8 +141,6 @@ def _location_key(location: Optional[Dict[str, Any]]) -> str:
             loc = _extract_loc(value)
             if loc:
                 parts.append(key + "=" + _loc_key(loc))
-        elif value:
-            parts.append(key + "=" + str(value))
     return "|".join(parts)
 
 
@@ -204,14 +200,11 @@ def _loc_phrase(loc: Optional[Dict[str, Any]]) -> Optional[str]:
     dir_label = _dir_label(direction)
     if kind == "center":
         return "in the center"
-    if kind == "offset_center":
-        # Backward-compatibility for old map-content style values.
-        kind = "part"
     if kind == "part":
         if dir_label:
             return "in the " + dir_label + " part"
         return "in the center"
-    if kind == "near_edge" or kind == "edge" or kind == "corner":
+    if kind == "near_edge":
         if direction in ("northwest", "northeast", "southwest", "southeast"):
             corner = _corner_label(direction)
             if corner:
@@ -220,11 +213,6 @@ def _loc_phrase(loc: Optional[Dict[str, Any]]) -> Optional[str]:
         if dir_label:
             return "near the " + dir_label + " edge"
         return "near the edge"
-    if kind == "near_corner":
-        corner = _corner_label(direction)
-        if corner:
-            return "in the " + corner
-        return "in the corner"
     return None
 
 
@@ -234,8 +222,6 @@ def _location_value_phrase(value: Optional[Any]) -> Optional[str]:
         phrase = _loc_phrase(loc)
         if phrase:
             return phrase
-    if isinstance(value, str):
-        return value
     return None
 
 

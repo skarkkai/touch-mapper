@@ -252,7 +252,7 @@
   }
 
   function wayTitle(group) {
-    const label = group && (group.displayLabel || group.label);
+    const label = group && group.displayLabel;
     if (!label || label === "(unnamed)") {
       return t("map_content_way_unnamed", "Unnamed way");
     }
@@ -260,7 +260,7 @@
   }
 
   function wayName(group) {
-    const label = group && (group.displayLabel || group.label);
+    const label = group && group.displayLabel;
     if (!label || label === "(unnamed)") {
       return null;
     }
@@ -354,19 +354,6 @@
       const tValue = event.t !== undefined && !isNaN(event.t) ? Number(event.t) : 0;
       points.push({ t: tValue, zone: event.zone });
     });
-    if (points.length) {
-      points.sort(function(a, b){ return a.t - b.t; });
-      return points;
-    }
-
-    const samples = segment && Array.isArray(segment.locationSamples) ? segment.locationSamples : [];
-    samples.forEach(function(sample){
-      if (!sample || sample.zone === undefined || sample.zone === null) {
-        return;
-      }
-      const tValue = sample.t !== undefined && !isNaN(sample.t) ? Number(sample.t) : 0;
-      points.push({ t: tValue, zone: sample.zone });
-    });
     points.sort(function(a, b){ return a.t - b.t; });
     return points;
   }
@@ -379,24 +366,15 @@
   }
 
   function segmentList(target) {
-    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : null;
-    if (visibleGeometry) {
-      if (!visibleGeometry.length) {
-        return [];
-      }
-      if (visibleGeometry[0] && Array.isArray(visibleGeometry[0].segments)) {
-        const flattened = [];
-        visibleGeometry.forEach(function(bucket){
-          const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
-          segments.forEach(function(segment){
-            flattened.push(segment);
-          });
-        });
-        return flattened;
-      }
-      return visibleGeometry;
-    }
-    return target && Array.isArray(target.visibleSegments) ? target.visibleSegments : [];
+    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : [];
+    const flattened = [];
+    visibleGeometry.forEach(function(bucket){
+      const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
+      segments.forEach(function(segment){
+        flattened.push(segment);
+      });
+    });
+    return flattened;
   }
 
   /**
@@ -445,9 +423,7 @@
         if (!found[event.edge]) {
           found[event.edge] = { edge: event.edge, buckets: {} };
         }
-        const zone = event.zone && typeof event.zone === 'object'
-          ? (event.zone.loc && typeof event.zone.loc === 'object' ? event.zone.loc : event.zone)
-          : null;
+        const zone = event.zone && typeof event.zone === 'object' ? event.zone : null;
         if (!zone || zone.kind !== "near_edge") {
           return;
         }
