@@ -44,7 +44,8 @@ Use this as a default guide for UI and styling changes unless a task explicitly 
 - Secondary download links are grouped in a separate green panel.
 - Email-share input and send button appear in a dedicated green panel.
 - OpenStreetMap attribution appears before the 3D map preview.
-- 3D preview is displayed in a large light-gray rounded container with soft shadow.
+- 3D preview is displayed in a large light-gray rounded container with soft shadow and clearer neutral contrast between layers for readability.
+- 3D preview controls hint text below the preview uses black text for stronger readability.
 - Map content description follows below as structured text sections.
 
 ## Accessibility and UX guardrails
