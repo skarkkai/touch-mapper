@@ -85,6 +85,8 @@ window.TM = { translations: {
   "map_content_no_ways": "{{ map_content_no_ways }}",
   "map_content_way_route_from_to": "{{ map_content_way_route_from_to }}",
   "map_content_way_route_near": "{{ map_content_way_route_near }}",
+  "map_content_connects_to_way": "{{ map_content_connects_to_way }}",
+  "map_content_connects_to_type": "{{ map_content_connects_to_type }}",
   "map_content_way_junction_one": "{{ map_content_way_junction_one }}",
   "map_content_way_junction_many": "{{ map_content_way_junction_many }}",
   "map_content_way_length_m": "{{ map_content_way_length_m }}",

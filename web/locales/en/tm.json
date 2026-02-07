@@ -186,6 +186,8 @@
     "map_content_no_ways": "No ways listed for this map.",
     "map_content_way_route_from_to": "From __start__ to __end__",
     "map_content_way_route_near": "__location__",
+    "map_content_connects_to_way": "Connects to way __way__",
+    "map_content_connects_to_type": "Connects to __type__",
     "map_content_way_junction_one": "1 junction",
     "map_content_way_junction_many": "__count__ junctions",
     "map_content_way_length_m": "__meters__ meters",

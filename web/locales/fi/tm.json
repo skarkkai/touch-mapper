@@ -186,6 +186,8 @@
     "map_content_no_ways": "Kartalle ei löytynyt väyliä.",
     "map_content_way_route_from_to": "Alkaa __start__ ja päättyy __end__",
     "map_content_way_route_near": "__location__",
+    "map_content_connects_to_way": "Yhdistyy väylään __way__",
+    "map_content_connects_to_type": "Yhdistyy: __type__",
     "map_content_way_junction_one": "1 risteys",
     "map_content_way_junction_many": "__count__ risteystä",
     "map_content_way_length_m": "__meters__ metriä",

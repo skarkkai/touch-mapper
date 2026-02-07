@@ -186,6 +186,8 @@
     "map_content_no_ways": "Keine Wege für diese Karte aufgelistet.",
     "map_content_way_route_from_to": "Von __start__ bis __end__",
     "map_content_way_route_near": "__location__",
+    "map_content_connects_to_way": "Verbindet mit Weg __way__",
+    "map_content_connects_to_type": "Verbindet mit __type__",
     "map_content_way_junction_one": "1 Kreuzung",
     "map_content_way_junction_many": "__count__ Kreuzungen",
     "map_content_way_length_m": "__meters__ Meter",

@@ -401,6 +401,22 @@
     return flattened;
   }
 
+  function primarySegmentInfo(target) {
+    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : [];
+    for (let i = 0; i < visibleGeometry.length; i += 1) {
+      const bucket = visibleGeometry[i];
+      const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
+      if (!segments.length) {
+        continue;
+      }
+      return {
+        segment: segments[0],
+        osmId: bucket && bucket.osmId !== undefined ? bucket.osmId : null
+      };
+    }
+    return null;
+  }
+
   /**
    * Route line grammar:
    * - single visible location: sentence(clause(loc))
@@ -408,11 +424,11 @@
    * This avoids "Near near ..." and "From in ...".
    */
   function routeText(target) {
-    const segments = segmentList(target);
-    if (!segments.length) {
+    const segmentInfo = primarySegmentInfo(target);
+    if (!segmentInfo) {
       return null;
     }
-    const points = collectSegmentPoints(segments[0]);
+    const points = collectSegmentPoints(segmentInfo.segment);
     if (!points.length) {
       return null;
     }
@@ -435,6 +451,143 @@
       );
     }
     return null;
+  }
+
+  function translatedWayType(subClass) {
+    if (!subClass || typeof subClass !== 'string') {
+      return null;
+    }
+    const typeKey = "map_content_way_type_" + subClass;
+    const translated = t(typeKey, typeKey);
+    if (translated !== typeKey) {
+      return translated;
+    }
+    return null;
+  }
+
+  function normalizedWayName(name) {
+    if (!name || typeof name !== 'string') {
+      return null;
+    }
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === "(unnamed)") {
+      return null;
+    }
+    return trimmed.toLowerCase();
+  }
+
+  function endpointJunctionEvent(segment, endpointT) {
+    const events = segment && Array.isArray(segment.events) ? segment.events : [];
+    const endpoint = Number(endpointT);
+    const eps = 1e-6;
+    let matched = null;
+
+    events.forEach(function(event){
+      if (matched || !event || event.type !== "junction" || event.t === undefined || isNaN(event.t)) {
+        return;
+      }
+      const tValue = Number(event.t);
+      if (Math.abs(tValue - endpoint) <= eps) {
+        matched = event;
+      }
+    });
+    return matched;
+  }
+
+  function connectionLabelInfo(connection, selfOsmId, currentWayNameNormalized) {
+    if (!connection || typeof connection !== 'object') {
+      return null;
+    }
+    if (connection.osmType && connection.osmType !== "way") {
+      return null;
+    }
+    if (selfOsmId !== null && selfOsmId !== undefined &&
+        connection.osmId !== null && connection.osmId !== undefined &&
+        connection.osmId === selfOsmId) {
+      return null;
+    }
+
+    const name = typeof connection.name === 'string' ? connection.name.trim() : "";
+    if (name && currentWayNameNormalized && name.toLowerCase() === currentWayNameNormalized) {
+      return null;
+    }
+    if (name && name !== "(unnamed)") {
+      return { mode: "way", value: name };
+    }
+
+    const subClassType = translatedWayType(connection.subClass);
+    if (subClassType) {
+      return { mode: "type", value: subClassType };
+    }
+
+    return {
+      mode: "type",
+      value: t("map_content_way_type_A_other_ways", "other way")
+    };
+  }
+
+  function endpointConnectionLabel(event, selfOsmId, currentWayNameNormalized) {
+    const connections = event && Array.isArray(event.connections) ? event.connections : [];
+    let typeFallback = null;
+
+    for (let i = 0; i < connections.length; i += 1) {
+      const labelInfo = connectionLabelInfo(connections[i], selfOsmId, currentWayNameNormalized);
+      if (!labelInfo) {
+        continue;
+      }
+      if (labelInfo.mode === "way") {
+        return labelInfo;
+      }
+      if (!typeFallback) {
+        typeFallback = labelInfo;
+      }
+    }
+    return typeFallback;
+  }
+
+  function connectionSentence(labelInfo) {
+    if (!labelInfo || !labelInfo.value) {
+      return null;
+    }
+    if (labelInfo.mode === "way") {
+      return interpolate(
+        t("map_content_connects_to_way", "Connects to way __way__"),
+        { way: labelInfo.value }
+      );
+    }
+    return interpolate(
+      t("map_content_connects_to_type", "Connects to __type__"),
+      { type: labelInfo.value }
+    );
+  }
+
+  function endpointConnectionTexts(group) {
+    const segmentInfo = primarySegmentInfo(group);
+    if (!segmentInfo) {
+      return [];
+    }
+    const main = primaryWay(group);
+    const selfOsmId = segmentInfo.osmId !== null && segmentInfo.osmId !== undefined
+      ? segmentInfo.osmId
+      : (main && main.osmId !== undefined ? main.osmId : null);
+    const currentWayNameNormalized = normalizedWayName(group && group.displayLabel);
+    const texts = [];
+    const seen = {};
+
+    [0, 1].forEach(function(endpointT){
+      const event = endpointJunctionEvent(segmentInfo.segment, endpointT);
+      if (!event) {
+        return;
+      }
+      const text = connectionSentence(endpointConnectionLabel(event, selfOsmId, currentWayNameNormalized));
+      if (!text || seen[text]) {
+        return;
+      }
+      seen[text] = true;
+      texts.push(text);
+    });
+
+    return texts;
   }
 
   function collectEdgeDetails(target) {
@@ -659,6 +812,13 @@
         { text: capitalizeFirst(edgeSummary), className: "map-content-location-text" }
       ], "map-content-location");
     }
+
+    const connectionLines = endpointConnectionTexts(group);
+    connectionLines.forEach(function(connectionLine){
+      appendLine(listItem, [
+        { text: capitalizeFirst(connectionLine), className: "map-content-location-text" }
+      ], "map-content-location");
+    });
 
     const detailsText = wayDetailsText(group);
     if (detailsText) {

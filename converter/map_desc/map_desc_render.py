@@ -537,6 +537,66 @@ def _collect_connectors(grouped: Dict[str, Any]) -> List[Dict[str, Any]]:
     return connectors
 
 
+def _collect_inferred_named_connectors(
+    connections_index: Dict[str, List[Dict[str, Any]]]
+) -> List[Dict[str, Any]]:
+    # Recover named road junctions from shared line coordinates when explicit node
+    # connector features are missing from grouped metadata.
+    inferred = []
+    for key, features in connections_index.items():
+        if not isinstance(features, list) or len(features) < 2:
+            continue
+        names = []
+        seen_names = set()
+        for feature in features:
+            if feature.get("osmType") != "way":
+                continue
+            name = feature.get("name")
+            if not isinstance(name, str):
+                continue
+            norm = name.strip().lower()
+            if not norm or norm in seen_names:
+                continue
+            seen_names.add(norm)
+            names.append(name)
+        if len(names) < 2:
+            continue
+        try:
+            x_str, y_str = key.split(",")
+            point = (float(x_str), float(y_str))
+        except (ValueError, AttributeError):
+            continue
+        inferred.append({
+            "point": point,
+            "connectorType": "RoadJunction",
+            "osmType": None,
+            "osmId": None
+        })
+    return inferred
+
+
+def _merge_connectors(
+    primary: List[Dict[str, Any]], secondary: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    merged = list(primary)
+    seen = set()
+    for connector in merged:
+        point = connector.get("point")
+        if not point:
+            continue
+        seen.add(_coord_key([point[0], point[1]]))
+    for connector in secondary:
+        point = connector.get("point")
+        if not point:
+            continue
+        key = _coord_key([point[0], point[1]])
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(connector)
+    return merged
+
+
 def _feature_info(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     osm_id = item.get("osmId")
     osm_type = item.get("osmType")
@@ -1114,8 +1174,13 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
     options = _resolve_options(spec, options_override)
     emit_connectivity = bool(options.get("emitConnectivityNodes", True))
     boundary = _coerce_boundary((map_data or {}).get("meta", {}).get("boundary"))
-    connectors = _collect_connectors(grouped) if emit_connectivity else []
     connections_index = _build_connections_index(grouped) if emit_connectivity else {}
+    connectors = _collect_connectors(grouped) if emit_connectivity else []
+    if emit_connectivity:
+        connectors = _merge_connectors(
+            connectors,
+            _collect_inferred_named_connectors(connections_index)
+        )
     classes = spec.get("classes") or OrderedDict()
     main_keys = sorted(classes.keys())
     raw = []  # type: List[Dict[str, Any]]

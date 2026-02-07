@@ -186,6 +186,8 @@
     "map_content_no_ways": "Geen wegen gevonden voor deze kaart.",
     "map_content_way_route_from_to": "Van __start__ naar __end__",
     "map_content_way_route_near": "__location__",
+    "map_content_connects_to_way": "Sluit aan op weg __way__",
+    "map_content_connects_to_type": "Sluit aan op __type__",
     "map_content_way_junction_one": "1 kruising",
     "map_content_way_junction_many": "__count__ kruisingen",
     "map_content_way_length_m": "__meters__ meter",
