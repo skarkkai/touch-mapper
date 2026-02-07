@@ -22,7 +22,6 @@ from .map_desc_loc_segments import classify_location
 MAX_ITEMS_PER_SUBCLASS = 10
 SAMPLE_TS = (0.0, 0.25, 0.5, 0.75, 1.0)
 EDGE_EPS = 1e-6
-CONNECTOR_EPS = 1e-6
 
 
 Bounds = TypedDict(
@@ -344,38 +343,6 @@ def _sample_location_samples(coords: List[List[float]],
     return samples
 
 
-def _closest_point_t(coords: List[List[float]],
-                     point: Tuple[float, float]) -> Tuple[float, float, Tuple[float, float]]:
-    total = _polyline_length(coords)
-    if total <= 0 or len(coords) == 1:
-        return 0.0, 0.0, (coords[0][0], coords[0][1])
-    best_dist2 = None
-    best_t = 0.0
-    best_point = (coords[0][0], coords[0][1])
-    walked = 0.0
-    px, py = point
-    for i in range(1, len(coords)):
-        ax, ay = coords[i - 1]
-        bx, by = coords[i]
-        dx = bx - ax
-        dy = by - ay
-        seg_len2 = dx * dx + dy * dy
-        if seg_len2 == 0:
-            continue
-        t_local = ((px - ax) * dx + (py - ay) * dy) / seg_len2
-        t_clamped = max(0.0, min(1.0, t_local))
-        cx = ax + t_clamped * dx
-        cy = ay + t_clamped * dy
-        dist2 = (px - cx) ** 2 + (py - cy) ** 2
-        if best_dist2 is None or dist2 < best_dist2:
-            seg_len = seg_len2 ** 0.5
-            best_dist2 = dist2
-            best_point = (cx, cy)
-            best_t = (walked + t_clamped * seg_len) / total
-        walked += seg_len2 ** 0.5
-    return best_t, (best_dist2 or 0.0) ** 0.5, best_point
-
-
 def _edge_contact(point: Tuple[float, float], boundary: Boundary, eps: float) -> Optional[Dict[str, Any]]:
     x, y = point
     edges = []
@@ -462,7 +429,6 @@ def _segment_vertex_first_occurrence_t(
 
 def _segment_events(coords: List[List[float]],
                     boundary: Optional[Boundary],
-                    connectors: List[Dict[str, Any]],
                     connectors_by_coord_key: Optional[Dict[str, List[Dict[str, Any]]]],
                     connections_index: Dict[str, List[Dict[str, Any]]],
                     emit_connectivity: bool) -> List[Dict[str, Any]]:
@@ -504,23 +470,6 @@ def _segment_events(coords: List[List[float]],
                         event["connections"] = connections
                     events.append(event)
                     junction_events.append(event)
-        elif connectors:
-            # Fallback path kept for debug/parity comparison.
-            for connector in connectors:
-                t_val, dist, closest = _closest_point_t(coords, connector["point"])
-                if dist <= CONNECTOR_EPS:
-                    zone = _location_zone_for_point(closest, boundary) or "unknown"
-                    event = {
-                        "t": t_val,
-                        "type": "junction",
-                        "zone": zone,
-                        "connectorType": connector["connectorType"]
-                    }
-                    connections = connections_index.get(_coord_key([connector["point"][0], connector["point"][1]]))
-                    if connections:
-                        event["connections"] = connections
-                    events.append(event)
-                    junction_events.append(event)
 
     for t_val, point in ((0.0, start), (1.0, end)):
         if boundary and _edge_contact(point, boundary, EDGE_EPS):
@@ -535,7 +484,6 @@ def _segment_events(coords: List[List[float]],
 
 def _build_visible_segments(item: Dict[str, Any],
                             boundary: Optional[Boundary],
-                            connectors: List[Dict[str, Any]],
                             connectors_by_coord_key: Optional[Dict[str, List[Dict[str, Any]]]],
                             connections_index: Dict[str, List[Dict[str, Any]]],
                             emit_connectivity: bool,
@@ -547,57 +495,33 @@ def _build_visible_segments(item: Dict[str, Any],
             return
         profile[name] = profile.get(name, 0.0) + elapsed
 
-    iter_segments_start = time.perf_counter()
     segments = []
     segment_list = _iter_line_segments(item)
-    add_timing("build-visible-segments.iter-line-segments", time.perf_counter() - iter_segments_start)
     if not segment_list:
         add_timing("build-visible-segments.total", time.perf_counter() - start_total)
         return segments
 
     # Order segments by descending length, then stable index.
-    sort_indexed_start = time.perf_counter()
     indexed = []
     for idx, coords in enumerate(segment_list):
         if not isinstance(coords, list) or not coords:
             continue
         indexed.append((idx, coords, _polyline_length(coords)))
-    add_timing("build-visible-segments.index-and-length", time.perf_counter() - sort_indexed_start)
-
-    sort_segments_start = time.perf_counter()
     sorted_indexed = sorted(indexed, key=lambda entry: (-entry[2], entry[0]))
-    add_timing("build-visible-segments.sort-segments", time.perf_counter() - sort_segments_start)
-
-    sample_locations_total = 0.0
-    build_events_total = 0.0
-    append_segments_total = 0.0
     for _, coords, length in sorted_indexed:
-        sample_locations_start = time.perf_counter()
         location_samples = _sample_location_samples(coords, boundary)
-        sample_locations_total += time.perf_counter() - sample_locations_start
-
-        build_events_start = time.perf_counter()
         events = _segment_events(
             coords,
             boundary,
-            connectors,
             connectors_by_coord_key,
             connections_index,
             emit_connectivity
         )
-        build_events_total += time.perf_counter() - build_events_start
-
-        append_segment_start = time.perf_counter()
         segments.append({
             "length": length,
             "locationSamples": location_samples,
             "events": events
         })
-        append_segments_total += time.perf_counter() - append_segment_start
-
-    add_timing("build-visible-segments.sample-location-samples", sample_locations_total)
-    add_timing("build-visible-segments.build-segment-events", build_events_total)
-    add_timing("build-visible-segments.append-segments", append_segments_total)
     add_timing("build-visible-segments.total", time.perf_counter() - start_total)
     return segments
 
@@ -875,7 +799,6 @@ def _modifiers_suffix(modifiers: Optional[List[Dict[str, Any]]]) -> str:
 
 def _summarize_linear_base(item: Dict[str, Any],
                            boundary: Optional[Boundary],
-                           connectors: List[Dict[str, Any]],
                            connectors_by_coord_key: Optional[Dict[str, List[Dict[str, Any]]]],
                            connections_index: Dict[str, List[Dict[str, Any]]],
                            emit_connectivity: bool,
@@ -892,13 +815,11 @@ def _summarize_linear_base(item: Dict[str, Any],
     mod_suffix = _modifiers_suffix(item.get("_classification", {}).get("modifiers"))
     build_visible_segments_start = time.perf_counter()
     visible_segments = _build_visible_segments(
-        item, boundary, connectors, connectors_by_coord_key, connections_index, emit_connectivity, profile
+        item, boundary, connectors_by_coord_key, connections_index, emit_connectivity, profile
     )
     add_timing("summarize-linear-base.build-visible-segments", time.perf_counter() - build_visible_segments_start)
 
-    compute_line_length_start = time.perf_counter()
     length = _compute_line_length(item)
-    add_timing("summarize-linear-base.compute-line-length", time.perf_counter() - compute_line_length_start)
 
     summary = {
         "osmId": item.get("osmId"),
@@ -1087,7 +1008,6 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
 
 def _summarize_boundary_base(item: Dict[str, Any],
                              boundary: Optional[Boundary],
-                             connectors: List[Dict[str, Any]],
                              connectors_by_coord_key: Optional[Dict[str, List[Dict[str, Any]]]],
                              connections_index: Dict[str, List[Dict[str, Any]]],
                              emit_connectivity: bool) -> Dict[str, Any]:
@@ -1102,7 +1022,7 @@ def _summarize_boundary_base(item: Dict[str, Any],
         "label": name if name else None,
         "displayLabel": summary,
         "visibleSegments": _build_visible_segments(
-            item, boundary, connectors, connectors_by_coord_key, connections_index, emit_connectivity
+            item, boundary, connectors_by_coord_key, connections_index, emit_connectivity
         ),
         "length": _compute_line_length(item)
     }
@@ -1140,7 +1060,6 @@ def _group_count(group: Dict[str, Any]) -> int:
 
 def _build_way_groups(items: List[Dict[str, Any]],
                       boundary: Optional[Boundary],
-                      connectors: List[Dict[str, Any]],
                       connectors_by_coord_key: Optional[Dict[str, List[Dict[str, Any]]]],
                       connections_index: Dict[str, List[Dict[str, Any]]],
                       emit_connectivity: bool,
@@ -1157,11 +1076,10 @@ def _build_way_groups(items: List[Dict[str, Any]],
     for item in items:
         summarize_start = time.perf_counter()
         base = _summarize_linear_base(
-            item, boundary, connectors, connectors_by_coord_key, connections_index, emit_connectivity, profile
+            item, boundary, connectors_by_coord_key, connections_index, emit_connectivity, profile
         )
         add_timing("build-way-groups.summarize-linear-base", time.perf_counter() - summarize_start)
 
-        group_items_start = time.perf_counter()
         display_label = base.get("displayLabel") or ""
         is_unnamed = (base.get("label") is None) or display_label.startswith("(unnamed)")
         if is_unnamed:
@@ -1182,13 +1100,9 @@ def _build_way_groups(items: List[Dict[str, Any]],
         if base.get("length"):
             group["totalLength"] += base.get("length")
         group["ways"].append(base)
-        add_timing("build-way-groups.group-items", time.perf_counter() - group_items_start)
 
-    sort_ways_time = 0.0
-    assemble_visible_time = 0.0
     for group in groups.values():
         ways = group.get("ways") or []
-        sort_ways_start = time.perf_counter()
         sorted_ways = sorted(
             ways,
             key=lambda entry: (
@@ -1197,9 +1111,6 @@ def _build_way_groups(items: List[Dict[str, Any]],
                 entry.get("osmId") or 0
             )
         )
-        sort_ways_time += time.perf_counter() - sort_ways_start
-
-        assemble_visible_start = time.perf_counter()
         group["ways"] = sorted_ways
         buckets = []
         for way in sorted_ways:
@@ -1209,10 +1120,7 @@ def _build_way_groups(items: List[Dict[str, Any]],
                 "segments": visible if isinstance(visible, list) else []
             })
         group["visibleGeometry"] = buckets
-        assemble_visible_time += time.perf_counter() - assemble_visible_start
 
-    add_timing("build-way-groups.sort-ways", sort_ways_time)
-    add_timing("build-way-groups.assemble-visible-geometry", assemble_visible_time)
     add_timing("build-way-groups.total", time.perf_counter() - start_total)
 
     return list(groups.values())
@@ -1221,7 +1129,6 @@ def _build_way_groups(items: List[Dict[str, Any]],
 def _build_groups(items: List[Dict[str, Any]], kind: str,
                   road_names_by_coord: Dict[str, List[str]],
                   boundary: Optional[Boundary],
-                  connectors: List[Dict[str, Any]],
                   connectors_by_coord_key: Optional[Dict[str, List[Dict[str, Any]]]],
                   connections_index: Dict[str, List[Dict[str, Any]]],
                   emit_connectivity: bool) -> List[Dict[str, Any]]:
@@ -1238,11 +1145,11 @@ def _build_groups(items: List[Dict[str, Any]], kind: str,
             base = _summarize_area_base(item)
         elif kind == "boundary":
             base = _summarize_boundary_base(
-                item, boundary, connectors, connectors_by_coord_key, connections_index, emit_connectivity
+                item, boundary, connectors_by_coord_key, connections_index, emit_connectivity
             )
         else:
             base = _summarize_linear_base(
-                item, boundary, connectors, connectors_by_coord_key, connections_index, emit_connectivity
+                item, boundary, connectors_by_coord_key, connections_index, emit_connectivity
             )
 
         key = (base.get("displayLabel") or "") + "||" + _location_key(base.get("location"))
@@ -1338,36 +1245,23 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
             return
         profile[name] = profile.get(name, 0.0) + elapsed
 
-    road_names_start = time.perf_counter()
     road_names_by_coord = _build_road_names_by_coord(map_data or grouped)
-    add_timing("build-intermediate.build-road-names", time.perf_counter() - road_names_start)
 
     options = _resolve_options(spec, options_override)
     emit_connectivity = bool(options.get("emitConnectivityNodes", True))
     boundary = _coerce_boundary((map_data or {}).get("meta", {}).get("boundary"))
 
-    connections_index_start = time.perf_counter()
     connections_index = _build_connections_index(grouped) if emit_connectivity else {}
-    add_timing("build-intermediate.build-connections-index", time.perf_counter() - connections_index_start)
 
-    connectors_start = time.perf_counter()
     connectors = _collect_connectors(grouped) if emit_connectivity else []
-    add_timing("build-intermediate.collect-connectors", time.perf_counter() - connectors_start)
 
     if emit_connectivity:
-        merge_connectors_start = time.perf_counter()
         connectors = _merge_connectors(
             connectors,
             _collect_inferred_named_connectors(connections_index)
         )
-        add_timing("build-intermediate.merge-connectors", time.perf_counter() - merge_connectors_start)
 
-    connectors_by_coord_key_start = time.perf_counter()
     connectors_by_coord_key = _build_connectors_by_coord_key(connectors) if emit_connectivity else {}
-    add_timing(
-        "build-intermediate.build-connectors-by-coord-key",
-        time.perf_counter() - connectors_by_coord_key_start
-    )
 
     classes = spec.get("classes") or OrderedDict()
     main_keys = sorted(classes.keys())
@@ -1424,7 +1318,6 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
                 grouped_items = _build_way_groups(
                     items,
                     boundary,
-                    connectors,
                     connectors_by_coord_key,
                     connections_index,
                     emit_connectivity,
@@ -1432,23 +1325,18 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
                 )
                 add_timing("build-intermediate.subclass-build-way-groups", time.perf_counter() - build_way_groups_start)
             else:
-                build_groups_start = time.perf_counter()
                 grouped_items = _build_groups(
                     items,
                     kind,
                     road_names_by_coord,
                     boundary,
-                    connectors,
                     connectors_by_coord_key,
                     connections_index,
                     emit_connectivity
                 )
-                add_timing("build-intermediate.subclass-build-groups", time.perf_counter() - build_groups_start)
 
             sort_kind = "boundary" if (kind == "linear" and main_key == "E") else kind
-            sort_groups_start = time.perf_counter()
             sorted_groups = _sort_groups(grouped_items, sort_kind)
-            add_timing("build-intermediate.subclass-sort-groups", time.perf_counter() - sort_groups_start)
 
             main_entry["subclasses"].append({
                 "key": sub_key,
@@ -1512,7 +1400,6 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
     intermediate = build_intermediate(grouped, spec, map_data, options_override, profile)
     add_timing("write-map-content.build-intermediate", time.perf_counter() - build_intermediate_start)
 
-    assemble_content_start = time.perf_counter()
     content = OrderedDict()  # type: OrderedDict
     for main_entry in intermediate.get("raw", []):
         key = main_entry.get("key") or "unknown"
@@ -1522,11 +1409,9 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
         boundary = meta.get("boundary")
         if boundary:
             content["boundary"] = boundary
-    add_timing("write-map-content.assemble-content", time.perf_counter() - assemble_content_start)
 
     json_dump_start = time.perf_counter()
-    with open(output_path, "w") as handle:
-        json.dump(content, handle, indent=2)
+    _write_json_fast(output_path, content)
     add_timing("write-map-content.json-dump", time.perf_counter() - json_dump_start)
     add_timing("write-map-content.total", time.perf_counter() - start_total)
     return content
@@ -1536,6 +1421,17 @@ def _load_json(path: str) -> OrderedDict:
     # Read JSON with stable key ordering for deterministic output.
     with open(path, "r") as handle:
         return json.load(handle, object_pairs_hook=OrderedDict)
+
+
+def _write_json_fast(path: str, value: Any) -> None:
+    with open(path, "w") as handle:
+        json.dump(
+            value,
+            handle,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            check_circular=False
+        )
 
 
 def run_standalone(args: List[str]) -> str:

@@ -475,21 +475,17 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
     boundary = (map_data.get("meta") or {}).get("boundary")
 
     def add_item(item):
-        semantics_start = time.perf_counter()
-        semantics = build_feature_semantics(item)
-        add_timing("group-map-data.build-feature-semantics", time.perf_counter() - semantics_start)
-        if semantics:
-            item["semantics"] = semantics
-
         classify_start = time.perf_counter()
         classification = classify_item(item, spec, options_override)
         add_timing("group-map-data.classify-item", time.perf_counter() - classify_start)
         if not classification or classification.get("ignore"):
             return
 
-        modifiers_start = time.perf_counter()
+        semantics = build_feature_semantics(item)
+        if semantics:
+            item["semantics"] = semantics
+
         modifiers = _collect_modifiers(item, spec, options_override)
-        add_timing("group-map-data.collect-modifiers", time.perf_counter() - modifiers_start)
 
         entry = dict(item)
         entry["_classification"] = {
@@ -501,15 +497,12 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
             "modifiers": modifiers
         }
 
-        attach_locations_start = time.perf_counter()
         _attach_locations(entry, item, bbox)
-        add_timing("group-map-data.attach-locations", time.perf_counter() - attach_locations_start)
 
         attach_visible_geometry_start = time.perf_counter()
         _attach_visible_geometry(entry, item, boundary)
         add_timing("group-map-data.attach-visible-geometry", time.perf_counter() - attach_visible_geometry_start)
 
-        append_group_start = time.perf_counter()
         main_group = grouped.get(classification.get("mainClass"))
         if main_group is None:
             grouped[classification.get("mainClass")] = OrderedDict()
@@ -518,7 +511,6 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
         if sub_key not in main_group:
             main_group[sub_key] = []
         main_group[sub_key].append(entry)
-        add_timing("group-map-data.append-grouped", time.perf_counter() - append_group_start)
 
     grouping_start = time.perf_counter()
     for key, value in map_data.items():
@@ -535,6 +527,17 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
 def _load_json(path: str) -> OrderedDict:
     with open(path, "r") as handle:
         return json.load(handle, object_pairs_hook=OrderedDict)
+
+
+def _write_json_fast(path: str, value: Any) -> None:
+    with open(path, "w") as handle:
+        json.dump(
+            value,
+            handle,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            check_circular=False
+        )
 
 
 def run_standalone(args: List[str]) -> OrderedDict:
@@ -564,13 +567,9 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
     base_dir = os.path.dirname(os.path.abspath(__file__))
     spec_path = os.path.join(base_dir, "map-description-classifications.json")
 
-    load_spec_start = time.perf_counter()
     spec = _load_json(spec_path)
-    add_timing("load-spec", time.perf_counter() - load_spec_start)
 
-    load_raw_meta_start = time.perf_counter()
     map_data = _load_json(input_path)
-    add_timing("load-raw-meta", time.perf_counter() - load_raw_meta_start)
 
     group_map_data_start = time.perf_counter()
     grouped = group_map_data(map_data, spec, options_override, profile)
@@ -580,14 +579,12 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
         output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
 
     write_grouped_meta_start = time.perf_counter()
-    with open(output_path, "w") as handle:
-        json.dump(grouped, handle, indent=2)
+    _write_json_fast(output_path, grouped)
     add_timing("write-map-meta", time.perf_counter() - write_grouped_meta_start)
 
     augmented_path = os.path.join(os.path.dirname(output_path), "map-meta.augmented.json")
     write_augmented_meta_start = time.perf_counter()
-    with open(augmented_path, "w") as handle:
-        json.dump(map_data, handle, indent=2)
+    _write_json_fast(augmented_path, map_data)
     add_timing("write-map-meta-augmented", time.perf_counter() - write_augmented_meta_start)
 
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
