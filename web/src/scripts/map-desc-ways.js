@@ -465,6 +465,18 @@
     return null;
   }
 
+  function translatedWayTypePlural(subClass) {
+    if (!subClass || typeof subClass !== 'string') {
+      return null;
+    }
+    const typeKey = "map_content_way_type_plural_" + subClass;
+    const translated = t(typeKey, typeKey);
+    if (translated !== typeKey) {
+      return translated;
+    }
+    return null;
+  }
+
   function normalizedWayName(name) {
     if (!name || typeof name !== 'string') {
       return null;
@@ -515,20 +527,16 @@
       return { mode: "way", value: name };
     }
 
-    const subClassType = translatedWayType(connection.subClass);
-    if (subClassType) {
-      return { mode: "type", value: subClassType };
-    }
-
     return {
       mode: "type",
-      value: t("map_content_way_type_A_other_ways", "other way")
+      subClass: connection.subClass || "A_other_ways"
     };
   }
 
   function endpointConnectionLabel(event, selfOsmId, currentWayNameNormalized) {
     const connections = event && Array.isArray(event.connections) ? event.connections : [];
-    let typeFallback = null;
+    const typeCounts = {};
+    const typeOrder = [];
 
     for (let i = 0; i < connections.length; i += 1) {
       const labelInfo = connectionLabelInfo(connections[i], selfOsmId, currentWayNameNormalized);
@@ -538,16 +546,44 @@
       if (labelInfo.mode === "way") {
         return labelInfo;
       }
-      if (!typeFallback) {
-        typeFallback = labelInfo;
+      const subClass = labelInfo.subClass || "A_other_ways";
+      if (typeCounts[subClass] === undefined) {
+        typeCounts[subClass] = 0;
+        typeOrder.push(subClass);
       }
+      typeCounts[subClass] += 1;
     }
-    return typeFallback;
+
+    if (!typeOrder.length) {
+      return null;
+    }
+
+    let bestSubClass = typeOrder[0];
+    typeOrder.forEach(function(subClass){
+      if (typeCounts[subClass] > typeCounts[bestSubClass]) {
+        bestSubClass = subClass;
+      }
+    });
+
+    if (typeCounts[bestSubClass] > 1) {
+      return {
+        mode: "type_many",
+        subClass: bestSubClass,
+        count: typeCounts[bestSubClass]
+      };
+    }
+
+    return {
+      mode: "type",
+      subClass: bestSubClass
+    };
   }
 
   function connectionSentence(labelInfo) {
     if (!labelInfo || !labelInfo.value) {
-      return null;
+      if (!labelInfo || (labelInfo.mode !== "type" && labelInfo.mode !== "type_many")) {
+        return null;
+      }
     }
     if (labelInfo.mode === "way") {
       return interpolate(
@@ -555,9 +591,24 @@
         { way: labelInfo.value }
       );
     }
+    const singularType = translatedWayType(labelInfo.subClass) ||
+      t("map_content_way_type_A_other_ways", "other way");
+    if (labelInfo.mode === "type_many") {
+      const pluralType = translatedWayTypePlural(labelInfo.subClass);
+      if (pluralType) {
+        return interpolate(
+          t("map_content_connects_to_type_many", "Connects to __count__ __type__"),
+          { count: labelInfo.count, type: pluralType }
+        );
+      }
+      return interpolate(
+        t("map_content_connects_to_type_many_fallback", "Connects to __count__ ways of type __type__"),
+        { count: labelInfo.count, type: singularType }
+      );
+    }
     return interpolate(
       t("map_content_connects_to_type", "Connects to __type__"),
-      { type: labelInfo.value }
+      { type: singularType }
     );
   }
 
