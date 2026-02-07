@@ -707,23 +707,64 @@
     return groups;
   }
 
-  function appendLine(listItem, parts, className) {
+  function normalizeLineParts(parts) {
     if (!parts || !parts.length) {
+      return [];
+    }
+    return parts.filter(function(part){
+      return part && part.text !== undefined && part.text !== null && part.text !== "";
+    }).map(function(part){
+      return {
+        text: String(part.text),
+        className: part.className || null,
+        wrap: part.wrap === false ? false : true
+      };
+    });
+  }
+
+  function addModelLine(item, parts, className) {
+    if (!item || !Array.isArray(item.lines)) {
+      return;
+    }
+    const lineParts = normalizeLineParts(parts);
+    if (!lineParts.length) {
+      return;
+    }
+    item.lines.push({
+      className: className || null,
+      parts: lineParts
+    });
+  }
+
+  function applyItemAttrs(listItem, attrs) {
+    if (!attrs || typeof attrs !== "object") {
+      return;
+    }
+    if (attrs.dataOsmId !== undefined && attrs.dataOsmId !== null) {
+      listItem.attr("data-osm-id", String(attrs.dataOsmId));
+    }
+    if (attrs.initiallyHidden) {
+      listItem.attr("data-initially-hidden", "true");
+    }
+  }
+
+  function renderLineFromModel(listItem, lineModel) {
+    if (!lineModel || !Array.isArray(lineModel.parts) || !lineModel.parts.length) {
       return;
     }
     const line = $("<div>");
-    if (className) {
-      line.addClass(className);
+    if (lineModel.className) {
+      line.addClass(lineModel.className);
     }
-    parts.forEach(function(part){
+    lineModel.parts.forEach(function(part){
       if (!part || part.text === undefined || part.text === null || part.text === "") {
         return;
       }
       if (part.wrap === false) {
-        line.append(document.createTextNode(part.text));
+        line.append(String(part.text));
         return;
       }
-      const span = $("<span>").text(part.text);
+      const span = $("<span>").text(String(part.text));
       if (part.className) {
         span.addClass(part.className);
       }
@@ -733,6 +774,19 @@
       return;
     }
     listItem.append(line);
+  }
+
+  function renderItemFromModel(item, listElem) {
+    if (!item || !listElem || !listElem.length) {
+      return;
+    }
+    const listItem = $("<li>").addClass("map-content-building");
+    applyItemAttrs(listItem, item.attrs);
+    const lines = Array.isArray(item.lines) ? item.lines : [];
+    lines.forEach(function(lineModel){
+      renderLineFromModel(listItem, lineModel);
+    });
+    listElem.append(listItem);
   }
 
   function interpolatedParts(template, replacements, varClassName) {
@@ -785,7 +839,7 @@
     return Number(percent) || 0;
   }
 
-  function renderBuilding(group, listElem) {
+  function buildBuildingModel(group) {
     const primary = pickPrimaryItem(group);
     let labelSource = group && group.displayLabel;
     if (!labelSource && primary) {
@@ -801,9 +855,13 @@
       : [];
     const touches = edgesText(edges, coverage);
 
-    const listItem = $("<li>").addClass("map-content-building");
+    const item = {
+      type: "building",
+      attrs: {},
+      lines: []
+    };
     if (primary && primary.osmId !== undefined && primary.osmId !== null) {
-      listItem.attr("data-osm-id", String(primary.osmId));
+      item.attrs.dataOsmId = String(primary.osmId);
     }
     const localizedTitle = capitalizeFirst(localizeBuildingTitle(nameParts.title));
     const titleParts = [{ text: localizedTitle, className: "map-content-title" }];
@@ -815,17 +873,17 @@
       });
       titleParts.push({ text: nameParts.subtitle, className: "map-content-subtitle" });
     }
-    appendLine(listItem, titleParts, "map-content-title-line");
+    addModelLine(item, titleParts, "map-content-title-line");
 
     const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
     const primaryLocationText = primaryLocation ? primaryLocation.replace(/[.]+$/, "") : null;
     if (primaryLocationText) {
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: primaryLocationText, className: "map-content-location-text" }
       ], "map-content-location");
     }
     if (touches) {
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: capitalizeFirst(touches), className: "map-content-touches" }
       ], "map-content-location");
     }
@@ -901,27 +959,48 @@
         shapeLineParts.push({ text: shapeType, className: "map-content-shape-type" });
       }
       if (shapeLineParts.length) {
-        appendLine(listItem, shapeLineParts, "map-content-shape");
+        addModelLine(item, shapeLineParts, "map-content-shape");
       }
     }
 
     if (partsLine.length) {
-      appendLine(listItem, partsLine, "map-content-parts");
+      addModelLine(item, partsLine, "map-content-parts");
     }
 
-    listElem.append(listItem);
+    return item;
+  }
+
+  function buildModel(mapContent, helpers) {
+    setTranslator(helpers);
+    const groups = collectBuildingGroups(mapContent);
+    const model = [];
+    groups.forEach(function(group){
+      const item = buildBuildingModel(group);
+      if (item) {
+        model.push(item);
+      }
+    });
+    return model;
+  }
+
+  function renderFromModel(model, listElem) {
+    if (!listElem || !listElem.length) {
+      return 0;
+    }
+    const items = Array.isArray(model) ? model : [];
+    listElem.empty();
+    items.forEach(function(item){
+      renderItemFromModel(item, listElem);
+    });
+    return items.length;
   }
 
   function render(mapContent, listElem, helpers) {
     if (!listElem || !listElem.length) {
       return 0;
     }
-    setTranslator(helpers);
-    const groups = collectBuildingGroups(mapContent);
-    groups.forEach(function(group){
-      renderBuilding(group, listElem);
-    });
-    return groups.length;
+    const model = buildModel(mapContent, helpers);
+    return renderFromModel(model, listElem);
   }
 
   function emptyMessage(helpers) {
@@ -931,6 +1010,8 @@
 
   window.TM = window.TM || {};
   window.TM.mapDescAreas = {
+    buildModel: buildModel,
+    renderFromModel: renderFromModel,
     render: render,
     emptyMessage: emptyMessage
   };

@@ -33,53 +33,15 @@
     });
   }
 
-  function showMoreBuildingsLabel(hiddenCount) {
+  function showMoreBuildingsLabel(hiddenCount, translateFn) {
+    const tr = typeof translateFn === "function" ? translateFn : t;
     if (hiddenCount === 1) {
-      return t("map_content_show_more_buildings_one", "Show 1 more building");
+      return tr("map_content_show_more_buildings_one", "Show 1 more building");
     }
     return interpolate(
-      t("map_content_show_more_buildings_many", "Show __count__ more buildings"),
+      tr("map_content_show_more_buildings_many", "Show __count__ more buildings"),
       { count: hiddenCount }
     );
-  }
-
-  function applyBuildingsListLimit(listElem, maxVisible) {
-    if (!listElem || !listElem.length) {
-      return;
-    }
-    const row = listElem.closest(".map-content-buildings-row");
-    row.find(".map-content-buildings-toggle").remove();
-
-    const buildingItems = listElem.children("li.map-content-building");
-    if (buildingItems.length <= maxVisible) {
-      return;
-    }
-
-    const hiddenItems = buildingItems.slice(maxVisible);
-    hiddenItems.hide();
-
-    const button = $("<button>")
-      .attr("type", "button")
-      .addClass("map-content-buildings-toggle")
-      .attr("aria-expanded", "false")
-      .text(showMoreBuildingsLabel(hiddenItems.length));
-
-    button.on("click", function(){
-      const isExpanded = button.attr("aria-expanded") === "true";
-      if (isExpanded) {
-        hiddenItems.hide();
-        button
-          .attr("aria-expanded", "false")
-          .text(showMoreBuildingsLabel(hiddenItems.length));
-        return;
-      }
-      hiddenItems.show();
-      button
-        .attr("aria-expanded", "true")
-        .text(t("map_content_show_less_buildings", "Show fewer buildings"));
-    });
-
-    listElem.after(button);
   }
 
   function parseMapContent(payload) {
@@ -134,35 +96,226 @@
     if (!window.TM || !window.TM[name]) {
       return null;
     }
-    if (typeof window.TM[name].render !== 'function') {
-      return null;
-    }
     return window.TM[name];
   }
 
-  function renderSection(listElem, renderer, mapContent, helpers, fallbackKey, fallbackText) {
+  function translateWithHelpers(helpers, key, fallback) {
+    if (helpers && typeof helpers.t === "function") {
+      return helpers.t(key, fallback);
+    }
+    return t(key, fallback);
+  }
+
+  function normalizeCount(value) {
+    if (typeof value === "number" && isFinite(value)) {
+      return value;
+    }
+    return parseInt(value, 10) || 0;
+  }
+
+  function messageItem(message) {
+    return {
+      type: "message",
+      attrs: {},
+      lines: [
+        {
+          className: "map-content-message",
+          parts: [{ text: message }]
+        }
+      ]
+    };
+  }
+
+  function buildSectionModel(renderer, mapContent, helpers, fallbackKey, fallbackText) {
+    const unavailableMessage = translateWithHelpers(
+      helpers,
+      "map_content_unavailable",
+      "Map content is not available."
+    );
+    if (!renderer || typeof renderer.buildModel !== "function") {
+      return {
+        items: [messageItem(unavailableMessage)],
+        emptyMessage: unavailableMessage,
+        count: 0
+      };
+    }
+
+    const builtItems = renderer.buildModel(mapContent, helpers);
+    const items = Array.isArray(builtItems) ? builtItems : [];
+    const count = normalizeCount(items.length);
+    if (count > 0) {
+      return {
+        items: items,
+        emptyMessage: null,
+        count: count
+      };
+    }
+
+    const emptyText = typeof renderer.emptyMessage === "function"
+      ? renderer.emptyMessage(helpers)
+      : translateWithHelpers(helpers, fallbackKey, fallbackText);
+    return {
+      items: [messageItem(emptyText)],
+      emptyMessage: emptyText,
+      count: 0
+    };
+  }
+
+  function applyBuildingsLimitToModel(section, maxVisible, helpers) {
+    const maxCount = Number(maxVisible);
+    if (!section || !Array.isArray(section.items) || !isFinite(maxCount) || maxCount < 1) {
+      return { section: section, toggle: null };
+    }
+    if (section.count <= maxCount) {
+      return { section: section, toggle: null };
+    }
+    const hiddenCount = section.items.length - maxCount;
+    const limitedItems = section.items.map(function(item, index){
+      if (index < maxCount) {
+        return item;
+      }
+      const attrs = Object.assign({}, item && item.attrs ? item.attrs : {});
+      attrs.initiallyHidden = true;
+      return Object.assign({}, item, { attrs: attrs });
+    });
+    return {
+      section: {
+        items: limitedItems,
+        emptyMessage: section.emptyMessage,
+        count: section.count
+      },
+      toggle: {
+        hiddenCount: hiddenCount,
+        collapsedLabel: showMoreBuildingsLabel(hiddenCount, function(key, fallback){
+          return translateWithHelpers(helpers, key, fallback);
+        }),
+        expandedLabel: translateWithHelpers(
+          helpers,
+          "map_content_show_less_buildings",
+          "Show fewer buildings"
+        )
+      }
+    };
+  }
+
+  function buildModel(mapContent, helpers, options) {
+    const payload = parseMapContent(mapContent);
+    const waysRenderer = getRenderer("mapDescWays");
+    const buildingsRenderer = getRenderer("mapDescAreas");
+    const ways = buildSectionModel(
+      waysRenderer,
+      payload,
+      helpers,
+      "map_content_no_ways",
+      "No ways listed for this map."
+    );
+    const buildings = buildSectionModel(
+      buildingsRenderer,
+      payload,
+      helpers,
+      "map_content_no_buildings",
+      "No buildings listed for this map."
+    );
+    const requestedMaxVisible = options && isFinite(Number(options.maxVisibleBuildings))
+      ? Number(options.maxVisibleBuildings)
+      : MAX_VISIBLE_BUILDINGS;
+    const buildingsResult = applyBuildingsLimitToModel(buildings, requestedMaxVisible, helpers);
+    return {
+      ways: ways,
+      buildings: buildingsResult.section,
+      ui: {
+        buildingsToggle: buildingsResult.toggle
+      }
+    };
+  }
+
+  function renderSectionFromModel(listElem, section, renderer) {
     if (!listElem || !listElem.length) {
       return 0;
     }
-    if (!renderer) {
+    if (!section || !Array.isArray(section.items)) {
       showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
       return 0;
     }
-
     listElem.empty();
-    const renderedCount = renderer.render(mapContent, listElem, helpers);
-    const count = (typeof renderedCount === "number" && isFinite(renderedCount))
-      ? renderedCount
-      : (parseInt(renderedCount, 10) || 0);
-    if (count > 0) {
-      return count;
+    if (section.count > 0 && renderer && typeof renderer.renderFromModel === "function") {
+      return normalizeCount(renderer.renderFromModel(section.items, listElem));
     }
-    if (typeof renderer.emptyMessage === 'function') {
-      showMessage(listElem, renderer.emptyMessage(helpers));
+    if (section.emptyMessage) {
+      showMessage(listElem, section.emptyMessage);
       return 0;
     }
-    showMessage(listElem, t(fallbackKey, fallbackText));
+    showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
     return 0;
+  }
+
+  function applyBuildingsToggleFromModel(listElem, toggleModel) {
+    if (!listElem || !listElem.length) {
+      return;
+    }
+    const row = listElem.closest(".map-content-buildings-row");
+    row.find(".map-content-buildings-toggle").remove();
+    if (!toggleModel || !toggleModel.hiddenCount) {
+      return;
+    }
+
+    const hiddenItems = listElem.children("li.map-content-building[data-initially-hidden='true']");
+    if (!hiddenItems.length) {
+      return;
+    }
+    hiddenItems.hide();
+
+    const button = $("<button>")
+      .attr("type", "button")
+      .addClass("map-content-buildings-toggle")
+      .attr("aria-expanded", "false")
+      .text(toggleModel.collapsedLabel || showMoreBuildingsLabel(toggleModel.hiddenCount));
+
+    button.on("click", function(){
+      const isExpanded = button.attr("aria-expanded") === "true";
+      if (isExpanded) {
+        hiddenItems.hide();
+        button
+          .attr("aria-expanded", "false")
+          .text(toggleModel.collapsedLabel || showMoreBuildingsLabel(toggleModel.hiddenCount));
+        return;
+      }
+      hiddenItems.show();
+      button
+        .attr("aria-expanded", "true")
+        .text(toggleModel.expandedLabel || t("map_content_show_less_buildings", "Show fewer buildings"));
+    });
+
+    listElem.after(button);
+  }
+
+  function renderFromModel(model, container) {
+    if (!container || !container.length) {
+      return { ways: 0, buildings: 0 };
+    }
+    const waysListElem = container.find(".map-content-ways");
+    const buildingsListElem = container.find(".map-content-buildings");
+    if (!waysListElem.length && !buildingsListElem.length) {
+      return { ways: 0, buildings: 0 };
+    }
+    const waysRenderer = getRenderer("mapDescWays");
+    const buildingsRenderer = getRenderer("mapDescAreas");
+    const wayCount = waysListElem.length
+      ? renderSectionFromModel(waysListElem, model ? model.ways : null, waysRenderer)
+      : 0;
+    const buildingCount = buildingsListElem.length
+      ? renderSectionFromModel(buildingsListElem, model ? model.buildings : null, buildingsRenderer)
+      : 0;
+    if (buildingsListElem.length) {
+      applyBuildingsToggleFromModel(
+        buildingsListElem,
+        model && model.ui ? model.ui.buildingsToggle : null
+      );
+    }
+    return {
+      ways: wayCount,
+      buildings: buildingCount
+    };
   }
 
   // Entry point: read map-content.json and populate "Map content" block.
@@ -178,9 +331,6 @@
     waysListElem.empty();
     buildingsListElem.empty();
 
-    const waysRenderer = getRenderer("mapDescWays");
-    const buildingsRenderer = getRenderer("mapDescAreas");
-
     const requestId = info ? info.requestId : null;
     const request = loadMapContent(requestId);
     if (!request) {
@@ -194,29 +344,9 @@
     }
 
     request.done(function(payload){
-      const mapContent = parseMapContent(payload);
       const helpers = { t: t };
-      if (waysListElem.length) {
-        renderSection(
-          waysListElem,
-          waysRenderer,
-          mapContent,
-          helpers,
-          "map_content_no_ways",
-          "No ways listed for this map."
-        );
-      }
-      if (buildingsListElem.length) {
-        renderSection(
-          buildingsListElem,
-          buildingsRenderer,
-          mapContent,
-          helpers,
-          "map_content_no_buildings",
-          "No buildings listed for this map."
-        );
-        applyBuildingsListLimit(buildingsListElem, MAX_VISIBLE_BUILDINGS);
-      }
+      const model = buildModel(payload, helpers, { maxVisibleBuildings: MAX_VISIBLE_BUILDINGS });
+      renderFromModel(model, container);
     }).fail(function(){
       if (waysListElem.length) {
         showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
@@ -227,5 +357,10 @@
     });
   }
 
+  window.TM = window.TM || {};
+  window.TM.mapDescription = {
+    buildModel: buildModel,
+    renderFromModel: renderFromModel
+  };
   window.insertMapDescription = insertMapDescription;
 })();

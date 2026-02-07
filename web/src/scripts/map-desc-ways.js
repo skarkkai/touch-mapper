@@ -863,23 +863,67 @@
     return parts.join(", ");
   }
 
-  function appendLine(listItem, parts, className) {
+  function normalizeLineParts(parts) {
     if (!parts || !parts.length) {
+      return [];
+    }
+    return parts.filter(function(part){
+      return part && part.text !== undefined && part.text !== null && part.text !== "";
+    }).map(function(part){
+      return {
+        text: String(part.text),
+        className: part.className || null,
+        wrap: part.wrap === false ? false : true
+      };
+    });
+  }
+
+  function addModelLine(item, parts, className) {
+    if (!item || !Array.isArray(item.lines)) {
+      return;
+    }
+    const lineParts = normalizeLineParts(parts);
+    if (!lineParts.length) {
+      return;
+    }
+    item.lines.push({
+      className: className || null,
+      parts: lineParts
+    });
+  }
+
+  function applyItemAttrs(listItem, attrs) {
+    if (!attrs || typeof attrs !== "object") {
+      return;
+    }
+    if (attrs.dataOsmId !== undefined && attrs.dataOsmId !== null) {
+      listItem.attr("data-osm-id", String(attrs.dataOsmId));
+    }
+    if (attrs.dataUnnamedSurface) {
+      listItem.attr("data-unnamed-surface", String(attrs.dataUnnamedSurface));
+    }
+    if (attrs.initiallyHidden) {
+      listItem.attr("data-initially-hidden", "true");
+    }
+  }
+
+  function renderLineFromModel(listItem, lineModel) {
+    if (!lineModel || !Array.isArray(lineModel.parts) || !lineModel.parts.length) {
       return;
     }
     const line = $("<div>");
-    if (className) {
-      line.addClass(className);
+    if (lineModel.className) {
+      line.addClass(lineModel.className);
     }
-    parts.forEach(function(part){
+    lineModel.parts.forEach(function(part){
       if (!part || part.text === undefined || part.text === null || part.text === "") {
         return;
       }
       if (part.wrap === false) {
-        line.append(document.createTextNode(part.text));
+        line.append(String(part.text));
         return;
       }
-      const span = $("<span>").text(part.text);
+      const span = $("<span>").text(String(part.text));
       if (part.className) {
         span.addClass(part.className);
       }
@@ -891,15 +935,32 @@
     listItem.append(line);
   }
 
-  function renderWay(entry, listElem, connectionTextsByKey) {
-    const group = entry && entry.group ? entry.group : null;
-    if (!group) {
+  function renderItemFromModel(item, listElem) {
+    if (!item || !listElem || !listElem.length) {
       return;
     }
     const listItem = $("<li>").addClass("map-content-way");
+    applyItemAttrs(listItem, item.attrs);
+    const lines = Array.isArray(item.lines) ? item.lines : [];
+    lines.forEach(function(lineModel){
+      renderLineFromModel(listItem, lineModel);
+    });
+    listElem.append(listItem);
+  }
+
+  function buildWayItemModel(entry, connectionTextsByKey) {
+    const group = entry && entry.group ? entry.group : null;
+    if (!group) {
+      return null;
+    }
+    const item = {
+      type: "way",
+      attrs: {},
+      lines: []
+    };
     const mainWay = primaryWay(group);
     if (mainWay && mainWay.osmId !== undefined && mainWay.osmId !== null) {
-      listItem.attr("data-osm-id", String(mainWay.osmId));
+      item.attrs.dataOsmId = String(mainWay.osmId);
     }
 
     const typeText = entry.subclassType || null;
@@ -918,20 +979,20 @@
       lineText += ", " + lengthText;
     }
 
-    appendLine(listItem, [
+    addModelLine(item, [
       { text: capitalizeFirst(lineText), className: "map-content-title" }
     ], "map-content-title-line");
 
     const routeSummary = routeText(group);
     if (routeSummary) {
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: capitalizeFirst(routeSummary), className: "map-content-location-text" }
       ], "map-content-location");
     }
 
     const edgeSummary = edgesText(group);
     if (edgeSummary) {
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: capitalizeFirst(edgeSummary), className: "map-content-location-text" }
       ], "map-content-location");
     }
@@ -941,19 +1002,19 @@
       ? connectionTextsByKey[key]
       : [];
     connectionLines.forEach(function(connectionLine){
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: capitalizeFirst(connectionLine), className: "map-content-location-text" }
       ], "map-content-location");
     });
 
     const detailsText = wayDetailsText(group);
     if (detailsText) {
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: capitalizeFirst(detailsText), className: "map-content-way-details-text" }
       ], "map-content-way-details");
     }
 
-    listElem.append(listItem);
+    return item;
   }
 
   function unnamedSurfaceClass(entry) {
@@ -981,40 +1042,43 @@
       .filter(function(summary){ return summary.count > 0; });
   }
 
-  function renderUnnamedWaySummary(summary, listElem) {
-    if (!summary || !listElem || !listElem.length) {
-      return;
+  function buildUnnamedWaySummaryModel(summary) {
+    if (!summary) {
+      return null;
     }
-    const listItem = $("<li>").addClass("map-content-way");
-    listItem.attr("data-unnamed-surface", summary.surfaceClass);
+    const item = {
+      type: "summary",
+      attrs: {
+        dataUnnamedSurface: summary.surfaceClass
+      },
+      lines: []
+    };
 
     const lengthText = formatLength({ totalLength: summary.totalLength });
     let titleText = unnamedRoadsCountText(summary.count) || t("content__unnamed_roads", "Unnamed roads");
     if (lengthText) {
       titleText += ", " + lengthText;
     }
-    appendLine(listItem, [
+    addModelLine(item, [
       { text: capitalizeFirst(titleText), className: "map-content-title" }
     ], "map-content-title-line");
 
     const surfaceText = surfacePavingTextFromClass(summary.surfaceClass);
     if (surfaceText) {
-      appendLine(listItem, [
+      addModelLine(item, [
         { text: capitalizeFirst(surfaceText), className: "map-content-way-details-text" }
       ], "map-content-way-details");
     }
 
-    listElem.append(listItem);
+    return item;
   }
 
-  function render(mapContent, listElem, helpers) {
-    if (!listElem || !listElem.length) {
-      return 0;
-    }
+  function buildModel(mapContent, helpers) {
     setTranslator(helpers);
     const entries = collectWayGroups(mapContent);
     const namedEntries = [];
     const unnamedEntries = [];
+    const model = [];
 
     entries.forEach(function(entry){
       if (wayName(entry.group)) {
@@ -1027,15 +1091,41 @@
     const connectionTextsByKey = buildNamedConnectionTextsMap(namedEntries);
 
     namedEntries.forEach(function(entry){
-      renderWay(entry, listElem, connectionTextsByKey);
+      const item = buildWayItemModel(entry, connectionTextsByKey);
+      if (item) {
+        model.push(item);
+      }
     });
 
     const unnamedSummaries = summarizeUnnamedWays(unnamedEntries);
     unnamedSummaries.forEach(function(summary){
-      renderUnnamedWaySummary(summary, listElem);
+      const item = buildUnnamedWaySummaryModel(summary);
+      if (item) {
+        model.push(item);
+      }
     });
 
-    return namedEntries.length + unnamedSummaries.length;
+    return model;
+  }
+
+  function renderFromModel(model, listElem) {
+    if (!listElem || !listElem.length) {
+      return 0;
+    }
+    const items = Array.isArray(model) ? model : [];
+    listElem.empty();
+    items.forEach(function(item){
+      renderItemFromModel(item, listElem);
+    });
+    return items.length;
+  }
+
+  function render(mapContent, listElem, helpers) {
+    if (!listElem || !listElem.length) {
+      return 0;
+    }
+    const model = buildModel(mapContent, helpers);
+    return renderFromModel(model, listElem);
   }
 
   function emptyMessage(helpers) {
@@ -1045,6 +1135,8 @@
 
   window.TM = window.TM || {};
   window.TM.mapDescWays = {
+    buildModel: buildModel,
+    renderFromModel: renderFromModel,
     render: render,
     emptyMessage: emptyMessage
   };
