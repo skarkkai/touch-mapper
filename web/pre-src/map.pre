@@ -79,10 +79,20 @@ window.TM = { translations: {
   "map_content_unnamed_roads_many": "{{ map_content_unnamed_roads_many }}",
   "location_general": "{{ location_general }}",
   "map_content_heading": "{{ map_content_heading }}",
-  "map_content_subheading_ways": "{{ map_content_subheading_ways }}",
+  "map_content_subheading_roads": "{{ map_content_subheading_roads }}",
+  "map_content_subheading_paths": "{{ map_content_subheading_paths }}",
+  "map_content_subheading_railways": "{{ map_content_subheading_railways }}",
+  "map_content_subheading_waterways": "{{ map_content_subheading_waterways }}",
+  "map_content_subheading_other_linear": "{{ map_content_subheading_other_linear }}",
   "map_content_subheading_buildings": "{{ map_content_subheading_buildings }}",
   "map_content_way_unnamed": "{{ map_content_way_unnamed }}",
-  "map_content_no_ways": "{{ map_content_no_ways }}",
+  "map_content_no_roads": "{{ map_content_no_roads }}",
+  "map_content_no_paths": "{{ map_content_no_paths }}",
+  "map_content_no_railways": "{{ map_content_no_railways }}",
+  "map_content_no_waterways": "{{ map_content_no_waterways }}",
+  "map_content_no_other_linear": "{{ map_content_no_other_linear }}",
+  "map_content_unnamed_features_one": "{{ map_content_unnamed_features_one }}",
+  "map_content_unnamed_features_many": "{{ map_content_unnamed_features_many }}",
   "map_content_way_route_from_to": "{{ map_content_way_route_from_to }}",
   "map_content_way_route_near": "{{ map_content_way_route_near }}",
   "map_content_connects_to_way": "{{ map_content_connects_to_way }}",
@@ -134,6 +144,9 @@ window.TM = { translations: {
   "map_content_touches_edge": "{{ map_content_touches_edge }}",
   "map_content_touches_edges": "{{ map_content_touches_edges }}",
   "map_content_touches_items": "{{ map_content_touches_items }}",
+  "map_content_crosses_edge": "{{ map_content_crosses_edge }}",
+  "map_content_crosses_edges": "{{ map_content_crosses_edges }}",
+  "map_content_crosses_items": "{{ map_content_crosses_items }}",
   "map_content_touches_edge_percent": "{{ map_content_touches_edge_percent }}",
   "map_content_touch_pos_north": "{{ map_content_touch_pos_north }}",
   "map_content_touch_pos_south": "{{ map_content_touch_pos_south }}",
@@ -290,7 +303,17 @@ window.TM = { translations: {
       <span>{{ download }}</span>
     </a>
 
-    <div class="main-row large-row green-button other-downloads">
+    <!--
+    <a class="download-link main-row large-row green-button x-hidden-for-self-print" id="order-map">
+      <span class="order-download-link">
+        <%- @t('order_from_1', { companyName: 'HeKeyTech' }) %><br>
+        <%- @t('order_from_2') %>
+      </span>
+    </a>
+    -->
+  </div>
+
+  <div class="main-row other-downloads">
       <details class="other-downloads-details">
         <summary class="other-downloads-summary">{{ show_more_downloads }}</summary>
         <ul class="other-downloads-list">
@@ -302,16 +325,6 @@ window.TM = { translations: {
           <li><a class="other-downloads-link" id="download-blender" target="_blank" rel="noopener noreferrer">{{ download_blender }}</a></li>
         </ul>
       </details>
-    </div>
-
-    <!--
-    <a class="download-link main-row large-row green-button x-hidden-for-self-print" id="order-map">
-      <span class="order-download-link">
-        <%- @t('order_from_1', { companyName: 'HeKeyTech' }) %><br>
-        <%- @t('order_from_2') %>
-      </span>
-    </a>
-    -->
   </div>
 
   <div class="hidden-for-3d">
@@ -369,9 +382,25 @@ window.TM = { translations: {
   <div class="map-description map-content-row">
     <h3>{{ map_content_heading }}</h3>
     <div class="map-content">
-      <div class="row map-content-ways-row">
-        <h4>{{ map_content_subheading_ways }}</h4>
-        <ul class="map-content-ways"></ul>
+      <div class="row map-content-roads-row">
+        <h4>{{ map_content_subheading_roads }}</h4>
+        <ul class="map-content-roads"></ul>
+      </div>
+      <div class="row map-content-paths-row">
+        <h4>{{ map_content_subheading_paths }}</h4>
+        <ul class="map-content-paths"></ul>
+      </div>
+      <div class="row map-content-railways-row">
+        <h4>{{ map_content_subheading_railways }}</h4>
+        <ul class="map-content-railways"></ul>
+      </div>
+      <div class="row map-content-waterways-row">
+        <h4>{{ map_content_subheading_waterways }}</h4>
+        <ul class="map-content-waterways"></ul>
+      </div>
+      <div class="row map-content-other-linear-row">
+        <h4>{{ map_content_subheading_other_linear }}</h4>
+        <ul class="map-content-other-linear"></ul>
       </div>
       <div class="row map-content-buildings-row">
         <h4>{{ map_content_subheading_buildings }}</h4>

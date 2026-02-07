@@ -23,7 +23,11 @@
 .map-content-buildings {
   margin-left: 1em;
 }
-.map-content-ways {
+.map-content-roads,
+.map-content-paths,
+.map-content-railways,
+.map-content-waterways,
+.map-content-other-linear {
   margin-left: 1em;
 }
 .map-content h4 {
@@ -148,28 +152,77 @@
   color: inherit;
 }
 .other-downloads {
-  cursor: default;
+  margin-top: 17px;
 }
 .other-downloads-details {
   width: 100%;
 }
 .other-downloads-summary {
+  text-align: center;
+  border: 0;
+  border-radius: 4px;
+  line-height: normal;
+  color: black;
+  display: block;
   cursor: pointer;
+  height: auto;
+  padding: 7px 10px;
+  box-shadow: 0px 3px 9px 0px rgba(0, 0, 0, 0.3);
+  background-color: @green;
+  transition-duration: 0.2s;
+  user-select: none;
+}
+.other-downloads-summary:hover {
+  background-color: darken(@green, 5%);
+}
+.other-downloads-summary:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
+}
+.other-downloads-summary::marker {
+  content: "";
+}
+.other-downloads-summary::-webkit-details-marker {
+  display: none;
+}
+.other-downloads-summary::after {
+  content: "\25BE";
+  margin-left: 0.45em;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  position: absolute;
+}
+.other-downloads-details[open] .other-downloads-summary::after {
+  transform: rotate(180deg);
+}
+.other-downloads-details[open] .other-downloads-summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .other-downloads-list {
   list-style: none;
-  margin: 0.5em 0 0;
-  padding: 0;
+  margin: 0;
+  padding: 0.75em 0.9em 0.8em;
+  background-color: #f6f9fc;
+  border: 1px solid #c7d1dc;
+  border-top: 0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 .other-downloads-list li {
   margin: 4px 0;
 }
 .other-downloads-link {
-  color: black;
+  color: #0a3f67;
   text-decoration: none;
 }
 .other-downloads-link:hover {
-  text-decoration: none;
+  text-decoration: underline;
+}
+.other-downloads-link:focus-visible {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+  text-decoration: underline;
 }
 .downloads-2d {
   cursor: default;

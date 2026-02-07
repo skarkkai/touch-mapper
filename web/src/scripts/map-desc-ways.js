@@ -248,13 +248,53 @@
     return parts.slice(0, -1).join(", ") + ", " + andWord + " " + parts[parts.length - 1];
   }
 
-  function collectWayGroups(mapContent) {
+  function normalizeOptions(options) {
+    const section = options && typeof options.section === "string" ? options.section : "all";
+    return {
+      section: section
+    };
+  }
+
+  function sectionForSubClassKey(subClassKey) {
+    if (!subClassKey || typeof subClassKey !== "string") {
+      return null;
+    }
+    if (subClassKey.indexOf("A1_") === 0) {
+      return "roads";
+    }
+    if (subClassKey.indexOf("A2_") === 0) {
+      return "paths";
+    }
+    if (subClassKey.indexOf("A3_") === 0) {
+      return "railways";
+    }
+    if (subClassKey.indexOf("A4_") === 0) {
+      return "waterways";
+    }
+    if (subClassKey.indexOf("A5_") === 0) {
+      return null;
+    }
+    if (subClassKey.indexOf("A") === 0) {
+      return "otherLinear";
+    }
+    return null;
+  }
+
+  function collectWayGroups(mapContent, options) {
+    const resolved = normalizeOptions(options);
     const ways = [];
     const classA = mapContent && typeof mapContent === 'object' ? mapContent.A : null;
     const subclasses = classA && Array.isArray(classA.subclasses) ? classA.subclasses : [];
 
     subclasses.forEach(function(subclass, subclassOrder){
       if (!subclass || subclass.kind !== "linear" || !Array.isArray(subclass.groups)) {
+        return;
+      }
+      const sectionKey = sectionForSubClassKey(subclass.key);
+      if (!sectionKey) {
+        return;
+      }
+      if (resolved.section !== "all" && sectionKey !== resolved.section) {
         return;
       }
       subclass.groups.forEach(function(group){
@@ -264,7 +304,9 @@
         ways.push({
           group: group,
           subclassOrder: subclassOrder,
-          subclassType: singularSubclassType(subclass.key, subclass.name)
+          subclassType: singularSubclassType(subclass.key, subclass.name),
+          subClass: subclass.key,
+          sectionKey: sectionKey
         });
       });
     });
@@ -778,20 +820,20 @@
     });
     const hasPosition = details.some(function(detail){ return !!detail.position; });
     if (!hasPosition && details.length > 1) {
-      return interpolate(t("map_content_touches_edges", "Touches __edges__ edges"), {
+      return interpolate(t("map_content_crosses_edges", "Crosses __edges__ edges"), {
         edges: joinWithAnd(details.map(function(detail){ return edgeLabel(detail.edge); }))
       });
     }
     if (details.length === 1) {
       const detail = details[0];
-      const base = interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), {
+      const base = interpolate(t("map_content_crosses_edge", "Crosses __edge__ edge"), {
         edge: edgeLabel(detail.edge)
       });
       const qualifier = edgePositionQualifier(detail.position);
       return qualifier ? base + " " + qualifier : base;
     }
     return interpolate(
-      t("map_content_touches_items", "Touches __items__"),
+      t("map_content_crosses_items", "Crosses __items__"),
       { items: joinWithAnd(detailTexts) }
     );
   }
@@ -861,6 +903,14 @@
       parts.push(surface);
     }
     return parts.join(", ");
+  }
+
+  function showConnectionsForEntry(entry) {
+    return !!(entry && entry.sectionKey === "roads");
+  }
+
+  function showRoadDetailsForEntry(entry) {
+    return !!(entry && entry.sectionKey === "roads");
   }
 
   function normalizeLineParts(parts) {
@@ -997,21 +1047,25 @@
       ], "map-content-location");
     }
 
-    const key = entry && entry.connectionKey ? entry.connectionKey : null;
-    const connectionLines = key && connectionTextsByKey && connectionTextsByKey[key]
-      ? connectionTextsByKey[key]
-      : [];
-    connectionLines.forEach(function(connectionLine){
-      addModelLine(item, [
-        { text: capitalizeFirst(connectionLine), className: "map-content-location-text" }
-      ], "map-content-location");
-    });
+    if (showConnectionsForEntry(entry)) {
+      const key = entry && entry.connectionKey ? entry.connectionKey : null;
+      const connectionLines = key && connectionTextsByKey && connectionTextsByKey[key]
+        ? connectionTextsByKey[key]
+        : [];
+      connectionLines.forEach(function(connectionLine){
+        addModelLine(item, [
+          { text: capitalizeFirst(connectionLine), className: "map-content-location-text" }
+        ], "map-content-location");
+      });
+    }
 
-    const detailsText = wayDetailsText(group);
-    if (detailsText) {
-      addModelLine(item, [
-        { text: capitalizeFirst(detailsText), className: "map-content-way-details-text" }
-      ], "map-content-way-details");
+    if (showRoadDetailsForEntry(entry)) {
+      const detailsText = wayDetailsText(group);
+      if (detailsText) {
+        addModelLine(item, [
+          { text: capitalizeFirst(detailsText), className: "map-content-way-details-text" }
+        ], "map-content-way-details");
+      }
     }
 
     return item;
@@ -1040,6 +1094,35 @@
     return orderedClasses
       .map(function(klass){ return buckets[klass]; })
       .filter(function(summary){ return summary.count > 0; });
+  }
+
+  function summarizeUnnamedNonRoadWays(entries) {
+    const buckets = {};
+    entries.forEach(function(entry){
+      if (!entry || !entry.subClass) {
+        return;
+      }
+      if (!buckets[entry.subClass]) {
+        buckets[entry.subClass] = {
+          subClass: entry.subClass,
+          count: 0,
+          totalLength: 0
+        };
+      }
+      buckets[entry.subClass].count += 1;
+      buckets[entry.subClass].totalLength += wayLengthValue(entry.group);
+    });
+
+    return Object.keys(buckets).map(function(subClass){
+      return buckets[subClass];
+    }).sort(function(a, b){
+      if (a.count !== b.count) {
+        return b.count - a.count;
+      }
+      const aLabel = translatedWayType(a.subClass) || t("map_content_way_type_A_other_ways", "other way");
+      const bLabel = translatedWayType(b.subClass) || t("map_content_way_type_A_other_ways", "other way");
+      return aLabel.localeCompare(bLabel);
+    });
   }
 
   function buildUnnamedWaySummaryModel(summary) {
@@ -1073,33 +1156,89 @@
     return item;
   }
 
-  function buildModel(mapContent, helpers) {
+  function buildUnnamedNonRoadSummaryModel(summary) {
+    if (!summary) {
+      return null;
+    }
+    const item = {
+      type: "summary",
+      attrs: {},
+      lines: []
+    };
+    const singularType = translatedWayType(summary.subClass) || t("map_content_way_type_A_other_ways", "other way");
+    const pluralType = translatedWayTypePlural(summary.subClass) || singularType;
+    const typeText = summary.count === 1 ? singularType : pluralType;
+    const key = summary.count === 1 ? "map_content_unnamed_features_one" : "map_content_unnamed_features_many";
+    let titleText = interpolate(
+      t(key, "__count__ unnamed __type__"),
+      { count: summary.count, type: typeText }
+    );
+    const lengthText = formatLength({ totalLength: summary.totalLength });
+    if (lengthText) {
+      titleText += ", " + lengthText;
+    }
+    addModelLine(item, [
+      { text: capitalizeFirst(titleText), className: "map-content-title" }
+    ], "map-content-title-line");
+    return item;
+  }
+
+  function showUnnamedAsItem(entry) {
+    if (!entry || !entry.sectionKey) {
+      return false;
+    }
+    return entry.sectionKey === "railways" ||
+      entry.sectionKey === "waterways" ||
+      entry.sectionKey === "otherLinear";
+  }
+
+  function buildModel(mapContent, helpers, options) {
     setTranslator(helpers);
-    const entries = collectWayGroups(mapContent);
-    const namedEntries = [];
+    const resolved = normalizeOptions(options);
+    const entries = collectWayGroups(mapContent, resolved);
+    const itemEntries = [];
     const unnamedEntries = [];
     const model = [];
 
     entries.forEach(function(entry){
-      if (wayName(entry.group)) {
-        namedEntries.push(entry);
+      if (wayName(entry.group) || showUnnamedAsItem(entry)) {
+        itemEntries.push(entry);
       } else {
         unnamedEntries.push(entry);
       }
     });
 
-    const connectionTextsByKey = buildNamedConnectionTextsMap(namedEntries);
+    const connectionTextsByKey = buildNamedConnectionTextsMap(
+      itemEntries.filter(function(entry){
+        return showConnectionsForEntry(entry) && !!wayName(entry.group);
+      })
+    );
 
-    namedEntries.forEach(function(entry){
+    itemEntries.forEach(function(entry){
       const item = buildWayItemModel(entry, connectionTextsByKey);
       if (item) {
         model.push(item);
       }
     });
 
-    const unnamedSummaries = summarizeUnnamedWays(unnamedEntries);
-    unnamedSummaries.forEach(function(summary){
+    const unnamedRoadEntries = unnamedEntries.filter(function(entry){
+      return entry.sectionKey === "roads";
+    });
+    const unnamedPathEntries = unnamedEntries.filter(function(entry){
+      return entry.sectionKey === "paths";
+    });
+
+    const unnamedRoadSummaries = summarizeUnnamedWays(unnamedRoadEntries);
+    unnamedRoadSummaries.forEach(function(summary){
       const item = buildUnnamedWaySummaryModel(summary);
+      if (item) {
+        model.push(item);
+      }
+    });
+
+    const unnamedNonRoadSummaries = summarizeUnnamedNonRoadWays(unnamedPathEntries);
+    unnamedNonRoadSummaries.forEach(function(summary){
+      const item = buildUnnamedNonRoadSummaryModel(summary);
       if (item) {
         model.push(item);
       }
@@ -1120,17 +1259,33 @@
     return items.length;
   }
 
-  function render(mapContent, listElem, helpers) {
+  function render(mapContent, listElem, helpers, options) {
     if (!listElem || !listElem.length) {
       return 0;
     }
-    const model = buildModel(mapContent, helpers);
+    const model = buildModel(mapContent, helpers, options);
     return renderFromModel(model, listElem);
   }
 
-  function emptyMessage(helpers) {
+  function emptyMessage(helpers, options) {
     setTranslator(helpers);
-    return t("map_content_no_ways", "No ways listed for this map.");
+    const resolved = normalizeOptions(options);
+    if (resolved.section === "roads") {
+      return t("map_content_no_roads", "No roads listed for this map.");
+    }
+    if (resolved.section === "paths") {
+      return t("map_content_no_paths", "No paths listed for this map.");
+    }
+    if (resolved.section === "railways") {
+      return t("map_content_no_railways", "No railways listed for this map.");
+    }
+    if (resolved.section === "waterways") {
+      return t("map_content_no_waterways", "No waterways listed for this map.");
+    }
+    if (resolved.section === "otherLinear") {
+      return t("map_content_no_other_linear", "No other linear features listed for this map.");
+    }
+    return t("map_content_no_roads", "No roads listed for this map.");
   }
 
   window.TM = window.TM || {};

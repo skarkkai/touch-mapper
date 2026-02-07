@@ -70,6 +70,8 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - Fast default command:
   - `node test/map-content/run-tests.js --category average --offline --jobs 1`
 - Prefer `simple`/`average` for routine checks. Use `complex` mainly for performance profiling.
+- Current UI grouping for linear features is sectioned as roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
+- When map content UI strings may have changed, inspect simulated.txt for each language to see if the new description phrases read as natural language.
 
 ## Deployed map inspection
 - For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.

@@ -8,6 +8,13 @@
   'use strict';
 
   const MAX_VISIBLE_BUILDINGS = 10;
+  const LINEAR_SECTION_CONFIGS = [
+    { key: "roads", rowSelector: ".map-content-roads-row", listSelector: ".map-content-roads", alwaysShow: true },
+    { key: "paths", rowSelector: ".map-content-paths-row", listSelector: ".map-content-paths", alwaysShow: false },
+    { key: "railways", rowSelector: ".map-content-railways-row", listSelector: ".map-content-railways", alwaysShow: false },
+    { key: "waterways", rowSelector: ".map-content-waterways-row", listSelector: ".map-content-waterways", alwaysShow: false },
+    { key: "otherLinear", rowSelector: ".map-content-other-linear-row", listSelector: ".map-content-other-linear", alwaysShow: false }
+  ];
 
   function translations() {
     return window.TM && window.TM.translations ? window.TM.translations : {};
@@ -126,7 +133,7 @@
     };
   }
 
-  function buildSectionModel(renderer, mapContent, helpers, fallbackKey, fallbackText) {
+  function buildSectionModel(renderer, mapContent, helpers, fallbackKey, fallbackText, rendererOptions) {
     const unavailableMessage = translateWithHelpers(
       helpers,
       "map_content_unavailable",
@@ -140,7 +147,7 @@
       };
     }
 
-    const builtItems = renderer.buildModel(mapContent, helpers);
+    const builtItems = renderer.buildModel(mapContent, helpers, rendererOptions);
     const items = Array.isArray(builtItems) ? builtItems : [];
     const count = normalizeCount(items.length);
     if (count > 0) {
@@ -152,7 +159,7 @@
     }
 
     const emptyText = typeof renderer.emptyMessage === "function"
-      ? renderer.emptyMessage(helpers)
+      ? renderer.emptyMessage(helpers, rendererOptions)
       : translateWithHelpers(helpers, fallbackKey, fallbackText);
     return {
       items: [messageItem(emptyText)],
@@ -200,14 +207,47 @@
 
   function buildModel(mapContent, helpers, options) {
     const payload = parseMapContent(mapContent);
-    const waysRenderer = getRenderer("mapDescWays");
+    const linearRenderer = getRenderer("mapDescWays");
     const buildingsRenderer = getRenderer("mapDescAreas");
-    const ways = buildSectionModel(
-      waysRenderer,
+    const roads = buildSectionModel(
+      linearRenderer,
       payload,
       helpers,
-      "map_content_no_ways",
-      "No ways listed for this map."
+      "map_content_no_roads",
+      "No roads listed for this map.",
+      { section: "roads" }
+    );
+    const paths = buildSectionModel(
+      linearRenderer,
+      payload,
+      helpers,
+      "map_content_no_paths",
+      "No paths listed for this map.",
+      { section: "paths" }
+    );
+    const railways = buildSectionModel(
+      linearRenderer,
+      payload,
+      helpers,
+      "map_content_no_railways",
+      "No railways listed for this map.",
+      { section: "railways" }
+    );
+    const waterways = buildSectionModel(
+      linearRenderer,
+      payload,
+      helpers,
+      "map_content_no_waterways",
+      "No waterways listed for this map.",
+      { section: "waterways" }
+    );
+    const otherLinear = buildSectionModel(
+      linearRenderer,
+      payload,
+      helpers,
+      "map_content_no_other_linear",
+      "No other linear features listed for this map.",
+      { section: "otherLinear" }
     );
     const buildings = buildSectionModel(
       buildingsRenderer,
@@ -221,12 +261,23 @@
       : MAX_VISIBLE_BUILDINGS;
     const buildingsResult = applyBuildingsLimitToModel(buildings, requestedMaxVisible, helpers);
     return {
-      ways: ways,
+      roads: roads,
+      paths: paths,
+      railways: railways,
+      waterways: waterways,
+      otherLinear: otherLinear,
       buildings: buildingsResult.section,
       ui: {
         buildingsToggle: buildingsResult.toggle
       }
     };
+  }
+
+  function sectionCount(section) {
+    if (!section) {
+      return 0;
+    }
+    return normalizeCount(section.count);
   }
 
   function renderSectionFromModel(listElem, section, renderer) {
@@ -291,19 +342,39 @@
 
   function renderFromModel(model, container) {
     if (!container || !container.length) {
-      return { ways: 0, buildings: 0 };
+      return { roads: 0, paths: 0, railways: 0, waterways: 0, otherLinear: 0, buildings: 0 };
     }
-    const waysListElem = container.find(".map-content-ways");
+    const linearRenderer = getRenderer("mapDescWays");
     const buildingsListElem = container.find(".map-content-buildings");
-    if (!waysListElem.length && !buildingsListElem.length) {
-      return { ways: 0, buildings: 0 };
-    }
-    const waysRenderer = getRenderer("mapDescWays");
+    const counts = {
+      roads: 0,
+      paths: 0,
+      railways: 0,
+      waterways: 0,
+      otherLinear: 0,
+      buildings: 0
+    };
+
+    LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
+      const row = container.find(sectionConfig.rowSelector);
+      const listElem = container.find(sectionConfig.listSelector);
+      if (!listElem.length) {
+        return;
+      }
+      const section = model ? model[sectionConfig.key] : null;
+      const count = sectionCount(section);
+      if (!sectionConfig.alwaysShow && count <= 0) {
+        listElem.empty();
+        row.hide();
+        counts[sectionConfig.key] = 0;
+        return;
+      }
+      row.show();
+      counts[sectionConfig.key] = renderSectionFromModel(listElem, section, linearRenderer);
+    });
+
     const buildingsRenderer = getRenderer("mapDescAreas");
-    const wayCount = waysListElem.length
-      ? renderSectionFromModel(waysListElem, model ? model.ways : null, waysRenderer)
-      : 0;
-    const buildingCount = buildingsListElem.length
+    counts.buildings = buildingsListElem.length
       ? renderSectionFromModel(buildingsListElem, model ? model.buildings : null, buildingsRenderer)
       : 0;
     if (buildingsListElem.length) {
@@ -312,10 +383,7 @@
         model && model.ui ? model.ui.buildingsToggle : null
       );
     }
-    return {
-      ways: wayCount,
-      buildings: buildingCount
-    };
+    return counts;
   }
 
   // Entry point: read map-content.json and populate "Map content" block.
@@ -323,19 +391,32 @@
     if (!container || !container.length) {
       return;
     }
-    const waysListElem = container.find(".map-content-ways");
+    const roadsListElem = container.find(".map-content-roads");
     const buildingsListElem = container.find(".map-content-buildings");
-    if (!waysListElem.length && !buildingsListElem.length) {
+    if (!roadsListElem.length && !buildingsListElem.length) {
       return;
     }
-    waysListElem.empty();
+    roadsListElem.empty();
+    LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
+      const row = container.find(sectionConfig.rowSelector);
+      const listElem = container.find(sectionConfig.listSelector);
+      if (!listElem.length) {
+        return;
+      }
+      listElem.empty();
+      if (!sectionConfig.alwaysShow) {
+        row.hide();
+      } else {
+        row.show();
+      }
+    });
     buildingsListElem.empty();
 
     const requestId = info ? info.requestId : null;
     const request = loadMapContent(requestId);
     if (!request) {
-      if (waysListElem.length) {
-        showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
+      if (roadsListElem.length) {
+        showMessage(roadsListElem, t("map_content_unavailable", "Map content is not available."));
       }
       if (buildingsListElem.length) {
         showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
@@ -348,8 +429,8 @@
       const model = buildModel(payload, helpers, { maxVisibleBuildings: MAX_VISIBLE_BUILDINGS });
       renderFromModel(model, container);
     }).fail(function(){
-      if (waysListElem.length) {
-        showMessage(waysListElem, t("map_content_unavailable", "Map content is not available."));
+      if (roadsListElem.length) {
+        showMessage(roadsListElem, t("map_content_unavailable", "Map content is not available."));
       }
       if (buildingsListElem.length) {
         showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));

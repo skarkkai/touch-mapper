@@ -39,9 +39,9 @@ The command prints output JSON with:
 The artifact includes:
 
 - source metadata (`inputOsmPath`, locale, generator output paths)
-- `waysModel` from `window.TM.mapDescWays.buildModel(...)`
+- `waysModel` from `window.TM.mapDescWays.buildModel(...)` (all linear features)
 - `areasModel` from `window.TM.mapDescAreas.buildModel(...)`
-- `mapDescriptionModel` from `window.TM.mapDescription.buildModel(...)`
+- `mapDescriptionModel` from `window.TM.mapDescription.buildModel(...)` (`roads`, `paths`, `railways`, `waterways`, `otherLinear`, `buildings`)
 
 ## Python generator usage
 

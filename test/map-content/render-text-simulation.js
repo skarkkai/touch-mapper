@@ -13,7 +13,7 @@ function pushSection(lines, label, section) {
   const count = section && Number.isFinite(Number(section.count)) ? Number(section.count) : 0;
   lines.push("- " + label + " (" + count + ")");
   const items = section && Array.isArray(section.items) ? section.items : [];
-  const itemPrefix = label === "Ways" ? "Way" : "Building";
+  const itemPrefix = label === "Buildings" ? "Building" : "Feature";
 
   items.forEach(function(item, index) {
     lines.push("  - " + itemPrefix + " " + (index + 1));
@@ -30,7 +30,19 @@ function pushSection(lines, label, section) {
 function renderSimulationText(mapDescriptionModel) {
   const lines = ["Map content"];
   const model = mapDescriptionModel && typeof mapDescriptionModel === "object" ? mapDescriptionModel : {};
-  pushSection(lines, "Ways", model.ways);
+  pushSection(lines, "Roads", model.roads || model.ways);
+  if (model.paths && Number(model.paths.count) > 0) {
+    pushSection(lines, "Paths", model.paths);
+  }
+  if (model.railways && Number(model.railways.count) > 0) {
+    pushSection(lines, "Railways", model.railways);
+  }
+  if (model.waterways && Number(model.waterways.count) > 0) {
+    pushSection(lines, "Waterways", model.waterways);
+  }
+  if (model.otherLinear && Number(model.otherLinear.count) > 0) {
+    pushSection(lines, "Other linear features", model.otherLinear);
+  }
   pushSection(lines, "Buildings", model.buildings);
   return lines.join("\n") + "\n";
 }

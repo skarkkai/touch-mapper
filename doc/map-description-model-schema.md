@@ -14,7 +14,11 @@ The schema is produced by:
 
 ```json
 {
-  "ways": "SectionModel",
+  "roads": "SectionModel",
+  "paths": "SectionModel",
+  "railways": "SectionModel",
+  "waterways": "SectionModel",
+  "otherLinear": "SectionModel",
   "buildings": "SectionModel",
   "ui": {
     "buildingsToggle": {
@@ -25,6 +29,9 @@ The schema is produced by:
   }
 }
 ```
+
+`roads` and `buildings` are always present in UI. `paths`, `railways`,
+`waterways`, and `otherLinear` are hidden in UI when empty.
 
 `ui.buildingsToggle` is `null` when the section does not need a show-more
 toggle.
