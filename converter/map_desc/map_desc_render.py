@@ -1386,7 +1386,8 @@ def render_from_intermediate(intermediate: Dict[str, Any]) -> str:
 def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
                       output_path: str, map_data: Optional[Dict[str, Any]] = None,
                       options_override: Optional[Dict[str, Any]] = None,
-                      profile: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
+                      profile: Optional[Dict[str, float]] = None,
+                      pretty_json: Optional[bool] = None) -> Dict[str, Any]:
     # Code below creates stage "Final map content" data.
     # Persist structured grouped output for map content consumers.
     start_total = time.perf_counter()
@@ -1411,7 +1412,7 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
             content["boundary"] = boundary
 
     json_dump_start = time.perf_counter()
-    _write_json_fast(output_path, content)
+    _write_json_fast(output_path, content, pretty_json=pretty_json)
     add_timing("write-map-content.json-dump", time.perf_counter() - json_dump_start)
     add_timing("write-map-content.total", time.perf_counter() - start_total)
     return content
@@ -1423,8 +1424,40 @@ def _load_json(path: str) -> OrderedDict:
         return json.load(handle, object_pairs_hook=OrderedDict)
 
 
-def _write_json_fast(path: str, value: Any) -> None:
+def _parse_env_bool(name: str) -> Optional[bool]:
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ("1", "true", "yes", "on"):
+        return True
+    if normalized in ("0", "false", "no", "off"):
+        return False
+    return None
+
+
+def _pretty_json_enabled(pretty_json: Optional[bool] = None) -> bool:
+    if pretty_json is not None:
+        return bool(pretty_json)
+    forced = _parse_env_bool("TOUCH_MAPPER_PRETTY_JSON")
+    if forced is not None:
+        return forced
+    return False
+
+
+def _write_json_fast(path: str, value: Any, pretty_json: Optional[bool] = None) -> None:
+    use_pretty = _pretty_json_enabled(pretty_json)
     with open(path, "w") as handle:
+        if use_pretty:
+            json.dump(
+                value,
+                handle,
+                indent=2,
+                ensure_ascii=False,
+                check_circular=False
+            )
+            handle.write("\n")
+            return
         json.dump(
             value,
             handle,

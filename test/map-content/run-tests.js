@@ -188,6 +188,9 @@ function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, reques
   return new Promise(function(resolve, reject) {
     const child = spawn("python3", args, {
       cwd: repoRoot,
+      env: Object.assign({}, process.env, {
+        TOUCH_MAPPER_PRETTY_JSON: "1"
+      }),
       stdio: ["ignore", "pipe", "pipe"]
     });
 

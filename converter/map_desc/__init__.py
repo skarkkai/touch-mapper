@@ -529,8 +529,40 @@ def _load_json(path: str) -> OrderedDict:
         return json.load(handle, object_pairs_hook=OrderedDict)
 
 
-def _write_json_fast(path: str, value: Any) -> None:
+def _parse_env_bool(name: str) -> Optional[bool]:
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ("1", "true", "yes", "on"):
+        return True
+    if normalized in ("0", "false", "no", "off"):
+        return False
+    return None
+
+
+def _pretty_json_enabled(pretty_json: Optional[bool] = None) -> bool:
+    if pretty_json is not None:
+        return bool(pretty_json)
+    forced = _parse_env_bool("TOUCH_MAPPER_PRETTY_JSON")
+    if forced is not None:
+        return forced
+    return False
+
+
+def _write_json_fast(path: str, value: Any, pretty_json: Optional[bool] = None) -> None:
+    use_pretty = _pretty_json_enabled(pretty_json)
     with open(path, "w") as handle:
+        if use_pretty:
+            json.dump(
+                value,
+                handle,
+                indent=2,
+                ensure_ascii=False,
+                check_circular=False
+            )
+            handle.write("\n")
+            return
         json.dump(
             value,
             handle,
@@ -556,7 +588,8 @@ def run_standalone(args: List[str]) -> OrderedDict:
 
 def run_map_desc(input_path: str, output_path: Optional[str] = None,
                  options_override: Optional[Dict[str, Any]] = None,
-                 profile: Optional[Dict[str, float]] = None) -> OrderedDict:
+                 profile: Optional[Dict[str, float]] = None,
+                 pretty_json: Optional[bool] = None) -> OrderedDict:
     run_start = time.perf_counter()
 
     def add_timing(name: str, elapsed: float) -> None:
@@ -579,18 +612,26 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
         output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
 
     write_grouped_meta_start = time.perf_counter()
-    _write_json_fast(output_path, grouped)
+    _write_json_fast(output_path, grouped, pretty_json=pretty_json)
     add_timing("write-map-meta", time.perf_counter() - write_grouped_meta_start)
 
     augmented_path = os.path.join(os.path.dirname(output_path), "map-meta.augmented.json")
     write_augmented_meta_start = time.perf_counter()
-    _write_json_fast(augmented_path, map_data)
+    _write_json_fast(augmented_path, map_data, pretty_json=pretty_json)
     add_timing("write-map-meta-augmented", time.perf_counter() - write_augmented_meta_start)
 
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
     # Code below creates stage "Final map content" data.
     write_map_content_start = time.perf_counter()
-    map_desc_render.write_map_content(grouped, spec, output_path, map_data, options_override, profile)
+    map_desc_render.write_map_content(
+        grouped,
+        spec,
+        output_path,
+        map_data,
+        options_override,
+        profile,
+        pretty_json=pretty_json
+    )
     add_timing("write-map-content", time.perf_counter() - write_map_content_start)
 
     add_timing("total", time.perf_counter() - run_start)

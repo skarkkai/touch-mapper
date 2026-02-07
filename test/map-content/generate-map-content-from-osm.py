@@ -43,6 +43,39 @@ def run_cmd(cmd: List[str], cwd: Path, env: Dict[str, str] | None = None) -> Non
         raise subprocess.CalledProcessError(completed.returncode, cmd, output=completed.stdout)
 
 
+def _parse_env_bool(name: str) -> bool | None:
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ("1", "true", "yes", "on"):
+        return True
+    if normalized in ("0", "false", "no", "off"):
+        return False
+    return None
+
+
+def pretty_json_enabled(pretty_arg: bool | None) -> bool:
+    if pretty_arg is not None:
+        return pretty_arg
+    forced = _parse_env_bool("TOUCH_MAPPER_PRETTY_JSON")
+    if forced is not None:
+        return forced
+    # This tool is development-only under test/map-content; default to pretty output.
+    return True
+
+
+def rewrite_json(path: Path, pretty_json: bool) -> None:
+    with path.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    with path.open("w", encoding="utf-8") as handle:
+        if pretty_json:
+            json.dump(payload, handle, indent=2, ensure_ascii=False)
+            handle.write("\n")
+            return
+        json.dump(payload, handle, separators=(",", ":"), ensure_ascii=False)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate map-content.json from a map.osm file using OSM2World + converter.map_desc."
@@ -54,6 +87,19 @@ def parse_args() -> argparse.Namespace:
         "--exclude-buildings",
         action="store_true",
         help="Set TOUCH_MAPPER_EXCLUDE_BUILDINGS=true for OSM2World run",
+    )
+    parser.add_argument(
+        "--pretty-json",
+        dest="pretty_json",
+        action="store_true",
+        default=None,
+        help="Write generated JSON with indentation.",
+    )
+    parser.add_argument(
+        "--compact-json",
+        dest="pretty_json",
+        action="store_false",
+        help="Write generated JSON without indentation.",
     )
     parser.add_argument("--log-prefix", default="", help="Optional log prefix for stage timing output")
     return parser.parse_args()
@@ -72,6 +118,7 @@ def ensure_paths(repo_root: Path, osm_path: Path) -> Path:
 
 def main() -> int:
     args = parse_args()
+    pretty_json = pretty_json_enabled(args.pretty_json)
     repo_root = Path(__file__).resolve().parents[2]
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
@@ -113,10 +160,11 @@ def main() -> int:
 
     if not raw_meta_path.exists():
         raise FileNotFoundError(f"OSM2World did not produce expected file: {raw_meta_path}")
+    rewrite_json(raw_meta_path, pretty_json)
 
     map_desc_start = _stage_start(log_prefix, "run-map-desc")
     map_desc_profile: Dict[str, float] = {}
-    run_map_desc(str(raw_meta_path), profile=map_desc_profile)
+    run_map_desc(str(raw_meta_path), profile=map_desc_profile, pretty_json=pretty_json)
     timings["run-map-desc"] = _stage_done(log_prefix, "run-map-desc", map_desc_start)
     for key, value in sorted(map_desc_profile.items()):
         timings["run-map-desc." + key] = value

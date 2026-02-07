@@ -8,6 +8,34 @@ import json
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
+
+def parse_env_bool(name):
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ("1", "true", "yes", "on"):
+        return True
+    if normalized in ("0", "false", "no", "off"):
+        return False
+    return None
+
+
+def pretty_json_enabled():
+    forced = parse_env_bool('TOUCH_MAPPER_PRETTY_JSON')
+    if forced is not None:
+        return forced
+    return False
+
+
+def write_json_file(path, value, pretty_json):
+    with open(path, 'w') as handle:
+        if pretty_json:
+            json.dump(value, handle, indent=2, ensure_ascii=False)
+            handle.write("\n")
+            return
+        json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
+
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Convert .osm file into a tactile map. Writes one or more .stl files in the input file's directory.''')
     parser.add_argument('input', metavar='OSM_FILE', help='input file path')
@@ -49,6 +77,7 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
         raise Exception("Couldn't find map-meta-raw.json from OSM2World output")
     with open(meta_path, 'r') as f:
         meta = json.load(f)
+    write_json_file(meta_path, meta, pretty_json_enabled())
 
     return meta
 
@@ -126,8 +155,7 @@ def main():
     meta_path = input_basename + '-meta.json'
     blender_meta = run_blender(obj_path, boundary, args)
     meta.update(blender_meta)
-    with open(meta_path, 'w') as f:
-        f.write(json.dumps(meta))
+    write_json_file(meta_path, meta, pretty_json_enabled())
 
 
 if __name__ == "__main__":
