@@ -271,6 +271,14 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
     const generation = await runStage(testName, "generate-map-content", timings, async function() {
       return runGenerator(repoRoot, testName, sourceOsmPath, pipelineDir, mapInfo.requestBody);
     });
+    if (generation && generation.timings && typeof generation.timings === "object") {
+      Object.keys(generation.timings).forEach(function(key) {
+        const value = generation.timings[key];
+        if (Number.isFinite(value)) {
+          timings["generate-map-content." + key] = value;
+        }
+      });
+    }
 
     const structuredByLocale = await runStage(testName, "render-structured-models", timings, async function() {
       const byLocale = {};

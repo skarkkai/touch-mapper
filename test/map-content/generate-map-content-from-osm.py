@@ -18,9 +18,10 @@ def _stage_start(log_prefix: str, name: str) -> float:
     return now
 
 
-def _stage_done(log_prefix: str, name: str, start: float) -> None:
+def _stage_done(log_prefix: str, name: str, start: float) -> float:
     duration = time.time() - start
     print(f"{log_prefix} DONE {name} ({duration:.2f}s)", file=sys.stderr)
+    return duration
 
 
 def run_cmd(cmd: List[str], cwd: Path, env: Dict[str, str] | None = None) -> None:
@@ -72,6 +73,10 @@ def ensure_paths(repo_root: Path, osm_path: Path) -> Path:
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parents[2]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    from converter.map_desc import run_map_desc
+
     osm_path = Path(args.osm).resolve()
     out_dir = Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -92,6 +97,8 @@ def main() -> int:
         "-o",
         str(obj_path),
     ]
+    timings: Dict[str, float] = {}
+
     osm2world_start = _stage_start(log_prefix, "run-osm2world")
     run_cmd(
         osm2world_cmd,
@@ -102,15 +109,17 @@ def main() -> int:
             "TOUCH_MAPPER_EXCLUDE_BUILDINGS": "true" if args.exclude_buildings else "false",
         },
     )
-    _stage_done(log_prefix, "run-osm2world", osm2world_start)
+    timings["run-osm2world"] = _stage_done(log_prefix, "run-osm2world", osm2world_start)
 
     if not raw_meta_path.exists():
         raise FileNotFoundError(f"OSM2World did not produce expected file: {raw_meta_path}")
 
     map_desc_start = _stage_start(log_prefix, "run-map-desc")
-    map_desc_cmd = [sys.executable, "-m", "converter.map_desc", str(raw_meta_path)]
-    run_cmd(map_desc_cmd, cwd=repo_root)
-    _stage_done(log_prefix, "run-map-desc", map_desc_start)
+    map_desc_profile: Dict[str, float] = {}
+    run_map_desc(str(raw_meta_path), profile=map_desc_profile)
+    timings["run-map-desc"] = _stage_done(log_prefix, "run-map-desc", map_desc_start)
+    for key, value in sorted(map_desc_profile.items()):
+        timings["run-map-desc." + key] = value
 
     map_meta_path = out_dir / "map-meta.json"
     map_meta_augmented_path = out_dir / "map-meta.augmented.json"
@@ -128,6 +137,7 @@ def main() -> int:
         "mapMetaPath": str(map_meta_path),
         "mapMetaAugmentedPath": str(map_meta_augmented_path),
         "mapContentPath": str(map_content_path),
+        "timings": timings,
     }
     print(json.dumps(result, indent=2))
     return 0

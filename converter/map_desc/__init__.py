@@ -5,6 +5,7 @@ import json
 import argparse
 import os
 import sys
+import time
 from collections import OrderedDict
 from typing import Any, Dict, Iterable, List, Optional, TYPE_CHECKING
 
@@ -458,23 +459,38 @@ def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
 
 
 def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
-                   options_override: Optional[Dict[str, Any]] = None) -> OrderedDict:
+                   options_override: Optional[Dict[str, Any]] = None,
+                   profile: Optional[Dict[str, float]] = None) -> OrderedDict:
     # Code below creates stage "Grouped + classified meta" data.
     grouped = OrderedDict()
     for main_key in spec.get("classes", OrderedDict()).keys():
         grouped[main_key] = OrderedDict()
 
+    def add_timing(name: str, elapsed: float) -> None:
+        if profile is None:
+            return
+        profile[name] = profile.get(name, 0.0) + elapsed
+
     bbox = _get_map_bbox(map_data)
     boundary = (map_data.get("meta") or {}).get("boundary")
 
     def add_item(item):
+        semantics_start = time.perf_counter()
         semantics = build_feature_semantics(item)
+        add_timing("group-map-data.build-feature-semantics", time.perf_counter() - semantics_start)
         if semantics:
             item["semantics"] = semantics
+
+        classify_start = time.perf_counter()
         classification = classify_item(item, spec, options_override)
+        add_timing("group-map-data.classify-item", time.perf_counter() - classify_start)
         if not classification or classification.get("ignore"):
             return
+
+        modifiers_start = time.perf_counter()
         modifiers = _collect_modifiers(item, spec, options_override)
+        add_timing("group-map-data.collect-modifiers", time.perf_counter() - modifiers_start)
+
         entry = dict(item)
         entry["_classification"] = {
             "mainClass": classification.get("mainClass"),
@@ -484,8 +500,16 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
             "poiImportance": classification.get("poiImportance"),
             "modifiers": modifiers
         }
+
+        attach_locations_start = time.perf_counter()
         _attach_locations(entry, item, bbox)
+        add_timing("group-map-data.attach-locations", time.perf_counter() - attach_locations_start)
+
+        attach_visible_geometry_start = time.perf_counter()
         _attach_visible_geometry(entry, item, boundary)
+        add_timing("group-map-data.attach-visible-geometry", time.perf_counter() - attach_visible_geometry_start)
+
+        append_group_start = time.perf_counter()
         main_group = grouped.get(classification.get("mainClass"))
         if main_group is None:
             grouped[classification.get("mainClass")] = OrderedDict()
@@ -494,13 +518,16 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
         if sub_key not in main_group:
             main_group[sub_key] = []
         main_group[sub_key].append(entry)
+        add_timing("group-map-data.append-grouped", time.perf_counter() - append_group_start)
 
+    grouping_start = time.perf_counter()
     for key, value in map_data.items():
         if not isinstance(value, list):
             continue
         for item in value:
             if isinstance(item, dict) and item.get("elementType"):
                 add_item(item)
+    add_timing("group-map-data.total", time.perf_counter() - grouping_start)
 
     return grouped
 
@@ -525,22 +552,51 @@ def run_standalone(args: List[str]) -> OrderedDict:
 
 
 def run_map_desc(input_path: str, output_path: Optional[str] = None,
-                 options_override: Optional[Dict[str, Any]] = None) -> OrderedDict:
+                 options_override: Optional[Dict[str, Any]] = None,
+                 profile: Optional[Dict[str, float]] = None) -> OrderedDict:
+    run_start = time.perf_counter()
+
+    def add_timing(name: str, elapsed: float) -> None:
+        if profile is None:
+            return
+        profile[name] = profile.get(name, 0.0) + elapsed
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     spec_path = os.path.join(base_dir, "map-description-classifications.json")
+
+    load_spec_start = time.perf_counter()
     spec = _load_json(spec_path)
+    add_timing("load-spec", time.perf_counter() - load_spec_start)
+
+    load_raw_meta_start = time.perf_counter()
     map_data = _load_json(input_path)
-    grouped = group_map_data(map_data, spec, options_override)
+    add_timing("load-raw-meta", time.perf_counter() - load_raw_meta_start)
+
+    group_map_data_start = time.perf_counter()
+    grouped = group_map_data(map_data, spec, options_override, profile)
+    add_timing("group-map-data", time.perf_counter() - group_map_data_start)
+
     if output_path is None:
         output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
+
+    write_grouped_meta_start = time.perf_counter()
     with open(output_path, "w") as handle:
         json.dump(grouped, handle, indent=2)
+    add_timing("write-map-meta", time.perf_counter() - write_grouped_meta_start)
+
     augmented_path = os.path.join(os.path.dirname(output_path), "map-meta.augmented.json")
+    write_augmented_meta_start = time.perf_counter()
     with open(augmented_path, "w") as handle:
         json.dump(map_data, handle, indent=2)
+    add_timing("write-map-meta-augmented", time.perf_counter() - write_augmented_meta_start)
+
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
     # Code below creates stage "Final map content" data.
-    map_desc_render.write_map_content(grouped, spec, output_path, map_data, options_override)
+    write_map_content_start = time.perf_counter()
+    map_desc_render.write_map_content(grouped, spec, output_path, map_data, options_override, profile)
+    add_timing("write-map-content", time.perf_counter() - write_map_content_start)
+
+    add_timing("total", time.perf_counter() - run_start)
     return grouped
 
 
