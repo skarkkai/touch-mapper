@@ -74,15 +74,17 @@ CloudFront/S3 may return gzip-encoded JSON even when extension is `.json`.
 ```bash
 curl -sSfL "${BASE}.map-content.json" | gzip -dc | jq -r 'keys'
 curl -sSfL "${BASE}.map-content.json" | gzip -dc | jq -r '
-  to_entries[] | select(.key != "boundary") | "\(.key) subclasses=\(.value.subclasses|length)"
+  to_entries[]
+  | select(.value.subclasses? != null)
+  | "\(.key) subclasses=\(.value.subclasses|length)"
 '
 ```
 
 ## Compare deployed map-content with local fixture
 
 ```bash
-curl -sSfL "${BASE}.map-content.json" | gzip -dc | jq -S . > /tmp/live-map-content.json
-jq -S . test/data/map-content.json > /tmp/local-map-content.json
+curl -sSfL "${BASE}.map-content.json" | gzip -dc | jq -S 'del(.metadata)' > /tmp/live-map-content.json
+jq -S 'del(.metadata)' test/data/map-content.json > /tmp/local-map-content.json
 diff -u /tmp/local-map-content.json /tmp/live-map-content.json | sed -n '1,200p'
 ```
 
@@ -90,4 +92,5 @@ diff -u /tmp/local-map-content.json /tmp/live-map-content.json | sed -n '1,200p'
 
 - Do not use `view-source:` URLs with curl. Fetch the normal page URL.
 - Keep to `curl -sSfL` command style in this environment.
+- Uploaded `.map-content.json` may include `metadata.requestBody`; remove `metadata` when comparing against local fixtures that do not include upload-time metadata.
 - If deployed JS changes URL builders, update this file (and keep AGENTS pointer intact).

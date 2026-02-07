@@ -145,6 +145,8 @@
     "warning_no_buildings": "Warning: penStreetMap might have incomplete data for this area. See help for more information.",
     "download": "Download printable STL file",
     "other_downloads": "Other downloads",
+    "show_more_downloads": "Show more downloads",
+    "download_map_descriptions": "Map descriptions",
     "download_stl_ways": "STL: Only roadways",
     "download_stl_rest": "STL: All but roadways",
     "download_pdf_embossers": "PDF",

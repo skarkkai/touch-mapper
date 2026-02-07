@@ -41,7 +41,7 @@ Use this as a default guide for UI and styling changes unless a task explicitly 
 - Breadcrumb remains visible at the top for orientation.
 - Page title is location-specific ("Map for ...").
 - A prominent full-width bright-green download bar is the primary action.
-- Secondary download links are grouped in a separate green panel.
+- Additional download links are inside the primary download block behind a "Show more downloads" toggle.
 - Email-share input and send button appear in a dedicated green panel.
 - OpenStreetMap attribution appears before the 3D map preview.
 - 3D preview is displayed in a large light-gray rounded container with soft shadow and clearer neutral contrast between layers for readability.

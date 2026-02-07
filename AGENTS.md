@@ -65,13 +65,11 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - `init.sh` installs system dependencies and builds `OSM2World` (use it for full setup).
 
 ## Map-content verification suite
-- When changing converter map-description logic or related UI description-model code, verify behavior with the category-based suite in `test/map-content/`.
-- Primary command:
+- When changing converter map-description logic or related UI description-model code, use the category-based suite in `test/map-content/`.
+- Canonical workflow and CLI details live in `doc/map-description-introspection.md`.
+- Fast default command:
   - `node test/map-content/run-tests.js --category average --offline --jobs 1`
-- Category guidance:
-  - `simple`: fastest smoke checks during rapid iteration.
-  - `average`: default regression checks for most functional changes.
-  - `complex`: performance profiling / hotspot work only; run less frequently.
+- Prefer `simple`/`average` for routine checks. Use `complex` mainly for performance profiling.
 
 ## Deployed map inspection
 - For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.
@@ -86,15 +84,19 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - To build, it's safest to run `ant clean jar`
 - OSM2World outputs
   - an .obj file that contains all needed geometry without any height (it's extruded later in Blender)
-  - map-meta.json that describes the elements on the map so they can be described textually in UI
+  - `map-meta-raw.json` that describes map elements before Touch Mapper enrichment
 
 ## Processing pipeline
 
 1. OSM data is fetched from OSM servers for the requested areas.
 
-2. OSM data is read by OSM2World, which outputs both files `map.obj` and `map-meta.json` (metadata).
+2. OSM data is read by OSM2World, which outputs `map.obj` and `map-meta-raw.json`.
 
-3. Browser UI fetches map-meta.json from Touch Mapper S3 bucket, and presents its content to the user in a way described above.
+3. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
+
+4. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including the real `requestId`).
+
+5. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions based on it.
 
 ### Metadata processing stages in the converter
 

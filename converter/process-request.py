@@ -177,6 +177,16 @@ def upload_primary_assets(bucket, json_object_name, info, name_base,
         ContentType='application/sla'
     )
 
+def attach_request_metadata_to_map_content(map_content, request_body):
+    try:
+        map_content_json = json.loads(map_content.decode('utf8'))
+    except Exception as e:
+        raise Exception("Can't parse map-content.json: " + str(e))
+    map_content_json['metadata'] = {
+        'requestBody': copy.deepcopy(request_body)
+    }
+    return json.dumps(map_content_json, ensure_ascii=False, separators=(',', ':')).encode('utf8')
+
 
 def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args):
     def upload_blob(key, body, content_type):
@@ -249,6 +259,7 @@ def main():
         map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
         with open(map_content_path, 'rb') as f:
             map_content = f.read()
+        map_content = attach_request_metadata_to_map_content(map_content, request_body)
 
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',

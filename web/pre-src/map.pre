@@ -290,6 +290,20 @@ window.TM = { translations: {
       <span>{{ download }}</span>
     </a>
 
+    <div class="main-row large-row green-button other-downloads">
+      <details class="other-downloads-details">
+        <summary class="other-downloads-summary">{{ show_more_downloads }}</summary>
+        <ul class="other-downloads-list">
+          <li><a class="other-downloads-link" id="download-stl-ways" target="_blank" rel="noopener noreferrer">{{ download_stl_ways }}</a></li>
+          <li><a class="other-downloads-link" id="download-stl-rest" target="_blank" rel="noopener noreferrer">{{ download_stl_rest }}</a></li>
+          <li class="hidden-for-2d"><a class="other-downloads-link" id="download-pdf-embossers" target="_blank" rel="noopener noreferrer">{{ download_pdf_embossers }}</a></li>
+          <li class="hidden-for-2d"><a class="other-downloads-link" id="download-svg-embossers" target="_blank" rel="noopener noreferrer">{{ download_svg_embossers }}</a></li>
+          <li><a class="other-downloads-link" id="download-map-content" target="_blank" rel="noopener noreferrer">{{ download_map_descriptions }}</a></li>
+          <li><a class="other-downloads-link" id="download-blender" target="_blank" rel="noopener noreferrer">{{ download_blender }}</a></li>
+        </ul>
+      </details>
+    </div>
+
     <!--
     <a class="download-link main-row large-row green-button x-hidden-for-self-print" id="order-map">
       <span class="order-download-link">
@@ -310,17 +324,6 @@ window.TM = { translations: {
     </a>
 
     <!--p class="ordering-2d-later">{{ emboss_ordering_later }}</p-->
-  </div>
-
-  <div class="main-row large-row green-button other-downloads">
-    <div class="other-downloads-title">{{ other_downloads }}</div>
-    <ul class="other-downloads-list">
-      <li><a class="other-downloads-link" id="download-stl-ways" target="_blank" rel="noopener noreferrer">{{ download_stl_ways }}</a></li>
-      <li><a class="other-downloads-link" id="download-stl-rest" target="_blank" rel="noopener noreferrer">{{ download_stl_rest }}</a></li>
-      <li class="hidden-for-2d"><a class="other-downloads-link" id="download-pdf-embossers" target="_blank" rel="noopener noreferrer">{{ download_pdf_embossers }}</a></li>
-      <li class="hidden-for-2d"><a class="other-downloads-link" id="download-svg-embossers" target="_blank" rel="noopener noreferrer">{{ download_svg_embossers }}</a></li>
-      <li><a class="other-downloads-link" id="download-blender" target="_blank" rel="noopener noreferrer">{{ download_blender }}</a></li>
-    </ul>
   </div>
 
   <!-- ---------------- Email sending -------------------- -->

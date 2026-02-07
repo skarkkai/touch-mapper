@@ -145,6 +145,8 @@
     "warning_no_buildings": "Waarschuwing: Het kan zijn dat OpenStreetMap incomplete data heeft voor dit gebied. Zie help voor meer informatie.",
     "download": "Download printbaar STL-bestand",
     "other_downloads": "Andere downloads",
+    "show_more_downloads": "Meer downloads tonen",
+    "download_map_descriptions": "Kaartbeschrijvingen",
     "download_stl_ways": "STL: Alleen wegen",
     "download_stl_rest": "STL: Alles behalve wegen",
     "download_pdf_embossers": "PDF",

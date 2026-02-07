@@ -145,6 +145,8 @@
     "warning_no_buildings": "Achtung: Auf der Karte befinden sich keine Gebäude. Die Daten von OpenStreetMap für dieses Gebiet könnten unvollständig sein. __startTag__Weitere Informationen.__endTag__",
     "download": "STL-Datei zum Ausdrucken herunterladen",
     "other_downloads": "Weitere Downloads",
+    "show_more_downloads": "Mehr Downloads anzeigen",
+    "download_map_descriptions": "Kartenbeschreibungen",
     "download_stl_ways": "STL: Nur Straßen",
     "download_stl_rest": "STL: Alles außer Straßen",
     "download_pdf_embossers": "PDF",

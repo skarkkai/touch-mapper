@@ -145,6 +145,8 @@
     "warning_no_buildings": "Varoitus: OpenStreetMapissa saattaa olla puutteellista dataa tältä alueelta. Lisätietoja ohjesivulla.",
     "download": "Lataa tulostettava STL-tiedosto",
     "other_downloads": "Muut lataukset",
+    "show_more_downloads": "Näytä lisää latauksia",
+    "download_map_descriptions": "Kartan kuvaukset",
     "download_stl_ways": "STL: Vain tiet",
     "download_stl_rest": "STL: Kaikki paitsi tiet",
     "download_pdf_embossers": "PDF",
