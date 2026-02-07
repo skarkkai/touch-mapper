@@ -5,20 +5,27 @@ structured map description models from UI code without rendering the page.
 
 ## Overview
 
-1. `test/scripts/generate-map-content-from-osm.py`
+1. `test/map-content/generate-map-content-from-osm.py`
    - runs OSM2World on a `.osm` file
    - runs `python3 -m converter.map_desc` on the generated `map-meta-raw.json`
    - emits generated file paths as JSON
-2. `test/scripts/inspect-map-description.js`
+2. `test/map-content/inspect-map-description.js`
    - calls the Python generator above
    - loads `map-desc-ways.js`, `map-desc-areas.js`, and `map-description.js`
    - runs their `buildModel(...)` functions
    - writes one machine-readable JSON artifact
+3. `test/map-content/run-tests.js`
+   - runs named tests (`--test`) or the full suite (`--all`) in parallel
+   - writes test artifacts to `test/map-content/out/<test-name>/`
+   - prints and stores per-stage timing data
+4. `test/map-content/tests.json`
+   - defines named tests using server-style `requestBody` payload fields
+   - includes map bbox (`effectiveArea`) used for OSM fetching/caching
 
 ## End-to-end example
 
 ```bash
-node test/scripts/inspect-map-description.js \
+node test/map-content/inspect-map-description.js \
   --osm test/data/map.osm \
   --locale en \
   --out /tmp/tm-map-description-model.json
@@ -39,7 +46,7 @@ The artifact includes:
 ## Python generator usage
 
 ```bash
-python3 test/scripts/generate-map-content-from-osm.py \
+python3 test/map-content/generate-map-content-from-osm.py \
   --osm test/data/map.osm \
   --out-dir /tmp/tm-map-desc-work
 ```
@@ -59,11 +66,60 @@ Optional flags:
 ## Smoke tests
 
 ```bash
-bash test/scripts/test-map-description-introspection.sh
+bash test/map-content/test-map-content-suite.sh
 ```
 
 This script covers:
 
-- end-to-end generation and model export
-- locale difference smoke (`en` vs `de`)
-- missing input file error handling
+- both named tests (`lahderanta`, `rautatieasema-5000`)
+- required artifact presence in `test/map-content/out/<test-name>/`
+- per-locale structured and text-simulated outputs
+
+## Named Test Runner
+
+Run all tests:
+
+```bash
+node test/map-content/run-tests.js --all
+```
+
+Run one test:
+
+```bash
+node test/map-content/run-tests.js --test lahderanta
+```
+
+Optional flags:
+
+- `--jobs <N>`: max tests to run in parallel
+- `--offline`: use only cached OSM input from `test/map-content/cache/`
+- `--keep-existing-out`: do not clean `test/map-content/out/<test-name>/` before a run
+
+## Test Definition Shape
+
+`test/map-content/tests.json` uses this structure:
+
+```json
+{
+  "tests": [
+    {
+      "name": "example-name",
+      "mapId": "Bxxxxxxxxxxxxxxx",
+      "sourceUrl": "https://test.touch-mapper.org/en/map?map=Bxxxxxxxxxxxxxxx",
+      "requestBody": {
+        "lat": 0,
+        "lon": 0,
+        "scale": 2100,
+        "diameter": 357,
+        "size": 17,
+        "effectiveArea": {
+          "lonMin": 0,
+          "lonMax": 0,
+          "latMin": 0,
+          "latMax": 0
+        }
+      }
+    }
+  ]
+}
+```

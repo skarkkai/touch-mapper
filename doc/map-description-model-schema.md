@@ -8,7 +8,7 @@ The schema is produced by:
 - `window.TM.mapDescWays.buildModel(...)`
 - `window.TM.mapDescAreas.buildModel(...)`
 - `window.TM.mapDescription.buildModel(...)`
-- `test/scripts/inspect-map-description.js`
+- `test/map-content/inspect-map-description.js`
 
 ## Top-level structure
 

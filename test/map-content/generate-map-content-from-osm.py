@@ -7,11 +7,23 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 
-def run_cmd(cmd: list[str], cwd: Path, env: Dict[str, str] | None = None) -> None:
+def _stage_start(log_prefix: str, name: str) -> float:
+    now = time.time()
+    print(f"{log_prefix} START {name}", file=sys.stderr)
+    return now
+
+
+def _stage_done(log_prefix: str, name: str, start: float) -> None:
+    duration = time.time() - start
+    print(f"{log_prefix} DONE {name} ({duration:.2f}s)", file=sys.stderr)
+
+
+def run_cmd(cmd: List[str], cwd: Path, env: Dict[str, str] | None = None) -> None:
     env_vars = os.environ.copy()
     if env:
         env_vars.update(env)
@@ -24,9 +36,9 @@ def run_cmd(cmd: list[str], cwd: Path, env: Dict[str, str] | None = None) -> Non
         text=True,
         check=False,
     )
-    if completed.stdout:
-        print(completed.stdout, file=sys.stderr, end="")
     if completed.returncode != 0:
+        if completed.stdout:
+            print(completed.stdout, file=sys.stderr, end="")
         raise subprocess.CalledProcessError(completed.returncode, cmd, output=completed.stdout)
 
 
@@ -42,6 +54,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Set TOUCH_MAPPER_EXCLUDE_BUILDINGS=true for OSM2World run",
     )
+    parser.add_argument("--log-prefix", default="", help="Optional log prefix for stage timing output")
     return parser.parse_args()
 
 
@@ -63,6 +76,8 @@ def main() -> int:
     out_dir = Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    raw_log_prefix = args.log_prefix.strip()
+    log_prefix = f"{raw_log_prefix} " if raw_log_prefix else ""
     jar_path = ensure_paths(repo_root, osm_path)
     obj_path = out_dir / "map.obj"
     raw_meta_path = out_dir / "map-meta-raw.json"
@@ -77,6 +92,7 @@ def main() -> int:
         "-o",
         str(obj_path),
     ]
+    osm2world_start = _stage_start(log_prefix, "run-osm2world")
     run_cmd(
         osm2world_cmd,
         cwd=repo_root,
@@ -86,19 +102,22 @@ def main() -> int:
             "TOUCH_MAPPER_EXCLUDE_BUILDINGS": "true" if args.exclude_buildings else "false",
         },
     )
+    _stage_done(log_prefix, "run-osm2world", osm2world_start)
 
     if not raw_meta_path.exists():
         raise FileNotFoundError(f"OSM2World did not produce expected file: {raw_meta_path}")
 
+    map_desc_start = _stage_start(log_prefix, "run-map-desc")
     map_desc_cmd = [sys.executable, "-m", "converter.map_desc", str(raw_meta_path)]
     run_cmd(map_desc_cmd, cwd=repo_root)
+    _stage_done(log_prefix, "run-map-desc", map_desc_start)
 
     map_meta_path = out_dir / "map-meta.json"
     map_meta_augmented_path = out_dir / "map-meta.augmented.json"
     map_content_path = out_dir / "map-content.json"
-    for path in [map_meta_path, map_meta_augmented_path, map_content_path]:
-        if not path.exists():
-            raise FileNotFoundError(f"converter.map_desc did not produce expected file: {path}")
+    for generated in [map_meta_path, map_meta_augmented_path, map_content_path]:
+        if not generated.exists():
+            raise FileNotFoundError(f"converter.map_desc did not produce expected file: {generated}")
 
     result = {
         "repoRoot": str(repo_root),

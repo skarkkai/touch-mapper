@@ -1,0 +1,58 @@
+{
+  "tests": [
+    {
+      "name": "lahderanta",
+      "requestBody": {
+        "requestId": "lahderanta/Nuum\u00e4entie",
+        "addrShort": "Nuum\u00e4entie",
+        "addrLong": "Nuum\u00e4entie, Espoo, Uusimaa, Finland",
+        "printingTech": "3d",
+        "lat": 60.23512170450317,
+        "lon": 24.741615363444502,
+        "scale": 2100,
+        "diameter": 357,
+        "size": 17,
+        "offsetX": 66,
+        "offsetY": -2,
+        "advancedMode": true,
+        "hideLocationMarker": true,
+        "multipartMode": false,
+        "multipartXpc": 0,
+        "multipartYpc": 0,
+        "effectiveArea": {
+          "latMin": 60.233501653227194,
+          "latMax": 60.23670585436584,
+          "lonMin": 24.739584808009454,
+          "lonMax": 24.74602843725667
+        }
+      }
+    },
+    {
+      "name": "rautatieasema-5000",
+      "requestBody": {
+        "requestId": "rautatieasema-5000/Helsinki Central Railway Station",
+        "addrShort": "Helsinki Central Railway Station",
+        "addrLong": "Helsinki Central Railway Station, Helsinki, Uusimaa, Finland",
+        "printingTech": "3d",
+        "lat": 60.1715453,
+        "lon": 24.9405947,
+        "scale": 5000,
+        "diameter": 850,
+        "size": 17,
+        "offsetX": 0,
+        "offsetY": 0,
+        "advancedMode": true,
+        "hideLocationMarker": true,
+        "multipartMode": false,
+        "multipartXpc": 0,
+        "multipartYpc": 0,
+        "effectiveArea": {
+          "latMin": 60.16773073799442,
+          "latMax": 60.17535986200558,
+          "lonMin": 24.932938538321324,
+          "lonMax": 24.948250861678673
+        }
+      }
+    }
+  ]
+}

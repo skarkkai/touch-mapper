@@ -13,12 +13,18 @@ function parseArgs(argv) {
     locale: "en",
     out: null,
     osm: null,
+    mapContent: null,
     workDir: null
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--osm") {
       args.osm = argv[i + 1] || null;
+      i += 1;
+      continue;
+    }
+    if (arg === "--map-content") {
+      args.mapContent = argv[i + 1] || null;
       i += 1;
       continue;
     }
@@ -39,8 +45,11 @@ function parseArgs(argv) {
     }
     throw new Error("Unknown argument: " + arg);
   }
-  if (!args.osm) {
-    throw new Error("Missing required argument: --osm <path-to-map.osm>");
+  if (!args.osm && !args.mapContent) {
+    throw new Error("Missing required input: --osm <path-to-map.osm> or --map-content <path>");
+  }
+  if (args.osm && args.mapContent) {
+    throw new Error("Use exactly one input: either --osm or --map-content");
   }
   if (!args.out) {
     throw new Error("Missing required argument: --out <path-to-output.json>");
@@ -80,8 +89,8 @@ function ensureFileExists(filePath, label) {
   }
 }
 
-function runPythonGenerator(repoRoot, osmPath, workDir) {
-  const generatorPath = path.join(repoRoot, "test", "scripts", "generate-map-content-from-osm.py");
+function runPythonGenerator(repoRoot, osmPath, workDir, options) {
+  const generatorPath = path.join(repoRoot, "test", "map-content", "generate-map-content-from-osm.py");
   ensureFileExists(generatorPath, "Python generator");
   const outputDir = workDir || fs.mkdtempSync(path.join(os.tmpdir(), "tm-map-desc-"));
   fs.mkdirSync(outputDir, { recursive: true });
@@ -93,6 +102,16 @@ function runPythonGenerator(repoRoot, osmPath, workDir) {
     "--out-dir",
     outputDir
   ];
+  if (options && Number.isFinite(Number(options.scale))) {
+    cmdArgs.push("--scale", String(Number(options.scale)));
+  }
+  if (options && options.excludeBuildings) {
+    cmdArgs.push("--exclude-buildings");
+  }
+  if (options && options.logPrefix) {
+    cmdArgs.push("--log-prefix", String(options.logPrefix));
+  }
+
   const result = spawnSync("python3", cmdArgs, {
     cwd: repoRoot,
     encoding: "utf8"
@@ -120,18 +139,8 @@ function resolveLocaleDict(repoRoot, locale) {
   return { localeDict, enDict };
 }
 
-function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const repoRoot = path.resolve(__dirname, "..", "..");
-  const osmPath = path.resolve(args.osm);
-  ensureFileExists(osmPath, "Input OSM file");
-
-  const generation = runPythonGenerator(repoRoot, osmPath, args.workDir ? path.resolve(args.workDir) : null);
-  const mapContentPath = generation.mapContentPath;
-  ensureFileExists(mapContentPath, "Generated map-content.json");
-  const mapContent = readJson(mapContentPath);
-
-  const localeData = resolveLocaleDict(repoRoot, args.locale);
+function buildModels(repoRoot, mapContent, locale) {
+  const localeData = resolveLocaleDict(repoRoot, locale);
   const translator = makeTranslator(localeData.localeDict, localeData.enDict);
   const helpers = { t: translator };
 
@@ -166,33 +175,93 @@ function main() {
     throw new Error("window.TM.mapDescription.buildModel is not available");
   }
 
-  const waysModel = tmApi.mapDescWays.buildModel(mapContent, helpers);
-  const areasModel = tmApi.mapDescAreas.buildModel(mapContent, helpers);
-  const mapDescriptionModel = tmApi.mapDescription.buildModel(mapContent, helpers, {
-    maxVisibleBuildings: 10
-  });
+  return {
+    waysModel: tmApi.mapDescWays.buildModel(mapContent, helpers),
+    areasModel: tmApi.mapDescAreas.buildModel(mapContent, helpers),
+    mapDescriptionModel: tmApi.mapDescription.buildModel(mapContent, helpers, {
+      maxVisibleBuildings: 10
+    })
+  };
+}
 
-  const artifact = {
+function inspectMapDescription(options) {
+  if (!options || typeof options !== "object") {
+    throw new Error("inspectMapDescription options object is required");
+  }
+
+  const repoRoot = options.repoRoot ? path.resolve(options.repoRoot) : path.resolve(__dirname, "..", "..");
+  const locale = options.locale || "en";
+  let generation = null;
+  let mapContentPath = null;
+  let inputOsmPath = null;
+
+  if (options.mapContentPath) {
+    mapContentPath = path.resolve(options.mapContentPath);
+    ensureFileExists(mapContentPath, "Input map-content.json");
+  } else if (options.osmPath) {
+    inputOsmPath = path.resolve(options.osmPath);
+    ensureFileExists(inputOsmPath, "Input OSM file");
+    generation = runPythonGenerator(
+      repoRoot,
+      inputOsmPath,
+      options.workDir ? path.resolve(options.workDir) : null,
+      {
+        scale: options.scale,
+        excludeBuildings: !!options.excludeBuildings,
+        logPrefix: options.logPrefix || ""
+      }
+    );
+    mapContentPath = generation.mapContentPath;
+    ensureFileExists(mapContentPath, "Generated map-content.json");
+  } else {
+    throw new Error("inspectMapDescription requires either mapContentPath or osmPath");
+  }
+
+  const mapContent = readJson(mapContentPath);
+  const models = buildModels(repoRoot, mapContent, locale);
+
+  return {
     source: {
-      inputOsmPath: osmPath,
-      locale: args.locale,
-      generation: generation
+      inputOsmPath: inputOsmPath,
+      locale: locale,
+      generation: generation,
+      mapContentPath: mapContentPath
     },
     mapContentPath: mapContentPath,
-    waysModel: waysModel,
-    areasModel: areasModel,
-    mapDescriptionModel: mapDescriptionModel
+    waysModel: models.waysModel,
+    areasModel: models.areasModel,
+    mapDescriptionModel: models.mapDescriptionModel
   };
+}
+
+function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const repoRoot = path.resolve(__dirname, "..", "..");
+  const artifact = inspectMapDescription({
+    repoRoot: repoRoot,
+    locale: args.locale,
+    osmPath: args.osm ? path.resolve(args.osm) : null,
+    mapContentPath: args.mapContent ? path.resolve(args.mapContent) : null,
+    workDir: args.workDir ? path.resolve(args.workDir) : null
+  });
 
   const outPath = path.resolve(args.out);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + "\n", "utf8");
-  process.stdout.write(JSON.stringify({ outPath: outPath, mapContentPath: mapContentPath }, null, 2) + "\n");
+  process.stdout.write(JSON.stringify({ outPath: outPath, mapContentPath: artifact.mapContentPath }, null, 2) + "\n");
 }
 
-try {
-  main();
-} catch (error) {
-  process.stderr.write((error && error.message ? error.message : String(error)) + "\n");
-  process.exit(1);
+if (require.main === module) {
+  try {
+    main();
+  } catch (error) {
+    process.stderr.write((error && error.message ? error.message : String(error)) + "\n");
+    process.exit(1);
+  }
 }
+
+module.exports = {
+  inspectMapDescription: inspectMapDescription,
+  runPythonGenerator: runPythonGenerator,
+  resolveLocaleDict: resolveLocaleDict
+};
