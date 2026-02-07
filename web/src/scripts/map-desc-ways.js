@@ -488,95 +488,44 @@
     return trimmed.toLowerCase();
   }
 
-  function endpointJunctionEvent(segment, endpointT) {
-    const events = segment && Array.isArray(segment.events) ? segment.events : [];
-    const endpoint = Number(endpointT);
-    const eps = 1e-6;
-    let matched = null;
-
-    events.forEach(function(event){
-      if (matched || !event || event.type !== "junction" || event.t === undefined || isNaN(event.t)) {
+  function wayOsmIds(group) {
+    const ways = group && Array.isArray(group.ways) ? group.ways : [];
+    const ids = [];
+    const seen = {};
+    ways.forEach(function(way){
+      if (!way || way.osmId === undefined || way.osmId === null) {
         return;
       }
-      const tValue = Number(event.t);
-      if (Math.abs(tValue - endpoint) <= eps) {
-        matched = event;
+      const id = String(way.osmId);
+      if (seen[id]) {
+        return;
       }
+      seen[id] = true;
+      ids.push(id);
     });
-    return matched;
+    return ids;
   }
 
-  function connectionLabelInfo(connection, selfOsmId, currentWayNameNormalized) {
-    if (!connection || typeof connection !== 'object') {
-      return null;
+  function groupConnectionKey(group) {
+    const ids = wayOsmIds(group);
+    if (ids.length) {
+      return "ways:" + ids.slice().sort().join("|");
     }
-    if (connection.osmType && connection.osmType !== "way") {
-      return null;
-    }
-    if (selfOsmId !== null && selfOsmId !== undefined &&
-        connection.osmId !== null && connection.osmId !== undefined &&
-        connection.osmId === selfOsmId) {
-      return null;
-    }
-
-    const name = typeof connection.name === 'string' ? connection.name.trim() : "";
-    if (name && currentWayNameNormalized && name.toLowerCase() === currentWayNameNormalized) {
-      return null;
-    }
-    if (name && name !== "(unnamed)") {
-      return { mode: "way", value: name };
-    }
-
-    return {
-      mode: "type",
-      subClass: connection.subClass || "A_other_ways"
-    };
+    const normName = normalizedWayName(wayName(group));
+    return normName ? ("name:" + normName) : null;
   }
 
-  function endpointConnectionLabel(event, selfOsmId, currentWayNameNormalized) {
-    const connections = event && Array.isArray(event.connections) ? event.connections : [];
-    const typeCounts = {};
-    const typeOrder = [];
-
-    for (let i = 0; i < connections.length; i += 1) {
-      const labelInfo = connectionLabelInfo(connections[i], selfOsmId, currentWayNameNormalized);
-      if (!labelInfo) {
-        continue;
-      }
-      if (labelInfo.mode === "way") {
-        return labelInfo;
-      }
-      const subClass = labelInfo.subClass || "A_other_ways";
-      if (typeCounts[subClass] === undefined) {
-        typeCounts[subClass] = 0;
-        typeOrder.push(subClass);
-      }
-      typeCounts[subClass] += 1;
-    }
-
-    if (!typeOrder.length) {
-      return null;
-    }
-
-    let bestSubClass = typeOrder[0];
-    typeOrder.forEach(function(subClass){
-      if (typeCounts[subClass] > typeCounts[bestSubClass]) {
-        bestSubClass = subClass;
-      }
+  function collectJunctionEvents(group) {
+    const events = [];
+    segmentList(group).forEach(function(segment){
+      const segmentEvents = segment && Array.isArray(segment.events) ? segment.events : [];
+      segmentEvents.forEach(function(event){
+        if (event && event.type === "junction") {
+          events.push(event);
+        }
+      });
     });
-
-    if (typeCounts[bestSubClass] > 1) {
-      return {
-        mode: "type_many",
-        subClass: bestSubClass,
-        count: typeCounts[bestSubClass]
-      };
-    }
-
-    return {
-      mode: "type",
-      subClass: bestSubClass
-    };
+    return events;
   }
 
   function connectionSentence(labelInfo) {
@@ -612,33 +561,156 @@
     );
   }
 
-  function endpointConnectionTexts(group) {
-    const segmentInfo = primarySegmentInfo(group);
-    if (!segmentInfo) {
-      return [];
-    }
-    const main = primaryWay(group);
-    const selfOsmId = segmentInfo.osmId !== null && segmentInfo.osmId !== undefined
-      ? segmentInfo.osmId
-      : (main && main.osmId !== undefined ? main.osmId : null);
-    const currentWayNameNormalized = normalizedWayName(group && group.displayLabel);
-    const texts = [];
-    const seen = {};
+  function buildNamedConnectionTextsMap(namedEntries) {
+    const groupsByKey = {};
+    const bucketsByKey = {};
+    const osmIdToKey = {};
 
-    [0, 1].forEach(function(endpointT){
-      const event = endpointJunctionEvent(segmentInfo.segment, endpointT);
-      if (!event) {
+    namedEntries.forEach(function(entry){
+      const group = entry && entry.group ? entry.group : null;
+      if (!group) {
         return;
       }
-      const text = connectionSentence(endpointConnectionLabel(event, selfOsmId, currentWayNameNormalized));
-      if (!text || seen[text]) {
+      const key = groupConnectionKey(group);
+      if (!key) {
         return;
       }
-      seen[text] = true;
-      texts.push(text);
+      entry.connectionKey = key;
+      groupsByKey[key] = group;
+      bucketsByKey[key] = {
+        currentName: normalizedWayName(wayName(group)),
+        namedKeys: {},
+        namedLabels: {},
+        typeBuckets: {}
+      };
+      wayOsmIds(group).forEach(function(id){
+        osmIdToKey[id] = key;
+      });
     });
 
-    return texts;
+    Object.keys(groupsByKey).forEach(function(key){
+      const group = groupsByKey[key];
+      const bucket = bucketsByKey[key];
+      const ownIds = {};
+      wayOsmIds(group).forEach(function(id){
+        ownIds[id] = true;
+      });
+      let unknownCounter = 0;
+
+      collectJunctionEvents(group).forEach(function(event, eventIndex){
+        const connections = event && Array.isArray(event.connections) ? event.connections : [];
+        connections.forEach(function(connection, connectionIndex){
+          if (!connection || typeof connection !== 'object') {
+            return;
+          }
+          if (connection.osmType && connection.osmType !== "way") {
+            return;
+          }
+          const connectionId = connection.osmId !== undefined && connection.osmId !== null
+            ? String(connection.osmId)
+            : null;
+          if (connectionId && ownIds[connectionId]) {
+            return;
+          }
+
+          const rawName = typeof connection.name === 'string' ? connection.name.trim() : "";
+          const normName = normalizedWayName(rawName);
+          if (normName && bucket.currentName && normName === bucket.currentName) {
+            return;
+          }
+
+          if (connectionId) {
+            const namedTargetKey = osmIdToKey[connectionId];
+            if (namedTargetKey && namedTargetKey !== key) {
+              bucket.namedKeys[namedTargetKey] = true;
+              return;
+            }
+          }
+
+          if (normName) {
+            if (!bucket.namedLabels[normName]) {
+              bucket.namedLabels[normName] = rawName;
+            }
+            return;
+          }
+
+          const subClass = typeof connection.subClass === 'string' && connection.subClass
+            ? connection.subClass
+            : "A_other_ways";
+          if (!bucket.typeBuckets[subClass]) {
+            bucket.typeBuckets[subClass] = {};
+          }
+          const dedupeToken = connectionId
+            ? ("id:" + connectionId)
+            : ("event:" + eventIndex + ":" + connectionIndex + ":" + (unknownCounter += 1));
+          bucket.typeBuckets[subClass][dedupeToken] = true;
+        });
+      });
+    });
+
+    Object.keys(bucketsByKey).forEach(function(sourceKey){
+      const source = bucketsByKey[sourceKey];
+      Object.keys(source.namedKeys).forEach(function(targetKey){
+        if (!bucketsByKey[targetKey] || targetKey === sourceKey) {
+          return;
+        }
+        bucketsByKey[targetKey].namedKeys[sourceKey] = true;
+      });
+    });
+
+    const connectionTextsByKey = {};
+    Object.keys(bucketsByKey).forEach(function(key){
+      const bucket = bucketsByKey[key];
+
+      Object.keys(bucket.namedKeys).forEach(function(targetKey){
+        const targetName = wayName(groupsByKey[targetKey]);
+        const norm = normalizedWayName(targetName);
+        if (norm && !bucket.namedLabels[norm]) {
+          bucket.namedLabels[norm] = targetName;
+        }
+      });
+
+      const texts = [];
+      const namedNames = Object.keys(bucket.namedLabels).map(function(norm){
+        return bucket.namedLabels[norm];
+      }).filter(function(value){ return !!value; });
+      namedNames.sort(function(a, b){ return a.localeCompare(b); });
+      namedNames.forEach(function(name){
+        const text = connectionSentence({ mode: "way", value: name });
+        if (text) {
+          texts.push(text);
+        }
+      });
+
+      const typeEntries = Object.keys(bucket.typeBuckets).map(function(subClass){
+        return {
+          subClass: subClass,
+          count: Object.keys(bucket.typeBuckets[subClass]).length
+        };
+      }).filter(function(entry){ return entry.count > 0; });
+      typeEntries.sort(function(a, b){
+        if (a.count !== b.count) {
+          return b.count - a.count;
+        }
+        const aLabel = translatedWayType(a.subClass) || t("map_content_way_type_A_other_ways", "other way");
+        const bLabel = translatedWayType(b.subClass) || t("map_content_way_type_A_other_ways", "other way");
+        return aLabel.localeCompare(bLabel);
+      });
+      typeEntries.forEach(function(entry){
+        const text = connectionSentence({
+          mode: entry.count > 1 ? "type_many" : "type",
+          subClass: entry.subClass,
+          count: entry.count
+        });
+        if (text) {
+          texts.push(text);
+        }
+      });
+
+      connectionTextsByKey[key] = texts;
+    });
+
+    return connectionTextsByKey;
   }
 
   function collectEdgeDetails(target) {
@@ -819,7 +891,7 @@
     listItem.append(line);
   }
 
-  function renderWay(entry, listElem) {
+  function renderWay(entry, listElem, connectionTextsByKey) {
     const group = entry && entry.group ? entry.group : null;
     if (!group) {
       return;
@@ -864,7 +936,10 @@
       ], "map-content-location");
     }
 
-    const connectionLines = endpointConnectionTexts(group);
+    const key = entry && entry.connectionKey ? entry.connectionKey : null;
+    const connectionLines = key && connectionTextsByKey && connectionTextsByKey[key]
+      ? connectionTextsByKey[key]
+      : [];
     connectionLines.forEach(function(connectionLine){
       appendLine(listItem, [
         { text: capitalizeFirst(connectionLine), className: "map-content-location-text" }
@@ -949,8 +1024,10 @@
       }
     });
 
+    const connectionTextsByKey = buildNamedConnectionTextsMap(namedEntries);
+
     namedEntries.forEach(function(entry){
-      renderWay(entry, listElem);
+      renderWay(entry, listElem, connectionTextsByKey);
     });
 
     const unnamedSummaries = summarizeUnnamedWays(unnamedEntries);
