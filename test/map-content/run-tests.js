@@ -12,7 +12,7 @@ const { renderSimulationText } = require("./render-text-simulation.js");
 function parseArgs(argv) {
   const args = {
     all: false,
-    tests: [],
+    categories: [],
     jobs: null,
     offline: false,
     keepExistingOut: false
@@ -23,8 +23,8 @@ function parseArgs(argv) {
       args.all = true;
       continue;
     }
-    if (arg === "--test") {
-      args.tests.push(argv[i + 1] || "");
+    if (arg === "--category") {
+      args.categories.push(argv[i + 1] || "");
       i += 1;
       continue;
     }
@@ -43,8 +43,8 @@ function parseArgs(argv) {
     }
     throw new Error("Unknown argument: " + arg);
   }
-  if (!args.all && args.tests.length === 0) {
-    throw new Error("Select tests with --all or one/more --test <name>");
+  if (!args.all && args.categories.length === 0) {
+    throw new Error("Select categories with --all or one/more --category <simple|average|complex>");
   }
   if (args.jobs !== null && (!Number.isFinite(args.jobs) || args.jobs < 1)) {
     throw new Error("--jobs must be a positive integer");
@@ -61,32 +61,32 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + "\n", "utf8");
 }
 
-function stageStart(testName, stageName) {
+function stageStart(testCategory, stageName) {
   const start = Date.now();
-  process.stdout.write("[" + testName + "] START " + stageName + "\n");
+  process.stdout.write("[" + testCategory + "] START " + stageName + "\n");
   return start;
 }
 
-function stageDone(testName, stageName, startMs) {
+function stageDone(testCategory, stageName, startMs) {
   const elapsed = (Date.now() - startMs) / 1000;
-  process.stdout.write("[" + testName + "] DONE " + stageName + " (" + elapsed.toFixed(2) + "s)\n");
+  process.stdout.write("[" + testCategory + "] DONE " + stageName + " (" + elapsed.toFixed(2) + "s)\n");
   return elapsed;
 }
 
-function stageFail(testName, stageName, startMs, error) {
+function stageFail(testCategory, stageName, startMs, error) {
   const elapsed = (Date.now() - startMs) / 1000;
-  process.stdout.write("[" + testName + "] FAIL " + stageName + " (" + elapsed.toFixed(2) + "s): " + error.message + "\n");
+  process.stdout.write("[" + testCategory + "] FAIL " + stageName + " (" + elapsed.toFixed(2) + "s): " + error.message + "\n");
   return elapsed;
 }
 
-async function runStage(testName, stageName, timings, fn) {
-  const start = stageStart(testName, stageName);
+async function runStage(testCategory, stageName, timings, fn) {
+  const start = stageStart(testCategory, stageName);
   try {
     const result = await fn();
-    timings[stageName] = stageDone(testName, stageName, start);
+    timings[stageName] = stageDone(testCategory, stageName, start);
     return result;
   } catch (error) {
-    timings[stageName] = stageFail(testName, stageName, start, error);
+    timings[stageName] = stageFail(testCategory, stageName, start, error);
     throw error;
   }
 }
@@ -168,7 +168,7 @@ async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
   fs.writeFileSync(cacheOsmPath, response);
 }
 
-function runGenerator(repoRoot, testName, sourceOsmPath, pipelineDir, requestBody) {
+function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, requestBody) {
   const generatorPath = path.join(repoRoot, "test", "map-content", "generate-map-content-from-osm.py");
   const args = [
     generatorPath,
@@ -179,7 +179,7 @@ function runGenerator(repoRoot, testName, sourceOsmPath, pipelineDir, requestBod
     "--scale",
     String(Number(requestBody.scale || 1400)),
     "--log-prefix",
-    "[" + testName + "]"
+    "[" + testCategory + "]"
   ];
   if (requestBody.excludeBuildings) {
     args.push("--exclude-buildings");
@@ -217,22 +217,22 @@ function runGenerator(repoRoot, testName, sourceOsmPath, pipelineDir, requestBod
 
 function ensureRequestBody(testDef) {
   if (!testDef.requestBody || typeof testDef.requestBody !== "object") {
-    throw new Error("Test '" + testDef.name + "' missing requestBody object");
+    throw new Error("Category '" + testDef.category + "' missing requestBody object");
   }
   const area = testDef.requestBody.effectiveArea;
   if (!area || !Number.isFinite(Number(area.lonMin)) || !Number.isFinite(Number(area.lonMax)) ||
       !Number.isFinite(Number(area.latMin)) || !Number.isFinite(Number(area.latMax))) {
-    throw new Error("Test '" + testDef.name + "' has invalid requestBody.effectiveArea values");
+    throw new Error("Category '" + testDef.category + "' has invalid requestBody.effectiveArea values");
   }
 }
 
 async function runSingleTest(repoRoot, testDef, args, locales) {
-  const testName = testDef.name;
+  const testCategory = testDef.category;
   const timings = {};
   const totalStart = Date.now();
 
-  const cacheDir = path.join(repoRoot, "test", "map-content", "cache", testName);
-  const outDir = path.join(repoRoot, "test", "map-content", "out", testName);
+  const cacheDir = path.join(repoRoot, "test", "map-content", "cache", testCategory);
+  const outDir = path.join(repoRoot, "test", "map-content", "out", testCategory);
   const sourceDir = path.join(outDir, "source");
   const pipelineDir = path.join(outDir, "pipeline");
   const descriptionsDir = path.join(outDir, "descriptions");
@@ -240,7 +240,7 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
   const cacheOsmPath = path.join(cacheDir, "map.osm");
 
   try {
-    await runStage(testName, "resolve-test-config", timings, async function() {
+    await runStage(testCategory, "resolve-test-config", timings, async function() {
       ensureRequestBody(testDef);
       if (!args.keepExistingOut) {
         fs.rmSync(outDir, { recursive: true, force: true });
@@ -251,9 +251,9 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       fs.mkdirSync(cacheDir, { recursive: true });
     });
 
-    const mapInfo = await runStage(testName, "fetch-map-info", timings, async function() {
+    const mapInfo = await runStage(testCategory, "fetch-map-info", timings, async function() {
       const info = {
-        name: testDef.name,
+        category: testDef.category,
         requestBody: testDef.requestBody
       };
       writeJson(cacheMapInfoPath, info);
@@ -261,15 +261,15 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       return info;
     });
 
-    const sourceOsmPath = await runStage(testName, "fetch-map-osm", timings, async function() {
+    const sourceOsmPath = await runStage(testCategory, "fetch-map-osm", timings, async function() {
       await fetchOsmToCache(cacheOsmPath, mapInfo.requestBody, args.offline);
       const sourcePath = path.join(sourceDir, "map.osm");
       fs.copyFileSync(cacheOsmPath, sourcePath);
       return sourcePath;
     });
 
-    const generation = await runStage(testName, "generate-map-content", timings, async function() {
-      return runGenerator(repoRoot, testName, sourceOsmPath, pipelineDir, mapInfo.requestBody);
+    const generation = await runStage(testCategory, "generate-map-content", timings, async function() {
+      return runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, mapInfo.requestBody);
     });
     if (generation && generation.timings && typeof generation.timings === "object") {
       Object.keys(generation.timings).forEach(function(key) {
@@ -280,7 +280,7 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       });
     }
 
-    const structuredByLocale = await runStage(testName, "render-structured-models", timings, async function() {
+    const structuredByLocale = await runStage(testCategory, "render-structured-models", timings, async function() {
       const byLocale = {};
       locales.forEach(function(locale) {
         const artifact = inspect.inspectMapDescription({
@@ -288,7 +288,7 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
           locale: locale,
           mapContentPath: generation.mapContentPath
         });
-        artifact.source.testName = testName;
+        artifact.source.testCategory = testCategory;
         artifact.source.requestBody = testDef.requestBody;
         byLocale[locale] = artifact;
 
@@ -299,7 +299,7 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       return byLocale;
     });
 
-    await runStage(testName, "render-text-simulations", timings, async function() {
+    await runStage(testCategory, "render-text-simulations", timings, async function() {
       locales.forEach(function(locale) {
         const artifact = structuredByLocale[locale];
         const localeDir = path.join(descriptionsDir, locale);
@@ -308,10 +308,10 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       });
     });
 
-    await runStage(testName, "write-manifest-and-timings", timings, async function() {
+    await runStage(testCategory, "write-manifest-and-timings", timings, async function() {
       writeJson(path.join(outDir, "manifest.json"), {
         test: {
-          name: testDef.name
+          category: testDef.category
         },
         locales: locales,
         files: listFilesRecursive(outDir),
@@ -324,14 +324,14 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
     writeJson(path.join(outDir, "timings.json"), timingsWithTotal);
 
     return {
-      name: testName,
+      category: testCategory,
       status: "ok",
       durationSec: (Date.now() - totalStart) / 1000,
       error: null
     };
   } catch (error) {
     return {
-      name: testName,
+      category: testCategory,
       status: "failed",
       durationSec: (Date.now() - totalStart) / 1000,
       error: error.message
@@ -368,7 +368,7 @@ function printSummary(results) {
   results.forEach(function(result) {
     const line = [
       result.status.toUpperCase(),
-      result.name,
+      result.category,
       result.durationSec.toFixed(2) + "s"
     ];
     if (result.error) {
@@ -384,18 +384,18 @@ async function main() {
   const testsPath = path.join(repoRoot, "test", "map-content", "tests.json");
   const testsFile = readJson(testsPath);
   const allTests = Array.isArray(testsFile.tests) ? testsFile.tests : [];
-  const byName = {};
+  const byCategory = {};
   allTests.forEach(function(testDef) {
-    byName[testDef.name] = testDef;
+    byCategory[testDef.category] = testDef;
   });
 
   const selectedTests = args.all
     ? allTests.slice()
-    : args.tests.map(function(name) {
-        if (!byName[name]) {
-          throw new Error("Unknown test name: " + name);
+    : args.categories.map(function(category) {
+        if (!byCategory[category]) {
+          throw new Error("Unknown category: " + category);
         }
-        return byName[name];
+        return byCategory[category];
       });
 
   if (selectedTests.length === 0) {

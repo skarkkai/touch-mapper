@@ -64,6 +64,15 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - See `README.md` for full local setup steps (dependencies, AWS CLI, and web dev workflow).
 - `init.sh` installs system dependencies and builds `OSM2World` (use it for full setup).
 
+## Map-content verification suite
+- When changing converter map-description logic or related UI description-model code, verify behavior with the category-based suite in `test/map-content/`.
+- Primary command:
+  - `node test/map-content/run-tests.js --category average --offline --jobs 1`
+- Category guidance:
+  - `simple`: fastest smoke checks during rapid iteration.
+  - `average`: default regression checks for most functional changes.
+  - `complex`: performance profiling / hotspot work only; run less frequently.
+
 ## Deployed map inspection
 - For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.
 - Keep that guide in sync with live deployed behavior in `web/src/scripts/app-common.js` and `web/src/scripts/map.js`.

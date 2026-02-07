@@ -5,8 +5,8 @@ repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
 
 node "$repo_root/test/map-content/run-tests.js" --all --jobs 2
 
-for test_name in lahderanta rautatieasema-5000; do
-  test_root="$repo_root/test/map-content/out/$test_name"
+for category in simple average complex; do
+  test_root="$repo_root/test/map-content/out/$category"
   [[ -f "$test_root/source/map-info.json" ]]
   [[ -f "$test_root/source/map.osm" ]]
 

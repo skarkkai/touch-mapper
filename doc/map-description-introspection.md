@@ -15,11 +15,11 @@ structured map description models from UI code without rendering the page.
    - runs their `buildModel(...)` functions
    - writes one machine-readable JSON artifact
 3. `test/map-content/run-tests.js`
-   - runs named tests (`--test`) or the full suite (`--all`) in parallel
-   - writes test artifacts to `test/map-content/out/<test-name>/`
+   - runs category tests (`--category`) or the full suite (`--all`) in parallel
+   - writes test artifacts to `test/map-content/out/<category>/`
    - prints and stores per-stage timing data
 4. `test/map-content/tests.json`
-   - defines named tests using server-style `requestBody` payload fields
+   - defines test categories (`simple`, `average`, `complex`) using server-style `requestBody` payload fields
    - includes map bbox (`effectiveArea`) used for OSM fetching/caching
 
 ## End-to-end example
@@ -71,11 +71,11 @@ bash test/map-content/test-map-content-suite.sh
 
 This script covers:
 
-- both named tests (`lahderanta`, `rautatieasema-5000`)
-- required artifact presence in `test/map-content/out/<test-name>/`
+- all three category tests (`simple`, `average`, `complex`)
+- required artifact presence in `test/map-content/out/<category>/`
 - per-locale structured and text-simulated outputs
 
-## Named Test Runner
+## Category Test Runner
 
 Run all tests:
 
@@ -83,17 +83,17 @@ Run all tests:
 node test/map-content/run-tests.js --all
 ```
 
-Run one test:
+Run one category:
 
 ```bash
-node test/map-content/run-tests.js --test lahderanta
+node test/map-content/run-tests.js --category average
 ```
 
 Optional flags:
 
 - `--jobs <N>`: max tests to run in parallel
 - `--offline`: use only cached OSM input from `test/map-content/cache/`
-- `--keep-existing-out`: do not clean `test/map-content/out/<test-name>/` before a run
+- `--keep-existing-out`: do not clean `test/map-content/out/<category>/` before a run
 
 ## Test Definition Shape
 
@@ -103,9 +103,7 @@ Optional flags:
 {
   "tests": [
     {
-      "name": "example-name",
-      "mapId": "Bxxxxxxxxxxxxxxx",
-      "sourceUrl": "https://test.touch-mapper.org/en/map?map=Bxxxxxxxxxxxxxxx",
+      "category": "simple",
       "requestBody": {
         "lat": 0,
         "lon": 0,
@@ -123,3 +121,10 @@ Optional flags:
   ]
 }
 ```
+
+## Recommended Usage For Development
+
+- Use `simple` or `average` for routine correctness checks while iterating.
+- Use `complex` primarily for performance profiling and hotspot analysis.
+- Typical quick validation command:
+  - `node test/map-content/run-tests.js --category average --offline --jobs 1`

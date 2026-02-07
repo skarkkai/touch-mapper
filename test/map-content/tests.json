@@ -1,36 +1,65 @@
 {
   "tests": [
     {
-      "name": "lahderanta",
+      "category": "simple",
       "requestBody": {
-        "requestId": "lahderanta/Nuum\u00e4entie",
-        "addrShort": "Nuum\u00e4entie",
-        "addrLong": "Nuum\u00e4entie, Espoo, Uusimaa, Finland",
+        "requestId": "simple/Japan-m30X-p150Y",
+        "addrShort": "Japan",
+        "addrLong": "Japan, Japan",
         "printingTech": "3d",
-        "lat": 60.23512170450317,
-        "lon": 24.741615363444502,
-        "scale": 2100,
-        "diameter": 357,
+        "lat": 36.5748441,
+        "lon": 139.2394179,
+        "scale": 9999,
+        "diameter": 1700,
         "size": 17,
-        "offsetX": 66,
-        "offsetY": -2,
+        "offsetX": 0,
+        "offsetY": 0,
         "advancedMode": true,
         "hideLocationMarker": true,
-        "multipartMode": false,
-        "multipartXpc": 0,
-        "multipartYpc": 0,
+        "multipartMode": true,
+        "multipartXpc": -30,
+        "multipartYpc": 150,
+        "noBorders": true,
         "effectiveArea": {
-          "latMin": 60.233501653227194,
-          "latMax": 60.23670585436584,
-          "lonMin": 24.739584808009454,
-          "lonMax": 24.74602843725667
+          "latMax": 36.60548003920552,
+          "latMin": 36.590162069602755,
+          "lonMin": 139.22422469849255,
+          "lonMax": 139.24321620037688
         }
       }
     },
     {
-      "name": "rautatieasema-5000",
+      "category": "average",
       "requestBody": {
-        "requestId": "rautatieasema-5000/Helsinki Central Railway Station",
+        "requestId": "average/Tapiola-m10X-p100Y",
+        "addrShort": "Tapiola",
+        "addrLong": "Tapiola, Espoo, Uusimaa, Finland",
+        "printingTech": "3d",
+        "lat": 60.17664,
+        "lon": 24.8031685,
+        "scale": 2000,
+        "diameter": 340,
+        "size": 17,
+        "offsetX": 15,
+        "offsetY": -107,
+        "advancedMode": true,
+        "hideLocationMarker": true,
+        "multipartMode": true,
+        "multipartXpc": -10,
+        "multipartYpc": 100,
+        "noBorders": true,
+        "effectiveArea": {
+          "lonMin": 24.79976323263095,
+          "latMax": 60.18025709952422,
+          "lonMax": 24.80588911043771,
+          "latMin": 60.17720545228294
+        }
+      }
+    },
+    {
+      "category": "complex",
+      "requestBody": {
+        "requestId": "complex/Helsinki Central Railway Station",
         "addrShort": "Helsinki Central Railway Station",
         "addrLong": "Helsinki Central Railway Station, Helsinki, Uusimaa, Finland",
         "printingTech": "3d",
@@ -47,10 +76,10 @@
         "multipartXpc": 0,
         "multipartYpc": 0,
         "effectiveArea": {
-          "latMin": 60.16773073799442,
+          "lonMax": 24.948250861678673,
           "latMax": 60.17535986200558,
-          "lonMin": 24.932938538321324,
-          "lonMax": 24.948250861678673
+          "latMin": 60.16773073799442,
+          "lonMin": 24.932938538321324
         }
       }
     }
