@@ -477,9 +477,8 @@ def join_matching_edges(ob, min_x, min_y, max_x, max_y):
             angle = ce.into_edge.angle(edge_v)
             if abs(angle - radians_90degrees) > radians_90degrees / 9:
                 multiplier = 1 / math.sin(angle)
-                print("angle: %f, mult: %f" % (angle * (90 / radians_90degrees), multiplier))
                 if multiplier > 3:
-                    print("abnormally high multiplier, not lengthening")
+                    continue
                 else:
                     verts[0].co = ce.center + (verts[0].co - ce.center) * multiplier
                     verts[1].co = ce.center + (verts[1].co - ce.center) * multiplier

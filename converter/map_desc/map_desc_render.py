@@ -3,10 +3,12 @@ from __future__ import division
 
 import json
 import os
+import re
 import sys
 import time
 from collections import OrderedDict
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 if TYPE_CHECKING:
     from typing_extensions import TypedDict  # type: ignore[import-not-found]
@@ -33,6 +35,473 @@ Boundary = TypedDict(
     "Boundary",
     {"minX": float, "minY": float, "maxX": float, "maxY": float}
 )
+
+LINEAR_SUBCLASS_BASE_IMPORTANCE = {
+    "A1_major_roads": 100.0,
+    "A3_subway_metro": 95.0,
+    "A3_tram_light_rail": 90.0,
+    "A1_secondary_roads": 85.0,
+    "A4_rivers": 80.0,
+    "A3_rail_lines": 75.0,
+    "A2_pedestrian_streets": 70.0,
+    "A1_local_streets": 65.0,
+    "A2_cycleways": 60.0,
+    "A4_streams_canals": 55.0,
+    "A2_footpaths_trails": 50.0,
+    "A2_steps_ramps": 45.0,
+    "A1_service_roads": 40.0,
+    "A3_rail_yards_sidings": 35.0,
+    "A1_track_roads": 30.0,
+    "A4_ditches_drains": 30.0,
+    "A1_road_construction": 25.0,
+    "A1_vehicle_unspecified": 25.0,
+    "A2_pedestrian_unspecified": 25.0,
+    "A4_other_waterways": 25.0,
+    "A5_connectivity_nodes": 20.0,
+    "A_other_ways": 20.0,
+}
+IMPORTANCE_SCORE_INCLUDE_COMPONENTS = True
+IMPORTANCE_TAG_MULTIPLIERS = (
+    ("wikidata", 1.9),
+    ("wikipedia", 1.8),
+    ("wikimedia_commons", 1.6),
+    ("website", 1.5),
+    ("operator", 1.3),
+    ("brand", 1.3),
+    ("extraNames", 1.2),
+)
+WIKIDATA_QID_RE = re.compile(r"^Q[1-9][0-9]*$")
+WIKIPEDIA_LANG_RE = re.compile(r"^[a-z0-9-]+$", re.IGNORECASE)
+
+
+def _text_or_none(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if text else None
+
+
+def _normalize_netloc(netloc: str) -> Optional[str]:
+    raw = netloc.strip()
+    if not raw:
+        return None
+    if any(ch.isspace() for ch in raw):
+        return None
+
+    user_info = ""
+    host_port = raw
+    if "@" in raw:
+        user_info, host_port = raw.rsplit("@", 1)
+        if not user_info or not host_port:
+            return None
+
+    host = host_port
+    port = ""
+
+    if host_port.startswith("["):
+        end_idx = host_port.find("]")
+        if end_idx <= 0:
+            return None
+        host = host_port[:end_idx + 1]
+        remainder = host_port[end_idx + 1:]
+        if remainder:
+            if not remainder.startswith(":"):
+                return None
+            port = remainder[1:]
+    elif ":" in host_port:
+        host, port = host_port.rsplit(":", 1)
+
+    if not host:
+        return None
+
+    if host.startswith("[") and host.endswith("]"):
+        host_ascii = host.lower()
+    else:
+        try:
+            host_ascii = host.encode("idna").decode("ascii").lower()
+        except Exception:
+            return None
+
+    if port:
+        if not port.isdigit():
+            return None
+        port_num = int(port)
+        if port_num <= 0 or port_num > 65535:
+            return None
+        host_ascii = host_ascii + ":" + port
+
+    if not user_info:
+        return host_ascii
+
+    user_info_encoded = quote(user_info, safe=":%!$&'()*+,;=-._~")
+    return user_info_encoded + "@" + host_ascii
+
+
+def _normalize_absolute_http_url(raw_url: str) -> Optional[str]:
+    parsed = urlsplit(raw_url)
+    scheme = parsed.scheme.lower()
+    if scheme not in ("http", "https"):
+        return None
+    if not parsed.netloc:
+        return None
+
+    netloc = _normalize_netloc(parsed.netloc)
+    if netloc is None:
+        return None
+
+    path = quote(unquote(parsed.path), safe="/:@!$&'()*+,;=-._~")
+    query = quote(unquote(parsed.query), safe=":@!$&'()*+,;=-._~/?%")
+    fragment = quote(unquote(parsed.fragment), safe=":@!$&'()*+,;=-._~/?%")
+    return urlunsplit((scheme, netloc, path, query, fragment))
+
+
+def _wikipedia_url(value: Any) -> Optional[str]:
+    text = _text_or_none(value)
+    if text is None or ":" not in text:
+        return None
+    lang_raw, title_raw = text.split(":", 1)
+    lang = lang_raw.strip().lower()
+    title = title_raw.strip()
+    if not lang or not title:
+        return None
+    if not WIKIPEDIA_LANG_RE.match(lang):
+        return None
+    normalized_title = title.replace(" ", "_")
+    encoded_title = quote(normalized_title, safe="_-~.")
+    return "https://" + lang + ".wikipedia.org/wiki/" + encoded_title
+
+
+def _wikidata_url(value: Any) -> Optional[str]:
+    text = _text_or_none(value)
+    if text is None:
+        return None
+    if not WIKIDATA_QID_RE.match(text):
+        return None
+    return "https://www.wikidata.org/wiki/" + text
+
+
+def _commons_url(value: Any) -> Optional[str]:
+    text = _text_or_none(value)
+    if text is None:
+        return None
+    if text.startswith("Category:"):
+        category_name = text[len("Category:"):].strip()
+    else:
+        category_name = text
+    if not category_name:
+        return None
+    normalized_name = category_name.replace(" ", "_")
+    encoded_name = quote(normalized_name, safe="_-~.")
+    return "https://commons.wikimedia.org/wiki/Category:" + encoded_name
+
+
+def _website_url(value: Any) -> Optional[str]:
+    text = _text_or_none(value)
+    if text is None:
+        return None
+    if text.startswith("http://") or text.startswith("https://"):
+        normalized = text
+    elif text.startswith("//"):
+        normalized = "https:" + text
+    else:
+        normalized = "https://" + text
+    return _normalize_absolute_http_url(normalized)
+
+
+def _search_url(value: Any) -> Optional[str]:
+    text = _text_or_none(value)
+    if text is None:
+        return None
+    return "https://www.google.com/search?q=" + quote(text, safe="")
+
+
+def _first_extra_name_value(extra_names: Any) -> Optional[str]:
+    if not isinstance(extra_names, dict):
+        return None
+    keys = list(extra_names.keys())
+    if isinstance(extra_names, OrderedDict):
+        ordered_keys = keys
+    else:
+        ordered_keys = sorted(keys)
+    for key in ordered_keys:
+        value = _text_or_none(extra_names.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+def _build_external_link_from_importance_tags(importance_tags: Any) -> Optional[OrderedDict]:
+    if not isinstance(importance_tags, dict):
+        return None
+
+    candidates = [
+        ("wikipedia", "wikipedia", "Wikipedia", _wikipedia_url, importance_tags.get("wikipedia")),
+        ("wikidata", "wikidata", "Wikidata", _wikidata_url, importance_tags.get("wikidata")),
+        ("wikimedia_commons", "commons", "Wikimedia Commons", _commons_url, importance_tags.get("wikimedia_commons")),
+        ("website", "website", "Website", _website_url, importance_tags.get("website")),
+        ("operator", "search", "Search", _search_url, importance_tags.get("operator")),
+        ("brand", "search", "Search", _search_url, importance_tags.get("brand")),
+        ("extraNames", "search", "Search", _search_url, _first_extra_name_value(importance_tags.get("extraNames"))),
+    ]
+
+    for _tag_key, link_type, label, builder, raw_value in candidates:
+        url = builder(raw_value)
+        if url is None:
+            continue
+        external_link = OrderedDict()
+        external_link["type"] = link_type
+        external_link["url"] = url
+        external_link["label"] = label
+        return external_link
+    return None
+
+
+def _float_or_zero(value: Any) -> float:
+    if not isinstance(value, (int, float)):
+        return 0.0
+    return float(value)
+
+
+def _boundary_reference_length(boundary: Optional[Boundary]) -> Optional[float]:
+    if not boundary:
+        return None
+    width = abs(boundary["maxX"] - boundary["minX"])
+    height = abs(boundary["maxY"] - boundary["minY"])
+    return max(width, height)
+
+
+def _importance_factor_for_tag_map(tag_map: Optional[Dict[str, Any]]) -> Tuple[Optional[str], float]:
+    if not isinstance(tag_map, dict):
+        return None, 1.0
+    for key, factor in IMPORTANCE_TAG_MULTIPLIERS:
+        if key in tag_map:
+            return key, factor
+    return None, 1.0
+
+
+def _group_importance_factor(group: Dict[str, Any]) -> Tuple[Optional[str], float]:
+    children = group.get("ways")
+    if not isinstance(children, list):
+        children = group.get("items")
+    if not isinstance(children, list):
+        return None, 1.0
+    best_key = None  # type: Optional[str]
+    best_factor = 1.0
+    for child in children:
+        if not isinstance(child, dict):
+            continue
+        tag_key, factor = _importance_factor_for_tag_map(child.get("importanceTags"))
+        if factor > best_factor:
+            best_key = tag_key
+            best_factor = factor
+    return best_key, best_factor
+
+
+def _linear_length_multiplier(visible_length: float, reference_length: Optional[float]) -> float:
+    length = max(0.0, visible_length)
+    if length <= 0:
+        return 0.1
+    if reference_length is None or reference_length <= 0:
+        return 1.0
+    if length >= reference_length:
+        return 1.0
+    return 0.1 + (0.9 * (length / reference_length))
+
+
+def _round_component(value: float, digits: int) -> float:
+    scale = 10 ** digits
+    return _js_round(value * scale) / float(scale)
+
+
+def _compact_number_key(value: float, digits: int) -> str:
+    text = _to_fixed(value, digits)
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    if text == "-0":
+        return "0"
+    return text
+
+
+def _build_importance_score(final_score: int, components: OrderedDict) -> OrderedDict:
+    score = OrderedDict()
+    score["final"] = int(final_score)
+    if not IMPORTANCE_SCORE_INCLUDE_COMPONENTS:
+        return score
+    for key, value in components.items():
+        if value is None:
+            continue
+        if isinstance(value, dict) and not value:
+            continue
+        score[key] = value
+    return score
+
+
+def _has_meaningful_label(label: Optional[Any]) -> bool:
+    if not isinstance(label, str):
+        return False
+    return bool(label.strip())
+
+
+def _building_group_size(group: Dict[str, Any]) -> float:
+    items = group.get("items")
+    if not isinstance(items, list) or not items:
+        return 0.0
+    first = items[0]
+    if not isinstance(first, dict):
+        return 0.0
+    visible_geometry = first.get("visibleGeometry")
+    if not isinstance(visible_geometry, dict):
+        return 0.0
+    coverage = visible_geometry.get("coverage")
+    if not isinstance(coverage, dict):
+        return 0.0
+    return max(0.0, _float_or_zero(coverage.get("coveragePercent")))
+
+
+def _apply_linear_importance_scores(main_entry: Dict[str, Any],
+                                    boundary: Optional[Boundary]) -> None:
+    subclasses = main_entry.get("subclasses")
+    if not isinstance(subclasses, list):
+        return
+    reference_length = _boundary_reference_length(boundary)
+    for sub_entry in subclasses:
+        if not isinstance(sub_entry, dict):
+            continue
+        sub_key = sub_entry.get("key")
+        if not isinstance(sub_key, str):
+            continue
+        if sub_key == "A5_connectivity_nodes":
+            continue
+        base_score = LINEAR_SUBCLASS_BASE_IMPORTANCE.get(sub_key)
+        if base_score is None:
+            continue
+        groups = sub_entry.get("groups")
+        if not isinstance(groups, list):
+            continue
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            visible_length = max(0.0, _float_or_zero(group.get("totalLength")))
+            length_multiplier = _linear_length_multiplier(visible_length, reference_length)
+            tag_key, tag_factor = _group_importance_factor(group)
+            final_score = _js_round(base_score * length_multiplier * tag_factor)
+
+            components = OrderedDict()
+            components["category"] = OrderedDict([
+                (sub_key, _js_round(base_score))
+            ])
+            components["length"] = OrderedDict([
+                (str(_js_round(visible_length)), _round_component(length_multiplier, 3))
+            ])
+            if tag_key is not None and tag_factor > 1.0:
+                components["importanceTags"] = OrderedDict([
+                    (tag_key, _round_component(tag_factor, 3))
+                ])
+
+            group["importanceScore"] = _build_importance_score(final_score, components)
+
+
+def _apply_building_importance_scores(main_entry: Dict[str, Any]) -> None:
+    subclasses = main_entry.get("subclasses")
+    if not isinstance(subclasses, list):
+        return
+
+    building_groups = []  # type: List[Dict[str, Any]]
+    for sub_entry in subclasses:
+        if not isinstance(sub_entry, dict):
+            continue
+        if sub_entry.get("kind") != "building":
+            continue
+        groups = sub_entry.get("groups")
+        if not isinstance(groups, list):
+            continue
+        for group in groups:
+            if isinstance(group, dict):
+                building_groups.append(group)
+
+    if not building_groups:
+        return
+
+    named_sizes = []
+    unnamed_sizes = []
+    for group in building_groups:
+        size = _building_group_size(group)
+        if _has_meaningful_label(group.get("label")):
+            named_sizes.append(size)
+        else:
+            unnamed_sizes.append(size)
+
+    max_named = max(named_sizes) if named_sizes else 0.0
+    max_unnamed = max(unnamed_sizes) if unnamed_sizes else 0.0
+
+    for group in building_groups:
+        is_named = _has_meaningful_label(group.get("label"))
+        size = _building_group_size(group)
+        base = 100.0 if is_named else 30.0
+        max_size = max_named if is_named else max_unnamed
+        relative_size = (size / max_size) if max_size > 0 else 1.0
+        tag_key, tag_factor = _group_importance_factor(group)
+        final_score = _js_round(base * relative_size * tag_factor)
+
+        components = OrderedDict()
+        components["category"] = OrderedDict([
+            ("named" if is_named else "unnamed", _js_round(base))
+        ])
+        components["size"] = OrderedDict([
+            (_compact_number_key(size, 3), _round_component(relative_size, 3))
+        ])
+        if tag_key is not None and tag_factor > 1.0:
+            components["importanceTags"] = OrderedDict([
+                (tag_key, _round_component(tag_factor, 3))
+            ])
+
+        group["importanceScore"] = _build_importance_score(final_score, components)
+
+
+def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
+    subclasses = main_entry.get("subclasses")
+    if not isinstance(subclasses, list):
+        return
+    for sub_entry in subclasses:
+        if not isinstance(sub_entry, dict):
+            continue
+        if sub_entry.get("kind") != "poi":
+            continue
+        sub_key = sub_entry.get("key")
+        groups = sub_entry.get("groups")
+        if not isinstance(groups, list):
+            continue
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            tag_key, tag_factor = _group_importance_factor(group)
+            final_score = _js_round(100.0 * tag_factor)
+
+            components = OrderedDict()
+            if isinstance(sub_key, str):
+                components["category"] = OrderedDict([
+                    (sub_key, 100)
+                ])
+            if tag_key is not None and tag_factor > 1.0:
+                components["importanceTags"] = OrderedDict([
+                    (tag_key, _round_component(tag_factor, 3))
+                ])
+
+            group["importanceScore"] = _build_importance_score(final_score, components)
+
+
+def _attach_group_importance_scores(raw: List[Dict[str, Any]],
+                                    boundary: Optional[Boundary]) -> None:
+    for main_entry in raw:
+        if not isinstance(main_entry, dict):
+            continue
+        key = main_entry.get("key")
+        if key == "A":
+            _apply_linear_importance_scores(main_entry, boundary)
+        elif key == "C":
+            _apply_building_importance_scores(main_entry)
+        elif key == "D":
+            _apply_poi_importance_scores(main_entry)
 
 
 def _coerce_boundary(boundary: Optional[Dict[str, Any]]) -> Optional[Boundary]:
@@ -84,6 +553,65 @@ def _get_name(tags: Optional[Dict[str, Any]]) -> Optional[str]:
         tags.get("short_name") or
         None
     )
+
+
+def _tag_text(tags: Optional[Dict[str, Any]], key: str) -> Optional[str]:
+    # Read a string tag value, treating blank strings as missing.
+    if not isinstance(tags, dict):
+        return None
+    if key not in tags:
+        return None
+    value = tags.get(key)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if text else None
+
+
+def _extract_extra_name_tags(tags: Optional[Dict[str, Any]]) -> Optional[OrderedDict]:
+    # Capture localized OSM name:* tags as-is for downstream scoring.
+    if not isinstance(tags, dict):
+        return None
+    extra_names = OrderedDict()
+    for key in sorted(tags.keys()):
+        if not isinstance(key, str) or not key.startswith("name:"):
+            continue
+        value = _tag_text(tags, key)
+        if value is None:
+            continue
+        extra_names[key] = value
+    return extra_names if extra_names else None
+
+
+def _extract_importance_tags(item: Dict[str, Any]) -> Optional[OrderedDict]:
+    # Extract a compact whitelist of salience-related OSM tags.
+    tags = item.get("tags")
+    if not isinstance(tags, dict):
+        return None
+
+    importance_tags = OrderedDict()
+
+    for key in ("wikidata", "wikipedia", "wikimedia_commons"):
+        value = _tag_text(tags, key)
+        if value is not None:
+            importance_tags[key] = value
+
+    website = _tag_text(tags, "website")
+    if website is None:
+        website = _tag_text(tags, "contact:website")
+    if website is not None:
+        importance_tags["website"] = website
+
+    for key in ("operator", "brand", "historic", "heritage"):
+        value = _tag_text(tags, key)
+        if value is not None:
+            importance_tags[key] = value
+
+    extra_names = _extract_extra_name_tags(tags)
+    if extra_names is not None:
+        importance_tags["extraNames"] = extra_names
+
+    return importance_tags if importance_tags else None
 
 
 def _loc_from_classification(location: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -148,6 +676,12 @@ def _attach_semantics(entry: Dict[str, Any], item: Dict[str, Any]) -> None:
     semantics = item.get("semantics")
     if semantics is not None:
         entry["semantics"] = semantics
+    importance_tags = _extract_importance_tags(item)
+    if importance_tags is not None:
+        entry["importanceTags"] = importance_tags
+        external_link = _build_external_link_from_importance_tags(importance_tags)
+        if external_link is not None:
+            entry["externalLink"] = external_link
 
 
 def _dir_label(direction: Optional[str]) -> Optional[str]:
@@ -1346,6 +1880,8 @@ def build_intermediate(grouped: Dict[str, Any], spec: Dict[str, Any],
             })
 
         raw.append(main_entry)
+
+    _attach_group_importance_scores(raw, boundary)
 
     add_timing("build-intermediate.total", time.perf_counter() - start_total)
     return {"raw": raw}

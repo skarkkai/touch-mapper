@@ -70,6 +70,13 @@
     "street lamp": true,
     "outdoor seating": true
   };
+  const EXTERNAL_LINK_TYPE_PRIORITY = {
+    wikipedia: 0,
+    wikidata: 1,
+    commons: 2,
+    website: 3,
+    search: 4
+  };
 
   function fallbackTranslate(key, fallback) {
     return fallback !== undefined ? fallback : key;
@@ -344,6 +351,85 @@
     return [];
   }
 
+  function isSafeExternalUrl(url) {
+    return typeof url === "string" && /^https?:\/\/\S+$/i.test(url);
+  }
+
+  function normalizedExternalLink(link) {
+    if (!link || typeof link !== "object") {
+      return null;
+    }
+    if (!isSafeExternalUrl(link.url)) {
+      return null;
+    }
+    return {
+      type: typeof link.type === "string" ? link.type : "",
+      url: link.url,
+      label: typeof link.label === "string" ? link.label : ""
+    };
+  }
+
+  function externalLinkPriority(link) {
+    if (!link || !link.type || EXTERNAL_LINK_TYPE_PRIORITY[link.type] === undefined) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+    return EXTERNAL_LINK_TYPE_PRIORITY[link.type];
+  }
+
+  function bestGroupExternalLink(group) {
+    const items = listItems(group);
+    let best = null;
+    let bestPriority = Number.MAX_SAFE_INTEGER;
+    items.forEach(function(item){
+      if (!item || typeof item !== "object") {
+        return;
+      }
+      const candidate = normalizedExternalLink(item.externalLink);
+      if (!candidate) {
+        return;
+      }
+      const priority = externalLinkPriority(candidate);
+      if (!best || priority < bestPriority) {
+        best = candidate;
+        bestPriority = priority;
+      }
+    });
+    return best;
+  }
+
+  function groupImportanceScore(group) {
+    const value = group ? group.importanceScore : null;
+    const resolved = value && typeof value === "object" ? value.final : value;
+    if (resolved === null || resolved === undefined || isNaN(resolved)) {
+      return 0;
+    }
+    const number = Number(resolved);
+    if (!isFinite(number)) {
+      return 0;
+    }
+    return number;
+  }
+
+  function importanceScoreTooltip(importanceScore) {
+    if (!importanceScore || typeof importanceScore !== "object" || Array.isArray(importanceScore)) {
+      return null;
+    }
+    const componentKeys = Object.keys(importanceScore).filter(function(key){
+      return key !== "final";
+    });
+    if (!componentKeys.length) {
+      return null;
+    }
+    const parts = ["final=" + String(importanceScore.final)];
+    componentKeys.forEach(function(key){
+      const valueText = JSON.stringify(importanceScore[key]);
+      if (valueText !== undefined) {
+        parts.push(key + "=" + valueText);
+      }
+    });
+    return "importanceScore: " + parts.join("; ");
+  }
+
   function collectPoiEntries(mapContent) {
     const output = [];
     const classD = mapContent && typeof mapContent === "object" ? mapContent.D : null;
@@ -368,7 +454,8 @@
           typeLabel: typeLabel,
           name: name,
           hasName: !!name,
-          itemCount: items.length
+          itemCount: items.length,
+          importanceScore: groupImportanceScore(group)
         };
         entry.section = sectionForEntry(entry);
         entry.score = salienceScore(entry);
@@ -386,7 +473,9 @@
         return;
       }
       deduped[key].itemCount += entry.itemCount;
-      if (entry.score > deduped[key].score) {
+      if (entry.importanceScore > deduped[key].importanceScore) {
+        deduped[key] = entry;
+      } else if (entry.importanceScore === deduped[key].importanceScore && entry.score > deduped[key].score) {
         deduped[key] = entry;
       }
     });
@@ -396,6 +485,9 @@
 
   function sortEntries(entries) {
     return entries.slice().sort(function(a, b){
+      if (a.importanceScore !== b.importanceScore) {
+        return b.importanceScore - a.importanceScore;
+      }
       if (a.hasName !== b.hasName) {
         return a.hasName ? -1 : 1;
       }
@@ -417,29 +509,33 @@
     });
   }
 
-  function lineModel(text, className) {
+  function lineModel(text, className, titleText, link) {
     return {
       className: className || null,
-      parts: [{ text: text }]
+      parts: [{ text: text }],
+      title: titleText || null,
+      link: link || null
     };
   }
 
   function entryToModelItem(entry) {
     const normalizedType = normalizeTypeLabel(entry.typeLabel);
     const location = locationTextFromValue(locationValue(entry), "clause");
+    const scoreTooltip = importanceScoreTooltip(entry && entry.group ? entry.group.importanceScore : null);
+    const titleLink = bestGroupExternalLink(entry && entry.group ? entry.group : null);
     const lines = [];
     if (entry.hasName) {
-      lines.push(lineModel(entry.name + ", " + normalizedType, "map-content-title-line"));
+      lines.push(lineModel(entry.name + ", " + normalizedType, "map-content-title-line", scoreTooltip, titleLink));
     } else if (entry.itemCount > 1) {
       lines.push(lineModel(interpolate(
         t("map_content_poi_unnamed_many", "__count__ unnamed __type__"),
         { count: entry.itemCount, type: normalizedType }
-      ), "map-content-title-line"));
+      ), "map-content-title-line", scoreTooltip, titleLink));
     } else {
       lines.push(lineModel(interpolate(
         t("map_content_poi_unnamed", "Unnamed __type__"),
         { type: normalizedType }
-      ), "map-content-title-line"));
+      ), "map-content-title-line", scoreTooltip, titleLink));
     }
     if (location) {
       lines.push(lineModel(capitalizeFirst(location), "map-content-location"));
@@ -714,6 +810,15 @@
     }
   }
 
+  function appendLineParts(target, parts) {
+    parts.forEach(function(part){
+      if (!part || part.text === undefined || part.text === null || part.text === "") {
+        return;
+      }
+      target.append($("<span>").text(String(part.text)));
+    });
+  }
+
   function renderLineFromModel(listItem, lineModel) {
     if (!lineModel || !Array.isArray(lineModel.parts) || !lineModel.parts.length) {
       return;
@@ -723,12 +828,27 @@
     if (lineModel.className) {
       line.addClass(lineModel.className);
     }
-    lineModel.parts.forEach(function(part){
-      if (!part || part.text === undefined || part.text === null || part.text === "") {
-        return;
-      }
-      line.append($("<span>").text(String(part.text)));
-    });
+    if (lineModel.title) {
+      line.attr("title", lineModel.title);
+    }
+    const titleLink = lineModel.className === "map-content-title-line"
+      ? normalizedExternalLink(lineModel.link)
+      : null;
+    if (titleLink) {
+      const anchor = $("<a>")
+        .addClass("map-content-title-link")
+        .attr("href", titleLink.url)
+        .attr("target", "_blank")
+        .attr("rel", "noopener noreferrer");
+      appendLineParts(anchor, lineModel.parts);
+      anchor.append($("<span>").addClass("map-content-external-indicator").attr("aria-hidden", "true").text("↗"));
+      anchor.append($("<span>").addClass("visuallyhidden").text(
+        " " + t("map_content_external_link_aria", "External link, opens in a new tab")
+      ));
+      line.append(anchor);
+    } else {
+      appendLineParts(line, lineModel.parts);
+    }
     if (!line.text()) {
       return;
     }

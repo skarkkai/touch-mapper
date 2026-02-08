@@ -66,6 +66,7 @@
     "language": "Kieli",
     "help": "Ohje",
     "open_help_aria": "Avaa ohje uudessa välilehdessä",
+    "map_content_external_link_aria": "Ulkoinen linkki, avautuu uudessa välilehdessä",
     "breadcrumb_nav_title": "Sijaintisi",
     "breadcrumb_home": "Osoitehaku",
     "breadcrumb_area": "Asetukset",

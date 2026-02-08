@@ -66,6 +66,7 @@
     "language": "Language",
     "help": "Help",
     "open_help_aria": "Open help in a new tab",
+    "map_content_external_link_aria": "External link, opens in a new tab",
     "breadcrumb_nav_title": "Breadcrumb",
     "breadcrumb_home": "Address search",
     "breadcrumb_area": "Settings",

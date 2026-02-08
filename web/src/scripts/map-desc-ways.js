@@ -4,6 +4,14 @@
 (function(){
   'use strict';
 
+  const EXTERNAL_LINK_TYPE_PRIORITY = {
+    wikipedia: 0,
+    wikidata: 1,
+    commons: 2,
+    website: 3,
+    search: 4
+  };
+
   function fallbackTranslate(key, fallback) {
     return fallback !== undefined ? fallback : key;
   }
@@ -312,6 +320,10 @@
     });
 
     ways.sort(function(a, b){
+      const importanceDiff = wayImportanceScore(b.group) - wayImportanceScore(a.group);
+      if (importanceDiff !== 0) {
+        return importanceDiff;
+      }
       if (a.subclassOrder !== b.subclassOrder) {
         return a.subclassOrder - b.subclassOrder;
       }
@@ -322,6 +334,87 @@
       return wayTitle(a.group).localeCompare(wayTitle(b.group));
     });
     return ways;
+  }
+
+  function wayImportanceScore(group) {
+    const value = group ? group.importanceScore : null;
+    const resolved = value && typeof value === "object" ? value.final : value;
+    if (resolved === null || resolved === undefined || isNaN(resolved)) {
+      return 0;
+    }
+    const number = Number(resolved);
+    if (!isFinite(number)) {
+      return 0;
+    }
+    return number;
+  }
+
+  function importanceScoreTooltip(importanceScore) {
+    if (!importanceScore || typeof importanceScore !== "object" || Array.isArray(importanceScore)) {
+      return null;
+    }
+    const componentKeys = Object.keys(importanceScore).filter(function(key){
+      return key !== "final";
+    });
+    if (!componentKeys.length) {
+      return null;
+    }
+    const parts = ["final=" + String(importanceScore.final)];
+    componentKeys.forEach(function(key){
+      const valueText = JSON.stringify(importanceScore[key]);
+      if (valueText !== undefined) {
+        parts.push(key + "=" + valueText);
+      }
+    });
+    return "importanceScore: " + parts.join("; ");
+  }
+
+  function isSafeExternalUrl(url) {
+    return typeof url === "string" && /^https?:\/\/\S+$/i.test(url);
+  }
+
+  function normalizedExternalLink(link) {
+    if (!link || typeof link !== "object") {
+      return null;
+    }
+    if (!isSafeExternalUrl(link.url)) {
+      return null;
+    }
+    return {
+      type: typeof link.type === "string" ? link.type : "",
+      url: link.url,
+      label: typeof link.label === "string" ? link.label : ""
+    };
+  }
+
+  function externalLinkPriority(link) {
+    if (!link || !link.type || EXTERNAL_LINK_TYPE_PRIORITY[link.type] === undefined) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+    return EXTERNAL_LINK_TYPE_PRIORITY[link.type];
+  }
+
+  function bestGroupExternalLink(group) {
+    if (!group || !Array.isArray(group.ways)) {
+      return null;
+    }
+    let best = null;
+    let bestPriority = Number.MAX_SAFE_INTEGER;
+    group.ways.forEach(function(way){
+      if (!way || typeof way !== "object") {
+        return;
+      }
+      const candidate = normalizedExternalLink(way.externalLink);
+      if (!candidate) {
+        return;
+      }
+      const priority = externalLinkPriority(candidate);
+      if (!best || priority < bestPriority) {
+        best = candidate;
+        bestPriority = priority;
+      }
+    });
+    return best;
   }
 
   function wayLengthValue(group) {
@@ -928,7 +1021,7 @@
     });
   }
 
-  function addModelLine(item, parts, className) {
+  function addModelLine(item, parts, className, titleText, link) {
     if (!item || !Array.isArray(item.lines)) {
       return;
     }
@@ -938,7 +1031,9 @@
     }
     item.lines.push({
       className: className || null,
-      parts: lineParts
+      parts: lineParts,
+      title: titleText || null,
+      link: link || null
     });
   }
 
@@ -957,6 +1052,23 @@
     }
   }
 
+  function appendLineParts(target, parts) {
+    parts.forEach(function(part){
+      if (!part || part.text === undefined || part.text === null || part.text === "") {
+        return;
+      }
+      if (part.wrap === false) {
+        target.append(String(part.text));
+        return;
+      }
+      const span = $("<span>").text(String(part.text));
+      if (part.className) {
+        span.addClass(part.className);
+      }
+      target.append(span);
+    });
+  }
+
   function renderLineFromModel(listItem, lineModel) {
     if (!lineModel || !Array.isArray(lineModel.parts) || !lineModel.parts.length) {
       return;
@@ -966,20 +1078,27 @@
     if (lineModel.className) {
       line.addClass(lineModel.className);
     }
-    lineModel.parts.forEach(function(part){
-      if (!part || part.text === undefined || part.text === null || part.text === "") {
-        return;
-      }
-      if (part.wrap === false) {
-        line.append(String(part.text));
-        return;
-      }
-      const span = $("<span>").text(String(part.text));
-      if (part.className) {
-        span.addClass(part.className);
-      }
-      line.append(span);
-    });
+    if (lineModel.title) {
+      line.attr("title", lineModel.title);
+    }
+    const titleLink = lineModel.className === "map-content-title-line"
+      ? normalizedExternalLink(lineModel.link)
+      : null;
+    if (titleLink) {
+      const anchor = $("<a>")
+        .addClass("map-content-title-link")
+        .attr("href", titleLink.url)
+        .attr("target", "_blank")
+        .attr("rel", "noopener noreferrer");
+      appendLineParts(anchor, lineModel.parts);
+      anchor.append($("<span>").addClass("map-content-external-indicator").attr("aria-hidden", "true").text("↗"));
+      anchor.append($("<span>").addClass("visuallyhidden").text(
+        " " + t("map_content_external_link_aria", "External link, opens in a new tab")
+      ));
+      line.append(anchor);
+    } else {
+      appendLineParts(line, lineModel.parts);
+    }
     if (!line.text()) {
       return;
     }
@@ -1017,6 +1136,8 @@
     const typeText = entry.subclassType || null;
     const nameText = wayName(group);
     const lengthText = formatLength(group);
+    const scoreTooltip = importanceScoreTooltip(group.importanceScore);
+    const titleLink = bestGroupExternalLink(group);
     let lineText = "";
 
     if (!nameText) {
@@ -1032,7 +1153,7 @@
 
     addModelLine(item, [
       { text: capitalizeFirst(lineText), className: "map-content-title" }
-    ], "map-content-title-line");
+    ], "map-content-title-line", scoreTooltip, titleLink);
 
     const routeSummary = routeText(group);
     if (routeSummary) {
