@@ -414,20 +414,11 @@
     if (!importanceScore || typeof importanceScore !== "object" || Array.isArray(importanceScore)) {
       return null;
     }
-    const componentKeys = Object.keys(importanceScore).filter(function(key){
-      return key !== "final";
-    });
-    if (!componentKeys.length) {
+    try {
+      return JSON.stringify(importanceScore, null, 2);
+    } catch (_error) {
       return null;
     }
-    const parts = ["final=" + String(importanceScore.final)];
-    componentKeys.forEach(function(key){
-      const valueText = JSON.stringify(importanceScore[key]);
-      if (valueText !== undefined) {
-        parts.push(key + "=" + valueText);
-      }
-    });
-    return "importanceScore: " + parts.join("; ");
   }
 
   function collectPoiEntries(mapContent) {
@@ -828,26 +819,29 @@
     if (lineModel.className) {
       line.addClass(lineModel.className);
     }
-    if (lineModel.title) {
-      line.attr("title", lineModel.title);
-    }
     const titleLink = lineModel.className === "map-content-title-line"
       ? normalizedExternalLink(lineModel.link)
       : null;
+    appendLineParts(line, lineModel.parts);
     if (titleLink) {
       const anchor = $("<a>")
-        .addClass("map-content-title-link")
+        .addClass("map-content-inline-external-link")
         .attr("href", titleLink.url)
         .attr("target", "_blank")
         .attr("rel", "noopener noreferrer");
-      appendLineParts(anchor, lineModel.parts);
+      anchor.append($("<span>").text(titleLink.label || "Website"));
       anchor.append($("<span>").addClass("map-content-external-indicator").attr("aria-hidden", "true").text("↗"));
       anchor.append($("<span>").addClass("visuallyhidden").text(
         " " + t("map_content_external_link_aria", "External link, opens in a new tab")
       ));
+      line.append($("<span>").addClass("map-content-external-link-sep").text(" "));
       line.append(anchor);
-    } else {
-      appendLineParts(line, lineModel.parts);
+    }
+    if (lineModel.title) {
+      line.addClass("map-content-has-importance-popup");
+      const popup = $("<span>").addClass("map-content-importance-popup");
+      popup.append($("<pre>").text(lineModel.title));
+      line.append(popup);
     }
     if (!line.text()) {
       return;

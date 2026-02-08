@@ -7,7 +7,7 @@ import re
 import sys
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Set, Tuple, TYPE_CHECKING
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 if TYPE_CHECKING:
@@ -61,15 +61,15 @@ LINEAR_SUBCLASS_BASE_IMPORTANCE = {
     "A_other_ways": 20.0,
 }
 IMPORTANCE_SCORE_INCLUDE_COMPONENTS = True
-IMPORTANCE_TAG_MULTIPLIERS = (
-    ("wikidata", 1.9),
-    ("wikipedia", 1.8),
-    ("wikimedia_commons", 1.6),
-    ("website", 1.5),
-    ("operator", 1.3),
-    ("brand", 1.3),
-    ("extraNames", 1.2),
+IMPORTANCE_TAG_FAMILY_MULTIPLIERS = (
+    ("wikipedia", 1.35),
+    ("wikidata", 1.25),
+    ("wikimedia_commons", 1.15),
+    ("website", 1.15),
+    ("operator", 1.10),
+    ("extraNames", 1.05),
 )
+IMPORTANCE_TAG_MULTIPLIER_CAP = 2.5
 WIKIDATA_QID_RE = re.compile(r"^Q[1-9][0-9]*$")
 WIKIPEDIA_LANG_RE = re.compile(r"^[a-z0-9-]+$", re.IGNORECASE)
 
@@ -270,31 +270,57 @@ def _boundary_reference_length(boundary: Optional[Boundary]) -> Optional[float]:
     return max(width, height)
 
 
-def _importance_factor_for_tag_map(tag_map: Optional[Dict[str, Any]]) -> Tuple[Optional[str], float]:
+def _importance_families_for_tag_map(tag_map: Optional[Dict[str, Any]]) -> List[str]:
     if not isinstance(tag_map, dict):
-        return None, 1.0
-    for key, factor in IMPORTANCE_TAG_MULTIPLIERS:
-        if key in tag_map:
-            return key, factor
-    return None, 1.0
+        return []
+
+    families = []  # type: List[str]
+    if "wikipedia" in tag_map:
+        families.append("wikipedia")
+    if "wikidata" in tag_map:
+        families.append("wikidata")
+    if "wikimedia_commons" in tag_map:
+        families.append("wikimedia_commons")
+    if "website" in tag_map or "contact:website" in tag_map or "url" in tag_map:
+        families.append("website")
+    if "operator" in tag_map or "brand" in tag_map or "brand:wikidata" in tag_map:
+        families.append("operator")
+    if "extraNames" in tag_map:
+        families.append("extraNames")
+    return families
 
 
-def _group_importance_factor(group: Dict[str, Any]) -> Tuple[Optional[str], float]:
+def _group_importance_factor(group: Dict[str, Any]) -> Tuple[float, Optional[OrderedDict]]:
     children = group.get("ways")
     if not isinstance(children, list):
         children = group.get("items")
     if not isinstance(children, list):
-        return None, 1.0
-    best_key = None  # type: Optional[str]
-    best_factor = 1.0
+        return 1.0, None
+
+    active_families = set()  # type: Set[str]
     for child in children:
         if not isinstance(child, dict):
             continue
-        tag_key, factor = _importance_factor_for_tag_map(child.get("importanceTags"))
-        if factor > best_factor:
-            best_key = tag_key
-            best_factor = factor
-    return best_key, best_factor
+        for family in _importance_families_for_tag_map(child.get("importanceTags")):
+            active_families.add(family)
+
+    if not active_families:
+        return 1.0, None
+
+    raw_product = 1.0
+    details = OrderedDict()
+    for family, family_factor in IMPORTANCE_TAG_FAMILY_MULTIPLIERS:
+        if family not in active_families:
+            continue
+        raw_product *= family_factor
+        details[family] = _round_component(family_factor, 3)
+
+    applied_multiplier = min(raw_product, IMPORTANCE_TAG_MULTIPLIER_CAP)
+    details["rawProduct"] = _round_component(raw_product, 3)
+    details["appliedMultiplier"] = _round_component(applied_multiplier, 3)
+    if raw_product > IMPORTANCE_TAG_MULTIPLIER_CAP:
+        details["cappedAt"] = _round_component(IMPORTANCE_TAG_MULTIPLIER_CAP, 3)
+    return applied_multiplier, details
 
 
 def _linear_length_multiplier(visible_length: float, reference_length: Optional[float]) -> float:
@@ -383,7 +409,7 @@ def _apply_linear_importance_scores(main_entry: Dict[str, Any],
                 continue
             visible_length = max(0.0, _float_or_zero(group.get("totalLength")))
             length_multiplier = _linear_length_multiplier(visible_length, reference_length)
-            tag_key, tag_factor = _group_importance_factor(group)
+            tag_factor, tag_details = _group_importance_factor(group)
             final_score = _js_round(base_score * length_multiplier * tag_factor)
 
             components = OrderedDict()
@@ -393,10 +419,8 @@ def _apply_linear_importance_scores(main_entry: Dict[str, Any],
             components["length"] = OrderedDict([
                 (str(_js_round(visible_length)), _round_component(length_multiplier, 3))
             ])
-            if tag_key is not None and tag_factor > 1.0:
-                components["importanceTags"] = OrderedDict([
-                    (tag_key, _round_component(tag_factor, 3))
-                ])
+            if tag_details is not None and tag_factor > 1.0:
+                components["importanceTags"] = tag_details
 
             group["importanceScore"] = _build_importance_score(final_score, components)
 
@@ -440,7 +464,7 @@ def _apply_building_importance_scores(main_entry: Dict[str, Any]) -> None:
         base = 100.0 if is_named else 30.0
         max_size = max_named if is_named else max_unnamed
         relative_size = (size / max_size) if max_size > 0 else 1.0
-        tag_key, tag_factor = _group_importance_factor(group)
+        tag_factor, tag_details = _group_importance_factor(group)
         final_score = _js_round(base * relative_size * tag_factor)
 
         components = OrderedDict()
@@ -450,10 +474,8 @@ def _apply_building_importance_scores(main_entry: Dict[str, Any]) -> None:
         components["size"] = OrderedDict([
             (_compact_number_key(size, 3), _round_component(relative_size, 3))
         ])
-        if tag_key is not None and tag_factor > 1.0:
-            components["importanceTags"] = OrderedDict([
-                (tag_key, _round_component(tag_factor, 3))
-            ])
+        if tag_details is not None and tag_factor > 1.0:
+            components["importanceTags"] = tag_details
 
         group["importanceScore"] = _build_importance_score(final_score, components)
 
@@ -474,7 +496,7 @@ def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
         for group in groups:
             if not isinstance(group, dict):
                 continue
-            tag_key, tag_factor = _group_importance_factor(group)
+            tag_factor, tag_details = _group_importance_factor(group)
             final_score = _js_round(100.0 * tag_factor)
 
             components = OrderedDict()
@@ -482,10 +504,8 @@ def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
                 components["category"] = OrderedDict([
                     (sub_key, 100)
                 ])
-            if tag_key is not None and tag_factor > 1.0:
-                components["importanceTags"] = OrderedDict([
-                    (tag_key, _round_component(tag_factor, 3))
-                ])
+            if tag_details is not None and tag_factor > 1.0:
+                components["importanceTags"] = tag_details
 
             group["importanceScore"] = _build_importance_score(final_score, components)
 
@@ -580,6 +600,11 @@ def _extract_extra_name_tags(tags: Optional[Dict[str, Any]]) -> Optional[Ordered
         if value is None:
             continue
         extra_names[key] = value
+    for key in ("loc_name", "short_name"):
+        value = _tag_text(tags, key)
+        if value is None:
+            continue
+        extra_names[key] = value
     return extra_names if extra_names else None
 
 
@@ -599,10 +624,12 @@ def _extract_importance_tags(item: Dict[str, Any]) -> Optional[OrderedDict]:
     website = _tag_text(tags, "website")
     if website is None:
         website = _tag_text(tags, "contact:website")
+    if website is None:
+        website = _tag_text(tags, "url")
     if website is not None:
         importance_tags["website"] = website
 
-    for key in ("operator", "brand", "historic", "heritage"):
+    for key in ("operator", "brand", "brand:wikidata", "historic", "heritage"):
         value = _tag_text(tags, key)
         if value is not None:
             importance_tags[key] = value

@@ -65,18 +65,46 @@
 .map-content .map-content-title {
   font-weight: inherit;
 }
-.map-content .map-content-title-link {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.map-content .map-content-title-link:hover,
-.map-content .map-content-title-link:focus {
-  text-decoration-thickness: 2px;
+.map-content .map-content-inline-external-link {
+  color: #1f4e79;
+  text-decoration: none;
+  font-weight: normal;
 }
 .map-content .map-content-external-indicator {
   margin-left: 0.25em;
   font-weight: normal;
+}
+.map-content .map-content-inline-external-link:hover,
+.map-content .map-content-inline-external-link:focus {
+  color: #12314f;
+  text-decoration: none;
+}
+.map-content .map-content-has-importance-popup {
+  position: relative;
+}
+.map-content .map-content-importance-popup {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  width: 640px;
+  max-width: 92vw;
+  background: #ffffff;
+  border: 1px solid #9aa4af;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+}
+.map-content .map-content-importance-popup pre {
+  margin: 0;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: pre-wrap;
+}
+.map-content .map-content-has-importance-popup:hover .map-content-importance-popup {
+  display: block;
 }
 .map-content-section-toggle {
   margin: 0 0 1.5em 1em;
