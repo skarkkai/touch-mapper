@@ -931,7 +931,6 @@
       }
 
       if (shape.type && shape.type !== "regular") {
-        const aspectText = formatAspect(aspectRatio);
         let descriptor = null;
         if (aspectRatio >= 3.5) {
           descriptor = t("map_content_shape_long_thin", "Very thin");
@@ -942,18 +941,7 @@
           if (shapeLineParts.length) {
             shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
           }
-          if (aspectText) {
-            shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
-            shapeLineParts.push({ text: " (", className: "map-content-shape-paren", wrap: false });
-            shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
-              t("map_content_aspect_label", "aspect __ratio__"),
-              { ratio: aspectText },
-              "map-content-shape-aspect"
-            ));
-            shapeLineParts.push({ text: ")", className: "map-content-shape-paren", wrap: false });
-          } else {
-            shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
-          }
+          shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
         }
         const shapeType = shapeTypeLabel(shape.type);
         if (shapeType) {
