@@ -90,6 +90,17 @@
       includeSparseNote: false
     },
   ];
+  const SECTION_HEIGHT_DEFAULT_PROFILES = {
+    roads: ["raised:0.82"],
+    paths: ["raised:1.5"],
+    railways: ["raised:0.81"],
+    waterways: ["waved_surface"],
+    otherLinear: ["varying"],
+    buildings: ["raised:2.9"],
+    poiFamiliar: ["text_only"],
+    poiDaily: ["text_only"],
+    poiTransport: ["text_only"]
+  };
 
   function translations() {
     return window.TM && window.TM.translations ? window.TM.translations : {};
@@ -146,6 +157,169 @@
       tr("map_content_show_more_features_many", "Show __count__ more features"),
       { count: hiddenCount }
     );
+  }
+
+  function formatHeightMillimeters(mm) {
+    const number = Number(mm);
+    if (!isFinite(number)) {
+      return null;
+    }
+    const rounded = Math.round(number * 10) / 10;
+    if (Math.abs(rounded - Math.round(rounded)) < 1e-9) {
+      return String(Math.round(rounded));
+    }
+    return String(rounded);
+  }
+
+  function sectionForLinearSubClassKey(subClassKey) {
+    if (!subClassKey || typeof subClassKey !== "string") {
+      return null;
+    }
+    if (subClassKey.indexOf("A1_") === 0) {
+      return "roads";
+    }
+    if (subClassKey.indexOf("A2_") === 0) {
+      return "paths";
+    }
+    if (subClassKey.indexOf("A3_") === 0) {
+      return "railways";
+    }
+    if (subClassKey.indexOf("A4_") === 0) {
+      return "waterways";
+    }
+    if (subClassKey.indexOf("A5_") === 0) {
+      return null;
+    }
+    if (subClassKey.indexOf("A") === 0) {
+      return "otherLinear";
+    }
+    return null;
+  }
+
+  function profileForLinearSubClassKey(subClassKey) {
+    const sectionKey = sectionForLinearSubClassKey(subClassKey);
+    if (sectionKey === "roads") {
+      return "raised:0.82";
+    }
+    if (sectionKey === "paths") {
+      return "raised:1.5";
+    }
+    if (sectionKey === "railways") {
+      return "raised:0.81";
+    }
+    if (sectionKey === "waterways") {
+      return "waved_surface";
+    }
+    if (sectionKey === "otherLinear") {
+      return "varying";
+    }
+    return null;
+  }
+
+  function collectSectionHeightProfiles(mapContent) {
+    const profilesBySection = {};
+    Object.keys(SECTION_HEIGHT_DEFAULT_PROFILES).forEach(function(sectionKey){
+      profilesBySection[sectionKey] = new Set();
+    });
+    const payload = mapContent && typeof mapContent === "object" ? mapContent : {};
+    const classA = payload.A;
+    const linearSubclasses = classA && Array.isArray(classA.subclasses) ? classA.subclasses : [];
+    linearSubclasses.forEach(function(subclass){
+      if (!subclass || subclass.kind !== "linear") {
+        return;
+      }
+      const groups = Array.isArray(subclass.groups) ? subclass.groups : [];
+      if (!groups.length) {
+        return;
+      }
+      const sectionKey = sectionForLinearSubClassKey(subclass.key);
+      if (!sectionKey || !profilesBySection[sectionKey]) {
+        return;
+      }
+      const profile = profileForLinearSubClassKey(subclass.key);
+      if (!profile) {
+        return;
+      }
+      profilesBySection[sectionKey].add(profile);
+    });
+
+    const classC = payload.C;
+    const buildingSubclasses = classC && Array.isArray(classC.subclasses) ? classC.subclasses : [];
+    buildingSubclasses.forEach(function(subclass){
+      if (!subclass || subclass.kind !== "building") {
+        return;
+      }
+      const groups = Array.isArray(subclass.groups) ? subclass.groups : [];
+      if (!groups.length) {
+        return;
+      }
+      profilesBySection.buildings.add("raised:2.9");
+    });
+
+    return profilesBySection;
+  }
+
+  function sectionHeightNoteForProfiles(profiles, helpers) {
+    const profileSet = profiles instanceof Set ? profiles : new Set();
+    if (!profileSet.size) {
+      return translateWithHelpers(
+        helpers,
+        "map_content_height_note_varying",
+        "Raised by varying amounts"
+      );
+    }
+    if (profileSet.has("varying") || profileSet.size > 1) {
+      return translateWithHelpers(
+        helpers,
+        "map_content_height_note_varying",
+        "Raised by varying amounts"
+      );
+    }
+    if (profileSet.has("waved_surface")) {
+      return translateWithHelpers(
+        helpers,
+        "map_content_height_note_waved_surface",
+        "Waved surface"
+      );
+    }
+    if (profileSet.has("text_only")) {
+      return translateWithHelpers(
+        helpers,
+        "map_content_height_note_text_only",
+        "Textual information only"
+      );
+    }
+    const onlyProfile = Array.from(profileSet)[0];
+    if (onlyProfile && onlyProfile.indexOf("raised:") === 0) {
+      const millimeters = formatHeightMillimeters(onlyProfile.slice("raised:".length));
+      if (millimeters !== null) {
+        return interpolate(
+          translateWithHelpers(
+            helpers,
+            "map_content_height_note_raised_mm",
+            "Raised __millimeters__ mm"
+          ),
+          { millimeters: millimeters }
+        );
+      }
+    }
+    return translateWithHelpers(
+      helpers,
+      "map_content_height_note_varying",
+      "Raised by varying amounts"
+    );
+  }
+
+  function buildSectionHeightNotes(mapContent, helpers) {
+    const discoveredProfiles = collectSectionHeightProfiles(mapContent);
+    const notes = {};
+    Object.keys(SECTION_HEIGHT_DEFAULT_PROFILES).forEach(function(sectionKey){
+      const defaultProfiles = new Set(SECTION_HEIGHT_DEFAULT_PROFILES[sectionKey] || []);
+      const discovered = discoveredProfiles[sectionKey];
+      const profiles = discovered && discovered.size ? discovered : defaultProfiles;
+      notes[sectionKey] = sectionHeightNoteForProfiles(profiles, helpers);
+    });
+    return notes;
   }
 
   function parseMapContent(payload) {
@@ -374,6 +548,7 @@
       }),
       translateWithHelpers(helpers, "map_content_show_less_buildings", "Show fewer buildings")
     );
+    const sectionHeightNotes = buildSectionHeightNotes(payload, helpers);
     return {
       roads: linearSections.roads,
       paths: linearSections.paths,
@@ -385,6 +560,7 @@
       poiTransport: poiSections.poiTransport,
       buildings: buildingsResult.section,
       ui: {
+        sectionHeightNotes: sectionHeightNotes,
         linearToggles: linearToggles,
         buildingsToggle: buildingsResult.toggle,
         poiToggles: poiToggles
@@ -417,6 +593,17 @@
     }
     showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
     return 0;
+  }
+
+  function renderSectionHeightNote(row, noteText) {
+    if (!row || !row.length) {
+      return;
+    }
+    const noteElem = row.find(".map-content-section-height");
+    if (!noteElem.length) {
+      return;
+    }
+    noteElem.text(noteText || "");
   }
 
   function applyToggleFromModel(listElem, rowSelector, toggleClass, toggleModel, collapsedFallback, expandedFallback) {
@@ -492,9 +679,13 @@
     LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
       const row = container.find(sectionConfig.rowSelector);
       const listElem = container.find(sectionConfig.listSelector);
+      const sectionHeightNotes = model && model.ui && model.ui.sectionHeightNotes
+        ? model.ui.sectionHeightNotes
+        : null;
       if (!listElem.length) {
         return;
       }
+      renderSectionHeightNote(row, sectionHeightNotes ? sectionHeightNotes[sectionConfig.key] : null);
       const section = model ? model[sectionConfig.key] : null;
       const count = sectionCount(section);
       if (!sectionConfig.alwaysShow && count <= 0) {
@@ -523,9 +714,13 @@
     POI_SECTION_CONFIGS.forEach(function(sectionConfig){
       const row = container.find(sectionConfig.rowSelector);
       const listElem = container.find(sectionConfig.listSelector);
+      const sectionHeightNotes = model && model.ui && model.ui.sectionHeightNotes
+        ? model.ui.sectionHeightNotes
+        : null;
       if (!listElem.length) {
         return;
       }
+      renderSectionHeightNote(row, sectionHeightNotes ? sectionHeightNotes[sectionConfig.key] : null);
       const section = model ? model[sectionConfig.key] : null;
       const count = sectionCount(section);
       if (!sectionConfig.alwaysShow && count <= 0) {
@@ -550,6 +745,11 @@
     });
 
     const buildingsRenderer = getRenderer("mapDescAreas");
+    const buildingRow = container.find(".map-content-buildings-row");
+    const sectionHeightNotes = model && model.ui && model.ui.sectionHeightNotes
+      ? model.ui.sectionHeightNotes
+      : null;
+    renderSectionHeightNote(buildingRow, sectionHeightNotes ? sectionHeightNotes.buildings : null);
     counts.buildings = buildingsListElem.length
       ? renderSectionFromModel(buildingsListElem, model ? model.buildings : null, buildingsRenderer)
       : 0;
@@ -589,6 +789,7 @@
         return;
       }
       listElem.empty();
+      renderSectionHeightNote(row, null);
       if (!sectionConfig.alwaysShow) {
         row.hide();
       } else {
@@ -602,6 +803,7 @@
         return;
       }
       listElem.empty();
+      renderSectionHeightNote(row, null);
       if (!sectionConfig.alwaysShow) {
         row.hide();
       } else {
@@ -609,6 +811,7 @@
       }
     });
     buildingsListElem.empty();
+    renderSectionHeightNote(container.find(".map-content-buildings-row"), null);
 
     const requestId = info ? info.requestId : null;
     const request = loadMapContent(requestId);

@@ -718,7 +718,8 @@
     if (!lineModel || !Array.isArray(lineModel.parts) || !lineModel.parts.length) {
       return;
     }
-    const line = $("<div>");
+    const tagName = lineModel.className === "map-content-title-line" ? "h5" : "div";
+    const line = $("<" + tagName + ">");
     if (lineModel.className) {
       line.addClass(lineModel.className);
     }

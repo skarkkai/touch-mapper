@@ -21,6 +21,17 @@ The schema is produced by:
   "otherLinear": "SectionModel",
   "buildings": "SectionModel",
   "ui": {
+    "sectionHeightNotes": {
+      "roads": "string",
+      "paths": "string",
+      "railways": "string",
+      "waterways": "string",
+      "otherLinear": "string",
+      "buildings": "string",
+      "poiFamiliar": "string",
+      "poiDaily": "string",
+      "poiTransport": "string"
+    },
     "buildingsToggle": {
       "hiddenCount": 0,
       "collapsedLabel": "string",
@@ -35,6 +46,10 @@ The schema is produced by:
 
 `ui.buildingsToggle` is `null` when the section does not need a show-more
 toggle.
+
+`ui.sectionHeightNotes` contains one localized note string per map-content
+section heading (for example raised mm, waved surface, or varying raised
+amounts).
 
 ## `SectionModel`
 

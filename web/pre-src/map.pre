@@ -147,6 +147,10 @@ window.TM = { translations: {
   "map_content_show_more_features_one": "{{ map_content_show_more_features_one }}",
   "map_content_show_more_features_many": "{{ map_content_show_more_features_many }}",
   "map_content_show_less_features": "{{ map_content_show_less_features }}",
+  "map_content_height_note_raised_mm": "{{ map_content_height_note_raised_mm }}",
+  "map_content_height_note_varying": "{{ map_content_height_note_varying }}",
+  "map_content_height_note_waved_surface": "{{ map_content_height_note_waved_surface }}",
+  "map_content_height_note_text_only": "{{ map_content_height_note_text_only }}",
   "map_content_show_more_pois_one": "{{ map_content_show_more_pois_one }}",
   "map_content_show_more_pois_many": "{{ map_content_show_more_pois_many }}",
   "map_content_show_less_pois": "{{ map_content_show_less_pois }}",
@@ -410,38 +414,47 @@ window.TM = { translations: {
     <div class="map-content">
       <div class="row map-content-roads-row">
         <h4>{{ map_content_subheading_roads }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-roads"></ul>
       </div>
       <div class="row map-content-paths-row">
         <h4>{{ map_content_subheading_paths }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-paths"></ul>
       </div>
       <div class="row map-content-railways-row">
         <h4>{{ map_content_subheading_railways }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-railways"></ul>
       </div>
       <div class="row map-content-waterways-row">
         <h4>{{ map_content_subheading_waterways }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-waterways"></ul>
       </div>
       <div class="row map-content-other-linear-row">
         <h4>{{ map_content_subheading_other_linear }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-other-linear"></ul>
       </div>
       <div class="row map-content-buildings-row">
         <h4>{{ map_content_subheading_buildings }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-buildings"></ul>
       </div>
       <div class="row map-content-poi-familiar-row">
         <h4>{{ map_content_subheading_poi_familiar }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-poi-familiar"></ul>
       </div>
       <div class="row map-content-poi-daily-row">
         <h4>{{ map_content_subheading_poi_daily }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-poi-daily"></ul>
       </div>
       <div class="row map-content-poi-transport-row">
         <h4>{{ map_content_subheading_poi_transport }}</h4>
+        <div class="map-content-section-height"></div>
         <ul class="map-content-poi-transport"></ul>
       </div>
     </div>

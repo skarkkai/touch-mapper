@@ -64,6 +64,14 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - See `README.md` for full local setup steps (dependencies, AWS CLI, and web dev workflow).
 - `init.sh` installs system dependencies and builds `OSM2World` (use it for full setup).
 
+## Doc index
+- `doc/creating-new-server.doc`: legacy server provisioning notes for creating a fresh EC2 instance.
+- `doc/deployed-map-inspection.md`: workflow for inspecting deployed map artifacts via persistent map ID.
+- `doc/map-description-introspection.md`: canonical local workflow for generating and inspecting map-description outputs.
+- `doc/map-description-model-schema.md`: schema reference for development-time map description JSON models.
+- `doc/ui-visual-baseline.md`: visual/style baseline for the three main user-facing pages.
+- `doc/way-area-extrusion-tiers.md`: mapping of way/area/building features to tactile extrusion tiers (`low`/`high`/`building`).
+
 ## Map-content verification suite
 - When changing converter map-description logic or related UI description-model code, use the category-based suite in `test/map-content/`.
 - Canonical workflow and CLI details live in `doc/map-description-introspection.md`.
