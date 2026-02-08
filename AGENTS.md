@@ -37,6 +37,7 @@ This file captures project-specific conventions and "gotchas" that help especial
 - Translation spreadsheets in `translation/` exist for human translators but are not the primary edit path.
 - `window.TM.translations` is a small, template-injected set of strings for JS; it is not a full runtime locale dictionary. If JS needs strings, expose them via templates (e.g., `window.TM` or `data-*` attributes).
 - There’s no client‑side locale dictionary; JS should receive text from templates (e.g., rendered HTML or data-* attributes), not look up keys at runtime.
+- For map-description/POI text changes, validation must be output-based, not key-based: confirm rendered strings in `simple`, `average`, and especially `complex` fixtures for all locales (`en`, `de`, `fi`, `nl`), because missing template injection or fallback behavior can hide gaps.
 
 ## Coding guidelines
 
@@ -80,6 +81,10 @@ Pay a lot of attention to accessibility of UI and the content presented on it, b
 - Prefer `simple`/`average` for routine checks. Use `complex` mainly for performance profiling.
 - Current UI grouping for linear features is sectioned as roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
 - When map content UI strings may have changed, inspect simulated.txt for each language to see if the new description phrases read as natural language.
+- Required for POI/type-label/i18n changes:
+  - Run `inspect-map-description` against `test/map-content/out/complex/pipeline/map-content.json` for `en`, `de`, `fi`, and `nl`.
+  - Render text simulation from the resulting `mapDescriptionModel` and review POI lines in each locale.
+  - Treat any leftover English suffixes in non-English outputs as a validation failure unless the borrowed word is intentionally identical in that locale.
 
 ## Deployed map inspection
 - For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.
