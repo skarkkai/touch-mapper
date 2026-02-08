@@ -443,42 +443,46 @@
     return num.toFixed(1);
   }
 
-  function formatDegrees(value) {
-    if (value === null || value === undefined || isNaN(value)) {
-      return null;
-    }
-    const num = Number(value);
-    if (!isFinite(num)) {
-      return null;
-    }
-    if (Math.abs(num - Math.round(num)) < 0.01) {
-      return Math.round(num).toFixed(0) + " " + t("map_content_degrees_abbrev", "deg");
-    }
-    return num.toFixed(1) + " " + t("map_content_degrees_abbrev", "deg");
-  }
-
-  function orientationAbbrev(label) {
+  function orientationLabel(label) {
     if (!label || typeof label !== 'string') {
       return null;
     }
-    const map = {
-      "east-west": "E-W",
-      "east-northeast to west-southwest": "ENE-WSW",
-      "northeast-southwest": "NE-SW",
-      "north-northeast to south-southwest": "NNE-SSW"
-    };
-    return map[label] || label;
+    if (label === "east-west") {
+      return t("map_content_orientation_label_east_west", "east-west");
+    }
+    if (label === "north-south") {
+      return t("map_content_orientation_label_north_south", "north-south");
+    }
+    if (label === "northeast-southwest") {
+      return t("map_content_orientation_label_northeast_southwest", "north-east to south-west");
+    }
+    if (label === "east-northeast to west-southwest") {
+      return t(
+        "map_content_orientation_label_east_northeast_to_west_southwest",
+        "east-north-east to west-south-west"
+      );
+    }
+    if (label === "north-northeast to south-southwest") {
+      return t(
+        "map_content_orientation_label_north_northeast_to_south_southwest",
+        "north-north-east to south-south-west"
+      );
+    }
+    return label;
   }
 
   function shapeTypeLabel(shapeType) {
     if (!shapeType || typeof shapeType !== 'string') {
       return null;
     }
+    if (shapeType === "regular") {
+      return null;
+    }
     if (shapeType === "complex") {
       return t("map_content_shape_irregular", "Irregular shape");
     }
-    if (shapeType === "thin" || shapeType === "regular") {
-      return null;
+    if (shapeType === "thin") {
+      return t("map_content_shape_elongated", "Thin");
     }
     return interpolate(
       t("map_content_shape_generic", "__shape__ shape"),
@@ -914,58 +918,57 @@
       }
     }
     const shape = visibleGeometry && visibleGeometry.shape ? visibleGeometry.shape : null;
-    if (shape && shape.type && shape.type !== "regular") {
-      const shapeLineParts = [];
-      const aspectRatio = shape.aspectRatio;
-      const aspectText = formatAspect(aspectRatio);
-      let descriptor = null;
-      if (aspectRatio >= 3.5) {
-        descriptor = t("map_content_shape_long_thin", "Very thin");
-      } else if (aspectRatio >= 2.5) {
-        descriptor = t("map_content_shape_elongated", "Thin");
+    const shapeLineParts = [];
+    if (shape) {
+      const aspectRatio = Number(shape.aspectRatio);
+      const localizedOrientation = orientationLabel(shape.orientationLabel);
+      if (localizedOrientation && isFinite(aspectRatio) && aspectRatio > 2.0) {
+        shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
+          t("map_content_orientation", "Orientation __label__"),
+          { label: localizedOrientation },
+          "map-content-shape-orientation"
+        ));
       }
-      if (descriptor) {
-        if (aspectText) {
-          shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
-          shapeLineParts.push({ text: " (", className: "map-content-shape-paren", wrap: false });
-          shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
-            t("map_content_aspect_label", "aspect __ratio__"),
-            { ratio: aspectText },
-            "map-content-shape-aspect"
-          ));
-          shapeLineParts.push({ text: ")", className: "map-content-shape-paren", wrap: false });
-        } else {
-          shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
+
+      if (shape.type && shape.type !== "regular") {
+        const aspectText = formatAspect(aspectRatio);
+        let descriptor = null;
+        if (aspectRatio >= 3.5) {
+          descriptor = t("map_content_shape_long_thin", "Very thin");
+        } else if (aspectRatio >= 2.5) {
+          descriptor = t("map_content_shape_elongated", "Thin");
         }
-      }
-      if (aspectRatio > 2 && shape.orientationLabel) {
-        const orientationLabel = orientationAbbrev(shape.orientationLabel);
-        const degrees = formatDegrees(shape.orientationDeg);
-        if (orientationLabel && degrees) {
+        if (descriptor) {
           if (shapeLineParts.length) {
             shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
           }
-          shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
-            t("map_content_orientation", "orientation __label__ (__deg__)"),
-            { label: orientationLabel, deg: degrees },
-            "map-content-shape-orientation"
-          ));
+          if (aspectText) {
+            shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
+            shapeLineParts.push({ text: " (", className: "map-content-shape-paren", wrap: false });
+            shapeLineParts.push.apply(shapeLineParts, interpolatedParts(
+              t("map_content_aspect_label", "aspect __ratio__"),
+              { ratio: aspectText },
+              "map-content-shape-aspect"
+            ));
+            shapeLineParts.push({ text: ")", className: "map-content-shape-paren", wrap: false });
+          } else {
+            shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
+          }
         }
-      }
-      const shapeType = shapeTypeLabel(shape.type);
-      if (shapeType) {
-        if (shapeLineParts.length) {
-          shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
+        const shapeType = shapeTypeLabel(shape.type);
+        if (shapeType) {
+          if (shapeLineParts.length) {
+            shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
+          }
+          shapeLineParts.push({ text: shapeType, className: "map-content-shape-type" });
         }
-        shapeLineParts.push({ text: shapeType, className: "map-content-shape-type" });
-      }
-      if (shapeLineParts.length) {
-        addModelLine(item, shapeLineParts, "map-content-shape");
       }
     }
-
     if (partsLine.length) {
       addModelLine(item, partsLine, "map-content-parts");
+    }
+    if (shapeLineParts.length) {
+      addModelLine(item, shapeLineParts, "map-content-shape");
     }
 
     return item;

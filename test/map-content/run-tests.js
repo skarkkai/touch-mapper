@@ -61,6 +61,22 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + "\n", "utf8");
 }
 
+function prettyPrintJsonFiles(rootDir) {
+  listFilesRecursive(rootDir).forEach(function(fileInfo) {
+    if (!fileInfo.path.toLowerCase().endsWith(".json")) {
+      return;
+    }
+    const absPath = path.join(rootDir, fileInfo.path);
+    let parsed = null;
+    try {
+      parsed = JSON.parse(fs.readFileSync(absPath, "utf8"));
+    } catch (error) {
+      throw new Error("Could not parse JSON file for pretty-printing: " + absPath + " (" + error.message + ")");
+    }
+    fs.writeFileSync(absPath, JSON.stringify(parsed, null, 2) + "\n", "utf8");
+  });
+}
+
 function stageStart(testCategory, stageName) {
   const start = Date.now();
   process.stdout.write("[" + testCategory + "] START " + stageName + "\n");
@@ -325,6 +341,9 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
     const totalSeconds = (Date.now() - totalStart) / 1000;
     const timingsWithTotal = Object.assign({}, timings, { total: totalSeconds });
     writeJson(path.join(outDir, "timings.json"), timingsWithTotal);
+    await runStage(testCategory, "pretty-print-json-outputs", timings, async function() {
+      prettyPrintJsonFiles(outDir);
+    });
 
     return {
       category: testCategory,
