@@ -9,6 +9,42 @@ import json
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 
+def read_proc_status_kib(field_name):
+    try:
+        with open('/proc/self/status', 'r') as handle:
+            for line in handle:
+                if not line.startswith(field_name + ':'):
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    return None
+                return int(parts[1])
+    except Exception:
+        return None
+    return None
+
+
+def log_memory_checkpoint(label):
+    if not INSTRUMENTATION_ENABLED:
+        return
+    vm_rss_kib = read_proc_status_kib('VmRSS')
+    vm_hwm_kib = read_proc_status_kib('VmHWM')
+    if vm_rss_kib is None and vm_hwm_kib is None:
+        print('MEMORY:osm-to-tactile:{label} unavailable'.format(label=label))
+        return
+    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
+    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
+    print(
+        'MEMORY:osm-to-tactile:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
+            label=label,
+            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
+            rss_mib=vm_rss_mib,
+            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
+            hwm_mib=vm_hwm_mib
+        )
+    )
+
+
 def parse_env_bool(name):
     raw = os.environ.get(name)
     if raw is None:
@@ -19,6 +55,9 @@ def parse_env_bool(name):
     if normalized in ("0", "false", "no", "off"):
         return False
     return None
+
+
+INSTRUMENTATION_ENABLED = (parse_env_bool('TOUCH_MAPPER_INSTRUMENTATION') is True)
 
 
 def pretty_json_enabled():
@@ -61,6 +100,7 @@ def subprocess_output(cmd, env=None):
         raise e
 
 def run_osm2world(input_path, output_path, scale, exclude_buildings):
+    log_memory_checkpoint('before-osm2world')
     # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     #print(osm2world_path + " " + input_path + " " + output_path)
@@ -78,10 +118,12 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
     with open(meta_path, 'r') as f:
         meta = json.load(f)
     write_json_file(meta_path, meta, pretty_json_enabled())
+    log_memory_checkpoint('after-osm2world')
 
     return meta
 
 def run_blender(obj_path, boundary, args):
+    log_memory_checkpoint('before-blender')
     blender_dir = os.path.join(script_dir, 'blender')
     blender_env = os.environ.copy()
     blender_env['LD_LIBRARY_PATH'] = os.path.join(blender_dir, 'lib') + ":" + blender_env.get('LD_LIBRARY_PATH', '')
@@ -119,6 +161,32 @@ def run_blender(obj_path, boundary, args):
     print("----------- obj-to-tactile.py output: -----------")
     print(output)
     print("----------- end obj-to-tactile.py output -----------")
+
+    if INSTRUMENTATION_ENABLED:
+        blender_memory_matches = re.finditer(
+            r'^MEMORY:(?P<label>[^ ]+) VmRSS=(?P<rss>[0-9?]+)kB \([^)]+\) VmHWM=(?P<hwm>[0-9?]+)kB',
+            output,
+            re.MULTILINE
+        )
+        blender_peak_hwm = None
+        blender_peak_label = None
+        for match in blender_memory_matches:
+            hwm_raw = match.group('hwm')
+            if not hwm_raw.isdigit():
+                continue
+            hwm_kib = int(hwm_raw)
+            if blender_peak_hwm is None or hwm_kib > blender_peak_hwm:
+                blender_peak_hwm = hwm_kib
+                blender_peak_label = match.group('label')
+        if blender_peak_hwm is not None:
+            print(
+                'MEMORY:osm-to-tactile:blender-subprocess-peak VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB) at={label}'.format(
+                    hwm_kib=blender_peak_hwm,
+                    hwm_mib=blender_peak_hwm / 1024.0,
+                    label=blender_peak_label
+                )
+            )
+    log_memory_checkpoint('after-blender')
     
     # Find some info from the output
     meta = {}
@@ -134,6 +202,7 @@ def print_size(scale, boundary):
     print("Map is {:.0f} x {:.0f} meters. Selected scale {:.0f} will result in a {:.0f} x {:.0f} mm print.".format(sizeX, sizeY, scale, sizeX / scale * 1000 , sizeY / scale * 1000))
 
 def main():
+    log_memory_checkpoint('main-start')
     # Handle command line
     args = do_cmdline()
     osm_path = args.input
@@ -156,6 +225,7 @@ def main():
     blender_meta = run_blender(obj_path, boundary, args)
     meta.update(blender_meta)
     write_json_file(meta_path, meta, pretty_json_enabled())
+    log_memory_checkpoint('main-end')
 
 
 if __name__ == "__main__":

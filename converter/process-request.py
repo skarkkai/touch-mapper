@@ -19,9 +19,130 @@ import datetime
 import math
 import gzip
 import copy
+import signal
+import atexit
 
 STORE_AGE = 8640000
 time_clock = getattr(time, 'clock', time.time)
+INSTRUMENTATION_ENV_VAR = 'TOUCH_MAPPER_INSTRUMENTATION'
+
+
+def parse_env_bool(name):
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ('1', 'true', 'yes', 'on'):
+        return True
+    if normalized in ('0', 'false', 'no', 'off'):
+        return False
+    return None
+
+
+INSTRUMENTATION_ENABLED = (parse_env_bool(INSTRUMENTATION_ENV_VAR) is True)
+progress_state = {
+    'status': 'starting',
+    'stage': 'bootstrap',
+    'request_id': None,
+    'termination_signal': None,
+}
+
+
+def read_proc_status_kib(field_name):
+    try:
+        with open('/proc/self/status', 'r') as f:
+            for line in f:
+                if not line.startswith(field_name + ':'):
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    return None
+                return int(parts[1])
+    except Exception:
+        return None
+    return None
+
+
+def log_memory_checkpoint(label):
+    if not INSTRUMENTATION_ENABLED:
+        return
+    vm_rss_kib = read_proc_status_kib('VmRSS')
+    vm_hwm_kib = read_proc_status_kib('VmHWM')
+    if vm_rss_kib is None and vm_hwm_kib is None:
+        print('MEMORY:process-request:{label} unavailable'.format(label=label))
+        return
+    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
+    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
+    print(
+        'MEMORY:process-request:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
+            label=label,
+            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
+            rss_mib=vm_rss_mib,
+            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
+            hwm_mib=vm_hwm_mib
+        )
+    )
+
+
+def compact_log_text(value, max_length=240):
+    text = re.sub(r'\s+', ' ', str(value)).strip()
+    if len(text) > max_length:
+        return text[:max_length] + '...'
+    return text
+
+
+def log_progress(stage, status=None, request_id=None, detail=None):
+    if not INSTRUMENTATION_ENABLED:
+        return
+    if request_id is not None:
+        progress_state['request_id'] = request_id
+    if status is not None:
+        progress_state['status'] = status
+    progress_state['stage'] = stage
+    parts = [
+        'PROGRESS:process-request:{stage}'.format(stage=stage),
+        'ts={ts}'.format(ts=datetime.datetime.utcnow().isoformat() + 'Z'),
+        'status={status}'.format(status=progress_state['status']),
+    ]
+    if progress_state['request_id'] is not None:
+        parts.append('requestId={request_id}'.format(request_id=progress_state['request_id']))
+    if detail:
+        parts.append('detail={detail}'.format(detail=compact_log_text(detail)))
+    print(" ".join(parts))
+
+
+def log_exit_progress():
+    if not INSTRUMENTATION_ENABLED:
+        return
+    parts = [
+        'PROGRESS:process-request:exit',
+        'ts={ts}'.format(ts=datetime.datetime.utcnow().isoformat() + 'Z'),
+        'status={status}'.format(status=progress_state['status']),
+        'last_stage={stage}'.format(stage=progress_state['stage']),
+    ]
+    if progress_state['request_id'] is not None:
+        parts.append('requestId={request_id}'.format(request_id=progress_state['request_id']))
+    if progress_state['termination_signal'] is not None:
+        parts.append('signal={signal}'.format(signal=progress_state['termination_signal']))
+    print(" ".join(parts))
+
+
+def handle_termination_signal(signum, frame):
+    if progress_state.get('termination_signal') is None:
+        progress_state['termination_signal'] = signum
+        log_progress(
+            'signal-received',
+            status='terminated',
+            detail='signal={}'.format(signum)
+        )
+        log_memory_checkpoint('signal-{signal}'.format(signal=signum))
+    raise SystemExit(128 + signum)
+
+
+if INSTRUMENTATION_ENABLED:
+    atexit.register(log_exit_progress)
+    signal.signal(signal.SIGTERM, handle_termination_signal)
+    signal.signal(signal.SIGINT, handle_termination_signal)
 
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Create STL and put into S3 based on a SQS request''')
@@ -81,6 +202,7 @@ def get_osm_main_api(url, timeout, osm_path):
 
 def run_osm_to_tactile(progress_updater, osm_path, request_body):
     try:
+        log_memory_checkpoint('before-osm-to-tactile-subprocess')
         progress_updater('converting')
         stl_path = os.path.dirname(osm_path) + '/map.stl'
         if os.path.exists(stl_path):
@@ -113,6 +235,7 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
         with open(os.path.dirname(osm_path) + '/map-meta-raw.json', 'r') as f:
             meta = f.read()
 
+        log_memory_checkpoint('after-osm-to-tactile-subprocess')
         return stl, stl_ways, stl_rest, svg, blend, json.loads(meta)
     except Exception as e:
         raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
@@ -151,31 +274,45 @@ def svg_to_pdf(svg_path):
 
 
 def upload_primary_assets(bucket, json_object_name, info, name_base,
-                          map_object_name, map_content, stl, common_args):
+                          map_object_name, map_content, stl, common_args,
+                          progress_logger=None):
     # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to
     # parameters of created maps (obsolete logic since maps are now available for only a few months)
+    if progress_logger is not None:
+        progress_logger('upload-primary-info-json-start', detail='key={}'.format(json_object_name))
     bucket.put_object(
         Key=json_object_name,
         Body=json.dumps(info).encode('utf8'),
         ACL='public-read',
         ContentType='application/json'
     )
+    if progress_logger is not None:
+        progress_logger('upload-primary-info-json-done', detail='key={}'.format(json_object_name))
 
     # Map content description is also read on the map display page, so make sure it's uploaded before STL
+    map_content_key = name_base + '.map-content.json'
+    if progress_logger is not None:
+        progress_logger('upload-primary-map-content-start', detail='key={}'.format(map_content_key))
     bucket.put_object(
-        Key=name_base + '.map-content.json',
+        Key=map_content_key,
         Body=gzip.compress(map_content, compresslevel=5),
         **common_args,
         ContentType='application/json'
     )
+    if progress_logger is not None:
+        progress_logger('upload-primary-map-content-done', detail='key={}'.format(map_content_key))
 
     # Put full STL file to S3. Completion of this upload makes UI consider the STL creation complete.
+    if progress_logger is not None:
+        progress_logger('upload-primary-stl-start', detail='key={}'.format(map_object_name))
     bucket.put_object(
         Key=map_object_name,
         Body=gzip.compress(stl, compresslevel=5),
         **common_args,
         ContentType='application/sla'
     )
+    if progress_logger is not None:
+        progress_logger('upload-primary-stl-done', detail='key={}'.format(map_object_name))
 
 def attach_request_metadata_to_map_content(map_content, request_body):
     try:
@@ -188,17 +325,23 @@ def attach_request_metadata_to_map_content(map_content, request_body):
     return json.dumps(map_content_json, ensure_ascii=False, separators=(',', ':')).encode('utf8')
 
 
-def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args):
+def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args, progress_logger=None):
     def upload_blob(key, body, content_type):
         try:
+            if progress_logger is not None:
+                progress_logger('upload-secondary-item-start', detail='key={}'.format(key))
             bucket.put_object(
                 Key=key,
                 Body=gzip.compress(body, compresslevel=5),
                 **common_args,
                 ContentType=content_type
             )
+            if progress_logger is not None:
+                progress_logger('upload-secondary-item-done', detail='key={}'.format(key))
         except Exception as e:
             print("upload failed for {}: {}".format(key, e))
+            if progress_logger is not None:
+                progress_logger('upload-secondary-item-failed', detail='key={} error={}'.format(key, e))
 
     uploads = [
         (name_base + '.svg', svg, 'image/svg+xml'),
@@ -228,19 +371,27 @@ def main():
     name_base = None
     try:
         t = time_clock()
+        progress_logger = (log_progress if INSTRUMENTATION_ENABLED else None)
+        log_progress('main-start', status='running')
         environment = os.environ['TM_ENVIRONMENT']
         queue_name = environment + "-requests-touch-mapper"
         map_bucket_name = environment + ".maps.touch-mapper"
         args = do_cmdline()
+        log_memory_checkpoint('main-start')
 
         # Receive SQS msg
+        log_progress('poll-start')
         print("\n\n============= STARTING TO POLL AT %s ===========" % (datetime.datetime.now().isoformat()))
         request_body = receive_sqs_msg(queue_name, args.poll_time)
         if request_body == None:
+            log_progress('poll-empty', status='idle')
             return
+        log_progress('poll-returned', request_id=request_body.get('requestId'))
         print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
+        log_memory_checkpoint('after-receive-sqs')
 
         # Get OSM data
+        log_progress('get-osm-start')
         s3 = boto3.resource('s3')
         map_object_name = 'map/data/' + request_body['requestId'] + '.stl'
         name_base = map_object_name[:-4]
@@ -249,17 +400,28 @@ def main():
         osm_path = get_osm(progress_updater, request_body, args.work_dir)
         if osm_path is None:
             raise Exception("OSM path not available")
+        log_progress('get-osm-done')
+        log_memory_checkpoint('after-get-osm')
 
         # Convert OSM => STL
+        log_progress('osm-to-tactile-start')
         stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
+        log_progress('osm-to-tactile-done')
         raw_meta_path = os.path.join(os.path.dirname(osm_path), 'map-meta-raw.json')
+        log_memory_checkpoint('after-run-osm-to-tactile')
 
         # Enrich map-meta.json
+        log_progress('map-desc-start')
         run_map_desc(raw_meta_path)
+        log_progress('map-desc-done')
+        log_memory_checkpoint('after-run-map-desc')
         map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
+        log_progress('map-content-read-start', detail='path={}'.format(map_content_path))
         with open(map_content_path, 'rb') as f:
             map_content = f.read()
         map_content = attach_request_metadata_to_map_content(map_content, request_body)
+        log_progress('map-content-read-done')
+        log_memory_checkpoint('after-attach-request-metadata')
 
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
@@ -271,17 +433,48 @@ def main():
         info = copy.copy(request_body)
         info.update(meta)
 
-        upload_primary_assets(bucket, json_object_name, info, name_base, map_object_name, map_content, stl, common_args)
+        log_progress('upload-primary-start')
+        upload_primary_assets(
+            bucket,
+            json_object_name,
+            info,
+            name_base,
+            map_object_name,
+            map_content,
+            stl,
+            common_args,
+            progress_logger=progress_logger
+        )
+        log_progress('upload-primary-done')
         print("Processing main request took " + str(time_clock() - t))
+        log_memory_checkpoint('after-upload-primary-assets')
 
         # Create PDF from SVG and put it to S3
+        log_progress('svg-to-pdf-start')
         pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
-        upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args)
+        log_progress('svg-to-pdf-done')
+        log_progress('upload-secondary-start')
+        upload_secondary_assets(
+            bucket,
+            name_base,
+            svg,
+            pdf,
+            stl_ways,
+            stl_rest,
+            blend,
+            common_args,
+            progress_logger=progress_logger
+        )
+        log_progress('upload-secondary-done')
+        log_memory_checkpoint('after-upload-secondary-assets')
 
         print("Processing entire request took " + str(time_clock() - t))
+        log_progress('complete', status='success')
     except Exception as e:
         try:
             print("process-request failed: " + str(e))
+            log_progress('failed', status='failed', detail=str(e))
+            log_memory_checkpoint('failed')
             if s3 != None and map_bucket_name is not None and map_object_name is not None:
                 # Put map file that contains just the error message in metadata
                 s3.Bucket(map_bucket_name).put_object(Key=map_object_name, Body=b'', ACL='public-read', \

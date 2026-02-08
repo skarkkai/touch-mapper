@@ -33,6 +33,58 @@ MARKER_RADIUS_MM = MARKER_HEIGHT_MM * 0.5
 def warning(*objs):
     print("WARNING: ", *objs, file=sys.stderr)
 
+
+def parse_env_bool(name):
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ('1', 'true', 'yes', 'on'):
+        return True
+    if normalized in ('0', 'false', 'no', 'off'):
+        return False
+    return None
+
+
+INSTRUMENTATION_ENABLED = (parse_env_bool('TOUCH_MAPPER_INSTRUMENTATION') is True)
+
+
+def read_proc_status_kib(field_name):
+    try:
+        with open('/proc/self/status', 'r') as handle:
+            for line in handle:
+                if not line.startswith(field_name + ':'):
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    return None
+                return int(parts[1])
+    except Exception:
+        return None
+    return None
+
+
+def log_memory_checkpoint(label):
+    if not INSTRUMENTATION_ENABLED:
+        return
+    vm_rss_kib = read_proc_status_kib('VmRSS')
+    vm_hwm_kib = read_proc_status_kib('VmHWM')
+    if vm_rss_kib is None and vm_hwm_kib is None:
+        print('MEMORY:obj-to-tactile:{label} unavailable'.format(label=label))
+        return
+    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
+    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
+    print(
+        'MEMORY:obj-to-tactile:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
+            label=label,
+            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
+            rss_mib=vm_rss_mib,
+            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
+            hwm_mib=vm_hwm_mib
+        )
+    )
+
+
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Read an OSM map as a .obj file, modify it to a tactile map, and export as .stl''')
     parser.add_argument('--min-x', metavar='FLOAT', type=float, help='minimum X bound')
@@ -596,6 +648,7 @@ def do_road_areas(roads, height):
 
 def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     t = time.clock()
+    log_memory_checkpoint('process-objects-start')
     mm_to_units = scale / 1000
     if not no_borders:
         space = (BORDER_WIDTH_MM - BORDER_HORIZONTAL_OVERLAP_MM) * mm_to_units 
@@ -662,6 +715,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
                 else:
                     print("UNHANDLED CLIPPABLE OBJECT TYPE: " + ob.name)
     print("initial steps took %.2f" % (time.clock() - t))
+    log_memory_checkpoint('after-process-objects-initial-classify')
 
     # Delete
     t = time.clock()
@@ -679,6 +733,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     joined_road_areas_ped = join_and_clip(road_areas_ped, min_co, max_co, 'PedestrianRoadAreas')
     clipped_rails = join_and_clip(rails, min_co, max_co, 'Rails')
     joined_buildings = join_and_clip(buildings, min_co, max_co, 'Buildings')
+    log_memory_checkpoint('after-pre-join-and-clip')
     
     # Buildings
     print('META-START:{"buildingCount":%d}:META-END\n' % (len(buildings)))
@@ -687,6 +742,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
         extrude_building(joined_buildings, BUILDING_HEIGHT_MM * mm_to_units)
         fatten(joined_buildings)
         print("processing %d buildings took %.2f" % (len(buildings), time.clock() - t))
+    log_memory_checkpoint('after-buildings')
 
     # Waters
     t = time.clock()
@@ -706,6 +762,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
             water_wave_pattern(water, WATER_AREA_DEPTH_MM * mm_to_units, scale)
         join_objects(inner_water_areas, 'InnerWaterAreas')
     print("processing waters took %.2f" % (time.clock() - t))
+    log_memory_checkpoint('after-waters')
 
     # Rails
     if clipped_rails != None:
@@ -716,6 +773,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     do_road_areas(joined_road_areas_ped, ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units)
     do_ways(joined_roads_car, ROAD_HEIGHT_CAR_MM * mm_to_units, min_x, min_y, max_x, max_y)
     do_ways(joined_roads_ped, ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units, min_x, min_y, max_x, max_y)
+    log_memory_checkpoint('after-roads-and-rails')
 
 def make_tactile_map(args):
     t = time.clock()
@@ -735,18 +793,28 @@ def make_tactile_map(args):
 
 def main():
     args = do_cmdline()
+    log_memory_checkpoint('main-start')
     remove_everything()
+    log_memory_checkpoint('after-remove-everything')
     for obj_path in args.obj_paths:
         import_obj_file(obj_path)
+        log_memory_checkpoint('after-import-obj')
         base_path = os.path.splitext(obj_path)[0]
         export_svg(base_path, args)
+        log_memory_checkpoint('after-export-svg')
         base_cube = make_tactile_map(args)
+        log_memory_checkpoint('after-make-tactile-map')
         move_everything([-c for c in get_minimum_coordinate(base_cube)])
+        log_memory_checkpoint('after-move-everything')
         if not args.no_stl_export:
             export_stl(base_path, args.scale)
+            log_memory_checkpoint('after-export-stl')
             export_stl_separate(base_path, args.scale)
+            log_memory_checkpoint('after-export-stl-separate')
             export_blend_file(base_path)
+            log_memory_checkpoint('after-export-blend')
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected when getting into UI
+    log_memory_checkpoint('main-end')
 
 if __name__ == "__main__":
     main()

@@ -550,6 +550,9 @@ def _pretty_json_enabled(pretty_json: Optional[bool] = None) -> bool:
     return False
 
 
+_INSTRUMENTATION_ENABLED = (_parse_env_bool("TOUCH_MAPPER_INSTRUMENTATION") is True)
+
+
 def _write_json_fast(path: str, value: Any, pretty_json: Optional[bool] = None) -> None:
     use_pretty = _pretty_json_enabled(pretty_json)
     with open(path, "w") as handle:
@@ -572,6 +575,43 @@ def _write_json_fast(path: str, value: Any, pretty_json: Optional[bool] = None) 
         )
 
 
+def _read_proc_status_kib(field_name: str) -> Optional[int]:
+    try:
+        with open("/proc/self/status", "r") as handle:
+            for line in handle:
+                if not line.startswith(field_name + ":"):
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    return None
+                return int(parts[1])
+    except Exception:
+        return None
+    return None
+
+
+def _log_memory_checkpoint(label: str) -> None:
+    if not _INSTRUMENTATION_ENABLED:
+        return
+    vm_rss_kib = _read_proc_status_kib("VmRSS")
+    vm_hwm_kib = _read_proc_status_kib("VmHWM")
+    if vm_rss_kib is None and vm_hwm_kib is None:
+        print("MEMORY:map-desc:{label} unavailable".format(label=label), file=sys.stderr)
+        return
+    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
+    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
+    print(
+        "MEMORY:map-desc:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)".format(
+            label=label,
+            rss_kib=("?" if vm_rss_kib is None else vm_rss_kib),
+            rss_mib=vm_rss_mib,
+            hwm_kib=("?" if vm_hwm_kib is None else vm_hwm_kib),
+            hwm_mib=vm_hwm_mib
+        ),
+        file=sys.stderr
+    )
+
+
 def run_standalone(args: List[str]) -> OrderedDict:
     parser = argparse.ArgumentParser(description="Touch Mapper map description generator")
     parser.add_argument("input_path", nargs="?", help="Path to map-meta-raw.json")
@@ -591,6 +631,7 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
                  profile: Optional[Dict[str, float]] = None,
                  pretty_json: Optional[bool] = None) -> OrderedDict:
     run_start = time.perf_counter()
+    _log_memory_checkpoint("start")
 
     def add_timing(name: str, elapsed: float) -> None:
         if profile is None:
@@ -603,10 +644,12 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
     spec = _load_json(spec_path)
 
     map_data = _load_json(input_path)
+    _log_memory_checkpoint("after-load-input")
 
     group_map_data_start = time.perf_counter()
     grouped = group_map_data(map_data, spec, options_override, profile)
     add_timing("group-map-data", time.perf_counter() - group_map_data_start)
+    _log_memory_checkpoint("after-group-map-data")
 
     if output_path is None:
         output_path = os.path.join(os.path.dirname(input_path), "map-meta.json")
@@ -614,11 +657,13 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
     write_grouped_meta_start = time.perf_counter()
     _write_json_fast(output_path, grouped, pretty_json=pretty_json)
     add_timing("write-map-meta", time.perf_counter() - write_grouped_meta_start)
+    _log_memory_checkpoint("after-write-map-meta")
 
     augmented_path = os.path.join(os.path.dirname(output_path), "map-meta.augmented.json")
     write_augmented_meta_start = time.perf_counter()
     _write_json_fast(augmented_path, map_data, pretty_json=pretty_json)
     add_timing("write-map-meta-augmented", time.perf_counter() - write_augmented_meta_start)
+    _log_memory_checkpoint("after-write-map-meta-augmented")
 
     output_path = os.path.join(os.path.dirname(input_path), "map-content.json")
     # Code below creates stage "Final map content" data.
@@ -633,8 +678,10 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
         pretty_json=pretty_json
     )
     add_timing("write-map-content", time.perf_counter() - write_map_content_start)
+    _log_memory_checkpoint("after-write-map-content")
 
     add_timing("total", time.perf_counter() - run_start)
+    _log_memory_checkpoint("end")
     return grouped
 
 
