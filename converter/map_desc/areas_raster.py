@@ -12,6 +12,9 @@ Ring = List[Tuple[float, float]]
 
 GRID_BASE = 60
 GRID_REFINED = 120
+# When True, run the legacy strategy: analyze 60 first and refine to 120 only
+# for multi-component cases. When False, analyze directly at 120.
+TRY_BASE_GRID_FIRST = False
 
 COMPLEX_FILL_RATIO = 0.4
 
@@ -535,6 +538,7 @@ def analyze_area_visibility(geometry: Dict[str, Any],
     outer, holes = _extract_polygon_rings(geometry)
     if not outer or not boundary:
         return None
+    initial_grid_size = GRID_BASE if TRY_BASE_GRID_FIRST else GRID_REFINED
     if debug:
         print("[areas_raster] {} start outer_points={} holes={}".format(
             debug_tag, len(outer), len(holes)
@@ -549,7 +553,7 @@ def analyze_area_visibility(geometry: Dict[str, Any],
                 "coveragePercent": 0.0,
                 "insideCells": 0,
                 "consideredCells": 0,
-                "gridSize": GRID_BASE,
+                "gridSize": initial_grid_size,
                 "segments": []
             },
             "edgesTouched": [],
@@ -559,24 +563,32 @@ def analyze_area_visibility(geometry: Dict[str, Any],
         print("[areas_raster] {} outer_bbox={}".format(debug_tag, outer_bbox))
         print("[areas_raster] {} clip_bbox={}".format(debug_tag, clip_bbox))
 
-    analysis_60 = _rasterize_polygon(
-        outer, holes, boundary, clip_bbox, GRID_BASE,
-        debug=debug, debug_tag=debug_tag + ":60"
-    )
-    analysis = analysis_60
     refined_from = None
+    analysis_60 = None
     analysis_120 = None
-    if analysis_60.get("componentCount", 0) > 1:
+    if TRY_BASE_GRID_FIRST:
+        analysis_60 = _rasterize_polygon(
+            outer, holes, boundary, clip_bbox, GRID_BASE,
+            debug=debug, debug_tag=debug_tag + ":60"
+        )
+        analysis = analysis_60
+        if analysis_60.get("componentCount", 0) > 1:
+            analysis_120 = _rasterize_polygon(
+                outer, holes, boundary, clip_bbox, GRID_REFINED,
+                debug=debug, debug_tag=debug_tag + ":120"
+            )
+            if analysis_120.get("insideCells", 0) > 0:
+                analysis = analysis_120
+                refined_from = GRID_BASE
+    else:
         analysis_120 = _rasterize_polygon(
             outer, holes, boundary, clip_bbox, GRID_REFINED,
             debug=debug, debug_tag=debug_tag + ":120"
         )
-        if analysis_120.get("insideCells", 0) > 0:
-            analysis = analysis_120
-            refined_from = GRID_BASE
+        analysis = analysis_120
 
     inside_count = analysis.get("insideCells", 0)
-    grid_size = analysis.get("gridSize", GRID_BASE)
+    grid_size = analysis.get("gridSize", initial_grid_size)
     total_cells = grid_size * grid_size if grid_size else 0
     coverage_percent = 0.0
     if total_cells > 0:
@@ -599,7 +611,7 @@ def analyze_area_visibility(geometry: Dict[str, Any],
         if refined_from:
             print("[areas_raster] {} refinedFrom={}".format(debug_tag, refined_from))
 
-    shape = _shape_from_cells(analysis_60.get("trueCells") or [])
+    shape = _shape_from_cells(analysis.get("trueCells") or [])
     if debug:
         print("[areas_raster] {} shape={}".format(debug_tag, shape))
 
@@ -619,14 +631,14 @@ def analyze_area_visibility(geometry: Dict[str, Any],
         result["refinedFrom"] = refined_from
     if shape:
         result["shape"] = shape
-        result["shapeGridSize"] = GRID_BASE
+        result["shapeGridSize"] = grid_size
 
     if debug:
         from .areas_raster_debug import print_union_grid
-        mask_60 = analysis_60.get("mask")
+        mask_60 = analysis_60.get("mask") if analysis_60 else None
         mask_120 = None
-        if analysis is analysis_120:
-            mask_120 = analysis_120.get("mask") if analysis_120 else None
+        if analysis_120:
+            mask_120 = analysis_120.get("mask")
         print_union_grid(mask_60, mask_120, boundary)
     return result
 
