@@ -13,7 +13,9 @@ function pushSection(lines, label, section) {
   const count = section && Number.isFinite(Number(section.count)) ? Number(section.count) : 0;
   lines.push("- " + label + " (" + count + ")");
   const items = section && Array.isArray(section.items) ? section.items : [];
-  const itemPrefix = label === "Buildings" ? "Building" : "Feature";
+  const itemPrefix = label === "Buildings"
+    ? "Building"
+    : (label.indexOf("POI") === 0 ? "POI" : "Feature");
 
   items.forEach(function(item, index) {
     lines.push("  - " + itemPrefix + " " + (index + 1));
@@ -44,6 +46,15 @@ function renderSimulationText(mapDescriptionModel) {
     pushSection(lines, "Other linear features", model.otherLinear);
   }
   pushSection(lines, "Buildings", model.buildings);
+  if (model.poiFamiliar) {
+    pushSection(lines, "POI familiar places", model.poiFamiliar);
+  }
+  if (model.poiDaily && Number(model.poiDaily.count) > 0) {
+    pushSection(lines, "POI daily essentials", model.poiDaily);
+  }
+  if (model.poiTransport && Number(model.poiTransport.count) > 0) {
+    pushSection(lines, "POI transport points", model.poiTransport);
+  }
   return lines.join("\n") + "\n";
 }
 

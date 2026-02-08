@@ -27,7 +27,11 @@
 .map-content-paths,
 .map-content-railways,
 .map-content-waterways,
-.map-content-other-linear {
+.map-content-other-linear,
+.map-content-poi-familiar,
+.map-content-poi-daily,
+.map-content-poi-transport,
+.map-content-poi-accessibility {
   margin-left: 1em;
 }
 .map-content h4 {
@@ -53,17 +57,18 @@
 .map-content .map-content-title {
   font-weight: inherit;
 }
-.map-content-buildings-toggle {
-  margin: 8px 0 0 1em;
+.map-content-section-toggle {
+  margin: 0 0 1.5em 1em;
   border: 1px solid #406271;
   border-radius: 6px;
   color: #1f2f36;
   cursor: pointer;
+  display: block;
 }
-.map-content-buildings-toggle:hover {
+.map-content-section-toggle:hover {
   background-color: #f4e9b2;
 }
-.map-content-buildings-toggle:focus-visible {
+.map-content-section-toggle:focus-visible {
   outline: 3px solid #005fcc;
   outline-offset: 2px;
 }

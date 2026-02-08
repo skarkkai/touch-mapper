@@ -85,6 +85,10 @@ window.TM = { translations: {
   "map_content_subheading_waterways": "{{ map_content_subheading_waterways }}",
   "map_content_subheading_other_linear": "{{ map_content_subheading_other_linear }}",
   "map_content_subheading_buildings": "{{ map_content_subheading_buildings }}",
+  "map_content_subheading_poi_familiar": "{{ map_content_subheading_poi_familiar }}",
+  "map_content_subheading_poi_daily": "{{ map_content_subheading_poi_daily }}",
+  "map_content_subheading_poi_transport": "{{ map_content_subheading_poi_transport }}",
+  "map_content_subheading_poi_accessibility": "{{ map_content_subheading_poi_accessibility }}",
   "map_content_way_unnamed": "{{ map_content_way_unnamed }}",
   "map_content_no_roads": "{{ map_content_no_roads }}",
   "map_content_no_paths": "{{ map_content_no_paths }}",
@@ -133,9 +137,31 @@ window.TM = { translations: {
   "map_content_way_type_A_other_ways": "{{ map_content_way_type_A_other_ways }}",
   "map_content_building_unnamed": "{{ map_content_building_unnamed }}",
   "map_content_no_buildings": "{{ map_content_no_buildings }}",
+  "map_content_no_poi_familiar": "{{ map_content_no_poi_familiar }}",
+  "map_content_no_poi_daily": "{{ map_content_no_poi_daily }}",
+  "map_content_no_poi_transport": "{{ map_content_no_poi_transport }}",
+  "map_content_no_poi_accessibility": "{{ map_content_no_poi_accessibility }}",
   "map_content_show_more_buildings_one": "{{ map_content_show_more_buildings_one }}",
   "map_content_show_more_buildings_many": "{{ map_content_show_more_buildings_many }}",
   "map_content_show_less_buildings": "{{ map_content_show_less_buildings }}",
+  "map_content_show_more_features_one": "{{ map_content_show_more_features_one }}",
+  "map_content_show_more_features_many": "{{ map_content_show_more_features_many }}",
+  "map_content_show_less_features": "{{ map_content_show_less_features }}",
+  "map_content_show_more_pois_one": "{{ map_content_show_more_pois_one }}",
+  "map_content_show_more_pois_many": "{{ map_content_show_more_pois_many }}",
+  "map_content_show_less_pois": "{{ map_content_show_less_pois }}",
+  "map_content_poi_unknown_type": "{{ map_content_poi_unknown_type }}",
+  "map_content_poi_unnamed": "{{ map_content_poi_unnamed }}",
+  "map_content_poi_unnamed_many": "{{ map_content_poi_unnamed_many }}",
+  "map_content_poi_sparse_note": "{{ map_content_poi_sparse_note }}",
+  "map_content_poi_access_crossings_signals_one": "{{ map_content_poi_access_crossings_signals_one }}",
+  "map_content_poi_access_crossings_signals_many": "{{ map_content_poi_access_crossings_signals_many }}",
+  "map_content_poi_access_tactile_summary": "{{ map_content_poi_access_tactile_summary }}",
+  "map_content_poi_access_kerb_summary": "{{ map_content_poi_access_kerb_summary }}",
+  "map_content_poi_access_steps_summary": "{{ map_content_poi_access_steps_summary }}",
+  "map_content_poi_access_incline_summary": "{{ map_content_poi_access_incline_summary }}",
+  "map_content_poi_access_wheelchair_summary": "{{ map_content_poi_access_wheelchair_summary }}",
+  "map_content_poi_example": "{{ map_content_poi_example }}",
   "map_content_building_join_at": "{{ map_content_building_join_at }}",
   "map_content_building_type_from_value": "{{ map_content_building_type_from_value }}",
   "map_content_unavailable": "{{ map_content_unavailable }}",
@@ -405,6 +431,18 @@ window.TM = { translations: {
       <div class="row map-content-buildings-row">
         <h4>{{ map_content_subheading_buildings }}</h4>
         <ul class="map-content-buildings"></ul>
+      </div>
+      <div class="row map-content-poi-familiar-row">
+        <h4>{{ map_content_subheading_poi_familiar }}</h4>
+        <ul class="map-content-poi-familiar"></ul>
+      </div>
+      <div class="row map-content-poi-daily-row">
+        <h4>{{ map_content_subheading_poi_daily }}</h4>
+        <ul class="map-content-poi-daily"></ul>
+      </div>
+      <div class="row map-content-poi-transport-row">
+        <h4>{{ map_content_subheading_poi_transport }}</h4>
+        <ul class="map-content-poi-transport"></ul>
       </div>
     </div>
   </div>

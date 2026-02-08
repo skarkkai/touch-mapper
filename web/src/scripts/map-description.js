@@ -8,12 +8,87 @@
   'use strict';
 
   const MAX_VISIBLE_BUILDINGS = 10;
+  const MAX_VISIBLE_LINEAR_ITEMS = 10;
+  const MAX_VISIBLE_POI_ITEMS = 8;
   const LINEAR_SECTION_CONFIGS = [
-    { key: "roads", rowSelector: ".map-content-roads-row", listSelector: ".map-content-roads", alwaysShow: true },
-    { key: "paths", rowSelector: ".map-content-paths-row", listSelector: ".map-content-paths", alwaysShow: false },
-    { key: "railways", rowSelector: ".map-content-railways-row", listSelector: ".map-content-railways", alwaysShow: false },
-    { key: "waterways", rowSelector: ".map-content-waterways-row", listSelector: ".map-content-waterways", alwaysShow: false },
-    { key: "otherLinear", rowSelector: ".map-content-other-linear-row", listSelector: ".map-content-other-linear", alwaysShow: false }
+    {
+      key: "roads",
+      rowSelector: ".map-content-roads-row",
+      listSelector: ".map-content-roads",
+      alwaysShow: true,
+      maxVisible: MAX_VISIBLE_LINEAR_ITEMS,
+      toggleClass: "map-content-roads-toggle"
+    },
+    {
+      key: "paths",
+      rowSelector: ".map-content-paths-row",
+      listSelector: ".map-content-paths",
+      alwaysShow: false,
+      maxVisible: MAX_VISIBLE_LINEAR_ITEMS,
+      toggleClass: "map-content-paths-toggle"
+    },
+    {
+      key: "railways",
+      rowSelector: ".map-content-railways-row",
+      listSelector: ".map-content-railways",
+      alwaysShow: false,
+      maxVisible: MAX_VISIBLE_LINEAR_ITEMS,
+      toggleClass: "map-content-railways-toggle"
+    },
+    {
+      key: "waterways",
+      rowSelector: ".map-content-waterways-row",
+      listSelector: ".map-content-waterways",
+      alwaysShow: false,
+      maxVisible: MAX_VISIBLE_LINEAR_ITEMS,
+      toggleClass: "map-content-waterways-toggle"
+    },
+    {
+      key: "otherLinear",
+      rowSelector: ".map-content-other-linear-row",
+      listSelector: ".map-content-other-linear",
+      alwaysShow: false,
+      maxVisible: MAX_VISIBLE_LINEAR_ITEMS,
+      toggleClass: "map-content-other-linear-toggle"
+    }
+  ];
+  const POI_SECTION_CONFIGS = [
+    {
+      key: "poiFamiliar",
+      rendererSection: "familiar_places",
+      rowSelector: ".map-content-poi-familiar-row",
+      listSelector: ".map-content-poi-familiar",
+      alwaysShow: true,
+      maxVisible: MAX_VISIBLE_POI_ITEMS,
+      fallbackKey: "map_content_no_poi_familiar",
+      fallbackText: "No familiar places listed for this map.",
+      toggleClass: "map-content-poi-familiar-toggle",
+      includeSparseNote: true
+    },
+    {
+      key: "poiDaily",
+      rendererSection: "daily_essentials",
+      rowSelector: ".map-content-poi-daily-row",
+      listSelector: ".map-content-poi-daily",
+      alwaysShow: false,
+      maxVisible: MAX_VISIBLE_POI_ITEMS,
+      fallbackKey: "map_content_no_poi_daily",
+      fallbackText: "No daily essentials listed for this map.",
+      toggleClass: "map-content-poi-daily-toggle",
+      includeSparseNote: false
+    },
+    {
+      key: "poiTransport",
+      rendererSection: "transport_points",
+      rowSelector: ".map-content-poi-transport-row",
+      listSelector: ".map-content-poi-transport",
+      alwaysShow: false,
+      maxVisible: MAX_VISIBLE_POI_ITEMS,
+      fallbackKey: "map_content_no_poi_transport",
+      fallbackText: "No transport points listed for this map.",
+      toggleClass: "map-content-poi-transport-toggle",
+      includeSparseNote: false
+    },
   ];
 
   function translations() {
@@ -47,6 +122,28 @@
     }
     return interpolate(
       tr("map_content_show_more_buildings_many", "Show __count__ more buildings"),
+      { count: hiddenCount }
+    );
+  }
+
+  function showMorePoisLabel(hiddenCount, translateFn) {
+    const tr = typeof translateFn === "function" ? translateFn : t;
+    if (hiddenCount === 1) {
+      return tr("map_content_show_more_pois_one", "Show 1 more place");
+    }
+    return interpolate(
+      tr("map_content_show_more_pois_many", "Show __count__ more places"),
+      { count: hiddenCount }
+    );
+  }
+
+  function showMoreFeaturesLabel(hiddenCount, translateFn) {
+    const tr = typeof translateFn === "function" ? translateFn : t;
+    if (hiddenCount === 1) {
+      return tr("map_content_show_more_features_one", "Show 1 more feature");
+    }
+    return interpolate(
+      tr("map_content_show_more_features_many", "Show __count__ more features"),
       { count: hiddenCount }
     );
   }
@@ -168,7 +265,7 @@
     };
   }
 
-  function applyBuildingsLimitToModel(section, maxVisible, helpers) {
+  function applySectionLimitToModel(section, maxVisible, collapsedLabel, expandedLabel) {
     const maxCount = Number(maxVisible);
     if (!section || !Array.isArray(section.items) || !isFinite(maxCount) || maxCount < 1) {
       return { section: section, toggle: null };
@@ -193,14 +290,8 @@
       },
       toggle: {
         hiddenCount: hiddenCount,
-        collapsedLabel: showMoreBuildingsLabel(hiddenCount, function(key, fallback){
-          return translateWithHelpers(helpers, key, fallback);
-        }),
-        expandedLabel: translateWithHelpers(
-          helpers,
-          "map_content_show_less_buildings",
-          "Show fewer buildings"
-        )
+        collapsedLabel: collapsedLabel,
+        expandedLabel: expandedLabel
       }
     };
   }
@@ -209,46 +300,37 @@
     const payload = parseMapContent(mapContent);
     const linearRenderer = getRenderer("mapDescWays");
     const buildingsRenderer = getRenderer("mapDescAreas");
-    const roads = buildSectionModel(
-      linearRenderer,
-      payload,
-      helpers,
-      "map_content_no_roads",
-      "No roads listed for this map.",
-      { section: "roads" }
-    );
-    const paths = buildSectionModel(
-      linearRenderer,
-      payload,
-      helpers,
-      "map_content_no_paths",
-      "No paths listed for this map.",
-      { section: "paths" }
-    );
-    const railways = buildSectionModel(
-      linearRenderer,
-      payload,
-      helpers,
-      "map_content_no_railways",
-      "No railways listed for this map.",
-      { section: "railways" }
-    );
-    const waterways = buildSectionModel(
-      linearRenderer,
-      payload,
-      helpers,
-      "map_content_no_waterways",
-      "No waterways listed for this map.",
-      { section: "waterways" }
-    );
-    const otherLinear = buildSectionModel(
-      linearRenderer,
-      payload,
-      helpers,
-      "map_content_no_other_linear",
-      "No other linear features listed for this map.",
-      { section: "otherLinear" }
-    );
+    const poiRenderer = getRenderer("mapDescPois");
+    const linearSections = {};
+    const linearToggles = {};
+    LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
+      const fallbackKey = "map_content_no_" + (sectionConfig.key === "otherLinear" ? "other_linear" : sectionConfig.key);
+      const fallbackTextByKey = {
+        roads: "No roads listed for this map.",
+        paths: "No paths listed for this map.",
+        railways: "No railways listed for this map.",
+        waterways: "No waterways listed for this map.",
+        otherLinear: "No other linear features listed for this map."
+      };
+      const section = buildSectionModel(
+        linearRenderer,
+        payload,
+        helpers,
+        fallbackKey,
+        fallbackTextByKey[sectionConfig.key] || "No features listed for this map.",
+        { section: sectionConfig.key }
+      );
+      const limited = applySectionLimitToModel(
+        section,
+        sectionConfig.maxVisible,
+        showMoreFeaturesLabel(section.items.length - sectionConfig.maxVisible, function(key, fallback){
+          return translateWithHelpers(helpers, key, fallback);
+        }),
+        translateWithHelpers(helpers, "map_content_show_less_features", "Show fewer features")
+      );
+      linearSections[sectionConfig.key] = limited.section;
+      linearToggles[sectionConfig.key] = limited.toggle;
+    });
     const buildings = buildSectionModel(
       buildingsRenderer,
       payload,
@@ -256,19 +338,56 @@
       "map_content_no_buildings",
       "No buildings listed for this map."
     );
+    const poiSections = {};
+    const poiToggles = {};
+    POI_SECTION_CONFIGS.forEach(function(sectionConfig){
+      const section = buildSectionModel(
+        poiRenderer,
+        payload,
+        helpers,
+        sectionConfig.fallbackKey,
+        sectionConfig.fallbackText,
+        {
+          section: sectionConfig.rendererSection,
+          includeSparseNote: sectionConfig.includeSparseNote
+        }
+      );
+      const limited = applySectionLimitToModel(
+        section,
+        sectionConfig.maxVisible,
+        showMorePoisLabel(section.items.length - sectionConfig.maxVisible, function(key, fallback){
+          return translateWithHelpers(helpers, key, fallback);
+        }),
+        translateWithHelpers(helpers, "map_content_show_less_pois", "Show fewer places")
+      );
+      poiSections[sectionConfig.key] = limited.section;
+      poiToggles[sectionConfig.key] = limited.toggle;
+    });
     const requestedMaxVisible = options && isFinite(Number(options.maxVisibleBuildings))
       ? Number(options.maxVisibleBuildings)
       : MAX_VISIBLE_BUILDINGS;
-    const buildingsResult = applyBuildingsLimitToModel(buildings, requestedMaxVisible, helpers);
+    const buildingsResult = applySectionLimitToModel(
+      buildings,
+      requestedMaxVisible,
+      showMoreBuildingsLabel(buildings.items.length - requestedMaxVisible, function(key, fallback){
+        return translateWithHelpers(helpers, key, fallback);
+      }),
+      translateWithHelpers(helpers, "map_content_show_less_buildings", "Show fewer buildings")
+    );
     return {
-      roads: roads,
-      paths: paths,
-      railways: railways,
-      waterways: waterways,
-      otherLinear: otherLinear,
+      roads: linearSections.roads,
+      paths: linearSections.paths,
+      railways: linearSections.railways,
+      waterways: linearSections.waterways,
+      otherLinear: linearSections.otherLinear,
+      poiFamiliar: poiSections.poiFamiliar,
+      poiDaily: poiSections.poiDaily,
+      poiTransport: poiSections.poiTransport,
       buildings: buildingsResult.section,
       ui: {
-        buildingsToggle: buildingsResult.toggle
+        linearToggles: linearToggles,
+        buildingsToggle: buildingsResult.toggle,
+        poiToggles: poiToggles
       }
     };
   }
@@ -300,17 +419,17 @@
     return 0;
   }
 
-  function applyBuildingsToggleFromModel(listElem, toggleModel) {
+  function applyToggleFromModel(listElem, rowSelector, toggleClass, toggleModel, collapsedFallback, expandedFallback) {
     if (!listElem || !listElem.length) {
       return;
     }
-    const row = listElem.closest(".map-content-buildings-row");
-    row.find(".map-content-buildings-toggle").remove();
+    const row = rowSelector ? listElem.closest(rowSelector) : listElem.parent();
+    row.find("." + toggleClass).remove();
     if (!toggleModel || !toggleModel.hiddenCount) {
       return;
     }
 
-    const hiddenItems = listElem.children("li.map-content-building[data-initially-hidden='true']");
+    const hiddenItems = listElem.children("li[data-initially-hidden='true']");
     if (!hiddenItems.length) {
       return;
     }
@@ -318,9 +437,10 @@
 
     const button = $("<button>")
       .attr("type", "button")
-      .addClass("map-content-buildings-toggle")
+      .addClass("map-content-section-toggle")
+      .addClass(toggleClass)
       .attr("aria-expanded", "false")
-      .text(toggleModel.collapsedLabel || showMoreBuildingsLabel(toggleModel.hiddenCount));
+      .text(toggleModel.collapsedLabel || collapsedFallback);
 
     button.on("click", function(){
       const isExpanded = button.attr("aria-expanded") === "true";
@@ -328,13 +448,13 @@
         hiddenItems.hide();
         button
           .attr("aria-expanded", "false")
-          .text(toggleModel.collapsedLabel || showMoreBuildingsLabel(toggleModel.hiddenCount));
+          .text(toggleModel.collapsedLabel || collapsedFallback);
         return;
       }
       hiddenItems.show();
       button
         .attr("aria-expanded", "true")
-        .text(toggleModel.expandedLabel || t("map_content_show_less_buildings", "Show fewer buildings"));
+        .text(toggleModel.expandedLabel || expandedFallback);
     });
 
     listElem.after(button);
@@ -342,9 +462,20 @@
 
   function renderFromModel(model, container) {
     if (!container || !container.length) {
-      return { roads: 0, paths: 0, railways: 0, waterways: 0, otherLinear: 0, buildings: 0 };
+      return {
+        roads: 0,
+        paths: 0,
+        railways: 0,
+        waterways: 0,
+        otherLinear: 0,
+        poiFamiliar: 0,
+        poiDaily: 0,
+        poiTransport: 0,
+        buildings: 0
+      };
     }
     const linearRenderer = getRenderer("mapDescWays");
+    const poiRenderer = getRenderer("mapDescPois");
     const buildingsListElem = container.find(".map-content-buildings");
     const counts = {
       roads: 0,
@@ -352,6 +483,9 @@
       railways: 0,
       waterways: 0,
       otherLinear: 0,
+      poiFamiliar: 0,
+      poiDaily: 0,
+      poiTransport: 0,
       buildings: 0
     };
 
@@ -371,6 +505,48 @@
       }
       row.show();
       counts[sectionConfig.key] = renderSectionFromModel(listElem, section, linearRenderer);
+      const linearToggleModel = model && model.ui && model.ui.linearToggles
+        ? model.ui.linearToggles[sectionConfig.key]
+        : null;
+      applyToggleFromModel(
+        listElem,
+        sectionConfig.rowSelector,
+        sectionConfig.toggleClass,
+        linearToggleModel,
+        showMoreFeaturesLabel(
+          linearToggleModel && linearToggleModel.hiddenCount ? linearToggleModel.hiddenCount : 0
+        ),
+        t("map_content_show_less_features", "Show fewer features")
+      );
+    });
+
+    POI_SECTION_CONFIGS.forEach(function(sectionConfig){
+      const row = container.find(sectionConfig.rowSelector);
+      const listElem = container.find(sectionConfig.listSelector);
+      if (!listElem.length) {
+        return;
+      }
+      const section = model ? model[sectionConfig.key] : null;
+      const count = sectionCount(section);
+      if (!sectionConfig.alwaysShow && count <= 0) {
+        listElem.empty();
+        row.hide();
+        counts[sectionConfig.key] = 0;
+        return;
+      }
+      row.show();
+      counts[sectionConfig.key] = renderSectionFromModel(listElem, section, poiRenderer);
+      const toggleModel = model && model.ui && model.ui.poiToggles
+        ? model.ui.poiToggles[sectionConfig.key]
+        : null;
+      applyToggleFromModel(
+        listElem,
+        sectionConfig.rowSelector,
+        sectionConfig.toggleClass,
+        toggleModel,
+        showMorePoisLabel(toggleModel && toggleModel.hiddenCount ? toggleModel.hiddenCount : 0),
+        t("map_content_show_less_pois", "Show fewer places")
+      );
     });
 
     const buildingsRenderer = getRenderer("mapDescAreas");
@@ -378,9 +554,17 @@
       ? renderSectionFromModel(buildingsListElem, model ? model.buildings : null, buildingsRenderer)
       : 0;
     if (buildingsListElem.length) {
-      applyBuildingsToggleFromModel(
+      applyToggleFromModel(
         buildingsListElem,
-        model && model.ui ? model.ui.buildingsToggle : null
+        ".map-content-buildings-row",
+        "map-content-buildings-toggle",
+        model && model.ui ? model.ui.buildingsToggle : null,
+        showMoreBuildingsLabel(
+          model && model.ui && model.ui.buildingsToggle && model.ui.buildingsToggle.hiddenCount
+            ? model.ui.buildingsToggle.hiddenCount
+            : 0
+        ),
+        t("map_content_show_less_buildings", "Show fewer buildings")
       );
     }
     return counts;
@@ -393,11 +577,25 @@
     }
     const roadsListElem = container.find(".map-content-roads");
     const buildingsListElem = container.find(".map-content-buildings");
-    if (!roadsListElem.length && !buildingsListElem.length) {
+    const familiarPoisListElem = container.find(".map-content-poi-familiar");
+    if (!roadsListElem.length && !buildingsListElem.length && !familiarPoisListElem.length) {
       return;
     }
     roadsListElem.empty();
     LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
+      const row = container.find(sectionConfig.rowSelector);
+      const listElem = container.find(sectionConfig.listSelector);
+      if (!listElem.length) {
+        return;
+      }
+      listElem.empty();
+      if (!sectionConfig.alwaysShow) {
+        row.hide();
+      } else {
+        row.show();
+      }
+    });
+    POI_SECTION_CONFIGS.forEach(function(sectionConfig){
       const row = container.find(sectionConfig.rowSelector);
       const listElem = container.find(sectionConfig.listSelector);
       if (!listElem.length) {
@@ -421,6 +619,15 @@
       if (buildingsListElem.length) {
         showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
       }
+      POI_SECTION_CONFIGS.forEach(function(sectionConfig){
+        const row = container.find(sectionConfig.rowSelector);
+        const listElem = container.find(sectionConfig.listSelector);
+        if (!listElem.length || !sectionConfig.alwaysShow) {
+          return;
+        }
+        row.show();
+        showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
+      });
       return;
     }
 
@@ -435,6 +642,15 @@
       if (buildingsListElem.length) {
         showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
       }
+      POI_SECTION_CONFIGS.forEach(function(sectionConfig){
+        const row = container.find(sectionConfig.rowSelector);
+        const listElem = container.find(sectionConfig.listSelector);
+        if (!listElem.length || !sectionConfig.alwaysShow) {
+          return;
+        }
+        row.show();
+        showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
+      });
     });
   }
 

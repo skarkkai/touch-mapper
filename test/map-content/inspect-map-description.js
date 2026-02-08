@@ -162,6 +162,7 @@ function buildModels(repoRoot, mapContent, locale) {
 
   loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-desc-ways.js"));
   loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-desc-areas.js"));
+  loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-desc-pois.js"));
   loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-description.js"));
 
   const tmApi = sandbox.window && sandbox.window.TM ? sandbox.window.TM : {};
