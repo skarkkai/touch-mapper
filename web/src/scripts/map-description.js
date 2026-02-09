@@ -460,7 +460,7 @@
     return null;
   }
 
-  function importanceScoreFromTitleLine(line) {
+  function parsedImportanceScoreFromTitleLine(line) {
     if (!line || typeof line.title !== "string") {
       return null;
     }
@@ -469,15 +469,50 @@
       if (!parsed || typeof parsed !== "object") {
         return null;
       }
-      const value = parsed.final;
-      if (value === null || value === undefined || isNaN(value)) {
-        return null;
+      return parsed;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function importanceScoreFromTitleLine(line) {
+    const parsed = parsedImportanceScoreFromTitleLine(line);
+    if (!parsed) {
+      return null;
+    }
+    const value = parsed.final;
+    if (value === null || value === undefined || isNaN(value)) {
+      return null;
+    }
+    const number = Number(value);
+    if (!isFinite(number) || number <= 0) {
+      return null;
+    }
+    return number;
+  }
+
+  function roundedSummaryValue(value) {
+    if (!isFinite(value)) {
+      return null;
+    }
+    return Math.round(value * 1000) / 1000;
+  }
+
+  function summaryTooltipText(item) {
+    if (!item || !item.importanceScoreObject) {
+      return null;
+    }
+    const payload = {
+      importanceScore: item.importanceScoreObject,
+      summaryPenalty: {
+        bucket: item.penaltyBucket,
+        factorUsed: roundedSummaryValue(item.penaltyFactorUsed),
+        pickIndexInBucket: (item.penaltyCountBeforePick || 0) + 1,
+        effectiveScore: roundedSummaryValue(item.effectiveScore)
       }
-      const number = Number(value);
-      if (!isFinite(number) || number <= 0) {
-        return null;
-      }
-      return number;
+    };
+    try {
+      return JSON.stringify(payload, null, 2);
     } catch (_error) {
       return null;
     }
@@ -490,6 +525,7 @@
       const items = entry && entry.section && Array.isArray(entry.section.items) ? entry.section.items : [];
       items.forEach(function(item){
         const titleLine = titleLineFromItem(item);
+        const importanceScoreObject = parsedImportanceScoreFromTitleLine(titleLine);
         const importanceScore = importanceScoreFromTitleLine(titleLine);
         let titleText = titleLine ? lineTextFromParts(titleLine.parts).trim() : "";
         if ((entry.key === "roads" || entry.key === "paths") &&
@@ -502,7 +538,8 @@
             titleText: titleText,
             sectionKey: entry.key,
             penaltyBucket: summaryPenaltyBucket(entry.key),
-            importanceScore: importanceScore
+            importanceScore: importanceScore,
+            importanceScoreObject: importanceScoreObject
           });
         }
         fullIndex += 1;
@@ -518,7 +555,6 @@
     while (remaining.length && picked.length < maxItems) {
       let bestIndex = -1;
       let bestEffective = -Infinity;
-      let bestBase = -Infinity;
       let bestOrder = Number.MAX_SAFE_INTEGER;
       remaining.forEach(function(candidate, index){
         const pickCount = pickCountsByBucket[candidate.penaltyBucket] || 0;
@@ -526,16 +562,14 @@
         if (effective > bestEffective + 1e-9) {
           bestIndex = index;
           bestEffective = effective;
-          bestBase = candidate.importanceScore;
           bestOrder = candidate.fullIndex;
           return;
         }
         if (Math.abs(effective - bestEffective) <= 1e-9) {
-          if (candidate.importanceScore > bestBase ||
-              (candidate.importanceScore === bestBase && candidate.fullIndex < bestOrder)) {
+          // For equal effective scores, keep full-list order as the only ordering rule.
+          if (candidate.fullIndex < bestOrder) {
             bestIndex = index;
             bestEffective = effective;
-            bestBase = candidate.importanceScore;
             bestOrder = candidate.fullIndex;
           }
         }
@@ -544,6 +578,9 @@
         break;
       }
       const winner = remaining.splice(bestIndex, 1)[0];
+      winner.penaltyCountBeforePick = pickCountsByBucket[winner.penaltyBucket] || 0;
+      winner.penaltyFactorUsed = Math.pow(SUMMARY_SECTION_PENALTY, winner.penaltyCountBeforePick);
+      winner.effectiveScore = winner.importanceScore * winner.penaltyFactorUsed;
       picked.push(winner);
       pickCountsByBucket[winner.penaltyBucket] = (pickCountsByBucket[winner.penaltyBucket] || 0) + 1;
     }
@@ -558,7 +595,10 @@
     const picked = pickSummaryCandidates(candidates, SUMMARY_MAX_ITEMS);
     return {
       items: picked.map(function(item){
-        return { text: item.titleText };
+        return {
+          text: item.titleText,
+          tooltip: summaryTooltipText(item)
+        };
       }),
       candidateCount: candidates.length
     };
@@ -849,11 +889,16 @@
       if (!item || !item.text) {
         return;
       }
-      listElem.append(
-        $("<li>")
-          .addClass("map-content-summary-item")
-          .text(item.text)
-      );
+      const listItem = $("<li>")
+        .addClass("map-content-summary-item")
+        .text(item.text);
+      if (item.tooltip) {
+        listItem.addClass("map-content-has-importance-popup");
+        const popup = $("<span>").addClass("map-content-importance-popup");
+        popup.append($("<pre>").text(item.tooltip));
+        listItem.append(popup);
+      }
+      listElem.append(listItem);
     });
   }
 

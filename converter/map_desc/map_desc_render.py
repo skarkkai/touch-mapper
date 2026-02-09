@@ -53,6 +53,17 @@ ScoringBuildingBaseConfig = TypedDict(
     {"named": float, "unnamed": float},
     total=False
 )
+ScoringLocationMultiplierConfig = TypedDict(
+    "ScoringLocationMultiplierConfig",
+    {
+        "center": float,
+        "part_cardinal": float,
+        "part_diagonal": float,
+        "near_edge_cardinal": float,
+        "near_edge_diagonal": float,
+    },
+    total=False
+)
 ScoringConfig = TypedDict(
     "ScoringConfig",
     {
@@ -63,6 +74,7 @@ ScoringConfig = TypedDict(
         "poiBase": float,
         "excludedSubclasses": Set[str],
         "length": ScoringLengthConfig,
+        "locationMultipliers": ScoringLocationMultiplierConfig,
         "componentFormat": ScoringComponentFormatConfig,
         "includeComponents": bool,
     },
@@ -113,6 +125,14 @@ SCORING_CONFIG = {  # type: ScoringConfig
     "excludedSubclasses": {"A5_connectivity_nodes"},
     # Length multiplier tuning for linear features.
     "length": {"minMultiplier": 0.2, "maxMultiplier": 1.0, "referencePolicy": "max_map_side"},
+    # Location multiplier tuning.
+    "locationMultipliers": {
+        "center": 1.0,
+        "part_cardinal": 0.9,
+        "part_diagonal": 0.85,
+        "near_edge_cardinal": 0.8,
+        "near_edge_diagonal": 0.7,
+    },
     # Formatting for score component debug output.
     "componentFormat": {"factorDigits": 3, "sizeKeyDigits": 3},
     # Toggle to emit score components (False keeps only {"final": ...}).
@@ -155,6 +175,10 @@ def _scoring_length_max_multiplier() -> float:
 
 def _scoring_length_reference_policy() -> str:
     return str(SCORING_CONFIG["length"]["referencePolicy"])
+
+
+def _scoring_location_multipliers() -> ScoringLocationMultiplierConfig:
+    return SCORING_CONFIG["locationMultipliers"]
 
 
 def _scoring_factor_digits() -> int:
@@ -215,6 +239,23 @@ def _validate_scoring_config() -> None:
     policy = _scoring_length_reference_policy()
     if policy not in ("max_map_side",):
         raise ValueError("Unsupported length reference policy: " + policy)
+
+    location_multipliers = _scoring_location_multipliers()
+    location_keys = (
+        "center",
+        "part_cardinal",
+        "part_diagonal",
+        "near_edge_cardinal",
+        "near_edge_diagonal",
+    )
+    for key in location_keys:
+        value = location_multipliers.get(key)
+        if not isinstance(value, (int, float)):
+            raise ValueError("Location multiplier must be numeric for key: " + key)
+        if float(value) <= 0:
+            raise ValueError("Location multiplier must be positive for key: " + key)
+    if float(location_multipliers.get("center", 0.0)) != 1.0:
+        raise ValueError("Location multiplier for center must be 1.0")
 
     if _scoring_factor_digits() < 0 or _scoring_size_key_digits() < 0:
         raise ValueError("Component format digits must be non-negative")
@@ -480,6 +521,181 @@ def _group_importance_factor(group: Dict[str, Any]) -> Tuple[float, Optional[Ord
     return applied_multiplier, details
 
 
+def _is_diagonal_direction(direction: Optional[str]) -> bool:
+    return direction in ("northwest", "northeast", "southwest", "southeast")
+
+
+def _location_bucket_from_loc(loc: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not isinstance(loc, dict):
+        return None
+    kind = loc.get("kind")
+    direction = loc.get("dir")
+    if kind == "center":
+        return "center"
+    if kind == "part":
+        return "part_diagonal" if _is_diagonal_direction(direction) else "part_cardinal"
+    if kind == "near_edge":
+        return "near_edge_diagonal" if _is_diagonal_direction(direction) else "near_edge_cardinal"
+    return None
+
+
+def _location_multiplier_for_bucket(bucket: Optional[str]) -> float:
+    if not bucket:
+        return 1.0
+    value = _scoring_location_multipliers().get(bucket)
+    if not isinstance(value, (int, float)):
+        return 1.0
+    return float(value)
+
+
+def _location_multiplier_from_loc(loc: Optional[Dict[str, Any]]) -> Tuple[float, Optional[str]]:
+    bucket = _location_bucket_from_loc(loc)
+    return _location_multiplier_for_bucket(bucket), bucket
+
+
+def _location_component(bucket: Optional[str], multiplier: float) -> OrderedDict:
+    factor_digits = _scoring_factor_digits()
+    details = OrderedDict()
+    if bucket:
+        details[bucket] = _round_component(multiplier, factor_digits)
+    else:
+        details["unknown"] = _round_component(multiplier, factor_digits)
+    details["appliedMultiplier"] = _round_component(multiplier, factor_digits)
+    return details
+
+
+def _location_loc_from_struct(location: Optional[Any], keys: Tuple[str, ...]) -> Optional[Dict[str, Any]]:
+    if not isinstance(location, dict):
+        return None
+    for key in keys:
+        loc = _extract_loc(location.get(key))
+        if isinstance(loc, dict):
+            return loc
+    return None
+
+
+def _linear_location_factor(group: Dict[str, Any]) -> Tuple[float, OrderedDict]:
+    ways = group.get("ways")
+    if not isinstance(ways, list):
+        return 1.0, _location_component(None, 1.0)
+
+    weighted_sum = 0.0
+    weight_sum = 0.0
+    fallback_sum = 0.0
+    fallback_count = 0
+    bucket_weights = OrderedDict()  # type: OrderedDict
+
+    for way in ways:
+        if not isinstance(way, dict):
+            continue
+        segments = way.get("visibleGeometry")
+        if not isinstance(segments, list):
+            continue
+        for segment in segments:
+            if not isinstance(segment, dict):
+                continue
+            sample_entries = segment.get("locationSamples")
+            if not isinstance(sample_entries, list) or not sample_entries:
+                continue
+            sample_buckets = []  # type: List[str]
+            sample_multipliers = []  # type: List[float]
+            for sample_entry in sample_entries:
+                if not isinstance(sample_entry, dict):
+                    continue
+                bucket = _location_bucket_from_loc(_extract_loc(sample_entry.get("zone")))
+                if not bucket:
+                    continue
+                sample_buckets.append(bucket)
+                sample_multipliers.append(_location_multiplier_for_bucket(bucket))
+
+            if not sample_multipliers:
+                continue
+
+            segment_multiplier = sum(sample_multipliers) / float(len(sample_multipliers))
+            segment_length = max(0.0, _float_or_zero(segment.get("length")))
+            fallback_sum += segment_multiplier
+            fallback_count += 1
+            if segment_length > 0:
+                weighted_sum += segment_multiplier * segment_length
+                weight_sum += segment_length
+
+            sample_weight = segment_length if segment_length > 0 else 1.0
+            sample_weight = sample_weight / float(len(sample_buckets))
+            for bucket in sample_buckets:
+                bucket_weights[bucket] = _float_or_zero(bucket_weights.get(bucket)) + sample_weight
+
+    if weight_sum > 0:
+        location_factor = weighted_sum / weight_sum
+    elif fallback_count > 0:
+        location_factor = fallback_sum / float(fallback_count)
+    else:
+        location_factor = 1.0
+
+    factor_digits = _scoring_factor_digits()
+    details = OrderedDict()
+    if bucket_weights:
+        dominant_bucket = max(bucket_weights.keys(), key=lambda key: bucket_weights.get(key, 0.0))
+        details[dominant_bucket] = _round_component(
+            _location_multiplier_for_bucket(dominant_bucket), factor_digits
+        )
+    details["weighted"] = _round_component(location_factor, factor_digits)
+    details["appliedMultiplier"] = _round_component(location_factor, factor_digits)
+    return location_factor, details
+
+
+def _building_location_factor(group: Dict[str, Any]) -> Tuple[float, OrderedDict]:
+    items = group.get("items")
+    best_loc = None  # type: Optional[Dict[str, Any]]
+    best_inside = -1.0
+    first_item = None
+    if isinstance(items, list):
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            if first_item is None:
+                first_item = item
+            visible_geometry = item.get("visibleGeometry")
+            if not isinstance(visible_geometry, dict):
+                continue
+            coverage = visible_geometry.get("coverage")
+            if not isinstance(coverage, dict):
+                continue
+            segments = coverage.get("segments")
+            if not isinstance(segments, list):
+                continue
+            for segment in segments:
+                if not isinstance(segment, dict):
+                    continue
+                loc = _extract_loc(segment.get("loc"))
+                if not isinstance(loc, dict):
+                    continue
+                inside = _float_or_zero(segment.get("insideCount"))
+                if inside > best_inside:
+                    best_inside = inside
+                    best_loc = loc
+
+    if best_loc is not None:
+        multiplier, bucket = _location_multiplier_from_loc(best_loc)
+        return multiplier, _location_component(bucket, multiplier)
+
+    fallback_loc = _location_loc_from_struct(group.get("location"), ("center", "point"))
+    if fallback_loc is None and isinstance(first_item, dict):
+        fallback_loc = _location_loc_from_struct(first_item.get("location"), ("center", "point"))
+    multiplier, bucket = _location_multiplier_from_loc(fallback_loc)
+    return multiplier, _location_component(bucket, multiplier)
+
+
+def _poi_location_factor(group: Dict[str, Any]) -> Tuple[float, OrderedDict]:
+    loc = _location_loc_from_struct(group.get("location"), ("point", "center"))
+    if loc is None:
+        items = group.get("items")
+        first_item = items[0] if isinstance(items, list) and items else None
+        if isinstance(first_item, dict):
+            loc = _location_loc_from_struct(first_item.get("location"), ("point", "center"))
+    multiplier, bucket = _location_multiplier_from_loc(loc)
+    return multiplier, _location_component(bucket, multiplier)
+
+
 def _linear_length_multiplier(visible_length: float, reference_length: Optional[float]) -> float:
     min_multiplier = _scoring_length_min_multiplier()
     max_multiplier = _scoring_length_max_multiplier()
@@ -570,7 +786,8 @@ def _apply_linear_importance_scores(main_entry: Dict[str, Any],
             visible_length = max(0.0, _float_or_zero(group.get("totalLength")))
             length_multiplier = _linear_length_multiplier(visible_length, reference_length)
             tag_factor, tag_details = _group_importance_factor(group)
-            final_score = _js_round(base_score * length_multiplier * tag_factor)
+            location_factor, location_details = _linear_location_factor(group)
+            final_score = _js_round(base_score * length_multiplier * tag_factor * location_factor)
             factor_digits = _scoring_factor_digits()
 
             components = OrderedDict()
@@ -582,6 +799,7 @@ def _apply_linear_importance_scores(main_entry: Dict[str, Any],
             ])
             if tag_details is not None and tag_factor > 1.0:
                 components["importanceTags"] = tag_details
+            components["location"] = location_details
 
             group["importanceScore"] = _build_importance_score(final_score, components)
 
@@ -626,7 +844,8 @@ def _apply_building_importance_scores(main_entry: Dict[str, Any]) -> None:
         max_size = max_named if is_named else max_unnamed
         relative_size = (size / max_size) if max_size > 0 else 1.0
         tag_factor, tag_details = _group_importance_factor(group)
-        final_score = _js_round(base * relative_size * tag_factor)
+        location_factor, location_details = _building_location_factor(group)
+        final_score = _js_round(base * relative_size * tag_factor * location_factor)
         factor_digits = _scoring_factor_digits()
         size_key_digits = _scoring_size_key_digits()
 
@@ -639,6 +858,7 @@ def _apply_building_importance_scores(main_entry: Dict[str, Any]) -> None:
         ])
         if tag_details is not None and tag_factor > 1.0:
             components["importanceTags"] = tag_details
+        components["location"] = location_details
 
         group["importanceScore"] = _build_importance_score(final_score, components)
 
@@ -660,8 +880,9 @@ def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
             if not isinstance(group, dict):
                 continue
             tag_factor, tag_details = _group_importance_factor(group)
+            location_factor, location_details = _poi_location_factor(group)
             poi_base = _scoring_poi_base()
-            final_score = _js_round(poi_base * tag_factor)
+            final_score = _js_round(poi_base * tag_factor * location_factor)
 
             components = OrderedDict()
             if isinstance(sub_key, str):
@@ -670,6 +891,7 @@ def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
                 ])
             if tag_details is not None and tag_factor > 1.0:
                 components["importanceTags"] = tag_details
+            components["location"] = location_details
 
             group["importanceScore"] = _build_importance_score(final_score, components)
 
