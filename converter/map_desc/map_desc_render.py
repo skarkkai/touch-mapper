@@ -36,40 +36,192 @@ Boundary = TypedDict(
     {"minX": float, "minY": float, "maxX": float, "maxY": float}
 )
 
-LINEAR_SUBCLASS_BASE_IMPORTANCE = {
-    "A1_major_roads": 100.0,
-    "A3_subway_metro": 95.0,
-    "A3_tram_light_rail": 90.0,
-    "A1_secondary_roads": 85.0,
-    "A4_rivers": 80.0,
-    "A3_rail_lines": 75.0,
-    "A2_pedestrian_streets": 70.0,
-    "A1_local_streets": 65.0,
-    "A2_cycleways": 60.0,
-    "A4_streams_canals": 55.0,
-    "A2_footpaths_trails": 50.0,
-    "A2_steps_ramps": 45.0,
-    "A1_service_roads": 40.0,
-    "A3_rail_yards_sidings": 35.0,
-    "A1_track_roads": 30.0,
-    "A4_ditches_drains": 30.0,
-    "A1_road_construction": 25.0,
-    "A1_vehicle_unspecified": 25.0,
-    "A2_pedestrian_unspecified": 25.0,
-    "A4_other_waterways": 25.0,
-    "A5_connectivity_nodes": 20.0,
-    "A_other_ways": 20.0,
-}
-IMPORTANCE_SCORE_INCLUDE_COMPONENTS = True
-IMPORTANCE_TAG_FAMILY_MULTIPLIERS = (
-    ("wikipedia", 1.35),
-    ("wikidata", 1.25),
-    ("wikimedia_commons", 1.15),
-    ("website", 1.15),
-    ("operator", 1.10),
-    ("extraNames", 1.05),
+# Scoring configuration
+# Change values in this section to tune importance scoring globally.
+ScoringLengthConfig = TypedDict(
+    "ScoringLengthConfig",
+    {"minMultiplier": float, "maxMultiplier": float, "referencePolicy": str},
+    total=False
 )
-IMPORTANCE_TAG_MULTIPLIER_CAP = 2.5
+ScoringComponentFormatConfig = TypedDict(
+    "ScoringComponentFormatConfig",
+    {"factorDigits": int, "sizeKeyDigits": int},
+    total=False
+)
+ScoringBuildingBaseConfig = TypedDict(
+    "ScoringBuildingBaseConfig",
+    {"named": float, "unnamed": float},
+    total=False
+)
+ScoringConfig = TypedDict(
+    "ScoringConfig",
+    {
+        "linearSubclassBaseImportance": Dict[str, float],
+        "tagFamilyMultipliers": Tuple[Tuple[str, float], ...],
+        "tagMultiplierCap": float,
+        "buildingBase": ScoringBuildingBaseConfig,
+        "poiBase": float,
+        "excludedSubclasses": Set[str],
+        "length": ScoringLengthConfig,
+        "componentFormat": ScoringComponentFormatConfig,
+        "includeComponents": bool,
+    },
+    total=False
+)
+
+SCORING_CONFIG = {  # type: ScoringConfig
+    # Linear (class A) base importance per subclass.
+    "linearSubclassBaseImportance": {
+        "A1_major_roads": 100.0,
+        "A3_subway_metro": 95.0,
+        "A3_tram_light_rail": 90.0,
+        "A1_secondary_roads": 85.0,
+        "A4_rivers": 80.0,
+        "A3_rail_lines": 75.0,
+        "A2_pedestrian_streets": 70.0,
+        "A1_local_streets": 65.0,
+        "A2_cycleways": 60.0,
+        "A4_streams_canals": 55.0,
+        "A2_footpaths_trails": 50.0,
+        "A2_steps_ramps": 45.0,
+        "A1_service_roads": 40.0,
+        "A3_rail_yards_sidings": 35.0,
+        "A1_track_roads": 30.0,
+        "A4_ditches_drains": 30.0,
+        "A1_road_construction": 25.0,
+        "A1_vehicle_unspecified": 25.0,
+        "A2_pedestrian_unspecified": 25.0,
+        "A4_other_waterways": 25.0,
+        "A5_connectivity_nodes": 20.0,
+        "A_other_ways": 20.0,
+    },
+    # Tag-family factors, multiplied once per family (group-wide), then capped.
+    "tagFamilyMultipliers": (
+        ("wikipedia", 1.35),
+        ("wikidata", 1.25),
+        ("wikimedia_commons", 1.15),
+        ("website", 1.15),
+        ("operator", 1.10),
+        ("extraNames", 1.05),
+    ),
+    "tagMultiplierCap": 2.5,
+    # Building base scores (change these to tune named/unnamed building emphasis).
+    "buildingBase": {"named": 50.0, "unnamed": 10.0},
+    # POI base score (change this to tune maximum POI score before tag multipliers).
+    "poiBase": 50.0,
+    # Subclasses that should not receive importanceScore in this phase.
+    "excludedSubclasses": {"A5_connectivity_nodes"},
+    # Length multiplier tuning for linear features.
+    "length": {"minMultiplier": 0.2, "maxMultiplier": 1.0, "referencePolicy": "max_map_side"},
+    # Formatting for score component debug output.
+    "componentFormat": {"factorDigits": 3, "sizeKeyDigits": 3},
+    # Toggle to emit score components (False keeps only {"final": ...}).
+    "includeComponents": True,
+}
+
+
+def _scoring_linear_base_importance() -> Dict[str, float]:
+    return SCORING_CONFIG["linearSubclassBaseImportance"]
+
+
+def _scoring_tag_family_multipliers() -> Tuple[Tuple[str, float], ...]:
+    return SCORING_CONFIG["tagFamilyMultipliers"]
+
+
+def _scoring_tag_multiplier_cap() -> float:
+    return float(SCORING_CONFIG["tagMultiplierCap"])
+
+
+def _scoring_building_base(is_named: bool) -> float:
+    base_by_name = SCORING_CONFIG["buildingBase"]
+    return float(base_by_name["named"] if is_named else base_by_name["unnamed"])
+
+
+def _scoring_poi_base() -> float:
+    return float(SCORING_CONFIG["poiBase"])
+
+
+def _scoring_is_excluded_subclass(subclass_key: str) -> bool:
+    return subclass_key in SCORING_CONFIG["excludedSubclasses"]
+
+
+def _scoring_length_min_multiplier() -> float:
+    return float(SCORING_CONFIG["length"]["minMultiplier"])
+
+
+def _scoring_length_max_multiplier() -> float:
+    return float(SCORING_CONFIG["length"]["maxMultiplier"])
+
+
+def _scoring_length_reference_policy() -> str:
+    return str(SCORING_CONFIG["length"]["referencePolicy"])
+
+
+def _scoring_factor_digits() -> int:
+    return int(SCORING_CONFIG["componentFormat"]["factorDigits"])
+
+
+def _scoring_size_key_digits() -> int:
+    return int(SCORING_CONFIG["componentFormat"]["sizeKeyDigits"])
+
+
+def _scoring_include_components() -> bool:
+    return bool(SCORING_CONFIG["includeComponents"])
+
+
+def _validate_scoring_config() -> None:
+    linear_map = _scoring_linear_base_importance()
+    if not linear_map:
+        raise ValueError("SCORING_CONFIG.linearSubclassBaseImportance must not be empty")
+    for key, value in linear_map.items():
+        if not isinstance(key, str) or not key:
+            raise ValueError("Invalid linear subclass key in scoring config")
+        if not isinstance(value, (int, float)):
+            raise ValueError("Linear subclass base importance must be numeric for key: " + key)
+
+    excluded_subclasses = SCORING_CONFIG["excludedSubclasses"]
+    for excluded_key in excluded_subclasses:
+        if excluded_key not in linear_map:
+            raise ValueError("Excluded subclass missing in linear base map: " + excluded_key)
+
+    seen_families = set()  # type: Set[str]
+    for family, factor in _scoring_tag_family_multipliers():
+        if not isinstance(family, str) or not family:
+            raise ValueError("Invalid tag family name in scoring config")
+        if family in seen_families:
+            raise ValueError("Duplicate tag family in scoring config: " + family)
+        seen_families.add(family)
+        if not isinstance(factor, (int, float)) or float(factor) <= 0:
+            raise ValueError("Tag family multiplier must be positive for family: " + family)
+
+    cap = _scoring_tag_multiplier_cap()
+    if cap < 1.0:
+        raise ValueError("SCORING_CONFIG.tagMultiplierCap must be >= 1.0")
+
+    for building_key in ("named", "unnamed"):
+        building_base = SCORING_CONFIG["buildingBase"].get(building_key)
+        if not isinstance(building_base, (int, float)):
+            raise ValueError("Building base must be numeric for key: " + building_key)
+
+    poi_base = _scoring_poi_base()
+    if not isinstance(poi_base, float) and not isinstance(poi_base, int):
+        raise ValueError("SCORING_CONFIG.poiBase must be numeric")
+
+    min_multiplier = _scoring_length_min_multiplier()
+    max_multiplier = _scoring_length_max_multiplier()
+    if min_multiplier < 0 or max_multiplier <= 0 or min_multiplier > max_multiplier:
+        raise ValueError("Invalid length multiplier bounds in scoring config")
+
+    policy = _scoring_length_reference_policy()
+    if policy not in ("max_map_side",):
+        raise ValueError("Unsupported length reference policy: " + policy)
+
+    if _scoring_factor_digits() < 0 or _scoring_size_key_digits() < 0:
+        raise ValueError("Component format digits must be non-negative")
+
+
+_validate_scoring_config()
+
 WIKIDATA_QID_RE = re.compile(r"^Q[1-9][0-9]*$")
 WIKIPEDIA_LANG_RE = re.compile(r"^[a-z0-9-]+$", re.IGNORECASE)
 
@@ -267,7 +419,10 @@ def _boundary_reference_length(boundary: Optional[Boundary]) -> Optional[float]:
         return None
     width = abs(boundary["maxX"] - boundary["minX"])
     height = abs(boundary["maxY"] - boundary["minY"])
-    return max(width, height)
+    policy = _scoring_length_reference_policy()
+    if policy == "max_map_side":
+        return max(width, height)
+    raise ValueError("Unsupported length reference policy: " + policy)
 
 
 def _importance_families_for_tag_map(tag_map: Optional[Dict[str, Any]]) -> List[str]:
@@ -309,29 +464,34 @@ def _group_importance_factor(group: Dict[str, Any]) -> Tuple[float, Optional[Ord
 
     raw_product = 1.0
     details = OrderedDict()
-    for family, family_factor in IMPORTANCE_TAG_FAMILY_MULTIPLIERS:
+    factor_digits = _scoring_factor_digits()
+    for family, family_factor in _scoring_tag_family_multipliers():
         if family not in active_families:
             continue
         raw_product *= family_factor
-        details[family] = _round_component(family_factor, 3)
+        details[family] = _round_component(family_factor, factor_digits)
 
-    applied_multiplier = min(raw_product, IMPORTANCE_TAG_MULTIPLIER_CAP)
-    details["rawProduct"] = _round_component(raw_product, 3)
-    details["appliedMultiplier"] = _round_component(applied_multiplier, 3)
-    if raw_product > IMPORTANCE_TAG_MULTIPLIER_CAP:
-        details["cappedAt"] = _round_component(IMPORTANCE_TAG_MULTIPLIER_CAP, 3)
+    cap = _scoring_tag_multiplier_cap()
+    applied_multiplier = min(raw_product, cap)
+    details["rawProduct"] = _round_component(raw_product, factor_digits)
+    details["appliedMultiplier"] = _round_component(applied_multiplier, factor_digits)
+    if raw_product > cap:
+        details["cappedAt"] = _round_component(cap, factor_digits)
     return applied_multiplier, details
 
 
 def _linear_length_multiplier(visible_length: float, reference_length: Optional[float]) -> float:
+    min_multiplier = _scoring_length_min_multiplier()
+    max_multiplier = _scoring_length_max_multiplier()
     length = max(0.0, visible_length)
     if length <= 0:
-        return 0.1
+        return min_multiplier
     if reference_length is None or reference_length <= 0:
-        return 1.0
+        return max_multiplier
     if length >= reference_length:
-        return 1.0
-    return 0.1 + (0.9 * (length / reference_length))
+        return max_multiplier
+    interpolation = length / reference_length
+    return min_multiplier + ((max_multiplier - min_multiplier) * interpolation)
 
 
 def _round_component(value: float, digits: int) -> float:
@@ -351,7 +511,7 @@ def _compact_number_key(value: float, digits: int) -> str:
 def _build_importance_score(final_score: int, components: OrderedDict) -> OrderedDict:
     score = OrderedDict()
     score["final"] = int(final_score)
-    if not IMPORTANCE_SCORE_INCLUDE_COMPONENTS:
+    if not _scoring_include_components():
         return score
     for key, value in components.items():
         if value is None:
@@ -396,9 +556,9 @@ def _apply_linear_importance_scores(main_entry: Dict[str, Any],
         sub_key = sub_entry.get("key")
         if not isinstance(sub_key, str):
             continue
-        if sub_key == "A5_connectivity_nodes":
+        if _scoring_is_excluded_subclass(sub_key):
             continue
-        base_score = LINEAR_SUBCLASS_BASE_IMPORTANCE.get(sub_key)
+        base_score = _scoring_linear_base_importance().get(sub_key)
         if base_score is None:
             continue
         groups = sub_entry.get("groups")
@@ -411,13 +571,14 @@ def _apply_linear_importance_scores(main_entry: Dict[str, Any],
             length_multiplier = _linear_length_multiplier(visible_length, reference_length)
             tag_factor, tag_details = _group_importance_factor(group)
             final_score = _js_round(base_score * length_multiplier * tag_factor)
+            factor_digits = _scoring_factor_digits()
 
             components = OrderedDict()
             components["category"] = OrderedDict([
                 (sub_key, _js_round(base_score))
             ])
             components["length"] = OrderedDict([
-                (str(_js_round(visible_length)), _round_component(length_multiplier, 3))
+                (str(_js_round(visible_length)), _round_component(length_multiplier, factor_digits))
             ])
             if tag_details is not None and tag_factor > 1.0:
                 components["importanceTags"] = tag_details
@@ -461,18 +622,20 @@ def _apply_building_importance_scores(main_entry: Dict[str, Any]) -> None:
     for group in building_groups:
         is_named = _has_meaningful_label(group.get("label"))
         size = _building_group_size(group)
-        base = 100.0 if is_named else 30.0
+        base = _scoring_building_base(is_named)
         max_size = max_named if is_named else max_unnamed
         relative_size = (size / max_size) if max_size > 0 else 1.0
         tag_factor, tag_details = _group_importance_factor(group)
         final_score = _js_round(base * relative_size * tag_factor)
+        factor_digits = _scoring_factor_digits()
+        size_key_digits = _scoring_size_key_digits()
 
         components = OrderedDict()
         components["category"] = OrderedDict([
             ("named" if is_named else "unnamed", _js_round(base))
         ])
         components["size"] = OrderedDict([
-            (_compact_number_key(size, 3), _round_component(relative_size, 3))
+            (_compact_number_key(size, size_key_digits), _round_component(relative_size, factor_digits))
         ])
         if tag_details is not None and tag_factor > 1.0:
             components["importanceTags"] = tag_details
@@ -497,12 +660,13 @@ def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
             if not isinstance(group, dict):
                 continue
             tag_factor, tag_details = _group_importance_factor(group)
-            final_score = _js_round(100.0 * tag_factor)
+            poi_base = _scoring_poi_base()
+            final_score = _js_round(poi_base * tag_factor)
 
             components = OrderedDict()
             if isinstance(sub_key, str):
                 components["category"] = OrderedDict([
-                    (sub_key, 100)
+                    (sub_key, _js_round(poi_base))
                 ])
             if tag_details is not None and tag_factor > 1.0:
                 components["importanceTags"] = tag_details
