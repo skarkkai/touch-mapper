@@ -963,7 +963,12 @@
     if (!labelSource && primary) {
       labelSource = primary.displayLabel;
     }
+    const explicitName = group && typeof group.label === "string" && group.label.trim()
+      ? group.label.trim()
+      : (primary && typeof primary.label === "string" && primary.label.trim() ? primary.label.trim() : "");
     const nameParts = splitLabel(labelSource);
+    const hasSubtitle = !!(nameParts && typeof nameParts.subtitle === "string" && nameParts.subtitle.trim());
+    const isNamedForSummary = !!explicitName || hasSubtitle;
     const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
     const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
     const coverageLine = coverageBreakdown(coverage);
@@ -975,7 +980,9 @@
 
     const item = {
       type: "building",
-      attrs: {},
+      attrs: {
+        dataIsNamed: isNamedForSummary
+      },
       lines: []
     };
     const scoreTooltip = importanceScoreTooltip(group && group.importanceScore ? group.importanceScore : null);

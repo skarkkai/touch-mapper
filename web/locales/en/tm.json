@@ -195,6 +195,7 @@
     "map_content_subheading_poi_transport": "Transport points",
     "map_content_subheading_poi_accessibility": "Accessibility cues",
     "map_content_way_unnamed": "Unnamed way",
+    "map_content_way_unnamed_waterway": "Unnamed waterway",
     "map_content_no_ways": "No ways listed for this map.",
     "map_content_no_roads": "No roads listed for this map.",
     "map_content_no_paths": "No paths listed for this map.",

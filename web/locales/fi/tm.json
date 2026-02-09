@@ -195,6 +195,7 @@
     "map_content_subheading_poi_transport": "Liikennekohteet",
     "map_content_subheading_poi_accessibility": "Esteettömyysvihjeet",
     "map_content_way_unnamed": "Nimetön väylä",
+    "map_content_way_unnamed_waterway": "Nimetön vesiväylä",
     "map_content_no_ways": "Kartalle ei löytynyt väyliä.",
     "map_content_no_roads": "Kartalle ei löytynyt teitä.",
     "map_content_no_paths": "Kartalle ei löytynyt polkuja.",

@@ -536,7 +536,8 @@
       attrs: {
         dataOsmId: entry.item && entry.item.osmId !== undefined && entry.item.osmId !== null
           ? String(entry.item.osmId)
-          : null
+          : null,
+        dataIsNamed: !!entry.hasName
       },
       lines: lines
     };
@@ -769,24 +770,7 @@
     }
     const bySection = sectionEntriesByKey(mapContent);
     const selected = bySection[resolved.section] || [];
-    const model = selected.map(entryToModelItem);
-    if (resolved.section === "familiar_places" && resolved.includeSparseNote) {
-      const total = bySection.familiar_places.length + bySection.daily_essentials.length + bySection.transport_points.length;
-      if (total > 0 && total <= 2) {
-        model.push({
-          type: "poi_note",
-          attrs: {},
-          lines: [lineModel(
-            t(
-              "map_content_poi_sparse_note",
-              "Only a few POIs are tagged in this area; missing places may be due to OpenStreetMap data coverage."
-            ),
-            "map-content-message"
-          )]
-        });
-      }
-    }
-    return model;
+    return selected.map(entryToModelItem);
   }
 
   function applyItemAttrs(listItem, attrs) {

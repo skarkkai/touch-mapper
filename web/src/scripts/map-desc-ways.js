@@ -1137,11 +1137,16 @@
     let lineText = "";
 
     if (!nameText) {
-      lineText = t("map_content_way_unnamed", "Unnamed way");
+      lineText = entry && entry.sectionKey === "waterways"
+        ? t("map_content_way_unnamed_waterway", "Unnamed waterway")
+        : t("map_content_way_unnamed", "Unnamed way");
+      item.attrs.dataIsNamed = false;
     } else if (typeText) {
       lineText = typeText + " " + nameText;
+      item.attrs.dataIsNamed = true;
     } else {
       lineText = nameText;
+      item.attrs.dataIsNamed = true;
     }
     item.summaryTitle = capitalizeFirst(lineText);
     if (lengthText) {
@@ -1251,7 +1256,8 @@
     const item = {
       type: "summary",
       attrs: {
-        dataUnnamedSurface: summary.surfaceClass
+        dataUnnamedSurface: summary.surfaceClass,
+        dataIsNamed: false
       },
       lines: []
     };
@@ -1281,7 +1287,9 @@
     }
     const item = {
       type: "summary",
-      attrs: {},
+      attrs: {
+        dataIsNamed: false
+      },
       lines: []
     };
     const singularType = translatedWayType(summary.subClass) || t("map_content_way_type_A_other_ways", "other way");

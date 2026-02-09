@@ -195,6 +195,7 @@
     "map_content_subheading_poi_transport": "Verkehrspunkte",
     "map_content_subheading_poi_accessibility": "Hinweise zur Barrierefreiheit",
     "map_content_way_unnamed": "Unbenannter Weg",
+    "map_content_way_unnamed_waterway": "Unbenannter Wasserweg",
     "map_content_no_ways": "Keine Wege für diese Karte aufgelistet.",
     "map_content_no_roads": "Keine Straßen für diese Karte aufgelistet.",
     "map_content_no_paths": "Keine Pfade für diese Karte aufgelistet.",

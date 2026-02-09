@@ -61,12 +61,12 @@
       rendererSection: "familiar_places",
       rowSelector: ".map-content-poi-familiar-row",
       listSelector: ".map-content-poi-familiar",
-      alwaysShow: true,
+      alwaysShow: false,
       maxVisible: MAX_VISIBLE_POI_ITEMS,
       fallbackKey: "map_content_no_poi_familiar",
       fallbackText: "No familiar places listed for this map.",
       toggleClass: "map-content-poi-familiar-toggle",
-      includeSparseNote: true
+      includeSparseNote: false
     },
     {
       key: "poiDaily",
@@ -533,7 +533,8 @@
             item && typeof item.summaryTitle === "string" && item.summaryTitle.trim()) {
           titleText = item.summaryTitle.trim();
         }
-        if (importanceScore && titleText) {
+        const isNamed = !(item && item.attrs && item.attrs.dataIsNamed === false);
+        if (importanceScore && titleText && isNamed) {
           candidates.push({
             fullIndex: fullIndex,
             titleText: titleText,
