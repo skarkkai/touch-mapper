@@ -106,9 +106,9 @@ SCORING_CONFIG = {  # type: ScoringConfig
     ),
     "tagMultiplierCap": 2.5,
     # Building base scores (change these to tune named/unnamed building emphasis).
-    "buildingBase": {"named": 50.0, "unnamed": 10.0},
+    "buildingBase": {"named": 30.0, "unnamed": 5.0},
     # POI base score (change this to tune maximum POI score before tag multipliers).
-    "poiBase": 50.0,
+    "poiBase": 30.0,
     # Subclasses that should not receive importanceScore in this phase.
     "excludedSubclasses": {"A5_connectivity_nodes"},
     # Length multiplier tuning for linear features.

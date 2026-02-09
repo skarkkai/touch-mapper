@@ -253,6 +253,8 @@
     "map_content_show_more_features_one": "Näytä vielä 1 kohde",
     "map_content_show_more_features_many": "Näytä vielä __count__ kohdetta",
     "map_content_show_less_features": "Näytä vähemmän kohteita",
+    "map_content_summary_show_more": "Näytä lisää",
+    "map_content_summary_show_only": "Näytä vain yhteenveto",
     "map_content_height_note_raised_mm": "Koholla __millimeters__ milliä",
     "map_content_height_note_varying": "Koholla vaihtelevasti",
     "map_content_height_note_waved_surface": "Aallotettu pinta",

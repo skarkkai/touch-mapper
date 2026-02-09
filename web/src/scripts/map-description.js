@@ -10,6 +10,8 @@
   const MAX_VISIBLE_BUILDINGS = 10;
   const MAX_VISIBLE_LINEAR_ITEMS = 10;
   const MAX_VISIBLE_POI_ITEMS = 8;
+  const SUMMARY_MAX_ITEMS = 10;
+  const SUMMARY_SECTION_PENALTY = 0.5;
   const LINEAR_SECTION_CONFIGS = [
     {
       key: "roads",
@@ -404,6 +406,170 @@
     };
   }
 
+  function sectionEntriesInDisplayOrder(model) {
+    const entries = [];
+    LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
+      entries.push({
+        key: sectionConfig.key,
+        section: model ? model[sectionConfig.key] : null
+      });
+    });
+    entries.push({
+      key: "buildings",
+      section: model ? model.buildings : null
+    });
+    POI_SECTION_CONFIGS.forEach(function(sectionConfig){
+      entries.push({
+        key: sectionConfig.key,
+        section: model ? model[sectionConfig.key] : null
+      });
+    });
+    return entries;
+  }
+
+  function summaryPenaltyBucket(sectionKey) {
+    if (sectionKey === "roads" || sectionKey === "paths") {
+      return "road_path";
+    }
+    if (sectionKey === "poiFamiliar" || sectionKey === "poiDaily" || sectionKey === "poiTransport") {
+      return "poi";
+    }
+    return sectionKey;
+  }
+
+  function lineTextFromParts(parts) {
+    if (!Array.isArray(parts)) {
+      return "";
+    }
+    return parts.map(function(part){
+      if (!part || part.text === null || part.text === undefined) {
+        return "";
+      }
+      return String(part.text);
+    }).join("");
+  }
+
+  function titleLineFromItem(item) {
+    const lines = item && Array.isArray(item.lines) ? item.lines : [];
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      if (line && line.className === "map-content-title-line") {
+        return line;
+      }
+    }
+    return null;
+  }
+
+  function importanceScoreFromTitleLine(line) {
+    if (!line || typeof line.title !== "string") {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(line.title);
+      if (!parsed || typeof parsed !== "object") {
+        return null;
+      }
+      const value = parsed.final;
+      if (value === null || value === undefined || isNaN(value)) {
+        return null;
+      }
+      const number = Number(value);
+      if (!isFinite(number) || number <= 0) {
+        return null;
+      }
+      return number;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function collectSummaryCandidates(model) {
+    const candidates = [];
+    let fullIndex = 0;
+    sectionEntriesInDisplayOrder(model).forEach(function(entry){
+      const items = entry && entry.section && Array.isArray(entry.section.items) ? entry.section.items : [];
+      items.forEach(function(item){
+        const titleLine = titleLineFromItem(item);
+        const importanceScore = importanceScoreFromTitleLine(titleLine);
+        let titleText = titleLine ? lineTextFromParts(titleLine.parts).trim() : "";
+        if ((entry.key === "roads" || entry.key === "paths") &&
+            item && typeof item.summaryTitle === "string" && item.summaryTitle.trim()) {
+          titleText = item.summaryTitle.trim();
+        }
+        if (importanceScore && titleText) {
+          candidates.push({
+            fullIndex: fullIndex,
+            titleText: titleText,
+            sectionKey: entry.key,
+            penaltyBucket: summaryPenaltyBucket(entry.key),
+            importanceScore: importanceScore
+          });
+        }
+        fullIndex += 1;
+      });
+    });
+    return candidates;
+  }
+
+  function pickSummaryCandidates(candidates, maxItems) {
+    const remaining = Array.isArray(candidates) ? candidates.slice() : [];
+    const picked = [];
+    const pickCountsByBucket = {};
+    while (remaining.length && picked.length < maxItems) {
+      let bestIndex = -1;
+      let bestEffective = -Infinity;
+      let bestBase = -Infinity;
+      let bestOrder = Number.MAX_SAFE_INTEGER;
+      remaining.forEach(function(candidate, index){
+        const pickCount = pickCountsByBucket[candidate.penaltyBucket] || 0;
+        const effective = candidate.importanceScore * Math.pow(SUMMARY_SECTION_PENALTY, pickCount);
+        if (effective > bestEffective + 1e-9) {
+          bestIndex = index;
+          bestEffective = effective;
+          bestBase = candidate.importanceScore;
+          bestOrder = candidate.fullIndex;
+          return;
+        }
+        if (Math.abs(effective - bestEffective) <= 1e-9) {
+          if (candidate.importanceScore > bestBase ||
+              (candidate.importanceScore === bestBase && candidate.fullIndex < bestOrder)) {
+            bestIndex = index;
+            bestEffective = effective;
+            bestBase = candidate.importanceScore;
+            bestOrder = candidate.fullIndex;
+          }
+        }
+      });
+      if (bestIndex < 0) {
+        break;
+      }
+      const winner = remaining.splice(bestIndex, 1)[0];
+      picked.push(winner);
+      pickCountsByBucket[winner.penaltyBucket] = (pickCountsByBucket[winner.penaltyBucket] || 0) + 1;
+    }
+    picked.sort(function(a, b){
+      return a.fullIndex - b.fullIndex;
+    });
+    return picked;
+  }
+
+  function buildSummaryModel(model) {
+    const candidates = collectSummaryCandidates(model);
+    const picked = pickSummaryCandidates(candidates, SUMMARY_MAX_ITEMS);
+    return {
+      items: picked.map(function(item){
+        return { text: item.titleText };
+      }),
+      candidateCount: candidates.length
+    };
+  }
+
+  function hasFullContentRows(model) {
+    return sectionEntriesInDisplayOrder(model).some(function(entry){
+      return !!(entry && entry.section && Array.isArray(entry.section.items) && entry.section.items.length);
+    });
+  }
+
   function buildSectionModel(renderer, mapContent, helpers, fallbackKey, fallbackText, rendererOptions) {
     const unavailableMessage = translateWithHelpers(
       helpers,
@@ -549,7 +715,7 @@
       translateWithHelpers(helpers, "map_content_show_less_buildings", "Show fewer buildings")
     );
     const sectionHeightNotes = buildSectionHeightNotes(payload, helpers);
-    return {
+    const model = {
       roads: linearSections.roads,
       paths: linearSections.paths,
       railways: linearSections.railways,
@@ -558,14 +724,19 @@
       poiFamiliar: poiSections.poiFamiliar,
       poiDaily: poiSections.poiDaily,
       poiTransport: poiSections.poiTransport,
-      buildings: buildingsResult.section,
-      ui: {
-        sectionHeightNotes: sectionHeightNotes,
-        linearToggles: linearToggles,
-        buildingsToggle: buildingsResult.toggle,
-        poiToggles: poiToggles
-      }
+      buildings: buildingsResult.section
     };
+    model.summary = buildSummaryModel(model);
+    model.ui = {
+      sectionHeightNotes: sectionHeightNotes,
+      linearToggles: linearToggles,
+      buildingsToggle: buildingsResult.toggle,
+      poiToggles: poiToggles,
+      hasFullContentRows: hasFullContentRows(model),
+      summaryShowMoreLabel: translateWithHelpers(helpers, "map_content_summary_show_more", "Show more"),
+      summaryShowOnlyLabel: translateWithHelpers(helpers, "map_content_summary_show_only", "Show summary only")
+    };
+    return model;
   }
 
   function sectionCount(section) {
@@ -645,6 +816,91 @@
     });
 
     listElem.after(button);
+  }
+
+  function setFullContentVisibility(container, isVisible) {
+    if (!container || !container.length) {
+      return;
+    }
+    const fullContainer = container.find(".map-content-full");
+    if (!fullContainer.length) {
+      return;
+    }
+    if (isVisible) {
+      fullContainer.removeAttr("hidden");
+      return;
+    }
+    fullContainer.attr("hidden", "hidden");
+  }
+
+  function renderSummaryFromModel(model, container) {
+    if (!container || !container.length) {
+      return;
+    }
+    const listElem = container.find(".map-content-summary");
+    if (!listElem.length) {
+      return;
+    }
+    listElem.empty();
+    const summaryItems = model && model.summary && Array.isArray(model.summary.items)
+      ? model.summary.items
+      : [];
+    summaryItems.forEach(function(item){
+      if (!item || !item.text) {
+        return;
+      }
+      listElem.append(
+        $("<li>")
+          .addClass("map-content-summary-item")
+          .text(item.text)
+      );
+    });
+  }
+
+  function updateSummaryToggleButton(container, model, isExpanded) {
+    if (!container || !container.length) {
+      return;
+    }
+    const button = container.find(".map-content-summary-toggle");
+    if (!button.length) {
+      return;
+    }
+    const hasFullContentRows = !!(model && model.ui && model.ui.hasFullContentRows);
+    if (!hasFullContentRows) {
+      button.hide();
+      return;
+    }
+    const collapsedLabel = model && model.ui && model.ui.summaryShowMoreLabel
+      ? model.ui.summaryShowMoreLabel
+      : t("map_content_summary_show_more", "Show more");
+    const expandedLabel = model && model.ui && model.ui.summaryShowOnlyLabel
+      ? model.ui.summaryShowOnlyLabel
+      : t("map_content_summary_show_only", "Show summary only");
+    button
+      .show()
+      .attr("aria-expanded", isExpanded ? "true" : "false")
+      .text(isExpanded ? expandedLabel : collapsedLabel);
+  }
+
+  function bindSummaryToggle(container, model, state) {
+    if (!container || !container.length) {
+      return;
+    }
+    const button = container.find(".map-content-summary-toggle");
+    if (!button.length) {
+      return;
+    }
+    button.off("click.map-content-summary-toggle");
+    button.on("click.map-content-summary-toggle", function(){
+      const nextExpanded = !state.summaryExpanded;
+      if (nextExpanded && !state.fullContentRendered) {
+        renderFromModel(model, container);
+        state.fullContentRendered = true;
+      }
+      state.summaryExpanded = nextExpanded;
+      setFullContentVisibility(container, nextExpanded);
+      updateSummaryToggleButton(container, model, nextExpanded);
+    });
   }
 
   function renderFromModel(model, container) {
@@ -778,9 +1034,17 @@
     const roadsListElem = container.find(".map-content-roads");
     const buildingsListElem = container.find(".map-content-buildings");
     const familiarPoisListElem = container.find(".map-content-poi-familiar");
-    if (!roadsListElem.length && !buildingsListElem.length && !familiarPoisListElem.length) {
+    const summaryListElem = container.find(".map-content-summary");
+    const summaryToggleElem = container.find(".map-content-summary-toggle");
+    if (!roadsListElem.length && !buildingsListElem.length && !familiarPoisListElem.length && !summaryListElem.length) {
       return;
     }
+    summaryListElem.empty();
+    summaryToggleElem
+      .off("click.map-content-summary-toggle")
+      .attr("aria-expanded", "false")
+      .hide();
+    setFullContentVisibility(container, false);
     roadsListElem.empty();
     LINEAR_SECTION_CONFIGS.forEach(function(sectionConfig){
       const row = container.find(sectionConfig.rowSelector);
@@ -789,6 +1053,7 @@
         return;
       }
       listElem.empty();
+      row.find("." + sectionConfig.toggleClass).remove();
       renderSectionHeightNote(row, null);
       if (!sectionConfig.alwaysShow) {
         row.hide();
@@ -803,6 +1068,7 @@
         return;
       }
       listElem.empty();
+      row.find("." + sectionConfig.toggleClass).remove();
       renderSectionHeightNote(row, null);
       if (!sectionConfig.alwaysShow) {
         row.hide();
@@ -811,11 +1077,14 @@
       }
     });
     buildingsListElem.empty();
-    renderSectionHeightNote(container.find(".map-content-buildings-row"), null);
+    const buildingRow = container.find(".map-content-buildings-row");
+    buildingRow.find(".map-content-buildings-toggle").remove();
+    renderSectionHeightNote(buildingRow, null);
 
     const requestId = info ? info.requestId : null;
     const request = loadMapContent(requestId);
     if (!request) {
+      setFullContentVisibility(container, true);
       if (roadsListElem.length) {
         showMessage(roadsListElem, t("map_content_unavailable", "Map content is not available."));
       }
@@ -837,8 +1106,16 @@
     request.done(function(payload){
       const helpers = { t: t };
       const model = buildModel(payload, helpers, { maxVisibleBuildings: MAX_VISIBLE_BUILDINGS });
-      renderFromModel(model, container);
+      const state = {
+        summaryExpanded: false,
+        fullContentRendered: false
+      };
+      renderSummaryFromModel(model, container);
+      setFullContentVisibility(container, false);
+      updateSummaryToggleButton(container, model, false);
+      bindSummaryToggle(container, model, state);
     }).fail(function(){
+      setFullContentVisibility(container, true);
       if (roadsListElem.length) {
         showMessage(roadsListElem, t("map_content_unavailable", "Map content is not available."));
       }

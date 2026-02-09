@@ -1143,6 +1143,7 @@
     } else {
       lineText = nameText;
     }
+    item.summaryTitle = capitalizeFirst(lineText);
     if (lengthText) {
       lineText += ", " + lengthText;
     }

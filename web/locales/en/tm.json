@@ -253,6 +253,8 @@
     "map_content_show_more_features_one": "Show 1 more feature",
     "map_content_show_more_features_many": "Show __count__ more features",
     "map_content_show_less_features": "Show fewer features",
+    "map_content_summary_show_more": "Show more",
+    "map_content_summary_show_only": "Show summary only",
     "map_content_height_note_raised_mm": "Raised __millimeters__ mm",
     "map_content_height_note_varying": "Raised by varying amounts",
     "map_content_height_note_waved_surface": "Waved surface",

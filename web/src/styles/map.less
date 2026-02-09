@@ -48,6 +48,37 @@
 .map-content ul {
   display: inline-block;
 }
+.map-content .map-content-summary {
+  display: block;
+  margin: 0 0 0.5em 1em;
+  padding: 0;
+}
+.map-content .map-content-summary-item {
+  list-style: none;
+  margin-bottom: 8px;
+}
+.map-content .map-content-summary-item:last-child {
+  margin-bottom: 0;
+}
+.map-content .map-content-summary-toggle {
+  margin: 0 0 1em 1em;
+  border: 1px solid #406271;
+  border-radius: 6px;
+  color: #1f2f36;
+  background-color: #fff;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.map-content .map-content-summary-toggle:hover {
+  background-color: #f4e9b2;
+}
+.map-content .map-content-summary-toggle:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
+}
+.map-content .map-content-full[hidden] {
+  display: none;
+}
 .map-content li {
   list-style: none;
   margin-bottom: 10px;
