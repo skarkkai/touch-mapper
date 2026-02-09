@@ -422,15 +422,23 @@
 
   function wayTitle(group) {
     const label = group && group.displayLabel;
-    if (!label || label === "(unnamed)") {
+    if (isUnnamedWayLabel(label)) {
       return t("map_content_way_unnamed", "Unnamed way");
     }
     return capitalizeFirst(label);
   }
 
+  function isUnnamedWayLabel(label) {
+    if (!label || typeof label !== "string") {
+      return true;
+    }
+    const trimmed = label.trim();
+    return !trimmed || trimmed === "(unnamed)" || trimmed.indexOf("(unnamed)") === 0;
+  }
+
   function wayName(group) {
     const label = group && group.displayLabel;
-    if (!label || label === "(unnamed)") {
+    if (isUnnamedWayLabel(label)) {
       return null;
     }
     return label;
@@ -608,7 +616,7 @@
       return null;
     }
     const trimmed = name.trim();
-    if (!trimmed || trimmed === "(unnamed)") {
+    if (isUnnamedWayLabel(trimmed)) {
       return null;
     }
     return trimmed.toLowerCase();
