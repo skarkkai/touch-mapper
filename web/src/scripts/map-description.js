@@ -12,6 +12,7 @@
   const MAX_VISIBLE_POI_ITEMS = 8;
   const SUMMARY_MAX_ITEMS = 10;
   const SUMMARY_SECTION_PENALTY = 0.5;
+  const SHOW_IMPORTANCE_TOOLTIPS = false;
   const LINEAR_SECTION_CONFIGS = [
     {
       key: "roads",
@@ -597,7 +598,7 @@
       items: picked.map(function(item){
         return {
           text: item.titleText,
-          tooltip: summaryTooltipText(item)
+          tooltip: SHOW_IMPORTANCE_TOOLTIPS ? summaryTooltipText(item) : null
         };
       }),
       candidateCount: candidates.length
@@ -796,7 +797,10 @@
     }
     listElem.empty();
     if (section.count > 0 && renderer && typeof renderer.renderFromModel === "function") {
-      return normalizeCount(renderer.renderFromModel(section.items, listElem));
+      const renderItems = SHOW_IMPORTANCE_TOOLTIPS
+        ? section.items
+        : cloneItemsWithoutImportanceTooltips(section.items);
+      return normalizeCount(renderer.renderFromModel(renderItems, listElem));
     }
     if (section.emptyMessage) {
       showMessage(listElem, section.emptyMessage);
@@ -804,6 +808,24 @@
     }
     showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
     return 0;
+  }
+
+  function cloneItemsWithoutImportanceTooltips(items) {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+    return items.map(function(item){
+      if (!item || !Array.isArray(item.lines)) {
+        return item;
+      }
+      const linesWithoutTooltips = item.lines.map(function(line){
+        if (!line || typeof line !== "object" || !Object.prototype.hasOwnProperty.call(line, "title")) {
+          return line;
+        }
+        return Object.assign({}, line, { title: null });
+      });
+      return Object.assign({}, item, { lines: linesWithoutTooltips });
+    });
   }
 
   function renderSectionHeightNote(row, noteText) {
