@@ -544,6 +544,101 @@
     });
   }
 
+  function unnamedPoiLocationText(entry) {
+    const location = locationTextFromValue(locationValue(entry), "clause");
+    if (!location || typeof location !== "string") {
+      return null;
+    }
+    const trimmed = location.trim();
+    return trimmed || null;
+  }
+
+  function unnamedPoiLocationKey(locationText) {
+    if (!locationText || typeof locationText !== "string") {
+      return null;
+    }
+    const trimmed = locationText.trim();
+    return trimmed ? trimmed.toLowerCase() : null;
+  }
+
+  function unnamedPoiTypeKey(entry) {
+    if (!entry || entry.hasName) {
+      return null;
+    }
+    const normalizedType = normalizeTypeLabel(entry.typeLabel);
+    const lowered = normalizedLower(normalizedType);
+    return lowered || null;
+  }
+
+  function shouldReplaceUnnamedPoiRepresentative(candidate, current) {
+    if (!current) {
+      return true;
+    }
+    if ((candidate.importanceScore || 0) !== (current.importanceScore || 0)) {
+      return (candidate.importanceScore || 0) > (current.importanceScore || 0);
+    }
+    if ((candidate.score || 0) !== (current.score || 0)) {
+      return (candidate.score || 0) > (current.score || 0);
+    }
+    return locationRank(candidate) > locationRank(current);
+  }
+
+  function mergeUnnamedEntriesByTypeAndLocation(entries) {
+    const bucketsByKey = {};
+    const keyByIndex = {};
+
+    entries.forEach(function(entry, index){
+      if (!entry || entry.hasName) {
+        return;
+      }
+      const typeKey = unnamedPoiTypeKey(entry);
+      const locationText = unnamedPoiLocationText(entry);
+      const locationKey = unnamedPoiLocationKey(locationText);
+      if (!typeKey || !locationKey) {
+        return;
+      }
+      const key = typeKey + "|" + locationKey;
+      keyByIndex[index] = key;
+      if (!bucketsByKey[key]) {
+        bucketsByKey[key] = {
+          count: 0,
+          firstIndex: index,
+          representative: entry
+        };
+      }
+      const bucket = bucketsByKey[key];
+      const entryCount = Number(entry.itemCount);
+      bucket.count += isFinite(entryCount) && entryCount > 0 ? entryCount : 1;
+      if (index < bucket.firstIndex) {
+        bucket.firstIndex = index;
+      }
+      if (shouldReplaceUnnamedPoiRepresentative(entry, bucket.representative)) {
+        bucket.representative = entry;
+      }
+    });
+
+    const merged = [];
+    entries.forEach(function(entry, index){
+      const key = keyByIndex[index];
+      if (key) {
+        const bucket = bucketsByKey[key];
+        if (bucket && bucket.count > 1) {
+          if (bucket.firstIndex === index && bucket.representative) {
+            const mergedEntry = Object.assign({}, bucket.representative, {
+              hasName: false,
+              itemCount: bucket.count
+            });
+            merged.push(mergedEntry);
+          }
+          return;
+        }
+      }
+      merged.push(entry);
+    });
+
+    return merged;
+  }
+
   function lineModel(text, className, titleText, link) {
     return {
       className: className || null,
@@ -800,9 +895,9 @@
       }
       sections[entry.section].push(entry);
     });
-    sections.familiar_places = sortEntries(sections.familiar_places);
-    sections.daily_essentials = sortEntries(sections.daily_essentials);
-    sections.transport_points = sortEntries(sections.transport_points);
+    sections.familiar_places = mergeUnnamedEntriesByTypeAndLocation(sortEntries(sections.familiar_places));
+    sections.daily_essentials = mergeUnnamedEntriesByTypeAndLocation(sortEntries(sections.daily_essentials));
+    sections.transport_points = mergeUnnamedEntriesByTypeAndLocation(sortEntries(sections.transport_points));
     return sections;
   }
 

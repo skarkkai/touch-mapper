@@ -364,7 +364,7 @@
     edgesTouched.forEach(function(entry){
       if (entry && typeof entry === 'object') {
         Object.keys(entry).forEach(function(edge){
-          touches.push({ edge: edge, percent: entry[edge] });
+          touches.push({ edge: edge, percent: entry[edge], order: touches.length });
         });
       }
     });
@@ -454,7 +454,23 @@
     if (!touches.length) {
       return null;
     }
-    const parts = touches.map(function(touch){
+    const orderedTouches = touches.slice().sort(function(a, b){
+      const aValue = Number(a.percent);
+      const bValue = Number(b.percent);
+      const aHasPercent = isFinite(aValue);
+      const bHasPercent = isFinite(bValue);
+      if (aHasPercent && bHasPercent) {
+        if (Math.abs(bValue - aValue) > 1e-9) {
+          return bValue - aValue;
+        }
+        return a.order - b.order;
+      }
+      if (aHasPercent !== bHasPercent) {
+        return aHasPercent ? -1 : 1;
+      }
+      return a.order - b.order;
+    });
+    const parts = orderedTouches.map(function(touch){
       const edge = edgeLabel(touch.edge);
       if (!edge) {
         return null;
