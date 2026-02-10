@@ -1082,7 +1082,7 @@
   }
 
   function showConnectionsForEntry(entry) {
-    return !!(entry && entry.sectionKey === "roads");
+    return !!(entry && (entry.sectionKey === "roads" || entry.sectionKey === "paths"));
   }
 
   function showRoadDetailsForEntry(entry) {

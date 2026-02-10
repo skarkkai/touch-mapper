@@ -13,7 +13,7 @@
   const MAX_VISIBLE_POI_ITEMS = 8;
   const SUMMARY_MAX_ITEMS = 10;
   const SUMMARY_SECTION_PENALTY = 0.5;
-  const SHOW_IMPORTANCE_TOOLTIPS = true;
+  const SHOW_IMPORTANCE_TOOLTIPS = false;
   const LINEAR_SECTION_CONFIGS = [
     {
       key: "roads",

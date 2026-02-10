@@ -70,6 +70,13 @@
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
+  function lowercaseFirst(text) {
+    if (!text || typeof text !== 'string') {
+      return text;
+    }
+    return text.charAt(0).toLowerCase() + text.slice(1);
+  }
+
   function splitLabelWithFallback(label, fallbackTitle) {
     const fallback = fallbackTitle || t("map_content_building_unnamed", "Unnamed building");
     if (!label || typeof label !== 'string') {
@@ -1508,14 +1515,20 @@
           if (shapeLineParts.length) {
             shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
           }
-          shapeLineParts.push({ text: descriptor, className: "map-content-shape-aspect" });
+          shapeLineParts.push({
+            text: shapeLineParts.length ? lowercaseFirst(descriptor) : descriptor,
+            className: "map-content-shape-aspect"
+          });
         }
         const shapeType = shapeTypeLabel(shape.type);
         if (shapeType) {
           if (shapeLineParts.length) {
             shapeLineParts.push({ text: ", ", className: "map-content-shape-sep", wrap: false });
           }
-          shapeLineParts.push({ text: shapeType, className: "map-content-shape-type" });
+          shapeLineParts.push({
+            text: shapeLineParts.length ? lowercaseFirst(shapeType) : shapeType,
+            className: "map-content-shape-type"
+          });
         }
       }
     }

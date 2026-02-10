@@ -583,9 +583,64 @@
     return locationRank(candidate) > locationRank(current);
   }
 
+  function unnamedPoiEntryCount(entry) {
+    const entryCount = Number(entry && entry.itemCount);
+    return isFinite(entryCount) && entryCount > 0 ? entryCount : 1;
+  }
+
+  function sortedUnnamedPoiLocationBuckets(locationBucketsByKey) {
+    const buckets = Object.keys(locationBucketsByKey || {}).map(function(key){
+      return locationBucketsByKey[key];
+    }).filter(function(bucket){
+      return !!(bucket && bucket.locationText);
+    });
+    buckets.sort(function(a, b){
+      if (a.count !== b.count) {
+        return b.count - a.count;
+      }
+      if (a.locationRank !== b.locationRank) {
+        return b.locationRank - a.locationRank;
+      }
+      return a.firstIndex - b.firstIndex;
+    });
+    return buckets;
+  }
+
+  function mergedUnnamedPoiLocationSummary(bucket) {
+    if (!bucket || !bucket.locationBucketsByKey) {
+      return null;
+    }
+    const locationBuckets = sortedUnnamedPoiLocationBuckets(bucket.locationBucketsByKey);
+    if (!locationBuckets.length) {
+      return null;
+    }
+    const orderedLocationClauses = locationBuckets.map(function(locationBucket){
+      return locationBucket.locationText;
+    });
+    let text = null;
+    if (orderedLocationClauses.length === 1) {
+      text = capitalizeFirst(orderedLocationClauses[0]);
+    } else if (orderedLocationClauses.length === 2) {
+      text = interpolate(
+        t("map_content_summary_distributed_top2", "In several areas, mostly __first__ and __second__."),
+        { first: orderedLocationClauses[0], second: orderedLocationClauses[1] }
+      );
+    } else {
+      text = interpolate(
+        t("map_content_summary_three_regions_clauses", "Mostly __first__, __second__, and __third__."),
+        { first: orderedLocationClauses[0], second: orderedLocationClauses[1], third: orderedLocationClauses[2] }
+      );
+    }
+    return {
+      distinctLocationCount: orderedLocationClauses.length,
+      orderedLocationClauses: orderedLocationClauses,
+      text: text
+    };
+  }
+
   function mergeUnnamedEntriesByTypeAndLocation(entries) {
-    const bucketsByKey = {};
-    const keyByIndex = {};
+    const bucketsByTypeKey = {};
+    const typeKeyByIndex = {};
 
     entries.forEach(function(entry, index){
       if (!entry || entry.hasName) {
@@ -597,36 +652,58 @@
       if (!typeKey || !locationKey) {
         return;
       }
-      const key = typeKey + "|" + locationKey;
-      keyByIndex[index] = key;
-      if (!bucketsByKey[key]) {
-        bucketsByKey[key] = {
+      typeKeyByIndex[index] = typeKey;
+      if (!bucketsByTypeKey[typeKey]) {
+        bucketsByTypeKey[typeKey] = {
           count: 0,
           firstIndex: index,
-          representative: entry
+          representative: entry,
+          locationBucketsByKey: {}
         };
       }
-      const bucket = bucketsByKey[key];
-      const entryCount = Number(entry.itemCount);
-      bucket.count += isFinite(entryCount) && entryCount > 0 ? entryCount : 1;
+      const bucket = bucketsByTypeKey[typeKey];
+      const entryCount = unnamedPoiEntryCount(entry);
+      bucket.count += entryCount;
       if (index < bucket.firstIndex) {
         bucket.firstIndex = index;
       }
       if (shouldReplaceUnnamedPoiRepresentative(entry, bucket.representative)) {
         bucket.representative = entry;
       }
+
+      if (!bucket.locationBucketsByKey[locationKey]) {
+        bucket.locationBucketsByKey[locationKey] = {
+          count: 0,
+          locationText: locationText,
+          locationRank: locationRank(entry),
+          firstIndex: index
+        };
+      }
+      const locationBucket = bucket.locationBucketsByKey[locationKey];
+      locationBucket.count += entryCount;
+      if (!locationBucket.locationText && locationText) {
+        locationBucket.locationText = locationText;
+      }
+      if (locationRank(entry) > locationBucket.locationRank) {
+        locationBucket.locationRank = locationRank(entry);
+      }
+      if (index < locationBucket.firstIndex) {
+        locationBucket.firstIndex = index;
+      }
     });
 
     const merged = [];
     entries.forEach(function(entry, index){
-      const key = keyByIndex[index];
-      if (key) {
-        const bucket = bucketsByKey[key];
+      const typeKey = typeKeyByIndex[index];
+      if (typeKey) {
+        const bucket = bucketsByTypeKey[typeKey];
         if (bucket && bucket.count > 1) {
           if (bucket.firstIndex === index && bucket.representative) {
+            const locationSummary = mergedUnnamedPoiLocationSummary(bucket);
             const mergedEntry = Object.assign({}, bucket.representative, {
               hasName: false,
-              itemCount: bucket.count
+              itemCount: bucket.count,
+              mergedLocationSummary: locationSummary
             });
             merged.push(mergedEntry);
           }
@@ -651,6 +728,14 @@
   function entryToModelItem(entry) {
     const normalizedType = normalizeTypeLabel(entry.typeLabel);
     const location = locationTextFromValue(locationValue(entry), "clause");
+    const mergedLocationSummary = entry && entry.mergedLocationSummary &&
+      typeof entry.mergedLocationSummary === "object"
+      ? entry.mergedLocationSummary
+      : null;
+    const mergedLocationText = mergedLocationSummary && typeof mergedLocationSummary.text === "string"
+      ? mergedLocationSummary.text.trim()
+      : "";
+    const locationLineText = mergedLocationText || location;
     const scoreTooltip = importanceScoreTooltip(entry && entry.group ? entry.group.importanceScore : null);
     const titleLink = bestGroupExternalLink(entry && entry.group ? entry.group : null);
     const lines = [];
@@ -667,8 +752,8 @@
         { type: normalizedType }
       ), "map-content-title-line", scoreTooltip, titleLink));
     }
-    if (location) {
-      lines.push(lineModel(capitalizeFirst(location), "map-content-location"));
+    if (locationLineText) {
+      lines.push(lineModel(capitalizeFirst(locationLineText), "map-content-location"));
     }
     return {
       type: "poi",
