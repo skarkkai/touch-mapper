@@ -9,10 +9,11 @@
 
   const MAX_VISIBLE_BUILDINGS = 10;
   const MAX_VISIBLE_LINEAR_ITEMS = 10;
+  const MAX_VISIBLE_WATER_AREA_ITEMS = 10;
   const MAX_VISIBLE_POI_ITEMS = 8;
   const SUMMARY_MAX_ITEMS = 10;
   const SUMMARY_SECTION_PENALTY = 0.5;
-  const SHOW_IMPORTANCE_TOOLTIPS = false;
+  const SHOW_IMPORTANCE_TOOLTIPS = true;
   const LINEAR_SECTION_CONFIGS = [
     {
       key: "roads",
@@ -93,11 +94,23 @@
       includeSparseNote: false
     },
   ];
+  const WATER_AREA_SECTION_CONFIG = {
+    key: "waterAreas",
+    rendererSection: "water_areas",
+    rowSelector: ".map-content-water-areas-row",
+    listSelector: ".map-content-water-areas",
+    alwaysShow: false,
+    maxVisible: MAX_VISIBLE_WATER_AREA_ITEMS,
+    fallbackKey: "map_content_no_water_areas",
+    fallbackText: "No water areas listed for this map.",
+    toggleClass: "map-content-water-areas-toggle"
+  };
   const SECTION_HEIGHT_DEFAULT_PROFILES = {
     roads: ["raised:0.82"],
     paths: ["raised:1.5"],
     railways: ["raised:0.81"],
     waterways: ["waved_surface"],
+    waterAreas: ["waved_surface"],
     otherLinear: ["varying"],
     buildings: ["raised:2.9"],
     poiFamiliar: ["text_only"],
@@ -259,6 +272,22 @@
       profilesBySection.buildings.add("raised:2.9");
     });
 
+    const classB = payload.B;
+    const areaSubclasses = classB && Array.isArray(classB.subclasses) ? classB.subclasses : [];
+    areaSubclasses.forEach(function(subclass){
+      if (!subclass || subclass.kind !== "area" || typeof subclass.key !== "string") {
+        return;
+      }
+      if (subclass.key.indexOf("B1_") !== 0) {
+        return;
+      }
+      const groups = Array.isArray(subclass.groups) ? subclass.groups : [];
+      if (!groups.length) {
+        return;
+      }
+      profilesBySection.waterAreas.add("waved_surface");
+    });
+
     return profilesBySection;
   }
 
@@ -414,6 +443,12 @@
         key: sectionConfig.key,
         section: model ? model[sectionConfig.key] : null
       });
+      if (sectionConfig.key === "waterways") {
+        entries.push({
+          key: WATER_AREA_SECTION_CONFIG.key,
+          section: model ? model[WATER_AREA_SECTION_CONFIG.key] : null
+        });
+      }
     });
     entries.push({
       key: "buildings",
@@ -713,6 +748,26 @@
       linearSections[sectionConfig.key] = limited.section;
       linearToggles[sectionConfig.key] = limited.toggle;
     });
+    const waterAreas = buildSectionModel(
+      buildingsRenderer,
+      payload,
+      helpers,
+      WATER_AREA_SECTION_CONFIG.fallbackKey,
+      WATER_AREA_SECTION_CONFIG.fallbackText,
+      { section: WATER_AREA_SECTION_CONFIG.rendererSection }
+    );
+    const waterAreasResult = applySectionLimitToModel(
+      waterAreas,
+      WATER_AREA_SECTION_CONFIG.maxVisible,
+      showMoreFeaturesLabel(
+        waterAreas.items.length - WATER_AREA_SECTION_CONFIG.maxVisible,
+        function(key, fallback){
+          return translateWithHelpers(helpers, key, fallback);
+        }
+      ),
+      translateWithHelpers(helpers, "map_content_show_less_features", "Show fewer features")
+    );
+
     const buildings = buildSectionModel(
       buildingsRenderer,
       payload,
@@ -762,6 +817,7 @@
       paths: linearSections.paths,
       railways: linearSections.railways,
       waterways: linearSections.waterways,
+      waterAreas: waterAreasResult.section,
       otherLinear: linearSections.otherLinear,
       poiFamiliar: poiSections.poiFamiliar,
       poiDaily: poiSections.poiDaily,
@@ -772,6 +828,7 @@
     model.ui = {
       sectionHeightNotes: sectionHeightNotes,
       linearToggles: linearToggles,
+      waterAreasToggle: waterAreasResult.toggle,
       buildingsToggle: buildingsResult.toggle,
       poiToggles: poiToggles,
       hasFullContentRows: hasFullContentRows(model),
@@ -978,6 +1035,7 @@
         paths: 0,
         railways: 0,
         waterways: 0,
+        waterAreas: 0,
         otherLinear: 0,
         poiFamiliar: 0,
         poiDaily: 0,
@@ -993,6 +1051,7 @@
       paths: 0,
       railways: 0,
       waterways: 0,
+      waterAreas: 0,
       otherLinear: 0,
       poiFamiliar: 0,
       poiDaily: 0,
@@ -1034,6 +1093,48 @@
         t("map_content_show_less_features", "Show fewer features")
       );
     });
+
+    const waterAreasRenderer = getRenderer("mapDescAreas");
+    const waterAreasRow = container.find(WATER_AREA_SECTION_CONFIG.rowSelector);
+    const waterAreasListElem = container.find(WATER_AREA_SECTION_CONFIG.listSelector);
+    const waterAreasSectionHeightNotes = model && model.ui && model.ui.sectionHeightNotes
+      ? model.ui.sectionHeightNotes
+      : null;
+    if (waterAreasListElem.length) {
+      renderSectionHeightNote(
+        waterAreasRow,
+        waterAreasSectionHeightNotes ? waterAreasSectionHeightNotes[WATER_AREA_SECTION_CONFIG.key] : null
+      );
+      const waterAreasSection = model ? model[WATER_AREA_SECTION_CONFIG.key] : null;
+      const waterAreasCount = sectionCount(waterAreasSection);
+      if (!WATER_AREA_SECTION_CONFIG.alwaysShow && waterAreasCount <= 0) {
+        waterAreasListElem.empty();
+        waterAreasRow.hide();
+        counts[WATER_AREA_SECTION_CONFIG.key] = 0;
+      } else {
+        waterAreasRow.show();
+        counts[WATER_AREA_SECTION_CONFIG.key] = renderSectionFromModel(
+          waterAreasListElem,
+          waterAreasSection,
+          waterAreasRenderer
+        );
+        const waterAreasToggleModel = model && model.ui
+          ? model.ui.waterAreasToggle
+          : null;
+        applyToggleFromModel(
+          waterAreasListElem,
+          WATER_AREA_SECTION_CONFIG.rowSelector,
+          WATER_AREA_SECTION_CONFIG.toggleClass,
+          waterAreasToggleModel,
+          showMoreFeaturesLabel(
+            waterAreasToggleModel && waterAreasToggleModel.hiddenCount
+              ? waterAreasToggleModel.hiddenCount
+              : 0
+          ),
+          t("map_content_show_less_features", "Show fewer features")
+        );
+      }
+    }
 
     POI_SECTION_CONFIGS.forEach(function(sectionConfig){
       const row = container.find(sectionConfig.rowSelector);
@@ -1100,11 +1201,12 @@
       return;
     }
     const roadsListElem = container.find(".map-content-roads");
+    const waterAreasListElem = container.find(WATER_AREA_SECTION_CONFIG.listSelector);
     const buildingsListElem = container.find(".map-content-buildings");
     const familiarPoisListElem = container.find(".map-content-poi-familiar");
     const summaryListElem = container.find(".map-content-summary");
     const summaryToggleElem = container.find(".map-content-summary-toggle");
-    if (!roadsListElem.length && !buildingsListElem.length && !familiarPoisListElem.length && !summaryListElem.length) {
+    if (!roadsListElem.length && !waterAreasListElem.length && !buildingsListElem.length && !familiarPoisListElem.length && !summaryListElem.length) {
       return;
     }
     summaryListElem.empty();
@@ -1129,6 +1231,17 @@
         row.show();
       }
     });
+    const waterAreasRow = container.find(WATER_AREA_SECTION_CONFIG.rowSelector);
+    if (waterAreasListElem.length) {
+      waterAreasListElem.empty();
+      waterAreasRow.find("." + WATER_AREA_SECTION_CONFIG.toggleClass).remove();
+      renderSectionHeightNote(waterAreasRow, null);
+      if (!WATER_AREA_SECTION_CONFIG.alwaysShow) {
+        waterAreasRow.hide();
+      } else {
+        waterAreasRow.show();
+      }
+    }
     POI_SECTION_CONFIGS.forEach(function(sectionConfig){
       const row = container.find(sectionConfig.rowSelector);
       const listElem = container.find(sectionConfig.listSelector);
@@ -1158,6 +1271,10 @@
       }
       if (buildingsListElem.length) {
         showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      if (waterAreasListElem.length) {
+        container.find(WATER_AREA_SECTION_CONFIG.rowSelector).show();
+        showMessage(waterAreasListElem, t("map_content_unavailable", "Map content is not available."));
       }
       POI_SECTION_CONFIGS.forEach(function(sectionConfig){
         const row = container.find(sectionConfig.rowSelector);
@@ -1189,6 +1306,10 @@
       }
       if (buildingsListElem.length) {
         showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
+      }
+      if (waterAreasListElem.length) {
+        container.find(WATER_AREA_SECTION_CONFIG.rowSelector).show();
+        showMessage(waterAreasListElem, t("map_content_unavailable", "Map content is not available."));
       }
       POI_SECTION_CONFIGS.forEach(function(sectionConfig){
         const row = container.find(sectionConfig.rowSelector);

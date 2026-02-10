@@ -83,6 +83,7 @@ window.TM = { translations: {
   "map_content_subheading_paths": "{{ map_content_subheading_paths }}",
   "map_content_subheading_railways": "{{ map_content_subheading_railways }}",
   "map_content_subheading_waterways": "{{ map_content_subheading_waterways }}",
+  "map_content_subheading_water_areas": "{{ map_content_subheading_water_areas }}",
   "map_content_subheading_other_linear": "{{ map_content_subheading_other_linear }}",
   "map_content_subheading_buildings": "{{ map_content_subheading_buildings }}",
   "map_content_subheading_poi_familiar": "{{ map_content_subheading_poi_familiar }}",
@@ -94,6 +95,7 @@ window.TM = { translations: {
   "map_content_no_paths": "{{ map_content_no_paths }}",
   "map_content_no_railways": "{{ map_content_no_railways }}",
   "map_content_no_waterways": "{{ map_content_no_waterways }}",
+  "map_content_no_water_areas": "{{ map_content_no_water_areas }}",
   "map_content_no_other_linear": "{{ map_content_no_other_linear }}",
   "map_content_unnamed_features_one": "{{ map_content_unnamed_features_one }}",
   "map_content_unnamed_features_many": "{{ map_content_unnamed_features_many }}",
@@ -136,6 +138,15 @@ window.TM = { translations: {
   "map_content_way_type_A4_other_waterways": "{{ map_content_way_type_A4_other_waterways }}",
   "map_content_way_type_A_other_ways": "{{ map_content_way_type_A_other_ways }}",
   "map_content_building_unnamed": "{{ map_content_building_unnamed }}",
+  "map_content_water_area_unnamed": "{{ map_content_water_area_unnamed }}",
+  "map_content_water_area_type_generic": "{{ map_content_water_area_type_generic }}",
+  "map_content_water_area_type_generic_plural": "{{ map_content_water_area_type_generic_plural }}",
+  "map_content_water_area_type_B1_lakes": "{{ map_content_water_area_type_B1_lakes }}",
+  "map_content_water_area_type_B1_ponds": "{{ map_content_water_area_type_B1_ponds }}",
+  "map_content_water_area_type_B1_reservoirs": "{{ map_content_water_area_type_B1_reservoirs }}",
+  "map_content_water_area_type_B1_sea_coast": "{{ map_content_water_area_type_B1_sea_coast }}",
+  "map_content_water_area_type_B1_riverbanks": "{{ map_content_water_area_type_B1_riverbanks }}",
+  "map_content_water_area_type_B1_other_water": "{{ map_content_water_area_type_B1_other_water }}",
   "map_content_no_buildings": "{{ map_content_no_buildings }}",
   "map_content_no_poi_familiar": "{{ map_content_no_poi_familiar }}",
   "map_content_no_poi_daily": "{{ map_content_no_poi_daily }}",
@@ -493,6 +504,11 @@ window.TM = { translations: {
           <h4>{{ map_content_subheading_waterways }}</h4>
           <div class="map-content-section-height"></div>
           <ul class="map-content-waterways"></ul>
+        </div>
+        <div class="row map-content-water-areas-row">
+          <h4>{{ map_content_subheading_water_areas }}</h4>
+          <div class="map-content-section-height"></div>
+          <ul class="map-content-water-areas"></ul>
         </div>
         <div class="row map-content-other-linear-row">
           <h4>{{ map_content_subheading_other_linear }}</h4>

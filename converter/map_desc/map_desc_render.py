@@ -760,6 +760,43 @@ def _building_group_size(group: Dict[str, Any]) -> float:
     return max(0.0, _float_or_zero(coverage.get("coveragePercent")))
 
 
+def _boundary_area(boundary: Optional[Boundary]) -> Optional[float]:
+    if not boundary:
+        return None
+    width = abs(boundary["maxX"] - boundary["minX"])
+    height = abs(boundary["maxY"] - boundary["minY"])
+    area = width * height
+    if area <= 0:
+        return None
+    return area
+
+
+def _water_area_group_coverage_percent(group: Dict[str, Any],
+                                       boundary: Optional[Boundary]) -> float:
+    items = group.get("items")
+    if isinstance(items, list):
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            visible_geometry = item.get("visibleGeometry")
+            if not isinstance(visible_geometry, dict):
+                continue
+            coverage = visible_geometry.get("coverage")
+            if not isinstance(coverage, dict):
+                continue
+            value = coverage.get("coveragePercent")
+            if isinstance(value, (int, float)):
+                return max(0.0, float(value))
+
+    boundary_area = _boundary_area(boundary)
+    if boundary_area is None:
+        return 0.0
+    total_area = max(0.0, _float_or_zero(group.get("totalArea")))
+    if total_area <= 0:
+        return 0.0
+    return (total_area * 100.0) / boundary_area
+
+
 def _apply_linear_importance_scores(main_entry: Dict[str, Any],
                                     boundary: Optional[Boundary]) -> None:
     subclasses = main_entry.get("subclasses")
@@ -896,6 +933,41 @@ def _apply_poi_importance_scores(main_entry: Dict[str, Any]) -> None:
             group["importanceScore"] = _build_importance_score(final_score, components)
 
 
+def _apply_water_area_importance_scores(main_entry: Dict[str, Any],
+                                        boundary: Optional[Boundary]) -> None:
+    subclasses = main_entry.get("subclasses")
+    if not isinstance(subclasses, list):
+        return
+
+    factor_digits = _scoring_factor_digits()
+    size_key_digits = _scoring_size_key_digits()
+    for sub_entry in subclasses:
+        if not isinstance(sub_entry, dict):
+            continue
+        if sub_entry.get("kind") != "area":
+            continue
+        sub_key = sub_entry.get("key")
+        if not isinstance(sub_key, str) or not sub_key.startswith("B1_"):
+            continue
+        groups = sub_entry.get("groups")
+        if not isinstance(groups, list):
+            continue
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            coverage_percent = _water_area_group_coverage_percent(group, boundary)
+            base_score = 10.0 + (1.8 * coverage_percent)
+            final_score = _js_round(base_score)
+            components = OrderedDict()
+            components["category"] = OrderedDict([
+                (sub_key, _js_round(base_score))
+            ])
+            components["coveragePercent"] = OrderedDict([
+                (_compact_number_key(coverage_percent, size_key_digits), _round_component(1.0, factor_digits))
+            ])
+            group["importanceScore"] = _build_importance_score(final_score, components)
+
+
 def _attach_group_importance_scores(raw: List[Dict[str, Any]],
                                     boundary: Optional[Boundary]) -> None:
     for main_entry in raw:
@@ -904,6 +976,8 @@ def _attach_group_importance_scores(raw: List[Dict[str, Any]],
         key = main_entry.get("key")
         if key == "A":
             _apply_linear_importance_scores(main_entry, boundary)
+        elif key == "B":
+            _apply_water_area_importance_scores(main_entry, boundary)
         elif key == "C":
             _apply_building_importance_scores(main_entry)
         elif key == "D":

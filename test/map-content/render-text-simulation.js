@@ -42,6 +42,9 @@ function renderSimulationText(mapDescriptionModel) {
   if (model.waterways && Number(model.waterways.count) > 0) {
     pushSection(lines, "Waterways", model.waterways);
   }
+  if (model.waterAreas && Number(model.waterAreas.count) > 0) {
+    pushSection(lines, "Water areas", model.waterAreas);
+  }
   if (model.otherLinear && Number(model.otherLinear.count) > 0) {
     pushSection(lines, "Other linear features", model.otherLinear);
   }

@@ -427,17 +427,28 @@ def _is_building(entry: Dict[str, Any], item: Dict[str, Any]) -> bool:
     return bool(tags.get("building") or tags.get("building:part"))
 
 
+def _is_rendered_water_area(entry: Dict[str, Any]) -> bool:
+    cls = entry.get("_classification", {})
+    main_class = cls.get("mainClass")
+    sub_class = cls.get("subClass")
+    if not isinstance(main_class, str) or main_class != "B":
+        return False
+    return isinstance(sub_class, str) and sub_class.startswith("B1_")
+
+
 def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
                              boundary: Optional[Dict[str, Any]]) -> None:
     # Code below creates stage "Raw meta with visibility augmentation" data.
     geom = item.get("geometry") or {}
     if geom.get("type") != "line_string":
-        if geom.get("type") != "polygon" or not _is_building(entry, item):
+        if geom.get("type") != "polygon":
+            return
+        if not _is_building(entry, item) and not _is_rendered_water_area(entry):
             return
         boundary_box = _coerce_bbox(boundary)
         if not boundary_box:
             return
-        # Code below creates stage "Raw meta with building area visibility raster" data.
+        # Code below creates stage "Raw meta with building/water area visibility raster" data.
         visible = analyze_area_visibility(geom, boundary_box, item.get("osmId"))
         if visible is None:
             return

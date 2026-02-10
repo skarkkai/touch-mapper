@@ -52,6 +52,7 @@ mapping is:
 | `paths` | `Raised __mm__ mm` (from pedestrian road extrusion height) |
 | `railways` | `Raised __mm__ mm` (from rail extrusion height) |
 | `waterways` | `Waved surface` |
+| `waterAreas` | `Waved surface` |
 | `otherLinear` | `Raised by varying amounts` when mixed/unknown |
 | `buildings` | `Raised __mm__ mm` (from building extrusion height) |
 

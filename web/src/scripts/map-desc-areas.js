@@ -11,6 +11,14 @@
     website: 3,
     search: 4
   };
+  const WATER_AREA_SUBCLASS_LABELS = {
+    B1_lakes: "lake",
+    B1_ponds: "pond",
+    B1_reservoirs: "reservoir",
+    B1_sea_coast: "sea",
+    B1_riverbanks: "riverbank",
+    B1_other_water: "water area"
+  };
 
   function fallbackTranslate(key, fallback) {
     return fallback !== undefined ? fallback : key;
@@ -24,6 +32,13 @@
 
   function t(key, fallback) {
     return translate(key, fallback);
+  }
+
+  function normalizeOptions(options) {
+    const section = options && typeof options.section === "string" ? options.section : "buildings";
+    return {
+      section: section
+    };
   }
 
   function interpolate(text, replacements) {
@@ -45,14 +60,15 @@
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  function splitLabel(label) {
+  function splitLabelWithFallback(label, fallbackTitle) {
+    const fallback = fallbackTitle || t("map_content_building_unnamed", "Unnamed building");
     if (!label || typeof label !== 'string') {
-      return { title: t("map_content_building_unnamed", "Unnamed building") };
+      return { title: fallback };
     }
     const parts = label.split(",");
     let title = parts[0] ? parts[0].trim() : label.trim();
     if (!title) {
-      return { title: t("map_content_building_unnamed", "Unnamed building") };
+      return { title: fallback };
     }
     title = capitalizeFirst(title);
     if (parts.length <= 1) {
@@ -60,6 +76,29 @@
     }
     const subtitle = parts.slice(1).join(",").trim();
     return { title: title, subtitle: subtitle || null };
+  }
+
+  function splitLabel(label) {
+    return splitLabelWithFallback(label, t("map_content_building_unnamed", "Unnamed building"));
+  }
+
+  function trimString(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    return value.trim();
+  }
+
+  function isUnnamedText(text) {
+    if (!text || typeof text !== "string") {
+      return true;
+    }
+    const normalized = text.trim().toLowerCase();
+    return !normalized ||
+      normalized === "(unnamed)" ||
+      normalized.indexOf("(unnamed)") === 0 ||
+      normalized.indexOf("(unnamed)") >= 0 ||
+      normalized.indexOf("unnamed") === 0;
   }
 
   function slugifyOsmValue(value) {
@@ -686,6 +725,20 @@
     return coverageMostlySentence(top, second);
   }
 
+  function buildingGroupIsNamed(group) {
+    const primary = pickPrimaryItem(group);
+    const explicitName = trimString(group && group.label) || trimString(primary && primary.label);
+    if (explicitName && !isUnnamedText(explicitName)) {
+      return true;
+    }
+    let labelSource = group && group.displayLabel;
+    if (!labelSource && primary) {
+      labelSource = primary.displayLabel;
+    }
+    const nameParts = splitLabel(labelSource);
+    return !!(nameParts && typeof nameParts.subtitle === "string" && nameParts.subtitle.trim());
+  }
+
   function collectBuildingGroups(mapContent) {
     const groups = [];
     if (!mapContent || typeof mapContent !== 'object') {
@@ -708,6 +761,11 @@
       });
     });
     groups.sort(function(a, b){
+      const aNamed = buildingGroupIsNamed(a);
+      const bNamed = buildingGroupIsNamed(b);
+      if (aNamed !== bNamed) {
+        return aNamed ? -1 : 1;
+      }
       const importanceDiff = groupImportanceScore(b) - groupImportanceScore(a);
       if (importanceDiff !== 0) {
         return importanceDiff;
@@ -721,6 +779,103 @@
       return aTitle.localeCompare(bTitle);
     });
     return groups;
+  }
+
+  function isWaterAreaSubClass(subClass) {
+    return !!(subClass && WATER_AREA_SUBCLASS_LABELS[subClass]);
+  }
+
+  function waterAreaTypeLabel(subClass) {
+    if (isWaterAreaSubClass(subClass)) {
+      const key = "map_content_water_area_type_" + subClass;
+      return t(key, WATER_AREA_SUBCLASS_LABELS[subClass]);
+    }
+    return t("map_content_water_area_type_generic", "water area");
+  }
+
+  function waterAreaTypeLabelPlural() {
+    return t("map_content_water_area_type_generic_plural", "water areas");
+  }
+
+  function waterAreaNameFromDisplayLabel(group, primary) {
+    const sources = [
+      trimString(group && group.displayLabel),
+      trimString(primary && primary.displayLabel)
+    ].filter(Boolean);
+    for (let i = 0; i < sources.length; i += 1) {
+      const source = sources[i];
+      const colonIndex = source.indexOf(":");
+      let candidate = colonIndex >= 0 ? source.slice(colonIndex + 1).trim() : source.trim();
+      if (!candidate || isUnnamedText(candidate)) {
+        continue;
+      }
+      const lower = candidate.toLowerCase();
+      if (lower === "water area") {
+        continue;
+      }
+      return candidate;
+    }
+    return null;
+  }
+
+  function waterAreaEntryName(entry) {
+    if (!entry) {
+      return null;
+    }
+    const group = entry.group;
+    const primary = pickPrimaryItem(group);
+    const explicit = trimString(group && group.label) || trimString(primary && primary.label);
+    if (explicit && !isUnnamedText(explicit)) {
+      return explicit;
+    }
+    return waterAreaNameFromDisplayLabel(group, primary);
+  }
+
+  function waterAreaEntryIsNamed(entry) {
+    return !!waterAreaEntryName(entry);
+  }
+
+  function waterAreaEntryTitleKey(entry) {
+    const name = waterAreaEntryName(entry) || "";
+    const typeText = waterAreaTypeLabel(entry && entry.subClass).toLowerCase();
+    return (typeText + " " + name).trim();
+  }
+
+  function collectWaterAreaEntries(mapContent) {
+    const entries = [];
+    const classB = mapContent && typeof mapContent === "object" ? mapContent.B : null;
+    const subclasses = classB && Array.isArray(classB.subclasses) ? classB.subclasses : [];
+    subclasses.forEach(function(subclass){
+      if (!subclass || subclass.kind !== "area" || !isWaterAreaSubClass(subclass.key) || !Array.isArray(subclass.groups)) {
+        return;
+      }
+      subclass.groups.forEach(function(group){
+        if (!group || typeof group !== "object") {
+          return;
+        }
+        entries.push({
+          group: group,
+          subClass: subclass.key
+        });
+      });
+    });
+    entries.sort(function(a, b){
+      const aNamed = waterAreaEntryIsNamed(a);
+      const bNamed = waterAreaEntryIsNamed(b);
+      if (aNamed !== bNamed) {
+        return aNamed ? -1 : 1;
+      }
+      const importanceDiff = groupImportanceScore(b.group) - groupImportanceScore(a.group);
+      if (importanceDiff !== 0) {
+        return importanceDiff;
+      }
+      const coverageDiff = groupCoveragePercent(b.group) - groupCoveragePercent(a.group);
+      if (Math.abs(coverageDiff) > 1e-9) {
+        return coverageDiff;
+      }
+      return waterAreaEntryTitleKey(a).localeCompare(waterAreaEntryTitleKey(b));
+    });
+    return entries;
   }
 
   function groupImportanceScore(group) {
@@ -1109,8 +1264,271 @@
     return item;
   }
 
-  function buildModel(mapContent, helpers) {
+  function waterAreaCoveragePercent(entry) {
+    if (!entry || !entry.group) {
+      return 0;
+    }
+    return groupCoveragePercent(entry.group);
+  }
+
+  function waterAreaPrimaryLocationText(entry) {
+    if (!entry || !entry.group) {
+      return null;
+    }
+    const group = entry.group;
+    const primary = pickPrimaryItem(group);
+    const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
+    const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
+    const coverageLine = coverageBreakdown(coverage);
+    const location = locationPhrase(group, primary);
+    const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
+    if (!primaryLocation || typeof primaryLocation !== "string") {
+      return null;
+    }
+    const trimmed = primaryLocation.replace(/[.]+$/, "").trim();
+    return trimmed || null;
+  }
+
+  function waterAreaPrimaryLocationKey(text) {
+    if (!text || typeof text !== "string") {
+      return null;
+    }
+    const trimmed = text.trim();
+    return trimmed ? trimmed.toLowerCase() : null;
+  }
+
+  function mergeWaterAreaEdgesTouched(entries) {
+    const byEdge = {};
+    const orderedEdges = ["north", "south", "east", "west"];
+    entries.forEach(function(entry){
+      const group = entry && entry.group ? entry.group : null;
+      const primary = pickPrimaryItem(group);
+      const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
+      const edges = visibleGeometry && Array.isArray(visibleGeometry.edgesTouched)
+        ? visibleGeometry.edgesTouched
+        : [];
+      edges.forEach(function(edgeInfo){
+        if (!edgeInfo || typeof edgeInfo !== "object") {
+          return;
+        }
+        Object.keys(edgeInfo).forEach(function(edge){
+          const rawValue = edgeInfo[edge];
+          const numValue = Number(rawValue);
+          if (!isFinite(numValue)) {
+            if (!Object.prototype.hasOwnProperty.call(byEdge, edge)) {
+              byEdge[edge] = null;
+            }
+            return;
+          }
+          if (!Object.prototype.hasOwnProperty.call(byEdge, edge) || byEdge[edge] === null || numValue > byEdge[edge]) {
+            byEdge[edge] = numValue;
+          }
+        });
+      });
+    });
+    return orderedEdges
+      .filter(function(edge){ return Object.prototype.hasOwnProperty.call(byEdge, edge); })
+      .map(function(edge){
+        const out = {};
+        out[edge] = byEdge[edge];
+        return out;
+      });
+  }
+
+  function buildWaterAreaModel(entry) {
+    if (!entry || !entry.group) {
+      return null;
+    }
+    const group = entry.group;
+    const primary = pickPrimaryItem(group);
+    const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
+    const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
+    const coverageLine = coverageBreakdown(coverage);
+    const location = locationPhrase(group, primary);
+    const edges = visibleGeometry && Array.isArray(visibleGeometry.edgesTouched)
+      ? visibleGeometry.edgesTouched
+      : [];
+    const touches = edgesText(edges, coverage);
+    const name = waterAreaEntryName(entry);
+    const typeText = waterAreaTypeLabel(entry.subClass);
+    const isNamed = !!name;
+
+    const item = {
+      type: "water_area",
+      attrs: {
+        dataIsNamed: isNamed
+      },
+      lines: []
+    };
+    const scoreTooltip = importanceScoreTooltip(group && group.importanceScore ? group.importanceScore : null);
+    const titleLink = bestGroupExternalLink(group);
+    if (primary && primary.osmId !== undefined && primary.osmId !== null) {
+      item.attrs.dataOsmId = String(primary.osmId);
+    }
+
+    let titleText = "";
+    if (isNamed) {
+      titleText = typeText + " " + name;
+    } else {
+      titleText = interpolate(
+        t("map_content_water_area_unnamed", "Unnamed __type__"),
+        { type: typeText }
+      );
+    }
+    addModelLine(item, [
+      { text: capitalizeFirst(titleText), className: "map-content-title" }
+    ], "map-content-title-line", scoreTooltip, titleLink);
+
+    const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
+    const primaryLocationText = primaryLocation ? primaryLocation.replace(/[.]+$/, "") : null;
+    if (primaryLocationText) {
+      addModelLine(item, [
+        { text: primaryLocationText, className: "map-content-location-text" }
+      ], "map-content-location");
+    }
+    if (touches) {
+      addModelLine(item, [
+        { text: capitalizeFirst(touches), className: "map-content-touches" }
+      ], "map-content-location");
+    }
+
+    if (coverage && coverage.coveragePercent !== undefined) {
+      const percentText = formatPercent(coverage.coveragePercent);
+      if (percentText !== null) {
+        addModelLine(item, interpolatedParts(
+          t("map_content_total_area", "Covers __percent__% of map"),
+          { percent: percentText },
+          "map-content-parts-coverage"
+        ), "map-content-parts");
+      }
+    }
+    return item;
+  }
+
+  function buildMergedUnnamedWaterAreaModel(summary) {
+    if (!summary || !summary.count || summary.count < 2) {
+      return null;
+    }
+    const item = {
+      type: "water_area_summary",
+      attrs: {
+        dataIsNamed: false
+      },
+      lines: []
+    };
+    const key = summary.count === 1 ? "map_content_unnamed_features_one" : "map_content_unnamed_features_many";
+    const typeText = summary.count === 1
+      ? t("map_content_water_area_type_generic", "water area")
+      : waterAreaTypeLabelPlural();
+    const titleText = interpolate(
+      t(key, "__count__ unnamed __type__"),
+      { count: summary.count, type: typeText }
+    );
+    addModelLine(item, [
+      { text: capitalizeFirst(titleText), className: "map-content-title" }
+    ], "map-content-title-line");
+
+    if (summary.locationText) {
+      addModelLine(item, [
+        { text: capitalizeFirst(summary.locationText), className: "map-content-location-text" }
+      ], "map-content-location");
+    }
+
+    const touches = edgesText(summary.edgesTouched, null);
+    if (touches) {
+      addModelLine(item, [
+        { text: capitalizeFirst(touches), className: "map-content-touches" }
+      ], "map-content-location");
+    }
+
+    const percentText = formatPercent(summary.coveragePercent);
+    if (percentText !== null) {
+      addModelLine(item, interpolatedParts(
+        t("map_content_total_area", "Covers __percent__% of map"),
+        { percent: percentText },
+        "map-content-parts-coverage"
+      ), "map-content-parts");
+    }
+    return item;
+  }
+
+  function buildWaterAreasModel(mapContent) {
+    const entries = collectWaterAreaEntries(mapContent);
+    const namedEntries = [];
+    const unnamedEntries = [];
+    const model = [];
+    entries.forEach(function(entry){
+      if (waterAreaEntryIsNamed(entry)) {
+        namedEntries.push(entry);
+      } else {
+        unnamedEntries.push(entry);
+      }
+    });
+
+    namedEntries.forEach(function(entry){
+      const item = buildWaterAreaModel(entry);
+      if (item) {
+        model.push(item);
+      }
+    });
+
+    const unnamedBucketsByKey = {};
+    const unnamedKeyByIndex = {};
+    unnamedEntries.forEach(function(entry, index){
+      const locationText = waterAreaPrimaryLocationText(entry);
+      const locationKey = waterAreaPrimaryLocationKey(locationText);
+      if (!locationKey) {
+        return;
+      }
+      unnamedKeyByIndex[index] = locationKey;
+      if (!unnamedBucketsByKey[locationKey]) {
+        unnamedBucketsByKey[locationKey] = {
+          count: 0,
+          coveragePercent: 0,
+          locationText: locationText,
+          firstIndex: index,
+          entries: []
+        };
+      }
+      const bucket = unnamedBucketsByKey[locationKey];
+      bucket.count += 1;
+      bucket.coveragePercent += waterAreaCoveragePercent(entry);
+      bucket.entries.push(entry);
+      if (index < bucket.firstIndex) {
+        bucket.firstIndex = index;
+      }
+    });
+
+    unnamedEntries.forEach(function(entry, index){
+      const locationKey = unnamedKeyByIndex[index];
+      if (locationKey) {
+        const bucket = unnamedBucketsByKey[locationKey];
+        if (bucket && bucket.count > 1) {
+          if (bucket.firstIndex === index) {
+            bucket.edgesTouched = mergeWaterAreaEdgesTouched(bucket.entries);
+            const mergedItem = buildMergedUnnamedWaterAreaModel(bucket);
+            if (mergedItem) {
+              model.push(mergedItem);
+            }
+          }
+          return;
+        }
+      }
+      const item = buildWaterAreaModel(entry);
+      if (item) {
+        model.push(item);
+      }
+    });
+
+    return model;
+  }
+
+  function buildModel(mapContent, helpers, options) {
     setTranslator(helpers);
+    const resolved = normalizeOptions(options);
+    if (resolved.section === "water_areas") {
+      return buildWaterAreasModel(mapContent);
+    }
     const groups = collectBuildingGroups(mapContent);
     const model = [];
     groups.forEach(function(group){
@@ -1134,16 +1552,20 @@
     return items.length;
   }
 
-  function render(mapContent, listElem, helpers) {
+  function render(mapContent, listElem, helpers, options) {
     if (!listElem || !listElem.length) {
       return 0;
     }
-    const model = buildModel(mapContent, helpers);
+    const model = buildModel(mapContent, helpers, options);
     return renderFromModel(model, listElem);
   }
 
-  function emptyMessage(helpers) {
+  function emptyMessage(helpers, options) {
     setTranslator(helpers);
+    const resolved = normalizeOptions(options);
+    if (resolved.section === "water_areas") {
+      return t("map_content_no_water_areas", "No water areas listed for this map.");
+    }
     return t("map_content_no_buildings", "No buildings listed for this map.");
   }
 

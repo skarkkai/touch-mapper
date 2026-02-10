@@ -520,11 +520,11 @@
 
   function sortEntries(entries) {
     return entries.slice().sort(function(a, b){
-      if (a.importanceScore !== b.importanceScore) {
-        return b.importanceScore - a.importanceScore;
-      }
       if (a.hasName !== b.hasName) {
         return a.hasName ? -1 : 1;
+      }
+      if (a.importanceScore !== b.importanceScore) {
+        return b.importanceScore - a.importanceScore;
       }
       if (a.score !== b.score) {
         return b.score - a.score;

@@ -320,6 +320,11 @@
     });
 
     ways.sort(function(a, b){
+      const aNamed = !!wayName(a.group);
+      const bNamed = !!wayName(b.group);
+      if (aNamed !== bNamed) {
+        return aNamed ? -1 : 1;
+      }
       const importanceDiff = wayImportanceScore(b.group) - wayImportanceScore(a.group);
       if (importanceDiff !== 0) {
         return importanceDiff;

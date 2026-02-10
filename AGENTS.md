@@ -129,11 +129,11 @@ Created at: __init__.py
 Stored as: map-meta.augmented.json
 Diff from previous: adds visibleGeometry to line strings (clipped to boundary when possible).
 
-#### Stage name: "Raw meta with building area visibility raster"
+#### Stage name: "Raw meta with building/water area visibility raster"
 
 Created at: __init__.py
 Stored as: map-meta.augmented.json
-Diff from previous: adds visibleGeometry raster summaries for building polygons (coverage, segments, components, shape).
+Diff from previous: adds visibleGeometry raster summaries for building and rendered water-area polygons (coverage, segments, components, shape).
 
 #### Stage name: "Grouped + classified meta"
 
