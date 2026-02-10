@@ -364,11 +364,36 @@
     return typeof url === "string" && /^https?:\/\/\S+$/i.test(url);
   }
 
+  function isGoogleSearchExternalLink(link) {
+    if (!link || typeof link !== "object") {
+      return false;
+    }
+    if (typeof link.label !== "string" || link.label.trim().toLowerCase() !== "search") {
+      return false;
+    }
+    if (typeof link.url !== "string") {
+      return false;
+    }
+    try {
+      const parsed = new URL(link.url);
+      const host = parsed.hostname.toLowerCase();
+      if (!/^([a-z0-9-]+\.)*google\./.test(host)) {
+        return false;
+      }
+      return parsed.pathname === "/search";
+    } catch (_error) {
+      return false;
+    }
+  }
+
   function normalizedExternalLink(link) {
     if (!link || typeof link !== "object") {
       return null;
     }
     if (!isSafeExternalUrl(link.url)) {
+      return null;
+    }
+    if (isGoogleSearchExternalLink(link)) {
       return null;
     }
     return {
@@ -420,8 +445,51 @@
     return Math.max(0, number);
   }
 
+  function stripWayModifierSuffix(label) {
+    if (!label || typeof label !== "string") {
+      return label;
+    }
+    const trimmed = label.trim();
+    const match = trimmed.match(/^(.*)\s+\[([^\]]+)\]$/);
+    if (!match) {
+      return trimmed;
+    }
+    const rawBase = match[1] ? match[1].trim() : "";
+    const rawModifiers = match[2] ? match[2].trim() : "";
+    if (!rawBase || !rawModifiers) {
+      return trimmed;
+    }
+
+    const modifiers = rawModifiers.split(",").map(function(part){
+      return part.trim();
+    }).filter(Boolean);
+    if (!modifiers.length) {
+      return trimmed;
+    }
+
+    const allModifierTokens = modifiers.every(function(part){
+      return /^[a-z_]+(?:=-?\d+)?$/i.test(part);
+    });
+    if (!allModifierTokens) {
+      return trimmed;
+    }
+
+    const hasWayModifier = modifiers.some(function(part){
+      const key = part.split("=")[0].toLowerCase();
+      return key === "layer" ||
+        key === "tunnel" ||
+        key === "bridge" ||
+        key === "covered" ||
+        key === "ford" ||
+        key === "embankment" ||
+        key === "cutting";
+    });
+
+    return hasWayModifier ? rawBase : trimmed;
+  }
+
   function wayTitle(group) {
-    const label = group && group.displayLabel;
+    const label = stripWayModifierSuffix(group && group.displayLabel);
     if (isUnnamedWayLabel(label)) {
       return t("map_content_way_unnamed", "Unnamed way");
     }
@@ -432,12 +500,12 @@
     if (!label || typeof label !== "string") {
       return true;
     }
-    const trimmed = label.trim();
+    const trimmed = stripWayModifierSuffix(label).trim();
     return !trimmed || trimmed === "(unnamed)" || trimmed.indexOf("(unnamed)") === 0;
   }
 
   function wayName(group) {
-    const label = group && group.displayLabel;
+    const label = stripWayModifierSuffix(group && group.displayLabel);
     if (isUnnamedWayLabel(label)) {
       return null;
     }

@@ -741,6 +741,49 @@
           controls.target.set(0, 0, 0);
           controls.update();
 
+          function controlsStateSnapshot(orbitControls) {
+            return {
+              azimuth: orbitControls.getAzimuthalAngle(),
+              polar: orbitControls.getPolarAngle(),
+              targetX: orbitControls.target.x,
+              targetY: orbitControls.target.y,
+              targetZ: orbitControls.target.z
+            };
+          }
+
+          function hasRotateOrDragFromSnapshot(startState, currentState) {
+            if (!startState || !currentState) {
+              return false;
+            }
+            var angleEpsilon = 0.0001;
+            var targetEpsilon = 0.0001;
+            var azimuthDiff = Math.abs(currentState.azimuth - startState.azimuth);
+            var polarDiff = Math.abs(currentState.polar - startState.polar);
+            var targetMoved = Math.abs(currentState.targetX - startState.targetX) > targetEpsilon ||
+              Math.abs(currentState.targetY - startState.targetY) > targetEpsilon ||
+              Math.abs(currentState.targetZ - startState.targetZ) > targetEpsilon;
+            return azimuthDiff > angleEpsilon || polarDiff > angleEpsilon || targetMoved;
+          }
+
+          var autoRotateStoppedByUser = false;
+          var interactionStartState = null;
+          controls.addEventListener("start", function() {
+            interactionStartState = controlsStateSnapshot(controls);
+          });
+          controls.addEventListener("change", function() {
+            if (autoRotateStoppedByUser || !interactionStartState) {
+              return;
+            }
+            if (hasRotateOrDragFromSnapshot(interactionStartState, controlsStateSnapshot(controls))) {
+              controls.autoRotate = false;
+              autoRotateStoppedByUser = true;
+              interactionStartState = null;
+            }
+          });
+          controls.addEventListener("end", function() {
+            interactionStartState = null;
+          });
+
           elem.empty().append(renderer.domElement);
 
           function updateSize() {

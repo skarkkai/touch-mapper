@@ -355,11 +355,36 @@
     return typeof url === "string" && /^https?:\/\/\S+$/i.test(url);
   }
 
+  function isGoogleSearchExternalLink(link) {
+    if (!link || typeof link !== "object") {
+      return false;
+    }
+    if (typeof link.label !== "string" || link.label.trim().toLowerCase() !== "search") {
+      return false;
+    }
+    if (typeof link.url !== "string") {
+      return false;
+    }
+    try {
+      const parsed = new URL(link.url);
+      const host = parsed.hostname.toLowerCase();
+      if (!/^([a-z0-9-]+\.)*google\./.test(host)) {
+        return false;
+      }
+      return parsed.pathname === "/search";
+    } catch (_error) {
+      return false;
+    }
+  }
+
   function normalizedExternalLink(link) {
     if (!link || typeof link !== "object") {
       return null;
     }
     if (!isSafeExternalUrl(link.url)) {
+      return null;
+    }
+    if (isGoogleSearchExternalLink(link)) {
       return null;
     }
     return {
