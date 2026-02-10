@@ -241,6 +241,7 @@
     "map_content_way_type_A4_streams_canals": "puro / kanava",
     "map_content_way_type_A4_ditches_drains": "oja / kuivatusuoma",
     "map_content_way_type_A4_other_waterways": "muu vesiväylä",
+    "map_content_way_type_plural_A4_other_waterways": "muut vesiväylät",
     "map_content_way_type_A_other_ways": "muu väylä",
     "map_content_building_unnamed": "Nimetön rakennus",
     "map_content_no_buildings": "Kartalle ei löytynyt rakennuksia.",

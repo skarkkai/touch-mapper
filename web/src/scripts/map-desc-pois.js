@@ -296,6 +296,21 @@
     return value.trim().toLowerCase();
   }
 
+  function hasMeaningfulPoiTypeLabel(typeLabel) {
+    if (!typeLabel || typeof typeLabel !== "string") {
+      return false;
+    }
+    const trimmed = typeLabel.trim();
+    if (!trimmed) {
+      return false;
+    }
+    const normalized = trimmed.toLowerCase();
+    if (normalized === "poi" || normalized === "unnamed" || normalized === "(unnamed)") {
+      return false;
+    }
+    return true;
+  }
+
   function sectionForEntry(entry) {
     const typeNorm = normalizedLower(entry.typeLabel);
     if (TRANSPORT_TYPES[typeNorm]) {
@@ -463,6 +478,10 @@
         const parsed = parseTypeAndName(group, item);
         const name = parsed.name && parsed.name.trim() ? parsed.name.trim() : null;
         const typeLabel = parsed.typeLabel && parsed.typeLabel.trim() ? parsed.typeLabel.trim() : "";
+        const hasTypeLabel = hasMeaningfulPoiTypeLabel(typeLabel);
+        if (!name && !hasTypeLabel) {
+          return;
+        }
         const entry = {
           subClass: subclass.key,
           group: group,

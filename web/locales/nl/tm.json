@@ -241,6 +241,7 @@
     "map_content_way_type_A4_streams_canals": "beek / kanaal",
     "map_content_way_type_A4_ditches_drains": "sloot / afwatering",
     "map_content_way_type_A4_other_waterways": "overige waterweg",
+    "map_content_way_type_plural_A4_other_waterways": "overige waterwegen",
     "map_content_way_type_A_other_ways": "overige weg",
     "map_content_building_unnamed": "Naamloos gebouw",
     "map_content_no_buildings": "Geen gebouwen gevonden voor deze kaart.",

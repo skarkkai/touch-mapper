@@ -1395,6 +1395,65 @@
       entry.sectionKey === "otherLinear";
   }
 
+  function isUnnamedWaterwayEntry(entry) {
+    return !!(entry && entry.sectionKey === "waterways" && !wayName(entry.group));
+  }
+
+  function unnamedWaterwayLocationText(entry) {
+    if (!entry || !entry.group) {
+      return null;
+    }
+    const text = routeText(entry.group);
+    if (!text || typeof text !== "string") {
+      return null;
+    }
+    const trimmed = text.trim();
+    return trimmed || null;
+  }
+
+  function unnamedWaterwayLocationKey(locationText) {
+    if (!locationText || typeof locationText !== "string") {
+      return null;
+    }
+    const trimmed = locationText.trim();
+    return trimmed ? trimmed.toLowerCase() : null;
+  }
+
+  function buildMergedUnnamedWaterwayModel(summary) {
+    if (!summary || summary.count < 2) {
+      return null;
+    }
+    const item = {
+      type: "summary",
+      attrs: {
+        dataIsNamed: false
+      },
+      lines: []
+    };
+    const lengthText = formatLength({ totalLength: summary.totalLength });
+    const singularType = translatedWayType("A4_other_waterways") ||
+      t("map_content_way_type_A4_other_waterways", "other waterway");
+    const pluralType = translatedWayTypePlural("A4_other_waterways") || singularType;
+    const typeText = summary.count === 1 ? singularType : pluralType;
+    const key = summary.count === 1 ? "map_content_unnamed_features_one" : "map_content_unnamed_features_many";
+    let titleText = interpolate(
+      t(key, "__count__ unnamed __type__"),
+      { count: summary.count, type: typeText }
+    );
+    if (lengthText) {
+      titleText += ", " + lengthText;
+    }
+    addModelLine(item, [
+      { text: capitalizeFirst(titleText), className: "map-content-title" }
+    ], "map-content-title-line");
+    if (summary.locationText) {
+      addModelLine(item, [
+        { text: capitalizeFirst(summary.locationText), className: "map-content-location-text" }
+      ], "map-content-location");
+    }
+    return item;
+  }
+
   function buildModel(mapContent, helpers, options) {
     setTranslator(helpers);
     const resolved = normalizeOptions(options);
@@ -1417,7 +1476,49 @@
       })
     );
 
-    itemEntries.forEach(function(entry){
+    const unnamedWaterwayBucketsByKey = {};
+    const unnamedWaterwayKeyByIndex = {};
+    itemEntries.forEach(function(entry, index){
+      if (!isUnnamedWaterwayEntry(entry)) {
+        return;
+      }
+      const locationText = unnamedWaterwayLocationText(entry);
+      const locationKey = unnamedWaterwayLocationKey(locationText);
+      if (!locationKey) {
+        return;
+      }
+      unnamedWaterwayKeyByIndex[index] = locationKey;
+      if (!unnamedWaterwayBucketsByKey[locationKey]) {
+        unnamedWaterwayBucketsByKey[locationKey] = {
+          count: 0,
+          totalLength: 0,
+          locationText: locationText,
+          firstIndex: index
+        };
+      }
+      const bucket = unnamedWaterwayBucketsByKey[locationKey];
+      bucket.count += 1;
+      bucket.totalLength += wayLengthValue(entry.group);
+      if (index < bucket.firstIndex) {
+        bucket.firstIndex = index;
+      }
+    });
+
+    itemEntries.forEach(function(entry, index){
+      const locationKey = unnamedWaterwayKeyByIndex[index];
+      if (locationKey) {
+        const bucket = unnamedWaterwayBucketsByKey[locationKey];
+        if (bucket && bucket.count > 1) {
+          if (bucket.firstIndex === index) {
+            const mergedItem = buildMergedUnnamedWaterwayModel(bucket);
+            if (mergedItem) {
+              model.push(mergedItem);
+            }
+          }
+          return;
+        }
+      }
+
       const item = buildWayItemModel(entry, connectionTextsByKey);
       if (item) {
         model.push(item);

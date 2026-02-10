@@ -241,6 +241,7 @@
     "map_content_way_type_A4_streams_canals": "Bach / Kanal",
     "map_content_way_type_A4_ditches_drains": "Graben / Entwässerung",
     "map_content_way_type_A4_other_waterways": "Sonstiger Wasserlauf",
+    "map_content_way_type_plural_A4_other_waterways": "Sonstige Wasserläufe",
     "map_content_way_type_A_other_ways": "Sonstiger Weg",
     "map_content_building_unnamed": "Unbenanntes Gebäude",
     "map_content_no_buildings": "Keine Gebäude für diese Karte aufgelistet.",

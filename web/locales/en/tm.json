@@ -241,6 +241,7 @@
     "map_content_way_type_A4_streams_canals": "stream / canal",
     "map_content_way_type_A4_ditches_drains": "ditch / drain",
     "map_content_way_type_A4_other_waterways": "other waterway",
+    "map_content_way_type_plural_A4_other_waterways": "other waterways",
     "map_content_way_type_A_other_ways": "other way",
     "map_content_building_unnamed": "Unnamed building",
     "map_content_no_buildings": "No buildings listed for this map.",
