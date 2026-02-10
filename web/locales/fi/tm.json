@@ -490,5 +490,5 @@
     "address_search_by": "Osoitehaku __linkTag__.",
     "map_data_by": "Karttadata __linkTag__.",
     "touch_mapper_is_os": "Touch Mapper on vapaa ohjelmisto.",
-    "see_github": "Lähdekoodi ja lisätietoja __startTag__GitHub-repositoriossa__endTag__."
+    "see_github": "Käytä __startTag__GitHub__endTag__-sivua bugiraportteihin ja ominaisuusehdotuksiin."
 }
