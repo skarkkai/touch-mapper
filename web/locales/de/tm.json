@@ -209,6 +209,7 @@
     "map_content_way_route_from_to": "Von __start__ bis __end__",
     "map_content_way_route_near": "__location__",
     "map_content_connects_to_way": "Verbindet mit Weg __way__",
+    "map_content_connects_to_ways": "Verbindet mit Wegen __ways__",
     "map_content_connects_to_type": "Verbindet mit __type__",
     "map_content_connects_to_type_many": "Verbindet mit __count__ __type__",
     "map_content_connects_to_type_many_fallback": "Verbindet mit __count__ Wegen vom Typ __type__",

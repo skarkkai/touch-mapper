@@ -103,6 +103,7 @@ window.TM = { translations: {
   "map_content_way_route_from_to": "{{ map_content_way_route_from_to }}",
   "map_content_way_route_near": "{{ map_content_way_route_near }}",
   "map_content_connects_to_way": "{{ map_content_connects_to_way }}",
+  "map_content_connects_to_ways": "{{ map_content_connects_to_ways }}",
   "map_content_connects_to_type": "{{ map_content_connects_to_type }}",
   "map_content_connects_to_type_many": "{{ map_content_connects_to_type_many }}",
   "map_content_connects_to_type_many_fallback": "{{ map_content_connects_to_type_many_fallback }}",

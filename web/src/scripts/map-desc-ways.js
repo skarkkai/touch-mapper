@@ -747,6 +747,12 @@
         { way: labelInfo.value }
       );
     }
+    if (labelInfo.mode === "ways") {
+      return interpolate(
+        t("map_content_connects_to_ways", "Connects to ways __ways__"),
+        { ways: labelInfo.value }
+      );
+    }
     const singularType = translatedWayType(labelInfo.subClass) ||
       t("map_content_way_type_A_other_ways", "other way");
     if (labelInfo.mode === "type_many") {
@@ -882,12 +888,17 @@
         return bucket.namedLabels[norm];
       }).filter(function(value){ return !!value; });
       namedNames.sort(function(a, b){ return a.localeCompare(b); });
-      namedNames.forEach(function(name){
-        const text = connectionSentence({ mode: "way", value: name });
-        if (text) {
-          texts.push(text);
+      if (namedNames.length === 1) {
+        const singleText = connectionSentence({ mode: "way", value: namedNames[0] });
+        if (singleText) {
+          texts.push(singleText);
         }
-      });
+      } else if (namedNames.length > 1) {
+        const combinedText = connectionSentence({ mode: "ways", value: namedNames.join(", ") });
+        if (combinedText) {
+          texts.push(combinedText);
+        }
+      }
 
       const typeEntries = Object.keys(bucket.typeBuckets).map(function(subClass){
         return {
