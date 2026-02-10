@@ -369,6 +369,7 @@
     "map_content_summary_mostly_extending_clauses": "Vooral __lead__, uitstrekkend richting __target__.",
     "map_content_summary_distributed_top2": "In meerdere gebieden, vooral __first__ en __second__.",
     "map_content_summary_distributed_top1": "In meerdere gebieden, vooral __first__.",
+    "map_content_summary_three_regions_clauses": "In meerdere gebieden, vooral __first__, __second__ en __third__.",
     "map_content_parts_one": "__count__ deel",
     "map_content_parts_many": "__count__ delen",
     "map_content_total_area": "Beslaat __percent__ % van de kaart",

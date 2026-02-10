@@ -369,6 +369,7 @@
     "map_content_summary_mostly_extending_clauses": "Meist __lead__, mit Ausdehnung Richtung __target__.",
     "map_content_summary_distributed_top2": "In mehreren Bereichen, meist __first__ und __second__.",
     "map_content_summary_distributed_top1": "In mehreren Bereichen, meist __first__.",
+    "map_content_summary_three_regions_clauses": "In mehreren Bereichen, meist __first__, __second__ und __third__.",
     "map_content_parts_one": "__count__ Teil",
     "map_content_parts_many": "__count__ Teile",
     "map_content_total_area": "Bedeckt __percent__ % der Karte",

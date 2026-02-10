@@ -19,6 +19,16 @@
     B1_riverbanks: "riverbank",
     B1_other_water: "water area"
   };
+  const COVERAGE_COMPASS_DIRECTIONS = [
+    "north",
+    "northeast",
+    "east",
+    "southeast",
+    "south",
+    "southwest",
+    "west",
+    "northwest"
+  ];
 
   function fallbackTranslate(key, fallback) {
     return fallback !== undefined ? fallback : key;
@@ -686,30 +696,269 @@
     );
   }
 
+  // --- Helpers: graph + distance ------------------------------------------------
+
+  function coverageAllDirectionNodes() {
+    // 8 compass dirs + center
+    return ["center"].concat(COVERAGE_COMPASS_DIRECTIONS);
+  }
+
+  function coverageDirectionNeighbors(direction) {
+    if (!direction) return [];
+    if (direction === "center") {
+      // center adjacent to all compass directions
+      return COVERAGE_COMPASS_DIRECTIONS.slice();
+    }
+    const idx = COVERAGE_COMPASS_DIRECTIONS.indexOf(direction);
+    if (idx < 0) return [];
+    const prev = (idx - 1 + COVERAGE_COMPASS_DIRECTIONS.length) % COVERAGE_COMPASS_DIRECTIONS.length;
+    const next = (idx + 1) % COVERAGE_COMPASS_DIRECTIONS.length;
+    // also adjacent to center (optional; but makes distance model symmetric)
+    return ["center", COVERAGE_COMPASS_DIRECTIONS[prev], COVERAGE_COMPASS_DIRECTIONS[next]];
+  }
+
+  function coverageBuildDistanceMatrix() {
+    const nodes = coverageAllDirectionNodes();
+    const dist = {};
+    for (let i = 0; i < nodes.length; i += 1) {
+      const start = nodes[i];
+      dist[start] = {};
+      // BFS from start
+      const queue = [start];
+      dist[start][start] = 0;
+      while (queue.length) {
+        const cur = queue.shift();
+        const curDist = dist[start][cur];
+        const neighbors = coverageDirectionNeighbors(cur);
+        for (let j = 0; j < neighbors.length; j += 1) {
+          const nb = neighbors[j];
+          if (dist[start][nb] !== undefined) continue;
+          dist[start][nb] = curDist + 1;
+          queue.push(nb);
+        }
+      }
+    }
+    return dist;
+  }
+
+  const COVERAGE_DIRECTION_DIST = coverageBuildDistanceMatrix();
+
+  function coverageMinDistanceToCluster(direction, clusterDirs) {
+    if (!direction) return Infinity;
+    let best = Infinity;
+    for (let i = 0; i < clusterDirs.length; i += 1) {
+      const c = clusterDirs[i];
+      const d = (COVERAGE_DIRECTION_DIST[c] && COVERAGE_DIRECTION_DIST[c][direction]);
+      if (typeof d === "number" && d < best) best = d;
+    }
+    return best;
+  }
+
+  function coverageClusterIsConnected(clusterDirs) {
+    if (!Array.isArray(clusterDirs) || clusterDirs.length === 0) return false;
+    const set = {};
+    for (let i = 0; i < clusterDirs.length; i += 1) {
+      set[clusterDirs[i]] = true;
+    }
+    const start = clusterDirs[0];
+    const visited = {};
+    const stack = [start];
+    visited[start] = true;
+
+    while (stack.length) {
+      const cur = stack.pop();
+      const neighbors = coverageDirectionNeighbors(cur);
+      for (let i = 0; i < neighbors.length; i += 1) {
+        const nb = neighbors[i];
+        if (!set[nb] || visited[nb]) continue;
+        visited[nb] = true;
+        stack.push(nb);
+      }
+    }
+
+    for (let i = 0; i < clusterDirs.length; i += 1) {
+      if (!visited[clusterDirs[i]]) return false;
+    }
+    return true;
+  }
+
+  // --- Cluster search -----------------------------------------------------------
+
+  function coverageDirectionComponent(bucket) {
+    if (!bucket || typeof bucket !== "object") {
+      return null;
+    }
+    if (bucket.kind === "center") {
+      return "center";
+    }
+    if (typeof bucket.dir !== "string") {
+      return null;
+    }
+    return COVERAGE_COMPASS_DIRECTIONS.indexOf(bucket.dir) >= 0 ? bucket.dir : null;
+  }
+
+  function coverageDirectionSharesFromBuckets(buckets) {
+    const shares = {};
+    const nodes = coverageAllDirectionNodes();
+    for (let i = 0; i < nodes.length; i += 1) shares[nodes[i]] = 0;
+
+    for (let i = 0; i < buckets.length; i += 1) {
+      const dir = coverageDirectionComponent(buckets[i]);
+      if (!dir) continue;
+      const s = typeof buckets[i].share === "number" ? buckets[i].share : 0;
+      shares[dir] += s;
+    }
+    return shares;
+  }
+
+  function coverageScoreCluster(directionShares, clusterDirs) {
+    // cluster share: sum of shares in cluster
+    let clusterShare = 0;
+    const nodes = coverageAllDirectionNodes();
+    const inCluster = {};
+    for (let i = 0; i < clusterDirs.length; i += 1) inCluster[clusterDirs[i]] = true;
+
+    for (let i = 0; i < clusterDirs.length; i += 1) {
+      clusterShare += directionShares[clusterDirs[i]] || 0;
+    }
+
+    // far leak: any share at distance >= 2 from cluster
+    let farLeak = 0;
+    for (let i = 0; i < nodes.length; i += 1) {
+      const dir = nodes[i];
+      if (inCluster[dir]) continue;
+      const share = directionShares[dir] || 0;
+      if (share <= 0) continue;
+      const minDist = coverageMinDistanceToCluster(dir, clusterDirs);
+      if (minDist >= 2) farLeak += share;
+    }
+
+    return { clusterShare, farLeak };
+  }
+
+  function coverageEnumerateCombinations(items, k, onCombo) {
+    const combo = [];
+    function rec(start, depth) {
+      if (depth === k) {
+        onCombo(combo.slice());
+        return;
+      }
+      for (let i = start; i <= items.length - (k - depth); i += 1) {
+        combo.push(items[i]);
+        rec(i + 1, depth + 1);
+        combo.pop();
+      }
+    }
+    rec(0, 0);
+  }
+
+  function coverageFindBestCluster(buckets) {
+    const directionShares = coverageDirectionSharesFromBuckets(buckets);
+    const nodes = coverageAllDirectionNodes();
+
+    let best = null;
+
+    function consider(clusterDirs) {
+      if (!coverageClusterIsConnected(clusterDirs)) return;
+      const score = coverageScoreCluster(directionShares, clusterDirs);
+
+      // basic dominance requirement first (cheap pruning)
+      // (Keep thresholds here so we don't waste time comparing weak clusters)
+      if (score.clusterShare < 0.75) return;
+
+      if (!best) {
+        best = { clusterDirs, clusterShare: score.clusterShare, farLeak: score.farLeak };
+        return;
+      }
+
+      // Prefer higher clusterShare, then lower farLeak, then smaller cluster size (more concise)
+      if (score.clusterShare > best.clusterShare + 1e-9) {
+        best = { clusterDirs, clusterShare: score.clusterShare, farLeak: score.farLeak };
+        return;
+      }
+      if (Math.abs(score.clusterShare - best.clusterShare) <= 1e-9) {
+        if (score.farLeak < best.farLeak - 1e-9) {
+          best = { clusterDirs, clusterShare: score.clusterShare, farLeak: score.farLeak };
+          return;
+        }
+        if (Math.abs(score.farLeak - best.farLeak) <= 1e-9) {
+          if (clusterDirs.length < best.clusterDirs.length) {
+            best = { clusterDirs, clusterShare: score.clusterShare, farLeak: score.farLeak };
+          }
+        }
+      }
+    }
+
+    // search connected clusters of size 3..5
+    for (let size = 3; size <= 5; size += 1) {
+      coverageEnumerateCombinations(nodes, size, consider);
+    }
+
+    return best;
+  }
+
+  // --- Phrase selection ---------------------------------------------------------
+
+  function threeRegionsPhrase(top, second, third) {
+    const firstText = bucketClauseText(top);
+    const secondText = bucketClauseText(second);
+    const thirdText = bucketClauseText(third);
+    if (!firstText || !secondText || !thirdText) {
+      return null;
+    }
+    return interpolate(
+      t("map_content_summary_three_regions_clauses", "Mostly __first__, __second__, and __third__."),
+      { first: firstText, second: secondText, third: thirdText }
+    );
+  }
+
   /**
    * Coverage phrase selection:
    * - meaningful bucket threshold: share >= 0.15
-   * - distributed if:
-   *   a) >= 3 meaningful buckets, or
-   *   b) top share < 0.55, or
-   *   c) top + second < 0.80
-   * Non-distributed uses single / equal / mostly-extending templates.
-   * Distributed uses explicit "In several areas, mostly ..." templates.
+   * - cluster phrase (threeRegionsPhrase) if:
+   *   a) there exists a connected cluster of 3..5 adjacent directions whose total share >= 0.75, and
+   *   b) far-away leakage (distance >= 2 from that cluster) is small (<= 0.10), and
+   *   c) at least 3 meaningful buckets fall inside the chosen cluster (so we can name them)
+   * - distributed / single / equal / mostly-extending as before.
    */
   function coverageBreakdown(coverage) {
     const buckets = normalizedCoverageBuckets(coverage);
     if (!buckets.length) {
       return null;
     }
+
     const top = buckets[0];
     const second = buckets.length > 1 ? buckets[1] : null;
-    const meaningful = buckets.filter(function(bucket){
-      return bucket.share >= 0.15;
-    });
 
     const topShare = top ? top.share : 0;
     const secondShare = second ? second.share : 0;
-    const moreDistributed = meaningful.length >= 3 ||
+
+    const meaningful = buckets.filter(function(bucket) {
+      return bucket.share >= 0.15;
+    });
+
+    // clustered >=3 adjacent regions, minimal far-away spill -------------
+    const bestCluster = coverageFindBestCluster(buckets);
+    if (bestCluster && bestCluster.farLeak <= 0.10) {
+      const inCluster = {};
+      for (let i = 0; i < bestCluster.clusterDirs.length; i += 1) {
+        inCluster[bestCluster.clusterDirs[i]] = true;
+      }
+
+      // Pick the top 3 meaningful buckets within the cluster to mention
+      const clusterMeaningful = meaningful.filter(function(bucket) {
+        const dir = coverageDirectionComponent(bucket);
+        return !!(dir && inCluster[dir]);
+      });
+
+      if (clusterMeaningful.length >= 3) {
+        return threeRegionsPhrase(clusterMeaningful[0], clusterMeaningful[1], clusterMeaningful[2]);
+      }
+    }
+
+    // --- Existing distributed logic (unchanged, except no forced "not connected")-
+    const moreDistributed =
+      meaningful.length >= 4 ||
       topShare < 0.55 ||
       (topShare + secondShare) < 0.80;
 

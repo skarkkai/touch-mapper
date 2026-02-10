@@ -369,6 +369,7 @@
     "map_content_summary_mostly_extending_clauses": "Enimmäkseen __lead__, ulottuen kohti __target__.",
     "map_content_summary_distributed_top2": "Usealla alueella, enimmäkseen __first__ ja __second__.",
     "map_content_summary_distributed_top1": "Usealla alueella, enimmäkseen __first__.",
+    "map_content_summary_three_regions_clauses": "Usealla alueella, enimmäkseen __first__, __second__ ja __third__.",
     "map_content_parts_one": "__count__ osa",
     "map_content_parts_many": "__count__ osaa",
     "map_content_total_area": "Kattaa __percent__ % kartasta",

@@ -369,6 +369,7 @@
     "map_content_summary_mostly_extending_clauses": "Mostly __lead__, extending toward __target__.",
     "map_content_summary_distributed_top2": "In several areas, mostly __first__ and __second__.",
     "map_content_summary_distributed_top1": "In several areas, mostly __first__.",
+    "map_content_summary_three_regions_clauses": "Mostly __first__, __second__, and __third__.",
     "map_content_parts_one": "__count__ part",
     "map_content_parts_many": "__count__ parts",
     "map_content_total_area": "Covers __percent__% of map",
