@@ -37,11 +37,15 @@
         }
       },
       materials: {
-        featureColor: 0xf4f4f4,
+        featureColor: 0xe4e4e4,
+        buildingColor: 0xffffff,
         baseColor: 0xc4c4c4,
         fallbackColor: 0xd7d7d7,
         roughness: 0.22,
-        metalness: 0.05
+        metalness: 0.05,
+        buildingHeightMm: 2.9,
+        buildingHeightToleranceMm: 0.35,
+        buildingFlatSpanThresholdMm: 0.02
       }
     };
 
@@ -249,18 +253,28 @@
       return geometry;
     }
 
-    function buildSplitGeometries(THREE, sourcePositions, triangleSourceVertexIndices, isBaseTriangle, baseTriangleCount) {
+    function buildSplitGeometries(
+      THREE,
+      sourcePositions,
+      triangleSourceVertexIndices,
+      isBaseTriangle,
+      isBuildingTriangle,
+      baseTriangleCount,
+      buildingTriangleCount
+    ) {
       var triangleCount = isBaseTriangle.length;
-      var featureTriangleCount = triangleCount - baseTriangleCount;
+      var featureTriangleCount = triangleCount - baseTriangleCount - buildingTriangleCount;
 
-      if (baseTriangleCount < 1 || featureTriangleCount < 1) {
+      if (baseTriangleCount < 1 || featureTriangleCount < 0 || (featureTriangleCount + buildingTriangleCount) < 1) {
         return null;
       }
 
       var basePositions = new Float32Array(baseTriangleCount * 9);
       var featurePositions = new Float32Array(featureTriangleCount * 9);
+      var buildingPositions = new Float32Array(buildingTriangleCount * 9);
       var baseWrite = 0;
       var featureWrite = 0;
+      var buildingWrite = 0;
       var tri;
 
       for (tri = 0; tri < triangleCount; tri += 1) {
@@ -280,6 +294,17 @@
           basePositions[baseWrite + 7] = sourcePositions[vertexC + 1];
           basePositions[baseWrite + 8] = sourcePositions[vertexC + 2];
           baseWrite += 9;
+        } else if (isBuildingTriangle[tri]) {
+          buildingPositions[buildingWrite] = sourcePositions[vertexA];
+          buildingPositions[buildingWrite + 1] = sourcePositions[vertexA + 1];
+          buildingPositions[buildingWrite + 2] = sourcePositions[vertexA + 2];
+          buildingPositions[buildingWrite + 3] = sourcePositions[vertexB];
+          buildingPositions[buildingWrite + 4] = sourcePositions[vertexB + 1];
+          buildingPositions[buildingWrite + 5] = sourcePositions[vertexB + 2];
+          buildingPositions[buildingWrite + 6] = sourcePositions[vertexC];
+          buildingPositions[buildingWrite + 7] = sourcePositions[vertexC + 1];
+          buildingPositions[buildingWrite + 8] = sourcePositions[vertexC + 2];
+          buildingWrite += 9;
         } else {
           featurePositions[featureWrite] = sourcePositions[vertexA];
           featurePositions[featureWrite + 1] = sourcePositions[vertexA + 1];
@@ -296,7 +321,8 @@
 
       return {
         baseGeometry: splitPositionsToGeometry(THREE, basePositions),
-        featureGeometry: splitPositionsToGeometry(THREE, featurePositions)
+        featureGeometry: splitPositionsToGeometry(THREE, featurePositions),
+        buildingGeometry: splitPositionsToGeometry(THREE, buildingPositions)
       };
     }
 
@@ -437,6 +463,8 @@
       }
 
       var areaThreshold = maxArea * 0.95;
+      var horizontalNormalThreshold = 0.98;
+      var flatSpanThreshold = 0.02;
       var isBaseTriangle = new Uint8Array(triangleCount);
       var queue = new Int32Array(triangleCount);
       var queueHead = 0;
@@ -447,8 +475,8 @@
         var zSpan = triangleMaxZ[tri] - triangleMinZ[tri];
         if (
           triangleAreas[tri] >= areaThreshold &&
-          Math.abs(triangleNormalZ[tri]) >= 0.98 &&
-          zSpan <= 0.01
+          Math.abs(triangleNormalZ[tri]) >= horizontalNormalThreshold &&
+          zSpan <= flatSpanThreshold
         ) {
           isBaseTriangle[tri] = 1;
           queue[queueTail] = tri;
@@ -508,9 +536,56 @@
         return null;
       }
 
+      var isBuildingTriangle = new Uint8Array(triangleCount);
+      var buildingTriangleCount = 0;
+      var baseTopZ = -Infinity;
+      var expectedBuildingTopZ = -Infinity;
+      for (tri = 0; tri < triangleCount; tri += 1) {
+        if (!isBaseTriangle[tri]) {
+          continue;
+        }
+        var baseSpan = triangleMaxZ[tri] - triangleMinZ[tri];
+        if (
+          Math.abs(triangleNormalZ[tri]) >= horizontalNormalThreshold &&
+          baseSpan <= flatSpanThreshold &&
+          triangleMaxZ[tri] > baseTopZ
+        ) {
+          baseTopZ = triangleMaxZ[tri];
+        }
+      }
+
+      if (isFinite(baseTopZ)) {
+        var buildingHeightTolerance = PREVIEW_VISUALS.materials.buildingHeightToleranceMm;
+        var buildingFlatSpanThreshold = PREVIEW_VISUALS.materials.buildingFlatSpanThresholdMm;
+        expectedBuildingTopZ = baseTopZ + PREVIEW_VISUALS.materials.buildingHeightMm;
+        for (tri = 0; tri < triangleCount; tri += 1) {
+          if (isBaseTriangle[tri]) {
+            continue;
+          }
+          var roofSpan = triangleMaxZ[tri] - triangleMinZ[tri];
+          if (
+            Math.abs(triangleNormalZ[tri]) >= horizontalNormalThreshold &&
+            roofSpan <= buildingFlatSpanThreshold &&
+            Math.abs(triangleMaxZ[tri] - expectedBuildingTopZ) <= buildingHeightTolerance
+          ) {
+            isBuildingTriangle[tri] = 1;
+            buildingTriangleCount += 1;
+          }
+        }
+        splitDebugLog(
+          "base split building detection: base top z " + baseTopZ.toFixed(3) +
+          ", expected building z " + expectedBuildingTopZ.toFixed(3) +
+          ", building triangles " + buildingTriangleCount
+        );
+      } else {
+        splitDebugLog("base split building detection skipped: could not determine base top z");
+      }
+
+      var featureTriangleCount = triangleCount - baseTriangleCount - buildingTriangleCount;
       splitDebugLog(
-        "base split detected: base triangles " + baseTriangleCount + ", features " +
-        (triangleCount - baseTriangleCount)
+        "base split detected: base triangles " + baseTriangleCount +
+        ", other feature triangles " + featureTriangleCount +
+        ", building roof triangles " + buildingTriangleCount
       );
 
       return buildSplitGeometries(
@@ -518,7 +593,9 @@
         sourcePositions,
         triangleSourceVertexIndices,
         isBaseTriangle,
-        baseTriangleCount
+        isBuildingTriangle,
+        baseTriangleCount,
+        buildingTriangleCount
       );
     }
 
@@ -689,18 +766,42 @@
             }
           }
 
-          if (splitResult && splitResult.baseGeometry && splitResult.featureGeometry) {
-            var featureMaterial = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.featureColor);
+          if (splitResult && splitResult.baseGeometry && (splitResult.featureGeometry || splitResult.buildingGeometry)) {
             var baseMaterial = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.baseColor);
+            var featureMaterial = splitResult.featureGeometry
+              ? makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.featureColor)
+              : null;
+            var buildingMaterial = splitResult.buildingGeometry
+              ? makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.buildingColor)
+              : null;
             var baseMesh = new THREE.Mesh(splitResult.baseGeometry, baseMaterial);
-            var featureMesh = new THREE.Mesh(splitResult.featureGeometry, featureMaterial);
 
             modelGroup.add(baseMesh);
-            modelGroup.add(featureMesh);
-            splitDebugLog("base split render path active");
+            if (splitResult.featureGeometry && featureMaterial) {
+              modelGroup.add(new THREE.Mesh(splitResult.featureGeometry, featureMaterial));
+            }
+            if (splitResult.buildingGeometry && buildingMaterial) {
+              modelGroup.add(new THREE.Mesh(splitResult.buildingGeometry, buildingMaterial));
+            }
+            splitDebugLog(
+              "base split render path active (building highlighting " +
+              (splitResult.buildingGeometry ? "enabled" : "disabled") + ")"
+            );
 
-            managedGeometries.push(splitResult.baseGeometry, splitResult.featureGeometry);
-            managedMaterials.push(baseMaterial, featureMaterial);
+            managedGeometries.push(splitResult.baseGeometry);
+            if (splitResult.featureGeometry) {
+              managedGeometries.push(splitResult.featureGeometry);
+            }
+            if (splitResult.buildingGeometry) {
+              managedGeometries.push(splitResult.buildingGeometry);
+            }
+            managedMaterials.push(baseMaterial);
+            if (featureMaterial) {
+              managedMaterials.push(featureMaterial);
+            }
+            if (buildingMaterial) {
+              managedMaterials.push(buildingMaterial);
+            }
             geometry.dispose();
           } else {
             splitDebugLog("single material fallback render path active");
