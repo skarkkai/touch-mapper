@@ -40,6 +40,7 @@ def parse_env_bool(name):
 
 
 INSTRUMENTATION_ENABLED = (parse_env_bool(INSTRUMENTATION_ENV_VAR) is True)
+INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 progress_state = {
     'status': 'starting',
     'stage': 'bootstrap',
@@ -325,6 +326,16 @@ def attach_request_metadata_to_map_content(map_content, request_body):
     return json.dumps(map_content_json, ensure_ascii=False, separators=(',', ':')).encode('utf8')
 
 
+def build_info_payload(request_body, meta):
+    # info.json is only map-page bootstrap metadata; omit large geometry arrays.
+    info = copy.copy(request_body)
+    for key, value in meta.items():
+        if key in INFO_JSON_META_DENYLIST:
+            continue
+        info[key] = value
+    return info
+
+
 def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args, progress_logger=None):
     def upload_blob(key, body, content_type):
         try:
@@ -430,8 +441,7 @@ def main():
 
         # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of created maps.
         json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
-        info = copy.copy(request_body)
-        info.update(meta)
+        info = build_info_payload(request_body, meta)
 
         log_progress('upload-primary-start')
         upload_primary_assets(
