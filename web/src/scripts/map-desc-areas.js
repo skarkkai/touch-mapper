@@ -144,9 +144,27 @@
     return translated;
   }
 
+  function translatedOsmValueWithSuffix(value, suffix) {
+    const slug = slugifyOsmValue(value);
+    const suffixSlug = slugifyOsmValue(suffix);
+    if (!slug || !suffixSlug) {
+      return null;
+    }
+    const key = "map_content_osm_value_" + slug + "_" + suffixSlug;
+    const translated = t(key, key);
+    if (translated === key) {
+      return null;
+    }
+    return translated;
+  }
+
   function localizeBuildingTitle(title) {
     if (!title || typeof title !== 'string') {
       return title;
+    }
+    const exactBuilding = translatedOsmValueWithSuffix(title, "building");
+    if (exactBuilding) {
+      return exactBuilding;
     }
     const exact = translatedOsmValue(title);
     if (exact) {
@@ -154,6 +172,10 @@
     }
     const match = title.match(/^(.*)\s+building$/i);
     if (match) {
+      const translatedBuilding = translatedOsmValueWithSuffix(match[1].trim(), "building");
+      if (translatedBuilding) {
+        return translatedBuilding;
+      }
       const translatedValue = translatedOsmValue(match[1].trim());
       if (translatedValue) {
         return interpolate(
