@@ -18,7 +18,6 @@
         "metalsmith-text-replace": "^1.0.1"
       },
       "devDependencies": {
-        "globals": "^17.3.0",
         "http-server": "^0.9.0"
       }
     },
@@ -1347,18 +1346,6 @@
       },
       "funding": {
         "url": "https://github.com/sponsors/isaacs"
-      }
-    },
-    "node_modules/globals": {
-      "version": "17.3.0",
-      "resolved": "https://registry.npmjs.org/globals/-/globals-17.3.0.tgz",
-      "integrity": "sha512-yMqGUQVVCkD4tqjOJf3TnrvaaHDMYp4VlUSObbkIiuCPe/ofdMBFIAcBbCSRFWOnos6qRiTVStDwqPLUclaxIw==",
-      "dev": true,
-      "engines": {
-        "node": ">=18"
-      },
-      "funding": {
-        "url": "https://github.com/sponsors/sindresorhus"
       }
     },
     "node_modules/gnode": {

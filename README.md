@@ -69,7 +69,3 @@ Technical TODO:
     - Much easier to describe map contents (eg. roads intersecting with edges)
   - Better performance
   - Simpler processing pipeline
-
-## Textual map descriptions
-
-When working on any part of the feature that describes map content textually, always refer to TOUCH_MAPPER_MAP_DESC_SPEC.md for design and implementation guidelines.
