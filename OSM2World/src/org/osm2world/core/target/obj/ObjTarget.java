@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.openstreetmap.josm.plugins.graphview.core.data.TagGroup;
 import org.osm2world.core.map_data.data.MapArea;
 import org.osm2world.core.map_data.data.MapElement;
 import org.osm2world.core.map_data.data.MapNode;
 import org.osm2world.core.map_data.data.MapWaySegment;
+import org.openstreetmap.josm.plugins.graphview.core.data.TagGroup;
 import org.osm2world.core.map_elevation.data.EleConnector;
 import org.osm2world.core.math.TriangleXYZ;
 import org.osm2world.core.math.TriangleXYZWithNormals;
@@ -99,7 +99,15 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
 			OSMElement osmElement;
 			if (element instanceof MapNode) {
 				osmElement = ((MapNode) element).getOsmNode();
-				
+			} else if (element instanceof MapWaySegment) {
+				osmElement = ((MapWaySegment) element).getOsmWay();
+			} else if (element instanceof MapArea) {
+				osmElement = ((MapArea) element).getOsmObject();
+			} else {
+				osmElement = null;
+			}
+
+			if (element instanceof MapNode) {
 				List<MapWaySegment> connectedWaySegments = ((MapNode) element).getConnectedWaySegments();
 				int pedestrians = 0;
 				for (MapWaySegment mapWaySegment : connectedWaySegments) {
@@ -108,14 +116,8 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
 				if (pedestrians >= (connectedWaySegments.size()+1) / 2) {
 					roadSuffix = "::pedestrian";
 				}
-			} else if (element instanceof MapWaySegment) {
-				osmElement = ((MapWaySegment) element).getOsmWay();
-			} else if (element instanceof MapArea) {
-				osmElement = ((MapArea) element).getOsmObject();
-			} else {
-				osmElement = null;
 			}
-			
+
 			if (roadSuffix == null) {
 				roadSuffix = isPath(osmElement.tags) ? "::pedestrian" : "";
 			}
@@ -131,7 +133,8 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
 		}
 		
 	}
-	
+
+
 	private static boolean isPath(TagGroup tags) {
 		String highwayValue = tags.getValue("highway");
 		if ("path".equals(highwayValue)
@@ -158,8 +161,6 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
 		}
 		return false;
 	}
-
-	
 	@Override
 	public void drawFace(Material material, List<VectorXYZ> vs,
 			List<VectorXYZ> normals, List<List<VectorXZ>> texCoordLists) {

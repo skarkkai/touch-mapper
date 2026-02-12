@@ -231,13 +231,121 @@ function setParametersByMapId(id) {
 }
 
 function setParametersFromBlindSquare() {
-  setLocalStorage("addresses", JSON.stringify([{
-    addrShort: getUrlParam("addrName"),
-    addrLong: getUrlParam("addrName"),
-    lat: getUrlParam("lat"),
-    lon: getUrlParam("lon")
-  }]));
-  setLocalStorage("addressesSelectedIndex", 0);
+  function hasNonEmpty(value) {
+    return value !== null && value !== undefined && value !== "";
+  }
+
+  function parseBoolean(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (normalized === "true" || normalized === "1" || normalized === "yes") {
+      return true;
+    }
+    if (normalized === "false" || normalized === "0" || normalized === "no") {
+      return false;
+    }
+    return null;
+  }
+
+  function parseIntParam(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var number = parseInt(value, 10);
+    return isNaN(number) ? null : number;
+  }
+
+  function parseFloatParam(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var number = parseFloat(value);
+    return isNaN(number) ? null : number;
+  }
+
+  function setLocalStorageIfPresent(localStorageKey, paramName, parser) {
+    var raw = getUrlParam(paramName);
+    if (!hasNonEmpty(raw)) {
+      return null;
+    }
+    var parsed = parser ? parser(raw) : raw;
+    if (parsed === null || parsed === undefined || parsed === "") {
+      return null;
+    }
+    setLocalStorage(localStorageKey, parsed);
+    return parsed;
+  }
+
+  function selectedAddressFromStorage() {
+    if (!localStorage.addresses) {
+      return null;
+    }
+    try {
+      var addresses = JSON.parse(localStorage.addresses);
+      if (!Array.isArray(addresses) || addresses.length === 0) {
+        return null;
+      }
+      var index = getLocalStorageInt("addressesSelectedIndex", 0);
+      if (index < 0 || index >= addresses.length) {
+        index = 0;
+      }
+      return addresses[index] || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var currentAddress = selectedAddressFromStorage() || {};
+  var urlAddrName = getUrlParam("addrName");
+  var urlLat = getUrlParam("lat");
+  var urlLon = getUrlParam("lon");
+  if (hasNonEmpty(urlAddrName) || hasNonEmpty(urlLat) || hasNonEmpty(urlLon)) {
+    var addrShort = hasNonEmpty(urlAddrName) ? urlAddrName : currentAddress.addrShort;
+    var addrLong = hasNonEmpty(urlAddrName) ? urlAddrName : currentAddress.addrLong;
+    var lat = hasNonEmpty(urlLat) ? urlLat : currentAddress.lat;
+    var lon = hasNonEmpty(urlLon) ? urlLon : currentAddress.lon;
+    if (hasNonEmpty(addrShort) || hasNonEmpty(addrLong) || hasNonEmpty(lat) || hasNonEmpty(lon)) {
+      setLocalStorage("addresses", JSON.stringify([{
+        addrShort: addrShort,
+        addrLong: addrLong,
+        lat: lat,
+        lon: lon
+      }]));
+      setLocalStorage("addressesSelectedIndex", 0);
+    }
+  }
+
+  setLocalStorageIfPresent("lat", "lat", parseFloatParam);
+  setLocalStorageIfPresent("lon", "lon", parseFloatParam);
+  setLocalStorageIfPresent("printing-tech", "printingTech", function(value) {
+    return value === "2d" || value === "3d" ? value : null;
+  });
+  setLocalStorageIfPresent("offsetX", "offsetX", parseIntParam);
+  setLocalStorageIfPresent("offsetY", "offsetY", parseIntParam);
+  setLocalStorageIfPresent("advancedMode", "advancedMode", parseBoolean);
+  setLocalStorageIfPresent("exclude-buildings", "excludeBuildings", parseBoolean);
+  setLocalStorageIfPresent("hide-location-marker", "hideLocationMarker", parseBoolean);
+  setLocalStorageIfPresent("multipartMode", "multipartMode", parseBoolean);
+  setLocalStorageIfPresent("multipartXpc", "multipartXpc", parseIntParam);
+  setLocalStorageIfPresent("multipartYpc", "multipartYpc", parseIntParam);
+
+  var sizeValue = setLocalStorageIfPresent("size", "size", parseFloatParam);
+  if (sizeValue !== null) {
+    setLocalStorage(
+      "map-size-preset",
+      optionExistsInSelect($("#map-size-preset"), sizeValue) ? sizeValue : ""
+    );
+  }
+  var scaleValue = setLocalStorageIfPresent("scale", "scale", parseIntParam);
+  if (scaleValue !== null) {
+    setLocalStorage(
+      "map-scale-preset",
+      optionExistsInSelect($("#map-scale-preset"), scaleValue) ? scaleValue : ""
+    );
+  }
+
   return $.when(); // return a resolved promise
 }
 

@@ -20,6 +20,12 @@ This file captures project-specific conventions and "gotchas" that help especial
   - Converts `{{ key }}` in ECT files to `@t('key')` for i18n.
   - Runs `metalsmith-i18next` over `web/locales/*/tm.json`. Available locales seen as folders in `web/locales`.
   - Compiles Less and concatenates JS bundles into `scripts/app-common.js` and `scripts/vendor-common.js`.
+- JavaScript should be as modern as possible while still working on the latest versions of Edge, Chrome, Firefox, and Safari (no legacy browser support).
+  - OK: `async/await`, `fetch`, optional chaining, nullish coalescing, `URL`, `URLSearchParams`, `AbortController`, `class`.
+  - Prefer: `const` by default, `let` when reassignment is needed (avoid `var`).
+  - Prefer: `===`/`!==`, template literals, and `for...of` over index loops when iterating arrays.
+  - Avoid: implicit globals, `with`, or `eval`.
+  - Avoid: manual `XMLHttpRequest` or legacy polyfills aimed at IE/old Edge.
 - `web/src/index.html` is a small redirect page; the main page template is `web/pre-src/index.pre`.
 - `web/src/scripts/environment.js.*` are environment stubs; `web/create-env-js.sh` generates a real `environment.js` (requires AWS CLI + config).
 
@@ -27,10 +33,28 @@ This file captures project-specific conventions and "gotchas" that help especial
 - Translation keys live in `web/locales/<lang>/tm.json`; the English file is the source of truth and runtime fallback.
 - Keys are lowercase snake_case; prefixes group by feature (examples: `location2_`, `location3_`, `map_`, `multipart_`, `meta_`, `printing_`).
 - In templates, use `{{ key }}` in `web/pre-src/*.pre`; `web/build.js` converts this to `@t('key')`.
-- When adding or changing strings, update all locale files in the same change; copy English text as a placeholder if a translation is unknown.
+- When adding or changing strings, update all locale files in the same change and translate to non-english yourself automatically; copy English text as a placeholder if a translation is unknown.
 - Translation spreadsheets in `translation/` exist for human translators but are not the primary edit path.
 - `window.TM.translations` is a small, template-injected set of strings for JS; it is not a full runtime locale dictionary. If JS needs strings, expose them via templates (e.g., `window.TM` or `data-*` attributes).
 - There’s no client‑side locale dictionary; JS should receive text from templates (e.g., rendered HTML or data-* attributes), not look up keys at runtime.
+- For map-description/POI text changes, validation must be output-based, not key-based: confirm rendered strings in `simple`, `average`, and especially `complex` fixtures for all locales (`en`, `de`, `fi`, `nl`), because missing template injection or fallback behavior can hide gaps.
+
+## Coding guidelines
+
+Don't try to preserve backward compatibility in the converter portion (folder "converter"): any time changes are made to how data is produced, matching changes will made to the final consumer which is the UI. However when making changes to just UI, ask if backward compatibility should be maintained.
+
+Pay a lot of attention to accessibility of UI and the content presented on it, because this is a tool for visually impaired people.
+
+## Python conventions
+- Write modern Python; avoid Python 2 compatibility hacks.
+  - Python runtime is always `blender/2.78/python/bin/python3.5m` or similar; when starting, find out its version.
+  - Prefer: f-strings, `pathlib`, context managers (`with`), and `enumerate`/`zip` over index loops.
+  - Prefer: explicit exceptions (no bare `except`), and small pure functions with clear inputs/outputs.
+  - Logging: use `print` for CLI scripts and one-off tooling; use `logging` for long-running processes or code that may be imported.
+  - Avoid: mutable default arguments, implicit `None` returns for data-producing functions, and excessive global state.
+  - Use type hints broadly and TypeDicts (using the functional form) for maximal type checking.
+- Type checking: conform to Pylance/Pyright "standard" level (see pyrightconfig.json).
+  - After making changes, always run `pyright` for files you have changed, and fix any errors it flags.
 
 ## AWS / deployment notes (for code changes)
 - Root `Makefile` has targets for AWS installs and packaging (dev/test/prod).
@@ -41,5 +65,90 @@ This file captures project-specific conventions and "gotchas" that help especial
 - See `README.md` for full local setup steps (dependencies, AWS CLI, and web dev workflow).
 - `init.sh` installs system dependencies and builds `OSM2World` (use it for full setup).
 
+## Doc index
+- `doc/creating-new-server.doc`: legacy server provisioning notes for creating a fresh EC2 instance.
+- `doc/deployed-map-inspection.md`: workflow for inspecting deployed map artifacts via persistent map ID.
+- `doc/map-description-introspection.md`: canonical local workflow for generating and inspecting map-description outputs.
+- `doc/map-description-model-schema.md`: schema reference for development-time map description JSON models.
+- `doc/ui-visual-baseline.md`: visual/style baseline for the three main user-facing pages.
+- `doc/way-area-extrusion-tiers.md`: mapping of way/area/building features to tactile extrusion tiers (`low`/`high`/`building`).
+
+## Map-content verification suite
+- When changing converter map-description logic or related UI description-model code, use the category-based suite in `test/map-content/`.
+- Canonical workflow and CLI details live in `doc/map-description-introspection.md`.
+- Fast default command:
+  - `node test/map-content/run-tests.js --category average --offline --jobs 1`
+- Prefer `simple`/`average` for routine checks. Use `complex` mainly for performance profiling.
+- Current UI grouping for linear features is sectioned as roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
+- When map content UI strings may have changed, inspect simulated.txt for each language to see if the new description phrases read as natural language.
+- Required for POI/type-label/i18n changes:
+  - Run `inspect-map-description` against `test/map-content/out/complex/pipeline/map-content.json` for `en`, `de`, `fi`, and `nl`.
+  - Render text simulation from the resulting `mapDescriptionModel` and review POI lines in each locale.
+  - Treat any leftover English suffixes in non-English outputs as a validation failure unless the borrowed word is intentionally identical in that locale.
+
+## Deployed map inspection
+- For inspecting deployed map page/data/assets from a persistent map ID (`?map=<ID>`), follow `doc/deployed-map-inspection.md`.
+- Keep that guide in sync with live deployed behavior in `web/src/scripts/app-common.js` and `web/src/scripts/map.js`.
+
+## UI visual baseline
+- For visual/style guidance on the three main views (`start`, `area`, `map`), follow `doc/ui-visual-baseline.md`.
+- Keep that guide in sync when intentional visual design changes are made.
+
 ## OSM2World
 - `OSM2World/` is a modified upstream dependency, rarely modified.
+- To build, it's safest to run `ant clean jar`
+- OSM2World outputs
+  - an .obj file that contains all needed geometry without any height (it's extruded later in Blender)
+  - `map-meta-raw.json` that describes map elements before Touch Mapper enrichment
+
+## Processing pipeline
+
+1. OSM data is fetched from OSM servers for the requested areas.
+
+2. OSM data is read by OSM2World, which outputs `map.obj` and `map-meta-raw.json`.
+
+3. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
+
+4. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including the real `requestId`).
+
+5. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions based on it.
+
+### Metadata processing stages in the converter
+
+Any time you make changes to code verify this list is still up-to-date. Each code file referenced below contains a comment that says where in that file the data for the stage is created, in a format "Code below creates stage "<stage name>" data" -- update it too as needed.
+
+#### Stage name: "OSM2World raw meta"
+
+Created at: osm-to-tactile.py
+Stored as: map-meta-raw.json
+Diff from previous: baseline semantic output from OSM2World; no Touch Mapper enrichment yet.
+
+#### Stage name: "Raw meta with visibility augmentation"
+
+Created at: __init__.py
+Stored as: map-meta.augmented.json
+Diff from previous: adds visibleGeometry to line strings (clipped to boundary when possible).
+
+#### Stage name: "Raw meta with building/water area visibility raster"
+
+Created at: __init__.py
+Stored as: map-meta.augmented.json
+Diff from previous: adds visibleGeometry raster summaries for building and rendered water-area polygons (coverage, segments, components, shape).
+
+#### Stage name: "Grouped + classified meta"
+
+Created at: __init__.py
+Stored as: map-meta.json
+Diff from previous: reorganized into TM classes/subclasses with _classification and location annotations.
+
+#### Stage name: "Render-ready intermediate"
+
+Created at: map_desc_render.py
+Stored as: in-memory (not written to disk)
+Diff from previous: items are grouped/sorted with display labels, counts, lengths/areas, and connectivity.
+
+#### Stage name: "Final map content"
+
+Created at: map_desc_render.py
+Stored as: map-content.json
+Diff from previous: serializes structured grouped data for all classes.

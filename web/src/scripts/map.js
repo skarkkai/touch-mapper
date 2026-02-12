@@ -100,6 +100,7 @@
     $("#download-pdf").attr("href", makeCloudFrontUrlPdf(info.requestId));
     $("#download-pdf-embossers").attr("href", makeCloudFrontUrlPdf(info.requestId));
     $("#download-blender").attr("href", makeCloudFrontUrlBlend(info.requestId));
+    $("#download-map-content").attr("href", makeCloudFrontMapContentUrl(info.requestId));
     $("#svg-preview").attr("src", makeCloudFrontUrlSvg(info.requestId));
 
     // Only show download links for chosen map type.

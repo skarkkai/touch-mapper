@@ -8,6 +8,73 @@ import json
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
+
+def read_proc_status_kib(field_name):
+    try:
+        with open('/proc/self/status', 'r') as handle:
+            for line in handle:
+                if not line.startswith(field_name + ':'):
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    return None
+                return int(parts[1])
+    except Exception:
+        return None
+    return None
+
+
+def log_memory_checkpoint(label):
+    if not INSTRUMENTATION_ENABLED:
+        return
+    vm_rss_kib = read_proc_status_kib('VmRSS')
+    vm_hwm_kib = read_proc_status_kib('VmHWM')
+    if vm_rss_kib is None and vm_hwm_kib is None:
+        print('MEMORY:osm-to-tactile:{label} unavailable'.format(label=label))
+        return
+    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
+    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
+    print(
+        'MEMORY:osm-to-tactile:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
+            label=label,
+            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
+            rss_mib=vm_rss_mib,
+            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
+            hwm_mib=vm_hwm_mib
+        )
+    )
+
+
+def parse_env_bool(name):
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    normalized = raw.strip().lower()
+    if normalized in ("1", "true", "yes", "on"):
+        return True
+    if normalized in ("0", "false", "no", "off"):
+        return False
+    return None
+
+
+INSTRUMENTATION_ENABLED = (parse_env_bool('TOUCH_MAPPER_INSTRUMENTATION') is True)
+
+
+def pretty_json_enabled():
+    forced = parse_env_bool('TOUCH_MAPPER_PRETTY_JSON')
+    if forced is not None:
+        return forced
+    return False
+
+
+def write_json_file(path, value, pretty_json):
+    with open(path, 'w') as handle:
+        if pretty_json:
+            json.dump(value, handle, indent=2, ensure_ascii=False)
+            handle.write("\n")
+            return
+        json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
+
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Convert .osm file into a tactile map. Writes one or more .stl files in the input file's directory.''')
     parser.add_argument('input', metavar='OSM_FILE', help='input file path')
@@ -33,6 +100,8 @@ def subprocess_output(cmd, env=None):
         raise e
 
 def run_osm2world(input_path, output_path, scale, exclude_buildings):
+    log_memory_checkpoint('before-osm2world')
+    # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     #print(osm2world_path + " " + input_path + " " + output_path)
     cmd = [
@@ -43,28 +112,18 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
     output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
     print(output)
 
-    # Find bounds from output
-    m = re.compile('.*Map-boundary:\[ minX=([0-9.-]+) minZ=([0-9.-]+) maxX=([0-9.-]+) maxZ=([0-9.-]+) \]', re.DOTALL).match(output)
-    if not m:
-        raise Exception("Couldn't find map bounds from OSM2World output")
-    bounds = {
-        'minX': float(m.group(1)),
-        'minY': float(m.group(2)), # change from Z to Y
-        'maxX': float(m.group(3)),
-        'maxY': float(m.group(4)), # change from Z to Y
-    }
+    meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
+    if not os.path.exists(meta_path):
+        raise Exception("Couldn't find map-meta-raw.json from OSM2World output")
+    with open(meta_path, 'r') as f:
+        meta = json.load(f)
+    write_json_file(meta_path, meta, pretty_json_enabled())
+    log_memory_checkpoint('after-osm2world')
 
-    m = re.compile('.*^Object-infos:\[(.+?)\]$', re.DOTALL|re.MULTILINE).match(output)
-    if not m:
-        raise Exception("Couldn't find object infos from OSM2World output")
-    object_infos = json.loads(m.group(1))
+    return meta
 
-    return ({
-        'objectInfos': object_infos,
-        'bounds': bounds
-    })
-
-def run_blender(obj_path, bounds, args):
+def run_blender(obj_path, boundary, args):
+    log_memory_checkpoint('before-blender')
     blender_dir = os.path.join(script_dir, 'blender')
     blender_env = os.environ.copy()
     blender_env['LD_LIBRARY_PATH'] = os.path.join(blender_dir, 'lib') + ":" + blender_env.get('LD_LIBRARY_PATH', '')
@@ -77,10 +136,10 @@ def run_blender(obj_path, bounds, args):
     ]
     script_args = [
         '--scale', str(args.scale),
-        '--min-x', str(bounds['minX']),
-        '--min-y', str(bounds['minY']),
-        '--max-x', str(bounds['maxX']),
-        '--max-y', str(bounds['maxY']),
+        '--min-x', str(boundary['minX']),
+        '--min-y', str(boundary['minY']),
+        '--max-x', str(boundary['maxX']),
+        '--max-y', str(boundary['maxY']),
         '--diameter', str(args.diameter),
         '--size', str(args.size),
     ]
@@ -102,6 +161,32 @@ def run_blender(obj_path, bounds, args):
     print("----------- obj-to-tactile.py output: -----------")
     print(output)
     print("----------- end obj-to-tactile.py output -----------")
+
+    if INSTRUMENTATION_ENABLED:
+        blender_memory_matches = re.finditer(
+            r'^MEMORY:(?P<label>[^ ]+) VmRSS=(?P<rss>[0-9?]+)kB \([^)]+\) VmHWM=(?P<hwm>[0-9?]+)kB',
+            output,
+            re.MULTILINE
+        )
+        blender_peak_hwm = None
+        blender_peak_label = None
+        for match in blender_memory_matches:
+            hwm_raw = match.group('hwm')
+            if not hwm_raw.isdigit():
+                continue
+            hwm_kib = int(hwm_raw)
+            if blender_peak_hwm is None or hwm_kib > blender_peak_hwm:
+                blender_peak_hwm = hwm_kib
+                blender_peak_label = match.group('label')
+        if blender_peak_hwm is not None:
+            print(
+                'MEMORY:osm-to-tactile:blender-subprocess-peak VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB) at={label}'.format(
+                    hwm_kib=blender_peak_hwm,
+                    hwm_mib=blender_peak_hwm / 1024.0,
+                    label=blender_peak_label
+                )
+            )
+    log_memory_checkpoint('after-blender')
     
     # Find some info from the output
     meta = {}
@@ -111,12 +196,13 @@ def run_blender(obj_path, bounds, args):
         meta.update(json.loads(entry_json))
     return meta
 
-def print_size(scale, bounds):
-    sizeX = bounds['maxX'] - bounds['minX']
-    sizeY = bounds['maxY'] - bounds['minY']
+def print_size(scale, boundary):
+    sizeX = boundary['maxX'] - boundary['minX']
+    sizeY = boundary['maxY'] - boundary['minY']
     print("Map is {:.0f} x {:.0f} meters. Selected scale {:.0f} will result in a {:.0f} x {:.0f} mm print.".format(sizeX, sizeY, scale, sizeX / scale * 1000 , sizeY / scale * 1000))
 
 def main():
+    log_memory_checkpoint('main-start')
     # Handle command line
     args = do_cmdline()
     osm_path = args.input
@@ -128,15 +214,18 @@ def main():
     # Run OSM2World
     obj_path = input_basename + '.obj'
     meta = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings)
+    boundary = meta.get('meta', {}).get('boundary')
+    if boundary is None:
+        raise Exception("map-meta-raw.json missing meta.boundary")
 
-    print_size(args.scale, meta['bounds'])
+    print_size(args.scale, boundary)
 
     # Run Blender
     meta_path = input_basename + '-meta.json'
-    blender_meta = run_blender(obj_path, meta['bounds'], args)
+    blender_meta = run_blender(obj_path, boundary, args)
     meta.update(blender_meta)
-    with open(meta_path, 'w') as f:
-        f.write(json.dumps(meta))
+    write_json_file(meta_path, meta, pretty_json_enabled())
+    log_memory_checkpoint('main-end')
 
 
 if __name__ == "__main__":

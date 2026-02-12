@@ -1,0 +1,90 @@
+{
+  "tests": [
+    {
+      "category": "simple",
+      "settingsUrl": "https://test.touch-mapper.org/en/area?origin=BlindSquare&addrName=Japan&lat=36.5748441&lon=139.2394179&requestId=simple%2FJapan-m30X-p150Y&printingTech=3d&scale=9999&diameter=1700&size=17&offsetX=0&offsetY=0&advancedMode=true&hideLocationMarker=true&multipartMode=true&multipartXpc=-30&multipartYpc=150&noBorders=true&effectiveArea.latMax=36.60548003920552&effectiveArea.latMin=36.590162069602755&effectiveArea.lonMin=139.22422469849255&effectiveArea.lonMax=139.24321620037688",
+      "requestBody": {
+        "requestId": "simple/Japan-m30X-p150Y",
+        "addrShort": "Japan",
+        "addrLong": "Japan, Japan",
+        "printingTech": "3d",
+        "lat": 36.5748441,
+        "lon": 139.2394179,
+        "scale": 9999,
+        "diameter": 1700,
+        "size": 17,
+        "offsetX": 0,
+        "offsetY": 0,
+        "advancedMode": true,
+        "hideLocationMarker": true,
+        "multipartMode": true,
+        "multipartXpc": -30,
+        "multipartYpc": 150,
+        "noBorders": true,
+        "effectiveArea": {
+          "latMax": 36.60548003920552,
+          "latMin": 36.590162069602755,
+          "lonMin": 139.22422469849255,
+          "lonMax": 139.24321620037688
+        }
+      }
+    },
+    {
+      "category": "average",
+      "settingsUrl": "https://test.touch-mapper.org/en/area?origin=BlindSquare&addrName=Tapiola&lat=60.17664&lon=24.8031685&requestId=average%2FTapiola-m10X-p100Y&printingTech=3d&scale=2000&diameter=340&size=17&offsetX=15&offsetY=-107&advancedMode=true&hideLocationMarker=true&multipartMode=true&multipartXpc=-10&multipartYpc=100&noBorders=true&effectiveArea.lonMin=24.79976323263095&effectiveArea.latMax=60.18025709952422&effectiveArea.lonMax=24.80588911043771&effectiveArea.latMin=60.17720545228294",
+      "requestBody": {
+        "requestId": "average/Tapiola-m10X-p100Y",
+        "addrShort": "Tapiola",
+        "addrLong": "Tapiola, Espoo, Uusimaa, Finland",
+        "printingTech": "3d",
+        "lat": 60.17664,
+        "lon": 24.8031685,
+        "scale": 2000,
+        "diameter": 340,
+        "size": 17,
+        "offsetX": 15,
+        "offsetY": -107,
+        "advancedMode": true,
+        "hideLocationMarker": true,
+        "multipartMode": true,
+        "multipartXpc": -10,
+        "multipartYpc": 100,
+        "noBorders": true,
+        "effectiveArea": {
+          "lonMin": 24.79976323263095,
+          "latMax": 60.18025709952422,
+          "lonMax": 24.80588911043771,
+          "latMin": 60.17720545228294
+        }
+      }
+    },
+    {
+      "category": "complex",
+      "settingsUrl": "https://test.touch-mapper.org/en/area?origin=BlindSquare&addrName=Helsinki%20Central%20Railway%20Station&lat=60.1715453&lon=24.9405947&requestId=complex%2FHelsinki%20Central%20Railway%20Station&printingTech=3d&scale=5000&diameter=850&size=17&offsetX=0&offsetY=0&advancedMode=true&hideLocationMarker=true&multipartMode=false&multipartXpc=0&multipartYpc=0&effectiveArea.lonMax=24.948250861678673&effectiveArea.latMax=60.17535986200558&effectiveArea.latMin=60.16773073799442&effectiveArea.lonMin=24.932938538321324",
+      "requestBody": {
+        "requestId": "complex/Helsinki Central Railway Station",
+        "addrShort": "Helsinki Central Railway Station",
+        "addrLong": "Helsinki Central Railway Station, Helsinki, Uusimaa, Finland",
+        "printingTech": "3d",
+        "lat": 60.1715453,
+        "lon": 24.9405947,
+        "scale": 5000,
+        "diameter": 850,
+        "size": 17,
+        "offsetX": 0,
+        "offsetY": 0,
+        "advancedMode": true,
+        "hideLocationMarker": true,
+        "multipartMode": false,
+        "multipartXpc": 0,
+        "multipartYpc": 0,
+        "effectiveArea": {
+          "lonMax": 24.948250861678673,
+          "latMax": 60.17535986200558,
+          "latMin": 60.16773073799442,
+          "lonMin": 24.932938538321324
+        }
+      }
+    }
+  ]
+}

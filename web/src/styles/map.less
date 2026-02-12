@@ -7,27 +7,41 @@
   font-size: inherit;
 }
 .map-content-row {
-  border: 1px solid #ccc;
-  padding: 7px 11px;
+  padding: 0;
   border-radius: 4px;
   position: relative;
 }
 .map-content-row h3 {
-  font-size: 19px;
-  margin-top: -1em;
-}
-.map-content-row h3 span {
-  font-size: 19px;
-  background-color: white;
-  padding: 0 5px;
+  font-size: 23px;
+  margin-top: 1em;
+  padding: 0;
   font-weight: normal;
 }
-.map-content h4 {
-  float: left;
-  margin-right: 5px;
+.map-description {
+  padding-left: 1em;
 }
-.map-content h4:after {
-  content: ":";
+
+.map-content-buildings {
+  margin-left: 1em;
+}
+.map-content-roads,
+.map-content-paths,
+.map-content-railways,
+.map-content-waterways,
+.map-content-water-areas,
+.map-content-other-linear,
+.map-content-poi-familiar,
+.map-content-poi-daily,
+.map-content-poi-transport,
+.map-content-poi-accessibility {
+  margin-left: 1em;
+}
+.map-content h4 {
+  font-size: 1.12em;
+  font-weight: bold;
+}
+.map-content .map-content-section-height {
+  margin-bottom: .5em;
 }
 .map-content .row {
   margin-top: 7px;
@@ -35,8 +49,109 @@
 .map-content ul {
   display: inline-block;
 }
+.map-content .map-content-summary {
+  display: block;
+  margin: 0 0 0.5em 1em;
+  padding: 0;
+}
+.map-content .map-content-summary-item {
+  list-style: none;
+  margin-bottom: 8px;
+}
+.map-content .map-content-summary-item:last-child {
+  margin-bottom: 0;
+}
+.map-content .map-content-summary-toggle {
+  margin: 0 0 1em 1em;
+  border: 1px solid #406271;
+  border-radius: 6px;
+  color: #1f2f36;
+  background-color: #fff;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.map-content .map-content-summary-toggle:hover {
+  background-color: #f4e9b2;
+}
+.map-content .map-content-summary-toggle:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
+}
+.map-content .map-content-full[hidden] {
+  display: none;
+}
 .map-content li {
   list-style: none;
+  margin-bottom: 10px;
+}
+.map-content li:last-child {
+  margin-bottom: 0;
+}
+.map-content .map-content-title-line {
+  font-weight: bold;
+}
+.map-content h5.map-content-title-line {
+  margin: 0;
+  font-size: inherit;
+}
+.map-content .map-content-title {
+  font-weight: inherit;
+}
+.map-content .map-content-inline-external-link {
+  color: #1f4e79;
+  text-decoration: none;
+  font-weight: normal;
+}
+.map-content .map-content-external-indicator {
+  margin-left: 0.25em;
+  font-weight: normal;
+}
+.map-content .map-content-inline-external-link:hover,
+.map-content .map-content-inline-external-link:focus {
+  color: #12314f;
+  text-decoration: none;
+}
+.map-content .map-content-has-importance-popup {
+  position: relative;
+}
+.map-content .map-content-importance-popup {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  width: 640px;
+  max-width: 92vw;
+  background: #ffffff;
+  border: 1px solid #9aa4af;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+}
+.map-content .map-content-importance-popup pre {
+  margin: 0;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: pre-wrap;
+}
+.map-content .map-content-has-importance-popup:hover .map-content-importance-popup {
+  display: block;
+}
+.map-content-section-toggle {
+  margin: 0 0 1.5em 1em;
+  border: 1px solid #406271;
+  border-radius: 6px;
+  color: #1f2f36;
+  cursor: pointer;
+  display: block;
+}
+.map-content-section-toggle:hover {
+  background-color: #f4e9b2;
+}
+.map-content-section-toggle:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
 }
 .map-content.initial-state .initially-hidden {
   display: none;
@@ -55,8 +170,9 @@
   margin-top: 20px;
   border-radius: 10px;
   padding: 10px 20px !important;
-  background-color: #e8e8e8;
-  box-shadow: inset 0 0 11px rgba(0, 0, 0, 0.18);
+  background-color: #e7edf3;
+  border: 1px solid #c7d1dc;
+  box-shadow: inset 0 0 11px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 .warning-no-buildings {
   display: block;
@@ -122,27 +238,77 @@
   color: inherit;
 }
 .other-downloads {
-  cursor: default;
+  margin-top: 17px;
 }
-.other-downloads-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0 0 0.2em 0;
+.other-downloads-details {
+  width: 100%;
+}
+.other-downloads-summary {
+  text-align: center;
+  border: 0;
+  border-radius: 4px;
+  line-height: normal;
+  color: black;
+  display: block;
+  cursor: pointer;
+  height: auto;
+  padding: 7px 10px;
+  box-shadow: 0px 3px 9px 0px rgba(0, 0, 0, 0.3);
+  background-color: @green;
+  transition-duration: 0.2s;
+  user-select: none;
+}
+.other-downloads-summary:hover {
+  background-color: darken(@green, 5%);
+}
+.other-downloads-summary:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
+}
+.other-downloads-summary::marker {
+  content: "";
+}
+.other-downloads-summary::-webkit-details-marker {
+  display: none;
+}
+.other-downloads-summary::after {
+  content: "\25BE";
+  margin-left: 0.45em;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  position: absolute;
+}
+.other-downloads-details[open] .other-downloads-summary::after {
+  transform: rotate(180deg);
+}
+.other-downloads-details[open] .other-downloads-summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .other-downloads-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0.75em 0.9em 0.8em;
+  background-color: #f6f9fc;
+  border: 1px solid #c7d1dc;
+  border-top: 0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 .other-downloads-list li {
   margin: 4px 0;
 }
 .other-downloads-link {
-  color: black;
+  color: #0a3f67;
   text-decoration: none;
 }
 .other-downloads-link:hover {
-  text-decoration: none;
+  text-decoration: underline;
+}
+.other-downloads-link:focus-visible {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+  text-decoration: underline;
 }
 .downloads-2d {
   cursor: default;
@@ -187,7 +353,7 @@
 .preview-3d-hint {
   margin: 12px 0 2px;
   text-align: center;
-  color: #4a4a4a;
+  color: #000000;
 }
 
 .preview-2d-container {

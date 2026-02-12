@@ -1,8 +1,13 @@
 all:
 	@echo "No default target exists"
 
+FORCE: ;
+
 osm2world:
-	cd OSM2World && ant jar
+	cd OSM2World && ant clean jar
+
+test: FORCE
+	test/run-osm2world-regression.sh
 
 dev-aws-install:
 	install/lambda-update.sh dev
@@ -29,6 +34,7 @@ package:
 	install/package.sh
 
 test-install-ec2: package
+	# First run: eval "$(ssh-agent -s)"; ssh-add .../ssh-key
 	# "tm-ec2" needs to be defined as a Host in ~/.ssh/config
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2:touch-mapper/test/dist/
 
@@ -37,5 +43,3 @@ test-restart: package
 
 prod-install-ec2: package
 	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/
-
-

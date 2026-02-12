@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.util.Iterator;
 
 import org.osm2world.core.GlobalValues;
+import org.osm2world.core.map_data.object_info.MapMetaWriter;
 import org.osm2world.core.map_data.creation.MapProjection;
 import org.osm2world.core.map_data.data.MapData;
 import org.osm2world.core.math.VectorXYZ;
@@ -62,6 +63,10 @@ public final class ObjWriter {
 		
 		objStream.close();
 		mtlStream.close();
+
+		File metaFile = new File(objFile.getAbsoluteFile().getParentFile(),
+				"map-meta-raw.json");
+		MapMetaWriter.write(metaFile, mapData);
 		
 	}
 	
@@ -145,6 +150,9 @@ public final class ObjWriter {
 		TargetUtil.renderWorldObjects(objIterator, mapData, primitiveThresholdPerFile);
 		
 		mtlStream.close();
+
+		File metaFile = new File(objDirectory, "map-meta-raw.json");
+		MapMetaWriter.write(metaFile, mapData);
 		
 	}
 

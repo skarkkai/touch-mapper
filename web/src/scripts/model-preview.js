@@ -10,6 +10,44 @@
     var splitBenchmarkMsPerTriangle;
     var splitProjectionThresholdMs = 450;
     var splitDebugEnabled;
+    var PREVIEW_VISUALS = {
+      renderer: {
+        toneMapping: "LinearToneMapping",
+        toneMappingExposure: 1.16
+      },
+      lights: {
+        ambient: {
+          color: 0xffffff,
+          intensity: 0.28
+        },
+        hemi: {
+          skyColor: 0xffffff,
+          groundColor: 0xa8a8a8,
+          intensity: 0.42
+        },
+        key: {
+          color: 0xffffff,
+          intensity: 1.9,
+          positionMultiplier: { x: 2.6, y: 2.8, z: 1.9 }
+        },
+        rim: {
+          color: 0xdcdcdc,
+          intensity: 1.0,
+          positionMultiplier: { x: -3.0, y: 1.2, z: -2.2 }
+        }
+      },
+      materials: {
+        featureColor: 0xe4e4e4,
+        buildingColor: 0xffffff,
+        baseColor: 0xc4c4c4,
+        fallbackColor: 0xd7d7d7,
+        roughness: 0.22,
+        metalness: 0.05,
+        buildingHeightMm: 2.9,
+        buildingHeightToleranceMm: 0.35,
+        buildingFlatSpanThresholdMm: 0.02
+      }
+    };
 
     function getNowMs() {
       if (typeof performance !== "undefined" && typeof performance.now === "function") {
@@ -215,18 +253,28 @@
       return geometry;
     }
 
-    function buildSplitGeometries(THREE, sourcePositions, triangleSourceVertexIndices, isBaseTriangle, baseTriangleCount) {
+    function buildSplitGeometries(
+      THREE,
+      sourcePositions,
+      triangleSourceVertexIndices,
+      isBaseTriangle,
+      isBuildingTriangle,
+      baseTriangleCount,
+      buildingTriangleCount
+    ) {
       var triangleCount = isBaseTriangle.length;
-      var featureTriangleCount = triangleCount - baseTriangleCount;
+      var featureTriangleCount = triangleCount - baseTriangleCount - buildingTriangleCount;
 
-      if (baseTriangleCount < 1 || featureTriangleCount < 1) {
+      if (baseTriangleCount < 1 || featureTriangleCount < 0 || (featureTriangleCount + buildingTriangleCount) < 1) {
         return null;
       }
 
       var basePositions = new Float32Array(baseTriangleCount * 9);
       var featurePositions = new Float32Array(featureTriangleCount * 9);
+      var buildingPositions = new Float32Array(buildingTriangleCount * 9);
       var baseWrite = 0;
       var featureWrite = 0;
+      var buildingWrite = 0;
       var tri;
 
       for (tri = 0; tri < triangleCount; tri += 1) {
@@ -246,6 +294,17 @@
           basePositions[baseWrite + 7] = sourcePositions[vertexC + 1];
           basePositions[baseWrite + 8] = sourcePositions[vertexC + 2];
           baseWrite += 9;
+        } else if (isBuildingTriangle[tri]) {
+          buildingPositions[buildingWrite] = sourcePositions[vertexA];
+          buildingPositions[buildingWrite + 1] = sourcePositions[vertexA + 1];
+          buildingPositions[buildingWrite + 2] = sourcePositions[vertexA + 2];
+          buildingPositions[buildingWrite + 3] = sourcePositions[vertexB];
+          buildingPositions[buildingWrite + 4] = sourcePositions[vertexB + 1];
+          buildingPositions[buildingWrite + 5] = sourcePositions[vertexB + 2];
+          buildingPositions[buildingWrite + 6] = sourcePositions[vertexC];
+          buildingPositions[buildingWrite + 7] = sourcePositions[vertexC + 1];
+          buildingPositions[buildingWrite + 8] = sourcePositions[vertexC + 2];
+          buildingWrite += 9;
         } else {
           featurePositions[featureWrite] = sourcePositions[vertexA];
           featurePositions[featureWrite + 1] = sourcePositions[vertexA + 1];
@@ -262,7 +321,8 @@
 
       return {
         baseGeometry: splitPositionsToGeometry(THREE, basePositions),
-        featureGeometry: splitPositionsToGeometry(THREE, featurePositions)
+        featureGeometry: splitPositionsToGeometry(THREE, featurePositions),
+        buildingGeometry: splitPositionsToGeometry(THREE, buildingPositions)
       };
     }
 
@@ -403,6 +463,8 @@
       }
 
       var areaThreshold = maxArea * 0.95;
+      var horizontalNormalThreshold = 0.98;
+      var flatSpanThreshold = 0.02;
       var isBaseTriangle = new Uint8Array(triangleCount);
       var queue = new Int32Array(triangleCount);
       var queueHead = 0;
@@ -413,8 +475,8 @@
         var zSpan = triangleMaxZ[tri] - triangleMinZ[tri];
         if (
           triangleAreas[tri] >= areaThreshold &&
-          Math.abs(triangleNormalZ[tri]) >= 0.98 &&
-          zSpan <= 0.01
+          Math.abs(triangleNormalZ[tri]) >= horizontalNormalThreshold &&
+          zSpan <= flatSpanThreshold
         ) {
           isBaseTriangle[tri] = 1;
           queue[queueTail] = tri;
@@ -474,9 +536,56 @@
         return null;
       }
 
+      var isBuildingTriangle = new Uint8Array(triangleCount);
+      var buildingTriangleCount = 0;
+      var baseTopZ = -Infinity;
+      var expectedBuildingTopZ = -Infinity;
+      for (tri = 0; tri < triangleCount; tri += 1) {
+        if (!isBaseTriangle[tri]) {
+          continue;
+        }
+        var baseSpan = triangleMaxZ[tri] - triangleMinZ[tri];
+        if (
+          Math.abs(triangleNormalZ[tri]) >= horizontalNormalThreshold &&
+          baseSpan <= flatSpanThreshold &&
+          triangleMaxZ[tri] > baseTopZ
+        ) {
+          baseTopZ = triangleMaxZ[tri];
+        }
+      }
+
+      if (isFinite(baseTopZ)) {
+        var buildingHeightTolerance = PREVIEW_VISUALS.materials.buildingHeightToleranceMm;
+        var buildingFlatSpanThreshold = PREVIEW_VISUALS.materials.buildingFlatSpanThresholdMm;
+        expectedBuildingTopZ = baseTopZ + PREVIEW_VISUALS.materials.buildingHeightMm;
+        for (tri = 0; tri < triangleCount; tri += 1) {
+          if (isBaseTriangle[tri]) {
+            continue;
+          }
+          var roofSpan = triangleMaxZ[tri] - triangleMinZ[tri];
+          if (
+            Math.abs(triangleNormalZ[tri]) >= horizontalNormalThreshold &&
+            roofSpan <= buildingFlatSpanThreshold &&
+            Math.abs(triangleMaxZ[tri] - expectedBuildingTopZ) <= buildingHeightTolerance
+          ) {
+            isBuildingTriangle[tri] = 1;
+            buildingTriangleCount += 1;
+          }
+        }
+        splitDebugLog(
+          "base split building detection: base top z " + baseTopZ.toFixed(3) +
+          ", expected building z " + expectedBuildingTopZ.toFixed(3) +
+          ", building triangles " + buildingTriangleCount
+        );
+      } else {
+        splitDebugLog("base split building detection skipped: could not determine base top z");
+      }
+
+      var featureTriangleCount = triangleCount - baseTriangleCount - buildingTriangleCount;
       splitDebugLog(
-        "base split detected: base triangles " + baseTriangleCount + ", features " +
-        (triangleCount - baseTriangleCount)
+        "base split detected: base triangles " + baseTriangleCount +
+        ", other feature triangles " + featureTriangleCount +
+        ", building roof triangles " + buildingTriangleCount
       );
 
       return buildSplitGeometries(
@@ -484,7 +593,9 @@
         sourcePositions,
         triangleSourceVertexIndices,
         isBaseTriangle,
-        baseTriangleCount
+        isBuildingTriangle,
+        baseTriangleCount,
+        buildingTriangleCount
       );
     }
 
@@ -541,6 +652,15 @@
       };
     }
 
+    function makePreviewMaterial(THREE, color) {
+      return new THREE.MeshStandardMaterial({
+        color: color,
+        roughness: PREVIEW_VISUALS.materials.roughness,
+        metalness: PREVIEW_VISUALS.materials.metalness,
+        side: THREE.DoubleSide
+      });
+    }
+
     function showError(elem, msg) {
       $(".preview-3d-container").css("opacity", 1);
       elem.empty().append("<p class='loading-3d-preview'>" + msg + "</p>");
@@ -572,8 +692,8 @@
         renderer.setSize(size.width, size.height, false);
         renderer.setClearColor(0x000000, 0);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.24;
+        renderer.toneMapping = THREE[PREVIEW_VISUALS.renderer.toneMapping] || THREE.NoToneMapping;
+        renderer.toneMappingExposure = PREVIEW_VISUALS.renderer.toneMappingExposure;
         renderer.shadowMap.enabled = false;
 
         var scene = new THREE.Scene();
@@ -581,9 +701,24 @@
 
         var camera = new THREE.PerspectiveCamera(34, size.width / size.height, 0.1, 1000);
 
-        var hemiLight = new THREE.HemisphereLight(0xffffff, 0xc6d0dd, 0.35);
-        var keyLight = new THREE.DirectionalLight(0xfff8ee, 1.9);
-        var rimLight = new THREE.DirectionalLight(0xe6eefb, 0.55);
+        var ambientLight = new THREE.AmbientLight(
+          PREVIEW_VISUALS.lights.ambient.color,
+          PREVIEW_VISUALS.lights.ambient.intensity
+        );
+        var hemiLight = new THREE.HemisphereLight(
+          PREVIEW_VISUALS.lights.hemi.skyColor,
+          PREVIEW_VISUALS.lights.hemi.groundColor,
+          PREVIEW_VISUALS.lights.hemi.intensity
+        );
+        var keyLight = new THREE.DirectionalLight(
+          PREVIEW_VISUALS.lights.key.color,
+          PREVIEW_VISUALS.lights.key.intensity
+        );
+        var rimLight = new THREE.DirectionalLight(
+          PREVIEW_VISUALS.lights.rim.color,
+          PREVIEW_VISUALS.lights.rim.intensity
+        );
+        scene.add(ambientLight);
         scene.add(hemiLight);
         scene.add(keyLight);
         scene.add(rimLight);
@@ -631,37 +766,46 @@
             }
           }
 
-          if (splitResult && splitResult.baseGeometry && splitResult.featureGeometry) {
-            var featureMaterial = new THREE.MeshStandardMaterial({
-              color: 0xfffdf8,
-              roughness: 0.2,
-              metalness: 0.04,
-              side: THREE.DoubleSide
-            });
-            var baseMaterial = new THREE.MeshStandardMaterial({
-              color: 0xe8edf2,
-              roughness: 0.2,
-              metalness: 0.02,
-              side: THREE.DoubleSide
-            });
+          if (splitResult && splitResult.baseGeometry && (splitResult.featureGeometry || splitResult.buildingGeometry)) {
+            var baseMaterial = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.baseColor);
+            var featureMaterial = splitResult.featureGeometry
+              ? makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.featureColor)
+              : null;
+            var buildingMaterial = splitResult.buildingGeometry
+              ? makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.buildingColor)
+              : null;
             var baseMesh = new THREE.Mesh(splitResult.baseGeometry, baseMaterial);
-            var featureMesh = new THREE.Mesh(splitResult.featureGeometry, featureMaterial);
 
             modelGroup.add(baseMesh);
-            modelGroup.add(featureMesh);
-            splitDebugLog("base split render path active");
+            if (splitResult.featureGeometry && featureMaterial) {
+              modelGroup.add(new THREE.Mesh(splitResult.featureGeometry, featureMaterial));
+            }
+            if (splitResult.buildingGeometry && buildingMaterial) {
+              modelGroup.add(new THREE.Mesh(splitResult.buildingGeometry, buildingMaterial));
+            }
+            splitDebugLog(
+              "base split render path active (building highlighting " +
+              (splitResult.buildingGeometry ? "enabled" : "disabled") + ")"
+            );
 
-            managedGeometries.push(splitResult.baseGeometry, splitResult.featureGeometry);
-            managedMaterials.push(baseMaterial, featureMaterial);
+            managedGeometries.push(splitResult.baseGeometry);
+            if (splitResult.featureGeometry) {
+              managedGeometries.push(splitResult.featureGeometry);
+            }
+            if (splitResult.buildingGeometry) {
+              managedGeometries.push(splitResult.buildingGeometry);
+            }
+            managedMaterials.push(baseMaterial);
+            if (featureMaterial) {
+              managedMaterials.push(featureMaterial);
+            }
+            if (buildingMaterial) {
+              managedMaterials.push(buildingMaterial);
+            }
             geometry.dispose();
           } else {
             splitDebugLog("single material fallback render path active");
-            var material = new THREE.MeshStandardMaterial({
-              color: 0xfffdf8,
-              roughness: 0.2,
-              metalness: 0.04,
-              side: THREE.DoubleSide
-            });
+            var material = makePreviewMaterial(THREE, PREVIEW_VISUALS.materials.fallbackColor);
             var mesh = new THREE.Mesh(geometry, material);
             modelGroup.add(mesh);
             managedGeometries.push(geometry);
@@ -675,8 +819,16 @@
           camera.lookAt(0, 0, 0);
           camera.updateProjectionMatrix();
 
-          keyLight.position.set(radius * 2.6, radius * 2.8, radius * 1.9);
-          rimLight.position.set(-radius * 3, radius * 1.2, radius * -2.2);
+          keyLight.position.set(
+            radius * PREVIEW_VISUALS.lights.key.positionMultiplier.x,
+            radius * PREVIEW_VISUALS.lights.key.positionMultiplier.y,
+            radius * PREVIEW_VISUALS.lights.key.positionMultiplier.z
+          );
+          rimLight.position.set(
+            radius * PREVIEW_VISUALS.lights.rim.positionMultiplier.x,
+            radius * PREVIEW_VISUALS.lights.rim.positionMultiplier.y,
+            radius * PREVIEW_VISUALS.lights.rim.positionMultiplier.z
+          );
 
           var controls = new OrbitControls(camera, renderer.domElement);
           controls.enableDamping = true;
@@ -689,6 +841,49 @@
           controls.maxPolarAngle = Math.PI * 0.58;
           controls.target.set(0, 0, 0);
           controls.update();
+
+          function controlsStateSnapshot(orbitControls) {
+            return {
+              azimuth: orbitControls.getAzimuthalAngle(),
+              polar: orbitControls.getPolarAngle(),
+              targetX: orbitControls.target.x,
+              targetY: orbitControls.target.y,
+              targetZ: orbitControls.target.z
+            };
+          }
+
+          function hasRotateOrDragFromSnapshot(startState, currentState) {
+            if (!startState || !currentState) {
+              return false;
+            }
+            var angleEpsilon = 0.0001;
+            var targetEpsilon = 0.0001;
+            var azimuthDiff = Math.abs(currentState.azimuth - startState.azimuth);
+            var polarDiff = Math.abs(currentState.polar - startState.polar);
+            var targetMoved = Math.abs(currentState.targetX - startState.targetX) > targetEpsilon ||
+              Math.abs(currentState.targetY - startState.targetY) > targetEpsilon ||
+              Math.abs(currentState.targetZ - startState.targetZ) > targetEpsilon;
+            return azimuthDiff > angleEpsilon || polarDiff > angleEpsilon || targetMoved;
+          }
+
+          var autoRotateStoppedByUser = false;
+          var interactionStartState = null;
+          controls.addEventListener("start", function() {
+            interactionStartState = controlsStateSnapshot(controls);
+          });
+          controls.addEventListener("change", function() {
+            if (autoRotateStoppedByUser || !interactionStartState) {
+              return;
+            }
+            if (hasRotateOrDragFromSnapshot(interactionStartState, controlsStateSnapshot(controls))) {
+              controls.autoRotate = false;
+              autoRotateStoppedByUser = true;
+              interactionStartState = null;
+            }
+          });
+          controls.addEventListener("end", function() {
+            interactionStartState = null;
+          });
 
           elem.empty().append(renderer.domElement);
 
