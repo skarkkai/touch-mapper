@@ -89,6 +89,30 @@ def parse_args() -> argparse.Namespace:
         help="Set TOUCH_MAPPER_EXCLUDE_BUILDINGS=true for OSM2World run",
     )
     parser.add_argument(
+        "--with-blender",
+        action="store_true",
+        help="Also run Blender tactile export to produce STL/SVG/BLEND outputs.",
+    )
+    parser.add_argument(
+        "--diameter",
+        type=int,
+        help="Larger of map area x and y diameter in meters (required with --with-blender).",
+    )
+    parser.add_argument(
+        "--size",
+        type=float,
+        help="Output print size in cm (required with --with-blender).",
+    )
+    parser.add_argument(
+        "--no-borders",
+        action="store_true",
+        help="Pass --no-borders to obj-to-tactile.py when running with --with-blender.",
+    )
+    parser.add_argument(
+        "--marker1",
+        help="Marker JSON passed through to obj-to-tactile.py when running with --with-blender.",
+    )
+    parser.add_argument(
         "--pretty-json",
         dest="pretty_json",
         action="store_true",
@@ -114,6 +138,82 @@ def ensure_paths(repo_root: Path, osm_path: Path) -> Path:
     if not jar_path.exists():
         raise FileNotFoundError(f"OSM2World jar not found: {jar_path}")
     return jar_path
+
+
+def read_boundary(raw_meta_path: Path) -> Dict[str, float]:
+    with raw_meta_path.open("r", encoding="utf-8") as handle:
+        payload = json.load(handle)
+    boundary = payload.get("meta", {}).get("boundary")
+    if not isinstance(boundary, dict):
+        raise ValueError(f"map-meta-raw.json missing meta.boundary object: {raw_meta_path}")
+
+    result: Dict[str, float] = {}
+    for key in ("minX", "minY", "maxX", "maxY"):
+        value = boundary.get(key)
+        if not isinstance(value, (int, float)):
+            raise ValueError(f"meta.boundary.{key} missing or non-numeric in {raw_meta_path}")
+        result[key] = float(value)
+    return result
+
+
+def run_blender_export(
+    repo_root: Path,
+    obj_path: Path,
+    raw_meta_path: Path,
+    args: argparse.Namespace,
+) -> None:
+    if args.diameter is None or args.size is None:
+        raise ValueError("--diameter and --size are required when --with-blender is set")
+
+    blender_dir = repo_root / "converter" / "blender"
+    blender_path = blender_dir / "blender"
+    obj_to_tactile_path = repo_root / "converter" / "obj-to-tactile.py"
+    if not blender_path.exists():
+        raise FileNotFoundError(f"Blender binary not found: {blender_path}")
+    if not obj_to_tactile_path.exists():
+        raise FileNotFoundError(f"obj-to-tactile.py not found: {obj_to_tactile_path}")
+
+    boundary = read_boundary(raw_meta_path)
+    blender_cmd = [
+        str(blender_path),
+        "-noaudio",
+        "--factory-startup",
+        "--background",
+        "--python",
+        str(obj_to_tactile_path),
+        "--",
+        "--scale",
+        str(args.scale),
+        "--min-x",
+        str(boundary["minX"]),
+        "--min-y",
+        str(boundary["minY"]),
+        "--max-x",
+        str(boundary["maxX"]),
+        "--max-y",
+        str(boundary["maxY"]),
+        "--diameter",
+        str(args.diameter),
+        "--size",
+        str(args.size),
+    ]
+    if args.no_borders:
+        blender_cmd.append("--no-borders")
+    if args.marker1:
+        blender_cmd.extend(["--marker1", args.marker1])
+    blender_cmd.append(str(obj_path))
+
+    inherited_ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
+    combined_ld_library_path = str(blender_dir / "lib")
+    if inherited_ld_library_path:
+        combined_ld_library_path += ":" + inherited_ld_library_path
+    run_cmd(
+        blender_cmd,
+        cwd=repo_root,
+        env={
+            "LD_LIBRARY_PATH": combined_ld_library_path,
+        },
+    )
 
 
 def main() -> int:
@@ -169,12 +269,30 @@ def main() -> int:
     for key, value in sorted(map_desc_profile.items()):
         timings["run-map-desc." + key] = value
 
+    if args.with_blender:
+        blender_start = _stage_start(log_prefix, "run-blender")
+        run_blender_export(repo_root, obj_path, raw_meta_path, args)
+        timings["run-blender"] = _stage_done(log_prefix, "run-blender", blender_start)
+
     map_meta_path = out_dir / "map-meta.json"
     map_meta_augmented_path = out_dir / "map-meta.augmented.json"
     map_content_path = out_dir / "map-content.json"
     for generated in [map_meta_path, map_meta_augmented_path, map_content_path]:
         if not generated.exists():
             raise FileNotFoundError(f"converter.map_desc did not produce expected file: {generated}")
+
+    blender_output_paths = {}
+    if args.with_blender:
+        blender_output_paths = {
+            "mapStlPath": str(out_dir / "map.stl"),
+            "mapWaysStlPath": str(out_dir / "map-ways.stl"),
+            "mapRestStlPath": str(out_dir / "map-rest.stl"),
+            "mapSvgPath": str(out_dir / "map.svg"),
+            "mapBlendPath": str(out_dir / "map.blend"),
+        }
+        for name, file_path in blender_output_paths.items():
+            if not Path(file_path).exists():
+                raise FileNotFoundError(f"Blender did not produce expected file ({name}): {file_path}")
 
     result = {
         "repoRoot": str(repo_root),
@@ -187,6 +305,7 @@ def main() -> int:
         "mapContentPath": str(map_content_path),
         "timings": timings,
     }
+    result.update(blender_output_paths)
     print(json.dumps(result, indent=2))
     return 0
 

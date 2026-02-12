@@ -55,6 +55,10 @@ Optional flags:
 
 - `--scale <int>`: OSM2World `TOUCH_MAPPER_SCALE` value (default `1400`)
 - `--exclude-buildings`: run OSM2World with `TOUCH_MAPPER_EXCLUDE_BUILDINGS=true`
+- `--with-blender`: also run Blender tactile export and write `map.stl`, `map-ways.stl`, `map-rest.stl`, `map.svg`, and `map.blend` into `--out-dir`
+- `--diameter <int>` and `--size <float>`: required when `--with-blender` is used
+- `--no-borders`: pass through to Blender export when `--with-blender` is used
+- `--marker1 <json>`: pass marker position JSON through to Blender export when `--with-blender` is used
 
 ## Notes
 
@@ -94,6 +98,15 @@ Optional flags:
 - `--jobs <N>`: max tests to run in parallel
 - `--offline`: use only cached OSM input from `test/map-content/cache/`
 - `--keep-existing-out`: do not clean `test/map-content/out/<category>/` before a run
+- `--with-blender`: run Blender tactile export during generation and keep the generated `map*.stl`, `.svg`, and `.blend` files in `test/map-content/out/<category>/pipeline/`
+
+### Makefile shortcuts
+
+From `test/map-content/`:
+
+- `make average` / `make complex`: regular map-content runs
+- `make average-bl` / `make complex-bl`: same runs with Blender outputs in each category's `pipeline/` directory
+- `make simple-bl` and `make all-bl` are also available
 
 ## Test Definition Shape
 
