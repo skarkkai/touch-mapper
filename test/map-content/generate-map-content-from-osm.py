@@ -201,6 +201,7 @@ def run_blender_export(
         blender_cmd.append("--no-borders")
     if args.marker1:
         blender_cmd.extend(["--marker1", args.marker1])
+    blender_cmd.append("--export-wireframe-png")
     blender_cmd.append(str(obj_path))
 
     inherited_ld_library_path = os.environ.get("LD_LIBRARY_PATH", "")
@@ -289,6 +290,8 @@ def main() -> int:
             "mapRestStlPath": str(out_dir / "map-rest.stl"),
             "mapSvgPath": str(out_dir / "map.svg"),
             "mapBlendPath": str(out_dir / "map.blend"),
+            "mapWireframeFlatPath": str(out_dir / "map-wireframe-flat.png"),
+            "mapWireframePath": str(out_dir / "map-wireframe.png"),
         }
         for name, file_path in blender_output_paths.items():
             if not Path(file_path).exists():

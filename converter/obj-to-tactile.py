@@ -29,6 +29,9 @@ BORDER_HEIGHT_MM = (ROAD_HEIGHT_PEDESTRIAN_MM + BUILDING_HEIGHT_MM) / 2
 BORDER_HORIZONTAL_OVERLAP_MM = 0.05
 MARKER_HEIGHT_MM = BUILDING_HEIGHT_MM + 2
 MARKER_RADIUS_MM = MARKER_HEIGHT_MM * 0.5
+WIREFRAME_RENDER_RESOLUTION = 1024
+WIREFRAME_CAMERA_PADDING = 1.02
+WIREFRAME_CAMERA_MIN_SCALE = 1.0
 
 def warning(*objs):
     print("WARNING: ", *objs, file=sys.stderr)
@@ -97,6 +100,7 @@ def do_cmdline():
     parser.add_argument('--diameter', metavar='METERS', type=int, help="larger of map area x and y diameter in meters")
     parser.add_argument('--size', metavar='METERS', type=float, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
+    parser.add_argument('--export-wireframe-png', action='store_true', help="export orthographic top-view wireframe PNG")
     parser.add_argument('obj_paths', metavar='PATHS', nargs='+', help='.obj files to use as input')
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     return args
@@ -106,15 +110,26 @@ def print_verts(ob):
         print(ob.name, ob.matrix_world * mathutils.Vector(v.co))
 
 def get_minimum_coordinate(ob):
+    min_x, min_y, min_z, _max_x, _max_y, _max_z = get_object_world_bounds(ob)
+    return (min_x, min_y, min_z)
+
+
+def get_object_world_bounds(ob):
     bbox_corners = [ob.matrix_world * mathutils.Vector(corner) for corner in ob.bound_box]
     min_x = 1000000
     min_y = 1000000
     min_z = 1000000
+    max_x = -1000000
+    max_y = -1000000
+    max_z = -1000000
     for corner in bbox_corners:
         min_x = min(min_x, corner[0])
         min_y = min(min_y, corner[1])
         min_z = min(min_z, corner[2])
-    return (min_x, min_y, min_z)
+        max_x = max(max_x, corner[0])
+        max_y = max(max_y, corner[1])
+        max_z = max(max_z, corner[2])
+    return (min_x, min_y, min_z, max_x, max_y, max_z)
 
 def move_everything(move_by):
     vector = mathutils.Vector(move_by)
@@ -284,6 +299,113 @@ def export_blend_file(base_path):
     blend_path = base_path + '.blend'
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected initially
     bpy.ops.wm.save_as_mainfile(filepath=blend_path, check_existing=False, compress=True)
+
+
+def export_wireframe_png(base_path, output_name, min_x, min_y, max_x, max_y):
+    t = time.time()
+    wireframe_path = base_path + '-' + output_name + '.png'
+    width = max_x - min_x
+    height = max_y - min_y
+    ortho_scale = max(width, height) * WIREFRAME_CAMERA_PADDING
+    if ortho_scale < WIREFRAME_CAMERA_MIN_SCALE:
+        ortho_scale = WIREFRAME_CAMERA_MIN_SCALE
+    center_x = (min_x + max_x) / 2
+    center_y = (min_y + max_y) / 2
+    source_meshes = all_mesh_objects()
+    max_z = 0.0
+    for source in source_meshes:
+        (_obj_min_x, _obj_min_y, _obj_min_z, _obj_max_x, _obj_max_y, obj_max_z) = get_object_world_bounds(source)
+        max_z = max(max_z, obj_max_z)
+    camera_height = max_z + max(ortho_scale, 10.0)
+
+    scene = bpy.context.scene
+    scene.render.engine = 'BLENDER_RENDER'
+    scene.render.alpha_mode = 'TRANSPARENT'
+    scene.render.image_settings.file_format = 'PNG'
+    scene.render.image_settings.color_mode = 'RGBA'
+    scene.render.resolution_x = WIREFRAME_RENDER_RESOLUTION
+    scene.render.resolution_y = WIREFRAME_RENDER_RESOLUTION
+    scene.render.resolution_percentage = 100
+    scene.render.filepath = wireframe_path
+    if scene.world is not None:
+        scene.world.horizon_color = (0.0, 0.0, 0.0)
+
+    # Best effort: mirror viewport intent on Blender versions that expose overlay controls.
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            for space in area.spaces:
+                overlay = getattr(space, 'overlay', None)
+                if overlay is not None and hasattr(overlay, 'show_wireframes'):
+                    overlay.show_wireframes = True
+                shading = getattr(space, 'shading', None)
+                if shading is not None and hasattr(shading, 'type'):
+                    shading.type = 'SOLID'
+
+    bpy.ops.object.camera_add()
+    camera = bpy.context.active_object
+    camera.location = (center_x, center_y, camera_height)
+    camera.rotation_euler = (0.0, 0.0, 0.0)
+    camera.data.type = 'ORTHO'
+    camera.data.ortho_scale = ortho_scale
+    camera.data.clip_start = 0.01
+    camera.data.clip_end = max(1000.0, camera_height + ortho_scale * 4)
+    scene.camera = camera
+
+    solid_material = bpy.data.materials.new('SolidRenderMaterial')
+    solid_material.type = 'SURFACE'
+    solid_material.use_shadeless = True
+    solid_material.diffuse_color = (0.72, 0.72, 0.72)
+    solid_material.specular_intensity = 0.0
+
+    wire_material = bpy.data.materials.new('WireframeRenderMaterial')
+    wire_material.type = 'WIRE'
+    wire_material.use_shadeless = True
+    wire_material.diffuse_color = (0.0, 0.0, 0.0)
+    wire_overlay_objects = []
+    solid_overlay_objects = []
+    hidden_originals = []
+    for ob in source_meshes:
+        hidden_originals.append((ob, ob.hide_render))
+        ob.hide_render = True
+
+        solid_ob = ob.copy()
+        solid_ob.data = ob.data.copy()
+        scene.objects.link(solid_ob)
+        solid_ob.hide_render = False
+        mesh = solid_ob.data
+        if len(mesh.materials) == 0:
+            mesh.materials.append(solid_material)
+        else:
+            for material_index in range(len(mesh.materials)):
+                mesh.materials[material_index] = solid_material
+        solid_overlay_objects.append(solid_ob)
+
+        wire_ob = solid_ob.copy()
+        wire_ob.data = solid_ob.data.copy()
+        scene.objects.link(wire_ob)
+        wire_ob.hide_render = False
+        wire_mesh = wire_ob.data
+        if len(wire_mesh.materials) == 0:
+            wire_mesh.materials.append(wire_material)
+        else:
+            for material_index in range(len(wire_mesh.materials)):
+                wire_mesh.materials[material_index] = wire_material
+        wire_ob.location[2] += 0.0001
+        wire_overlay_objects.append(wire_ob)
+
+    bpy.ops.render.render(write_still=True)
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for ob in solid_overlay_objects:
+        ob.select = True
+    for ob in wire_overlay_objects:
+        ob.select = True
+    camera.select = True
+    bpy.context.scene.objects.active = camera
+    bpy.ops.object.delete()
+    for (ob, old_hide_render) in hidden_originals:
+        ob.hide_render = old_hide_render
+    print("creating wireframe PNG took %.2f" % (time.time() - t))
 
 def create_cube(min_x, min_y, max_x, max_y, min_z, max_z):
     bpy.ops.mesh.primitive_cube_add()
@@ -800,6 +922,9 @@ def main():
         import_obj_file(obj_path)
         log_memory_checkpoint('after-import-obj')
         base_path = os.path.splitext(obj_path)[0]
+        if args.export_wireframe_png:
+            export_wireframe_png(base_path, 'wireframe-flat', args.min_x, args.min_y, args.max_x, args.max_y)
+            log_memory_checkpoint('after-export-wireframe-png-flat')
         export_svg(base_path, args)
         log_memory_checkpoint('after-export-svg')
         base_cube = make_tactile_map(args)
@@ -813,6 +938,10 @@ def main():
             log_memory_checkpoint('after-export-stl-separate')
             export_blend_file(base_path)
             log_memory_checkpoint('after-export-blend')
+        if args.export_wireframe_png:
+            final_min_x, final_min_y, _final_min_z, final_max_x, final_max_y, _final_max_z = get_object_world_bounds(base_cube)
+            export_wireframe_png(base_path, 'wireframe', final_min_x, final_min_y, final_max_x, final_max_y)
+            log_memory_checkpoint('after-export-wireframe-png-final')
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected when getting into UI
     log_memory_checkpoint('main-end')
 
