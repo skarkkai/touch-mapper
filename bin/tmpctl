@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import shutil
+import sys
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+TMP_ROOT = (REPO_ROOT / ".tmp").resolve()
+
+
+def fail(message):
+    print("tmpctl: {}".format(message), file=sys.stderr)
+    raise SystemExit(1)
+
+
+def resolve_scoped_path(raw_path):
+    path = Path(raw_path)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+
+    resolved = path.resolve(strict=False)
+    try:
+        resolved.relative_to(TMP_ROOT)
+    except ValueError:
+        fail("refusing path outside .tmp: {}".format(raw_path))
+    return resolved
+
+
+def ensure_exists(path, raw_path):
+    if not path.exists():
+        fail("path does not exist: {}".format(raw_path))
+
+
+def cmd_mkdir(args):
+    for raw_path in args.paths:
+        target = resolve_scoped_path(raw_path)
+        target.mkdir(parents=True, exist_ok=True)
+
+
+def remove_path(path):
+    if not path.exists() and not path.is_symlink():
+        return
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(str(path))
+    else:
+        path.unlink()
+
+
+def cmd_rm(args):
+    for raw_path in args.paths:
+        target = resolve_scoped_path(raw_path)
+        if not target.exists() and not target.is_symlink():
+            if args.missing_ok:
+                continue
+            fail("path does not exist: {}".format(raw_path))
+        remove_path(target)
+
+
+def cmd_mv(args):
+    src = resolve_scoped_path(args.src)
+    dst = resolve_scoped_path(args.dst)
+    ensure_exists(src, args.src)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(src), str(dst))
+
+
+def cmd_cp(args):
+    src = resolve_scoped_path(args.src)
+    dst = resolve_scoped_path(args.dst)
+    ensure_exists(src, args.src)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    if src.is_dir() and not src.is_symlink():
+        if dst.exists() and dst.is_dir():
+            target = dst / src.name
+        else:
+            target = dst
+        shutil.copytree(str(src), str(target), dirs_exist_ok=True)
+        return
+
+    if dst.exists() and dst.is_dir():
+        shutil.copy2(str(src), str(dst / src.name))
+    else:
+        shutil.copy2(str(src), str(dst))
+
+
+def cmd_write(args):
+    target = resolve_scoped_path(args.path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    if target.exists() and target.is_dir():
+        fail("cannot write to directory: {}".format(args.path))
+
+    if args.stdin:
+        data = sys.stdin.read()
+    elif args.text is not None:
+        data = args.text
+    else:
+        data = ""
+
+    mode = "a" if args.append else "w"
+    with open(target, mode, encoding="utf-8") as handle:
+        handle.write(data)
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        description="Scoped file manipulation utility restricted to .tmp/."
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    mkdir_parser = subparsers.add_parser("mkdir", help="Create directories under .tmp/.")
+    mkdir_parser.add_argument("paths", nargs="+", help="Directory paths under .tmp/.")
+    mkdir_parser.set_defaults(func=cmd_mkdir)
+
+    rm_parser = subparsers.add_parser("rm", help="Remove files/directories under .tmp/.")
+    rm_parser.add_argument("paths", nargs="+", help="Paths under .tmp/.")
+    rm_parser.add_argument("--missing-ok", action="store_true", help="Do not fail when a path is missing.")
+    rm_parser.set_defaults(func=cmd_rm)
+
+    mv_parser = subparsers.add_parser("mv", help="Move/rename a path under .tmp/.")
+    mv_parser.add_argument("src", help="Source path under .tmp/.")
+    mv_parser.add_argument("dst", help="Destination path under .tmp/.")
+    mv_parser.set_defaults(func=cmd_mv)
+
+    cp_parser = subparsers.add_parser("cp", help="Copy a path under .tmp/.")
+    cp_parser.add_argument("src", help="Source path under .tmp/.")
+    cp_parser.add_argument("dst", help="Destination path under .tmp/.")
+    cp_parser.set_defaults(func=cmd_cp)
+
+    write_parser = subparsers.add_parser("write", help="Write text to a file under .tmp/.")
+    write_parser.add_argument("path", help="Target file path under .tmp/.")
+    write_parser.add_argument("--text", help="Text to write. If omitted, empty string is used unless --stdin is set.")
+    write_parser.add_argument("--stdin", action="store_true", help="Read write content from stdin.")
+    write_parser.add_argument("--append", action="store_true", help="Append instead of overwrite.")
+    write_parser.set_defaults(func=cmd_write)
+
+    return parser
+
+
+def main():
+    TMP_ROOT.mkdir(parents=True, exist_ok=True)
+    parser = build_parser()
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

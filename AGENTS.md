@@ -68,6 +68,7 @@ Never:
 
 - Always create temporary files/directories needed during task execution under `<project-root>/.tmp/`.
 - Create `.tmp/` as needed (`mkdir -p .tmp`).
+- Use `bin/tmpctl` for temporary file manipulation (`mkdir`, `rm`, `mv`, `cp`, `write`) so scoped `.tmp/` operations can run without extra permission prompts.
 - Do not use `/tmp` for new task artifacts unless the user explicitly requests it.
 
 ## Sandbox networking note
