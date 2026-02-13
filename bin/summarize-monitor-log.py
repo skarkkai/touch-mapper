@@ -7,9 +7,11 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 
-LINE_RE = re.compile(r"^(?P<ts>\S+)\s+\[(?P<src>[^\]]+)\]\s?(?P<msg>.*)$")
+LINE_RE = re.compile(
+    r"^(?P<ts>\d{4}-\d{2}-\d{2}(?:[ T])\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\s+\[(?P<src>[^\]]+)\]\s?(?P<msg>.*)$"
+)
 MEM_RE = re.compile(
-    r"MEMORY:(?P<comp>[^:]+):(?P<stage>[^ ]+)\s+.*VmHWM=(?P<hwm>[0-9]+)kB"
+    r"(?:\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}\s+\[(?P<comp>[^\]]+)\]\s+(?:>{2,}\s+)?)?MEMORY\s+(?P<stage>[^ ]+)\s+.*VmHWM=(?P<hwm>[0-9]+)kB"
 )
 PS_RE = re.compile(
     r"^\s*(?P<pid>[0-9]+)\s+(?P<ppid>[0-9]+)\s+(?P<comm>\S+)\s+(?P<rss>[0-9]+)\s+(?P<vsz>[0-9]+)\s+"
@@ -22,22 +24,64 @@ POLL_START_RE = re.compile(r"STARTING TO POLL AT\s+(.+?)\s*=*$")
 POLL_RETURN_RE = re.compile(r"Poll returned at\s+(.+)$")
 PROC_MAIN_RE = re.compile(r"Processing main request took\s+([0-9.]+)")
 PROC_ENTIRE_RE = re.compile(r"Processing entire request took\s+([0-9.]+)")
+SUMMARY_ENTIRE_RE = re.compile(r"SUMMARY request-entire \(total\s+([0-9.]+)s,")
 OSM2WORLD_IGNORED_RE = re.compile(
     r"java\.lang\.IllegalStateException: no connector information has been set for this representation\."
 )
 KERNEL_TS_IN_MSG_RE = re.compile(
     r"^\[(?P<kts>[A-Z][a-z]{2}\s+[A-Z][a-z]{2}\s+\d{1,2}\s+\d\d:\d\d:\d\d\s+\d{4})\]"
 )
-PROGRESS_RE = re.compile(r"PROGRESS:(?P<component>[^:]+):(?P<stage>[^\s]+)")
-PROGRESS_STATUS_RE = re.compile(r"\bstatus=(?P<status>[^\s]+)")
-PROGRESS_REQUEST_ID_RE = re.compile(r"\brequestId=(?P<request_id>[^\s]+)")
+PROGRESS_RE = re.compile(
+    r"(?:\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}\s+\[(?P<component>[^\]]+)\]\s+(?:>{2,}\s+)?)?PROGRESS\s+(?P<stage>[^\s]+)"
+)
+KV_FIELD_RE = re.compile(r"(?P<key>[A-Za-z0-9_-]+)=(?P<value>\"(?:\\.|[^\"\\])*\"|[^\s]+)")
 
 
 def parse_ts(raw: str) -> Optional[dt.datetime]:
-    try:
-        return dt.datetime.strptime(raw, "%Y-%m-%dT%H:%M:%S%z")
-    except ValueError:
-        return None
+    normalized_raw = raw
+    tz_colon_match = re.search(r"([+-]\d{2}):(\d{2})$", normalized_raw)
+    if tz_colon_match:
+        normalized_raw = normalized_raw[:-6] + tz_colon_match.group(1) + tz_colon_match.group(2)
+
+    formats = [
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%S.%f%z",
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+    ]
+    for fmt in formats:
+        try:
+            parsed = dt.datetime.strptime(normalized_raw, fmt)
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=dt.timezone.utc)
+            return parsed
+        except ValueError:
+            continue
+    if raw.endswith("Z"):
+        normalized = raw[:-1] + "+0000"
+        try:
+            return dt.datetime.strptime(normalized, "%Y-%m-%dT%H:%M:%S.%f%z")
+        except ValueError:
+            pass
+        try:
+            return dt.datetime.strptime(normalized, "%Y-%m-%dT%H:%M:%S%z")
+        except ValueError:
+            pass
+    return None
+
+
+def parse_kv_fields(text: str) -> Dict[str, str]:
+    values = {}  # type: Dict[str, str]
+    for match in KV_FIELD_RE.finditer(text):
+        key = match.group("key")
+        value = match.group("value")
+        if len(value) >= 2 and value[0] == '"' and value[-1] == '"':
+            inner = value[1:-1]
+            inner = inner.replace('\\"', '"').replace('\\\\', '\\')
+            values[key] = inner
+        else:
+            values[key] = value
+    return values
 
 
 def mib(kib: int) -> float:
@@ -98,6 +142,7 @@ def main() -> int:
     poll_returns = []  # type: List[str]
     main_durations = []  # type: List[float]
     entire_durations = []  # type: List[float]
+    summary_entire_durations = []  # type: List[float]
     ignored_connector_exception_count = 0
 
     kernel_oom_lines = []  # type: List[Tuple[Optional[dt.datetime], str, Optional[dt.datetime]]]
@@ -137,7 +182,7 @@ def main() -> int:
 
             m_mem = MEM_RE.search(msg)
             if m_mem and ts is not None:
-                comp = m_mem.group("comp")
+                comp = m_mem.group("comp") or src
                 stage = m_mem.group("stage")
                 hwm_kib = int(m_mem.group("hwm"))
                 prev = mem_peaks.get(comp)
@@ -203,25 +248,24 @@ def main() -> int:
                 m_entire = PROC_ENTIRE_RE.search(msg)
                 if m_entire:
                     entire_durations.append(float(m_entire.group(1)))
+                m_summary_entire = SUMMARY_ENTIRE_RE.search(msg)
+                if m_summary_entire:
+                    summary_entire_durations.append(float(m_summary_entire.group(1)))
                 if OSM2WORLD_IGNORED_RE.search(msg):
                     ignored_connector_exception_count += 1
 
             m_progress = PROGRESS_RE.search(msg)
             if m_progress:
-                status = None  # type: Optional[str]
-                request_id = None  # type: Optional[str]
-                m_status = PROGRESS_STATUS_RE.search(msg)
-                if m_status:
-                    status = m_status.group("status")
-                m_request_id = PROGRESS_REQUEST_ID_RE.search(msg)
-                if m_request_id:
-                    request_id = m_request_id.group("request_id")
+                fields = parse_kv_fields(msg)
+                status = fields.get("status")
+                request_id = fields.get("requestId")
+                component = m_progress.group("component") or src
                 progress_events.append(
                     (
                         line_count,
                         ts,
                         src,
-                        m_progress.group("component"),
+                        component,
                         m_progress.group("stage"),
                         status,
                         request_id,
@@ -283,17 +327,20 @@ def main() -> int:
     print("processing_entire_count: {}".format(len(entire_durations)))
     if entire_durations:
         print("processing_entire_last_seconds: {:.3f}".format(entire_durations[-1]))
+    print("summary_request_entire_count: {}".format(len(summary_entire_durations)))
+    if summary_entire_durations:
+        print("summary_request_entire_last_seconds: {:.3f}".format(summary_entire_durations[-1]))
     print("osm2world_ignored_connector_exceptions: {}".format(ignored_connector_exception_count))
 
     print("\nConverter Stage Markers")
     print("progress_markers_total: {}".format(len(progress_events)))
-    process_progress = [event for event in progress_events if event[3] == "process-request"]
-    print("process_request_progress_markers: {}".format(len(process_progress)))
-    if process_progress:
-        last_event = process_progress[-1]
+    request_progress = list(progress_events)
+    print("request_progress_markers: {}".format(len(request_progress)))
+    if request_progress:
+        last_event = request_progress[-1]
         last_line_no, last_ts, last_src, _last_component, last_stage, last_status, last_request_id, last_line = last_event
         print(
-            "last_process_request_stage: {} (status={}, ts={}, src={}, line={})".format(
+            "last_request_stage: {} (status={}, ts={}, src={}, line={})".format(
                 last_stage,
                 (last_status if last_status is not None else "n/a"),
                 format_dt(last_ts),
@@ -302,21 +349,21 @@ def main() -> int:
             )
         )
         if last_request_id is not None:
-            print("last_process_request_id: {}".format(last_request_id))
+            print("last_request_id: {}".format(last_request_id))
         print("  {}".format(last_line))
 
-        saw_complete = any(event[4] == "complete" for event in process_progress)
-        saw_failed = any(event[4] == "failed" for event in process_progress)
-        saw_exit = any(event[4] == "exit" for event in process_progress)
-        saw_signal = any(event[4] == "signal-received" for event in process_progress)
-        print("process_request_saw_complete_marker: {}".format(saw_complete))
-        print("process_request_saw_failed_marker: {}".format(saw_failed))
-        print("process_request_saw_exit_marker: {}".format(saw_exit))
-        print("process_request_saw_signal_marker: {}".format(saw_signal))
+        saw_complete = any(event[4] == "complete" for event in request_progress)
+        saw_failed = any(event[4] == "failed" for event in request_progress)
+        saw_exit = any(event[4] == "exit" for event in request_progress)
+        saw_signal = any(event[4] == "signal-received" for event in request_progress)
+        print("request_saw_complete_marker: {}".format(saw_complete))
+        print("request_saw_failed_marker: {}".format(saw_failed))
+        print("request_saw_exit_marker: {}".format(saw_exit))
+        print("request_saw_signal_marker: {}".format(saw_signal))
 
-        non_exit_process_progress = [event for event in process_progress if event[4] != "exit"]
-        if non_exit_process_progress:
-            last_non_exit = non_exit_process_progress[-1]
+        non_exit_request_progress = [event for event in request_progress if event[4] != "exit"]
+        if non_exit_request_progress:
+            last_non_exit = non_exit_request_progress[-1]
             print(
                 "likely_last_completed_stage_before_stop: {} (ts={}, src={}, line={})".format(
                     last_non_exit[4],
@@ -327,7 +374,7 @@ def main() -> int:
             )
             print("  {}".format(last_non_exit[7]))
     else:
-        print("No process-request stage markers found in this log.")
+        print("No request stage markers found in this log.")
 
     print("\nMemory Peaks (VmHWM from MEMORY lines)")
     if not mem_peaks:
@@ -406,11 +453,11 @@ def main() -> int:
     for line in lines_to_show:
         print(line)
 
-    process_progress_complete = any(event[4] == "complete" for event in process_progress)
-    process_progress_last_non_exit_stage = None  # type: Optional[str]
-    non_exit_process_progress = [event for event in process_progress if event[4] != "exit"]
-    if non_exit_process_progress:
-        process_progress_last_non_exit_stage = non_exit_process_progress[-1][4]
+    request_progress_complete = any(event[4] == "complete" for event in request_progress)
+    request_progress_last_non_exit_stage = None  # type: Optional[str]
+    non_exit_request_progress = [event for event in request_progress if event[4] != "exit"]
+    if non_exit_request_progress:
+        request_progress_last_non_exit_stage = non_exit_request_progress[-1][4]
 
     print("\nLikely Cause Hints")
     recent_failure_signal_lines = [line for ts, line in failure_signal_lines if is_recent(ts)]
@@ -427,10 +474,10 @@ def main() -> int:
         print("- Timeout-related signals present.")
     else:
         print("- No strong timeout signal detected in failure patterns.")
-    if process_progress and not process_progress_complete:
+    if request_progress and not request_progress_complete:
         print(
             "- Converter appears to stop before completion. Last stage marker: {}.".format(
-                process_progress_last_non_exit_stage or "n/a"
+                request_progress_last_non_exit_stage or "n/a"
             )
         )
     if entire_durations:

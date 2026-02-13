@@ -62,6 +62,7 @@ Always:
 Never:
 - Present multi-core benchmarks as comparable to production.
 - Skip required `pyright` checks for changed Python files.
+- Use python newer than 3.5 because that's what production env has.
 
 ## Temporary files policy
 

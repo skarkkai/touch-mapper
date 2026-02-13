@@ -22,8 +22,8 @@ from collections import deque
 
 
 LINE_RE = re.compile(r"^(?P<ts>\S+)\s+\[(?P<src>[^\]]+)\]\s?(?P<msg>.*)$")
-PROGRESS_STAGE_RE = re.compile(r"PROGRESS:process-request:(?P<stage>[^\s]+)")
-STATUS_RE = re.compile(r"\bstatus=(?P<status>[^\s]+)")
+PROGRESS_STAGE_RE = re.compile(r"PROGRESS\s+(?P<stage>[^\s]+)")
+KV_FIELD_RE = re.compile(r"(?P<key>[A-Za-z0-9_-]+)=(?P<value>\"(?:\\.|[^\"\\])*\"|[^\s]+)")
 
 DEFAULT_SQS_ENDPOINT = (
     "https://sqs.eu-west-1.amazonaws.com/730535225693/test-requests-touch-mapper"
@@ -109,19 +109,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def extract_request_id(progress_msg):
-    marker = "requestId="
-    marker_index = progress_msg.find(marker)
-    if marker_index < 0:
-        return None
-    tail = progress_msg[marker_index + len(marker):]
-    end = len(tail)
-    for delimiter in (" detail=", " last_stage=", " signal="):
-        idx = tail.find(delimiter)
-        if idx >= 0:
-            end = min(end, idx)
-    value = tail[:end].strip()
-    return value if value else None
+def parse_kv_fields(text):
+    values = {}
+    for match in KV_FIELD_RE.finditer(text):
+        key = match.group("key")
+        value = match.group("value")
+        if len(value) >= 2 and value[0] == '"' and value[-1] == '"':
+            inner = value[1:-1]
+            inner = inner.replace('\\"', '"').replace('\\\\', '\\')
+            values[key] = inner
+        else:
+            values[key] = value
+    return values
 
 
 def build_request_body(template, request_id_prefix):
@@ -156,11 +155,11 @@ def match_progress_for_request(message, request_id):
     stage_match = PROGRESS_STAGE_RE.search(message)
     if not stage_match:
         return None
-    message_request_id = extract_request_id(message)
+    fields = parse_kv_fields(message)
+    message_request_id = fields.get("requestId")
     if message_request_id != request_id:
         return None
-    status_match = STATUS_RE.search(message)
-    status = status_match.group("status") if status_match else None
+    status = fields.get("status")
     return (stage_match.group("stage"), status)
 
 

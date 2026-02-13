@@ -1,7 +1,6 @@
 #!/usr/bin/python3 -u
 
 import argparse
-import re
 import os
 import sys
 import subprocess
@@ -11,6 +10,8 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 from tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
+from telemetry import TelemetryLogger
+LIVE_TELEMETRY = None
 
 def read_proc_status_kib(field_name):
     try:
@@ -33,19 +34,25 @@ def log_memory_checkpoint(label):
     vm_rss_kib = read_proc_status_kib('VmRSS')
     vm_hwm_kib = read_proc_status_kib('VmHWM')
     if vm_rss_kib is None and vm_hwm_kib is None:
-        print('MEMORY:osm-to-tactile:{label} unavailable'.format(label=label))
+        message = 'MEMORY {label} unavailable'.format(label=label)
+        if LIVE_TELEMETRY is not None:
+            LIVE_TELEMETRY.log(message)
+        else:
+            print(message)
         return
     vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
     vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
-    print(
-        'MEMORY:osm-to-tactile:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
-            label=label,
-            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
-            rss_mib=vm_rss_mib,
-            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
-            hwm_mib=vm_hwm_mib
-        )
+    message = 'MEMORY {label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
+        label=label,
+        rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
+        rss_mib=vm_rss_mib,
+        hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
+        hwm_mib=vm_hwm_mib
     )
+    if LIVE_TELEMETRY is not None:
+        LIVE_TELEMETRY.log(message)
+    else:
+        print(message)
 
 
 def parse_env_bool(name):
@@ -76,11 +83,6 @@ def write_json_file(path, value, pretty_json):
             handle.write("\n")
             return
         json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
-
-
-def write_text_file(path, text):
-    with open(path, 'w', encoding='utf-8') as handle:
-        handle.write(text)
 
 
 def compute_clip_bounds(boundary, scale, no_borders):
@@ -117,31 +119,17 @@ def do_cmdline():
     args = parser.parse_args()
     return args
 
-def subprocess_output(cmd, env=None, output_log_path=None):
-    print("running: " + " ".join(cmd) + "  " + str(env))
-    en = os.environ.copy()
-    if env:
-        en.update(env)
+def _parse_int_env(name, fallback):
+    raw = os.environ.get(name)
+    if raw is None:
+        return fallback
     try:
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=en).decode("utf-8", errors='replace')
-        if output_log_path:
-            write_text_file(output_log_path, output)
-        return output
-    except subprocess.CalledProcessError as e:
-        output = e.output.decode("utf-8", errors='replace')
-        if output_log_path:
-            write_text_file(output_log_path, output)
-            print(
-                "subprocess failed with exit code {}: see {}".format(
-                    e.returncode,
-                    output_log_path
-                )
-            )
-        else:
-            print("subprocess failed with error code: {}".format(output))
-        raise e
+        return int(raw)
+    except Exception:
+        return fallback
 
-def run_osm2world(input_path, output_path, scale, exclude_buildings):
+
+def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry):
     log_memory_checkpoint('before-osm2world')
     # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
@@ -156,14 +144,15 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
         os.path.dirname(output_path),
         output_basename + '-osm2world.log'
     )
-    subprocess_output(
+    run_result = telemetry.run_subprocess(
         cmd,
-        {
+        env={
             'TOUCH_MAPPER_SCALE': str(scale),
             'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5',
             'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false')
         },
-        output_log_path=osm2world_log_path
+        output_log_path=osm2world_log_path,
+        depth_offset=0
     )
 
     meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
@@ -174,9 +163,9 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
     write_json_file(meta_path, meta, pretty_json_enabled())
     log_memory_checkpoint('after-osm2world')
 
-    return meta
+    return meta, run_result.get('maxRssKiB')
 
-def run_clip_2d(obj_path, clip_bounds):
+def run_clip_2d(obj_path, clip_bounds, telemetry):
     log_memory_checkpoint('before-clip-2d')
     out_dir = os.path.dirname(obj_path)
     clip_report_path = os.path.join(out_dir, 'map-clip-report.json')
@@ -192,9 +181,10 @@ def run_clip_2d(obj_path, clip_bounds):
         '--max-x', str(clip_bounds['maxX']),
         '--max-y', str(clip_bounds['maxY']),
     ]
-    output = subprocess_output(clip_cmd)
-    if output:
-        print(output)
+    run_result = telemetry.run_subprocess(
+        clip_cmd,
+        depth_offset=0
+    )
 
     if not os.path.exists(clip_report_path):
         raise Exception("clip-2d did not produce report")
@@ -211,15 +201,18 @@ def run_clip_2d(obj_path, clip_bounds):
         mesh_paths.append(mesh_path)
     if not mesh_paths:
         raise Exception("clip-2d produced no meshes")
+
+    telemetry.log("clip-2d outputs: {} files report={}".format(len(mesh_paths), clip_report_path))
     log_memory_checkpoint('after-clip-2d')
-    return mesh_paths
+    return mesh_paths, report, run_result.get('maxRssKiB')
 
 
-def run_blender(mesh_paths, boundary, args, output_base_path):
+def run_blender(mesh_paths, boundary, args, output_base_path, telemetry):
     log_memory_checkpoint('before-blender')
     blender_dir = os.path.join(script_dir, 'blender')
-    blender_env = os.environ.copy()
-    blender_env['LD_LIBRARY_PATH'] = os.path.join(blender_dir, 'lib') + ":" + blender_env.get('LD_LIBRARY_PATH', '')
+    blender_env = {
+        'LD_LIBRARY_PATH': os.path.join(blender_dir, 'lib') + ":" + os.environ.get('LD_LIBRARY_PATH', '')
+    }
     blender_path = os.path.join(blender_dir, 'blender')
     obj_to_tactile_path = os.path.join(script_dir, 'obj-to-tactile.py')
     blender_args = [
@@ -246,46 +239,33 @@ def run_blender(mesh_paths, boundary, args, output_base_path):
     if args.marker1:
         script_args.extend(('--marker1', args.marker1))
     cmd = [blender_path] + blender_args + ['--python', obj_to_tactile_path, '--'] + script_args + mesh_paths
-    output = subprocess_output(cmd)
-    
-    # Strip junk output by OBJ importer
-    output = re.sub("Warning Cannot scanfill, fallback on a triangle fan.\n", '', output)
-    output = re.sub("convertViewVec: called in an invalid context\n", '', output)
-    
-    if INSTRUMENTATION_ENABLED:
-        blender_memory_matches = re.finditer(
-            r'^MEMORY:(?P<label>[^ ]+) VmRSS=(?P<rss>[0-9?]+)kB \([^)]+\) VmHWM=(?P<hwm>[0-9?]+)kB',
-            output,
-            re.MULTILINE
-        )
-        blender_peak_hwm = None
-        blender_peak_label = None
-        for match in blender_memory_matches:
-            hwm_raw = match.group('hwm')
-            if not hwm_raw.isdigit():
-                continue
-            hwm_kib = int(hwm_raw)
-            if blender_peak_hwm is None or hwm_kib > blender_peak_hwm:
-                blender_peak_hwm = hwm_kib
-                blender_peak_label = match.group('label')
-        if blender_peak_hwm is not None:
-            print(
-                'MEMORY:osm-to-tactile:blender-subprocess-peak VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB) at={label}'.format(
-                    hwm_kib=blender_peak_hwm,
-                    hwm_mib=blender_peak_hwm / 1024.0,
-                    label=blender_peak_label
-                )
-            )
+    run_result = telemetry.run_subprocess(
+        cmd,
+        env=blender_env,
+        depth_offset=0
+    )
     log_memory_checkpoint('after-blender')
-    
-    return {}
 
-def print_size(scale, boundary):
+    return run_result.get('maxRssKiB')
+
+def print_size(scale, boundary, telemetry):
     sizeX = boundary['maxX'] - boundary['minX']
     sizeY = boundary['maxY'] - boundary['minY']
-    print("Map is {:.0f} x {:.0f} meters. Selected scale {:.0f} will result in a {:.0f} x {:.0f} mm print.".format(sizeX, sizeY, scale, sizeX / scale * 1000 , sizeY / scale * 1000))
+    telemetry.log(
+        "Map is {:.0f} x {:.0f} meters. Selected scale {:.0f} will result in a {:.0f} x {:.0f} mm print.".format(
+            sizeX,
+            sizeY,
+            scale,
+            sizeX / scale * 1000,
+            sizeY / scale * 1000
+        )
+    )
 
 def main():
+    global LIVE_TELEMETRY
+    log_depth_base = _parse_int_env('TOUCH_MAPPER_LOG_DEPTH_BASE', 0)
+    telemetry = TelemetryLogger(component='osm-to-tactile', base_depth=log_depth_base)
+    LIVE_TELEMETRY = telemetry
     log_memory_checkpoint('main-start')
     # Handle command line
     args = do_cmdline()
@@ -297,24 +277,52 @@ def main():
 
     # Run OSM2World
     obj_path = input_basename + '.obj'
-    meta = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings)
+    osm2world_stage = telemetry.start_stage('run-osm2world', component='run-osm2world')
+    meta, osm2world_rss_kib = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings, telemetry)
+    telemetry.end_stage(osm2world_stage, own_max_rss_kib=osm2world_rss_kib)
     boundary = meta.get('meta', {}).get('boundary')
     if boundary is None:
         raise Exception("map-meta-raw.json missing meta.boundary")
 
-    print_size(args.scale, boundary)
+    print_size(args.scale, boundary, telemetry)
 
     # Run clip-2d
     clip_bounds = compute_clip_bounds(boundary, args.scale, args.no_borders)
-    mesh_paths = run_clip_2d(obj_path, clip_bounds)
+    clip_stage = telemetry.start_stage('run-clip-2d', component='run-clip-2d')
+    mesh_paths, clip_report, clip_rss_kib = run_clip_2d(obj_path, clip_bounds, telemetry)
+    clip_timings = clip_report.get('timings', {})
+    for key in ('parseSeconds', 'clipSeconds', 'dedupeWriteSeconds'):
+        value = clip_timings.get(key)
+        if isinstance(value, (int, float)):
+            telemetry.attach_external_child(
+                clip_stage,
+                {
+                    'name': 'clip-2d.' + key,
+                    'component': 'clip-2d',
+                    'totalSec': float(value),
+                    'selfSec': float(value),
+                    'childSec': 0.0,
+                    'maxRssKiB': None,
+                    'children': [],
+                }
+            )
+    telemetry.end_stage(clip_stage, own_max_rss_kib=clip_rss_kib)
 
     # Run Blender
+    blender_stage = telemetry.start_stage('run-blender', component='run-blender')
     meta_path = input_basename + '-meta.json'
-    run_blender(mesh_paths, boundary, args, input_basename)
+    blender_rss_kib = run_blender(mesh_paths, boundary, args, input_basename, telemetry)
+    telemetry.end_stage(blender_stage, own_max_rss_kib=blender_rss_kib)
+
+    write_meta_stage = telemetry.start_stage('write-map-meta', component='write-map-meta')
     write_json_file(meta_path, meta, pretty_json_enabled())
+    telemetry.end_stage(write_meta_stage, own_max_rss_kib=None)
     log_memory_checkpoint('main-end')
+
+    timings_path = os.path.join(os.path.dirname(osm_path), 'osm-to-tactile-timings.json')
+    telemetry.write_json(timings_path, extra={'metaPath': meta_path})
+    telemetry.log('timings-json: ' + timings_path)
 
 
 if __name__ == "__main__":
     main()
-    print("osm-to-tactile finished successfully")
