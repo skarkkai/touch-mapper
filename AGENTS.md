@@ -21,18 +21,12 @@ make build
 make serve
 ```
 
-Performance and benchmark comparisons must run on one core:
-
-```bash
-taskset -c 0 node test/map-content/run-tests.js --category complex --offline --jobs 1
-```
-
 ## Repo map
 
 - `web/`: static UI (templates, JS, Less, locales).
-- `converter/`: OSM -> tactile map conversion pipeline (Python + helper scripts).
+- `converter/`: OSM -> tactile map conversion pipeline (Python + Node + Blender + helper scripts).
 - `test/map-content/`: map-description verification and regression tooling.
-- `OSM2World/`: vendored rendering/conversion dependency; change only when needed.
+- `OSM2World/`: vendored rendering/conversion dependency.
 - `install/`: AWS packaging/deployment scripts.
 - `doc/`: contributor and agent guidance.
 
@@ -65,15 +59,15 @@ Always:
 - Update docs when behavior or workflow changes.
 - Prefer changing sources over generated artifacts.
 
-Ask first:
-- UI-only backward compatibility expectations.
-- Large deployment/runtime changes in `install/` or AWS workflows.
-- OSM2World vendor updates that are not required for the task.
-
 Never:
-- Edit generated `web/src/*.ect` as the primary change.
 - Present multi-core benchmarks as comparable to production.
 - Skip required `pyright` checks for changed Python files.
+
+## Temporary files policy
+
+- Always create temporary files/directories needed during task execution under `<project-root>/.tmp/`.
+- Create `.tmp/` as needed (`mkdir -p .tmp`).
+- Do not use `/tmp` for new task artifacts unless the user explicitly requests it.
 
 ## Sandbox networking note
 
