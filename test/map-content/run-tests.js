@@ -15,7 +15,8 @@ function parseArgs(argv) {
     categories: [],
     jobs: null,
     offline: false,
-    keepExistingOut: false
+    keepExistingOut: false,
+    withBlender: false
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -41,6 +42,10 @@ function parseArgs(argv) {
       args.keepExistingOut = true;
       continue;
     }
+    if (arg === "--with-blender") {
+      args.withBlender = true;
+      continue;
+    }
     throw new Error("Unknown argument: " + arg);
   }
   if (!args.all && args.categories.length === 0) {
@@ -50,6 +55,42 @@ function parseArgs(argv) {
     throw new Error("--jobs must be a positive integer");
   }
   return args;
+}
+
+function buildMarkerArg(requestBody) {
+  if (!requestBody || typeof requestBody !== "object") {
+    return null;
+  }
+  if (requestBody.hideLocationMarker || requestBody.multipartMode || !requestBody.marker1) {
+    return null;
+  }
+  const area = requestBody.effectiveArea;
+  if (!area || typeof area !== "object") {
+    return null;
+  }
+  const lonMin = Number(area.lonMin);
+  const lonMax = Number(area.lonMax);
+  const latMin = Number(area.latMin);
+  const latMax = Number(area.latMax);
+  const markerLon = Number(requestBody.marker1.lon);
+  const markerLat = Number(requestBody.marker1.lat);
+  if (!Number.isFinite(lonMin) || !Number.isFinite(lonMax) || !Number.isFinite(latMin) || !Number.isFinite(latMax)) {
+    return null;
+  }
+  if (!Number.isFinite(markerLon) || !Number.isFinite(markerLat)) {
+    return null;
+  }
+  const width = lonMax - lonMin;
+  const height = latMax - latMin;
+  if (width === 0 || height === 0) {
+    return null;
+  }
+  const marker1x = (markerLon - lonMin) / width;
+  const marker1y = (markerLat - latMin) / height;
+  if (!(marker1x > 0.04 && marker1x < 0.96 && marker1y > 0.04 && marker1y < 0.96)) {
+    return null;
+  }
+  return JSON.stringify({ x: marker1x, y: marker1y });
 }
 
 function readJson(filePath) {
@@ -83,15 +124,60 @@ function stageStart(testCategory, stageName) {
   return start;
 }
 
+function childTimingTotalSeconds(timings, stageName) {
+  const prefix = stageName + ".";
+  let total = 0;
+  Object.keys(timings).forEach(function(key) {
+    if (!key.startsWith(prefix)) {
+      return;
+    }
+    const suffix = key.slice(prefix.length);
+    if (!suffix || suffix === "total" || suffix.indexOf(".") !== -1) {
+      return;
+    }
+    const value = timings[key];
+    if (!Number.isFinite(value)) {
+      return;
+    }
+    total += value;
+  });
+  return total;
+}
+
 function stageDone(testCategory, stageName, startMs) {
   const elapsed = (Date.now() - startMs) / 1000;
   process.stdout.write("[" + testCategory + "] DONE " + stageName + " (" + elapsed.toFixed(2) + "s)\n");
   return elapsed;
 }
 
-function stageFail(testCategory, stageName, startMs, error) {
+function stageDoneWithTimings(testCategory, stageName, startMs, timings) {
   const elapsed = (Date.now() - startMs) / 1000;
-  process.stdout.write("[" + testCategory + "] FAIL " + stageName + " (" + elapsed.toFixed(2) + "s): " + error.message + "\n");
+  const childTotal = childTimingTotalSeconds(timings, stageName);
+  const selfTime = Math.max(0, elapsed - childTotal);
+  if (childTotal > 0.0005) {
+    process.stdout.write(
+      "[" + testCategory + "] DONE " + stageName +
+      " (total " + elapsed.toFixed(2) + "s, self " + selfTime.toFixed(2) + "s, child " + childTotal.toFixed(2) + "s)\n"
+    );
+  } else {
+    process.stdout.write("[" + testCategory + "] DONE " + stageName + " (" + elapsed.toFixed(2) + "s)\n");
+  }
+  return elapsed;
+}
+
+function stageFail(testCategory, stageName, startMs, error, timings) {
+  const elapsed = (Date.now() - startMs) / 1000;
+  const childTotal = childTimingTotalSeconds(timings, stageName);
+  const selfTime = Math.max(0, elapsed - childTotal);
+  if (childTotal > 0.0005) {
+    process.stdout.write(
+      "[" + testCategory + "] FAIL " + stageName +
+      " (total " + elapsed.toFixed(2) + "s, self " + selfTime.toFixed(2) + "s, child " + childTotal.toFixed(2) + "s): " +
+      error.message + "\n"
+    );
+  } else {
+    process.stdout.write("[" + testCategory + "] FAIL " + stageName + " (" + elapsed.toFixed(2) + "s): " + error.message + "\n");
+  }
   return elapsed;
 }
 
@@ -99,10 +185,10 @@ async function runStage(testCategory, stageName, timings, fn) {
   const start = stageStart(testCategory, stageName);
   try {
     const result = await fn();
-    timings[stageName] = stageDone(testCategory, stageName, start);
+    timings[stageName] = stageDoneWithTimings(testCategory, stageName, start, timings);
     return result;
   } catch (error) {
-    timings[stageName] = stageFail(testCategory, stageName, start, error);
+    timings[stageName] = stageFail(testCategory, stageName, start, error, timings);
     throw error;
   }
 }
@@ -150,6 +236,15 @@ function fetchWithCurl(url) {
   return result.stdout;
 }
 
+function overpassMapUrls(bbox) {
+  // Public instances from OSM wiki (current list), using map endpoint for bbox export.
+  return [
+    "https://overpass.private.coffee/api/map?bbox=" + encodeURIComponent(bbox),
+    "https://overpass-api.de/api/map?bbox=" + encodeURIComponent(bbox),
+    "https://maps.mail.ru/osm/tools/overpass/api/map?bbox=" + encodeURIComponent(bbox)
+  ];
+}
+
 async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
   if (fs.existsSync(cacheOsmPath)) {
     return;
@@ -162,11 +257,9 @@ async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
     throw new Error("requestBody.effectiveArea is required to fetch OSM");
   }
   const bbox = [area.lonMin, area.latMin, area.lonMax, area.latMax].join(",");
-  const urls = [
-    "https://api.openstreetmap.org/api/0.6/map?bbox=" + encodeURIComponent(bbox),
-    "https://overpass-api.de/api/map?bbox=" + encodeURIComponent(bbox),
-    "https://overpass.kumi.systems/api/map?bbox=" + encodeURIComponent(bbox)
-  ];
+  const urls = overpassMapUrls(bbox).concat([
+    "https://api.openstreetmap.org/api/0.6/map?bbox=" + encodeURIComponent(bbox)
+  ]);
   let response = null;
   let lastError = null;
   for (let i = 0; i < urls.length; i += 1) {
@@ -195,10 +288,26 @@ function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, reques
     "--scale",
     String(Number(requestBody.scale || 1400)),
     "--log-prefix",
-    "[" + testCategory + "]"
+    "[" + testCategory + "]  "
   ];
   if (requestBody.excludeBuildings) {
     args.push("--exclude-buildings");
+  }
+  if (requestBody.noBorders) {
+    args.push("--no-borders");
+  }
+  if (Number.isFinite(Number(requestBody.diameter))) {
+    args.push("--diameter", String(Number(requestBody.diameter)));
+  }
+  if (Number.isFinite(Number(requestBody.size))) {
+    args.push("--size", String(Number(requestBody.size)));
+  }
+  const marker1 = buildMarkerArg(requestBody);
+  if (marker1) {
+    args.push("--marker1", marker1);
+  }
+  if (requestBody.withBlender) {
+    args.push("--with-blender");
   }
 
   return new Promise(function(resolve, reject) {
@@ -288,16 +397,20 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
     });
 
     const generation = await runStage(testCategory, "generate-map-content", timings, async function() {
-      return runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, mapInfo.requestBody);
-    });
-    if (generation && generation.timings && typeof generation.timings === "object") {
-      Object.keys(generation.timings).forEach(function(key) {
-        const value = generation.timings[key];
-        if (Number.isFinite(value)) {
-          timings["generate-map-content." + key] = value;
-        }
+      const requestBody = Object.assign({}, mapInfo.requestBody, {
+        withBlender: args.withBlender
       });
-    }
+      const generated = await runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, requestBody);
+      if (generated && generated.timings && typeof generated.timings === "object") {
+        Object.keys(generated.timings).forEach(function(key) {
+          const value = generated.timings[key];
+          if (Number.isFinite(value)) {
+            timings["generate-map-content." + key] = value;
+          }
+        });
+      }
+      return generated;
+    });
 
     const structuredByLocale = await runStage(testCategory, "render-structured-models", timings, async function() {
       const byLocale = {};

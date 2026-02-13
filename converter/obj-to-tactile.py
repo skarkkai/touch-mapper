@@ -1,38 +1,24 @@
+# pyright: reportMissingImports=false
 from __future__ import print_function
 import sys
 import argparse
 import os
-import pprint
 import bpy
 import mathutils
 import bmesh
 import json
 import math
-import random
 import time
-import re
 
 script_dir = os.path.dirname(__file__)
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+import tactile_constants as tc
+
+perf_clock = getattr(time, 'perf_counter', time.time)
+
 sys.path.insert(1, "%s/blender/2.78/python/lib/python3.5/svgwrite" % (script_dir,))
 # These modules imported at the site of use
-
-ROAD_HEIGHT_CAR_MM = 0.82 # 3 x 0.25-0.3mm layers
-ROAD_HEIGHT_PEDESTRIAN_MM = 1.5
-BUILDING_HEIGHT_MM = 2.9
-BASE_HEIGHT_MM = 0.6
-BASE_OVERLAP_MM = 0.01
-WATER_AREA_DEPTH_MM = 1.5
-WATER_WAVE_DISTANCE_MM = 10.3
-WATERWAY_DEPTH_MM = 0.55 # 2 x 0.25-0.3mm layers
-BORDER_WIDTH_MM = 1.2 # 3 shells
-BORDER_HEIGHT_MM = (ROAD_HEIGHT_PEDESTRIAN_MM + BUILDING_HEIGHT_MM) / 2
-BORDER_HORIZONTAL_OVERLAP_MM = 0.05
-MARKER_HEIGHT_MM = BUILDING_HEIGHT_MM + 2
-MARKER_RADIUS_MM = MARKER_HEIGHT_MM * 0.5
-
-def warning(*objs):
-    print("WARNING: ", *objs, file=sys.stderr)
-
 
 def parse_env_bool(name):
     raw = os.environ.get(name)
@@ -86,7 +72,7 @@ def log_memory_checkpoint(label):
 
 
 def do_cmdline():
-    parser = argparse.ArgumentParser(description='''Read an OSM map as a .obj file, modify it to a tactile map, and export as .stl''')
+    parser = argparse.ArgumentParser(description='''Read OSM map meshes, modify to tactile map, and export as .stl''')
     parser.add_argument('--min-x', metavar='FLOAT', type=float, help='minimum X bound')
     parser.add_argument('--min-y', metavar='FLOAT', type=float, help='minimum Y bound')
     parser.add_argument('--max-x', metavar='FLOAT', type=float, help='maximum X bound')
@@ -97,7 +83,9 @@ def do_cmdline():
     parser.add_argument('--diameter', metavar='METERS', type=int, help="larger of map area x and y diameter in meters")
     parser.add_argument('--size', metavar='METERS', type=float, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
-    parser.add_argument('obj_paths', metavar='PATHS', nargs='+', help='.obj files to use as input')
+    parser.add_argument('--export-wireframe-png', action='store_true', help="export orthographic top-view wireframe PNG")
+    parser.add_argument('--base-path', help='base output path (without extension), defaults to first input path')
+    parser.add_argument('mesh_paths', metavar='PATHS', nargs='+', help='.obj/.ply files to use as input')
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     return args
 
@@ -106,15 +94,26 @@ def print_verts(ob):
         print(ob.name, ob.matrix_world * mathutils.Vector(v.co))
 
 def get_minimum_coordinate(ob):
+    min_x, min_y, min_z, _max_x, _max_y, _max_z = get_object_world_bounds(ob)
+    return (min_x, min_y, min_z)
+
+
+def get_object_world_bounds(ob):
     bbox_corners = [ob.matrix_world * mathutils.Vector(corner) for corner in ob.bound_box]
     min_x = 1000000
     min_y = 1000000
     min_z = 1000000
+    max_x = -1000000
+    max_y = -1000000
+    max_z = -1000000
     for corner in bbox_corners:
         min_x = min(min_x, corner[0])
         min_y = min(min_y, corner[1])
         min_z = min(min_z, corner[2])
-    return (min_x, min_y, min_z)
+        max_x = max(max_x, corner[0])
+        max_y = max(max_y, corner[1])
+        max_z = max(max_z, corner[2])
+    return (min_x, min_y, min_z, max_x, max_y, max_z)
 
 def move_everything(move_by):
     vector = mathutils.Vector(move_by)
@@ -133,8 +132,6 @@ def all_mesh_objects():
         out.append(ob)
     return out
 
-ob_name_matcher = re.compile('^([a-z]+)( *)(.*)$', re.IGNORECASE)
-
 def rgb(r, g, b):
     return 'rgb(%d, %d, %d)' % (round(r*2.55), round(g*2.55), round(b*2.55))
 
@@ -144,8 +141,8 @@ def add_polygons(dwg, g, ob):
     for polygon in mesh.polygons:
         points = []
         for vert_index in polygon.vertices:
-            vx, vz, vy = (verts[vert_index].co)
-            points.append(('%.1f' % vx, '%.1f' % vy))
+            world_co = ob.matrix_world * verts[vert_index].co
+            points.append(('%.1f' % world_co[0], '%.1f' % world_co[1]))
         g.add(dwg.polygon(points=points))
 
 def add_svg_object(dwg, main_g, ob, color):
@@ -153,17 +150,8 @@ def add_svg_object(dwg, main_g, ob, color):
     g['stroke-width'] = 0.3 # removes gaps between objects
     main_g.add(g)
 
-    m = ob_name_matcher.match(ob.name)
-    if m:
-        ob_type = re.sub('area$', '', m.group(1).lower())
-        if m.group(2):
-            title = re.sub('::[a-z]+$', '', m.group(3)) + ' (' + ob_type + ')'
-            g.set_desc(title)
-        else:
-            #g.set_desc(ob_type)
-            pass
-        if ob_type == 'road':
-            g['stroke-width'] = 0.8 # Make roads a bit thicker so embosser draws them
+    if ob.name.startswith('Road'):
+        g['stroke-width'] = 0.8 # Make roads a bit thicker so embosser draws them
     add_polygons(dwg, g, ob)
 
 def add_road_overlay_object(dwg, main_g, ob):
@@ -171,16 +159,10 @@ def add_road_overlay_object(dwg, main_g, ob):
     g['stroke-width'] = 5.0
     main_g.add(g)
 
-    m = ob_name_matcher.match(ob.name)
-    if m:
-        ob_type = re.sub('area$', '', m.group(1).lower())
-        if m.group(2):
-            title = re.sub('::[a-z]+$', '', m.group(3)) + ' (' + ob_type + ')'
-            g.set_desc(title)
-            add_polygons(dwg, g, ob)
+    add_polygons(dwg, g, ob)
 
 def export_svg(base_path, args):
-    t = time.clock()
+    t = perf_clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
     one_cm_units = (max_y - min_y) / args.size
 
@@ -261,7 +243,7 @@ def export_svg(base_path, args):
     dwg.add(g)
 
     dwg.save()
-    print("creating SVG took " + (str(time.clock() - t)))
+    print("creating SVG took " + (str(perf_clock() - t)))
 
 def _export_stl(stl_path, scale):
     print("creating {stl}...".format(stl=stl_path))
@@ -284,6 +266,113 @@ def export_blend_file(base_path):
     blend_path = base_path + '.blend'
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected initially
     bpy.ops.wm.save_as_mainfile(filepath=blend_path, check_existing=False, compress=True)
+
+
+def export_wireframe_png(base_path, output_name, min_x, min_y, max_x, max_y):
+    t = time.time()
+    wireframe_path = base_path + '-' + output_name + '.png'
+    width = max_x - min_x
+    height = max_y - min_y
+    ortho_scale = max(width, height) * tc.WIREFRAME_CAMERA_PADDING
+    if ortho_scale < tc.WIREFRAME_CAMERA_MIN_SCALE:
+        ortho_scale = tc.WIREFRAME_CAMERA_MIN_SCALE
+    center_x = (min_x + max_x) / 2
+    center_y = (min_y + max_y) / 2
+    source_meshes = all_mesh_objects()
+    max_z = 0.0
+    for source in source_meshes:
+        (_obj_min_x, _obj_min_y, _obj_min_z, _obj_max_x, _obj_max_y, obj_max_z) = get_object_world_bounds(source)
+        max_z = max(max_z, obj_max_z)
+    camera_height = max_z + max(ortho_scale, 10.0)
+
+    scene = bpy.context.scene
+    scene.render.engine = 'BLENDER_RENDER'
+    scene.render.alpha_mode = 'TRANSPARENT'
+    scene.render.image_settings.file_format = 'PNG'
+    scene.render.image_settings.color_mode = 'RGBA'
+    scene.render.resolution_x = tc.WIREFRAME_RENDER_RESOLUTION
+    scene.render.resolution_y = tc.WIREFRAME_RENDER_RESOLUTION
+    scene.render.resolution_percentage = 100
+    scene.render.filepath = wireframe_path
+    if scene.world is not None:
+        scene.world.horizon_color = (0.0, 0.0, 0.0)
+
+    # Best effort: mirror viewport intent on Blender versions that expose overlay controls.
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            for space in area.spaces:
+                overlay = getattr(space, 'overlay', None)
+                if overlay is not None and hasattr(overlay, 'show_wireframes'):
+                    overlay.show_wireframes = True
+                shading = getattr(space, 'shading', None)
+                if shading is not None and hasattr(shading, 'type'):
+                    shading.type = 'SOLID'
+
+    bpy.ops.object.camera_add()
+    camera = bpy.context.active_object
+    camera.location = (center_x, center_y, camera_height)
+    camera.rotation_euler = (0.0, 0.0, 0.0)
+    camera.data.type = 'ORTHO'
+    camera.data.ortho_scale = ortho_scale
+    camera.data.clip_start = 0.01
+    camera.data.clip_end = max(1000.0, camera_height + ortho_scale * 4)
+    scene.camera = camera
+
+    solid_material = bpy.data.materials.new('SolidRenderMaterial')
+    solid_material.type = 'SURFACE'
+    solid_material.use_shadeless = True
+    solid_material.diffuse_color = (0.72, 0.72, 0.72)
+    solid_material.specular_intensity = 0.0
+
+    wire_material = bpy.data.materials.new('WireframeRenderMaterial')
+    wire_material.type = 'WIRE'
+    wire_material.use_shadeless = True
+    wire_material.diffuse_color = (0.0, 0.0, 0.0)
+    wire_overlay_objects = []
+    solid_overlay_objects = []
+    hidden_originals = []
+    for ob in source_meshes:
+        hidden_originals.append((ob, ob.hide_render))
+        ob.hide_render = True
+
+        solid_ob = ob.copy()
+        solid_ob.data = ob.data.copy()
+        scene.objects.link(solid_ob)
+        solid_ob.hide_render = False
+        mesh = solid_ob.data
+        if len(mesh.materials) == 0:
+            mesh.materials.append(solid_material)
+        else:
+            for material_index in range(len(mesh.materials)):
+                mesh.materials[material_index] = solid_material
+        solid_overlay_objects.append(solid_ob)
+
+        wire_ob = solid_ob.copy()
+        wire_ob.data = solid_ob.data.copy()
+        scene.objects.link(wire_ob)
+        wire_ob.hide_render = False
+        wire_mesh = wire_ob.data
+        if len(wire_mesh.materials) == 0:
+            wire_mesh.materials.append(wire_material)
+        else:
+            for material_index in range(len(wire_mesh.materials)):
+                wire_mesh.materials[material_index] = wire_material
+        wire_ob.location[2] += 0.0001
+        wire_overlay_objects.append(wire_ob)
+
+    bpy.ops.render.render(write_still=True)
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for ob in solid_overlay_objects:
+        ob.select = True
+    for ob in wire_overlay_objects:
+        ob.select = True
+    camera.select = True
+    bpy.context.scene.objects.active = camera
+    bpy.ops.object.delete()
+    for (ob, old_hide_render) in hidden_originals:
+        ob.hide_render = old_hide_render
+    print("creating wireframe PNG took %.2f" % (time.time() - t))
 
 def create_cube(min_x, min_y, max_x, max_y, min_z, max_z):
     bpy.ops.mesh.primitive_cube_add()
@@ -312,10 +401,10 @@ def add_borders(min_x, min_y, max_x, max_y, width, bottom, height, corner_height
 def create_bounds(min_x, min_y, max_x, max_y, scale, no_borders):
     mm_to_units = scale / 1000
     if not no_borders:
-        add_borders(min_x, min_y, max_x, max_y, BORDER_WIDTH_MM * mm_to_units, \
-                    0, BORDER_HEIGHT_MM * mm_to_units, (BUILDING_HEIGHT_MM + 1) * mm_to_units)
-    base_height = BASE_HEIGHT_MM * mm_to_units
-    overlap = BASE_OVERLAP_MM * mm_to_units # move cube this much up so that it overlaps enough with objects they merge into one object
+        add_borders(min_x, min_y, max_x, max_y, tc.BORDER_WIDTH_MM * mm_to_units, \
+                    0, tc.BORDER_HEIGHT_MM * mm_to_units, (tc.BUILDING_HEIGHT_MM + 1) * mm_to_units)
+    base_height = tc.BASE_HEIGHT_MM * mm_to_units
+    overlap = tc.BASE_OVERLAP_MM * mm_to_units # move cube this much up so that it overlaps enough with objects they merge into one object
     base_cube = create_cube(min_x, min_y, max_x, max_y, -base_height + overlap, overlap)
     base_cube.name = 'Base'
     return base_cube
@@ -330,8 +419,8 @@ def add_marker1(args, scale):
         marker_y = float(coords['y'])
         
     mm_to_units = scale / 1000
-    radius = MARKER_RADIUS_MM * mm_to_units
-    height = MARKER_HEIGHT_MM * mm_to_units
+    radius = tc.MARKER_RADIUS_MM * mm_to_units
+    height = tc.MARKER_HEIGHT_MM * mm_to_units
     # If the cone has sharp top, three.js won't render it remotely properly, and it'll 3D print poorly too
     bpy.ops.mesh.primitive_cone_add(vertices = 16, radius1 = radius, radius2 = radius / 8, depth = height, \
         location = [ min_x + (max_x - min_x) * marker_x, min_y + (max_y - min_y) * marker_y, height / 2 ])
@@ -341,11 +430,60 @@ def remove_everything():
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete()
 
-# Import given file as .obj and return it
-def import_obj_file(obj_path):
-    t = time.clock()
-    bpy.ops.import_scene.obj(filepath=obj_path, axis_forward='-Z', axis_up='Y')
-    print("importing STL took " + (str(time.clock() - t)))
+def mesh_name_for_path(mesh_path):
+    basename = os.path.basename(mesh_path).lower()
+    if 'road-areas-ped' in basename:
+        return 'RoadAreaGroup::pedestrian'
+    if 'road-areas-car' in basename:
+        return 'RoadAreaGroup'
+    if 'roads-ped' in basename:
+        return 'RoadGroup::pedestrian'
+    if 'roads-car' in basename:
+        return 'RoadGroup'
+    if 'rails' in basename:
+        return 'RailGroup'
+    if 'buildings' in basename:
+        return 'BuildingGroup'
+    if 'waterways' in basename:
+        return 'WaterwayGroup'
+    if 'water-areas' in basename:
+        return 'WaterGroup'
+    if 'other' in basename:
+        return 'OtherGroup'
+    return 'MeshGroup'
+
+
+def imported_meshes_since(old_names):
+    out = []
+    for ob in bpy.context.scene.objects:
+        if ob.type != 'MESH':
+            continue
+        if ob.name in old_names:
+            continue
+        out.append(ob)
+    return out
+
+
+def import_mesh_file(mesh_path):
+    t = perf_clock()
+    old_names = set((ob.name for ob in bpy.context.scene.objects if ob.type == 'MESH'))
+    extension = os.path.splitext(mesh_path)[1].lower()
+    if extension == '.obj':
+        bpy.ops.import_scene.obj(filepath=mesh_path, axis_forward='-Z', axis_up='Y')
+    elif extension == '.ply':
+        if not hasattr(bpy.ops.import_mesh, 'ply'):
+            bpy.ops.wm.addon_enable(module='io_mesh_ply')
+        bpy.ops.import_mesh.ply(filepath=mesh_path)
+    else:
+        raise Exception("unsupported mesh extension: " + extension)
+
+    imported = imported_meshes_since(old_names)
+    target_name = mesh_name_for_path(mesh_path)
+    for i, ob in enumerate(imported):
+        if i == 0:
+            ob.name = target_name
+        else:
+            ob.name = target_name + ('_%03d' % i)
 
 # Extrude floor to a flat-roofed building
 def extrude_building(ob, height):
@@ -355,36 +493,6 @@ def extrude_building(ob, height):
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.normals_make_consistent()
     bpy.ops.object.mode_set(mode = 'OBJECT')
-
-def clip_object_to_map(ob, min_co, max_co):
-    try:
-        #print("Clipping {}".format(ob.name))
-        bpy.context.scene.objects.active = ob
-        bpy.ops.object.mode_set(mode = 'EDIT')
-
-        # Clip from all sides
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(plane_co=min_co, plane_no=(-1, 0, 0), clear_outer=True, use_fill=True)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(plane_co=min_co, plane_no=(0, -1, 0), clear_outer=True, use_fill=True)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(plane_co=max_co, plane_no=(1, 0, 0), clear_outer=True, use_fill=True)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(plane_co=max_co, plane_no=(0, 1, 0), clear_outer=True, use_fill=True)
-
-        bpy.ops.object.mode_set(mode = 'OBJECT')
-        return True
-    except Exception as e:
-        warning("Failed to clip {}: {}".format(ob.name, str(e)))
-        bpy.ops.object.mode_set(mode = 'OBJECT')
-        bpy.ops.object.select_all(action='DESELECT')
-        ob.select = True
-        bpy.context.scene.objects.active = ob
-        try:
-            bpy.ops.object.delete()
-        except Exception as e:
-            print("Failed to remove {}: {}".format(ob.name, str(e)))
-        return False
 
 def join_selected(name):
     combined = bpy.context.selected_objects[0]
@@ -396,17 +504,16 @@ def join_selected(name):
 def join_objects(objects, name):
     if len(objects) == 0:
         return None
+    if len(objects) == 1:
+        bpy.ops.object.select_all(action='DESELECT')
+        objects[0].select = True
+        bpy.context.scene.objects.active = objects[0]
+        objects[0].name = name
+        return objects[0]
     bpy.ops.object.select_all(action='DESELECT')
     for ob in objects:
         ob.select = True
     return join_selected(name)
-
-def join_and_clip(objects, min_co, max_co, name):
-    if len(objects) == 0:
-        return None
-    combined = join_objects(objects, name)
-    clip_object_to_map(combined, min_co, max_co)
-    return combined
 
 def raise_ob(objs, height):
     bpy.ops.object.select_all(action='DESELECT')
@@ -451,7 +558,7 @@ def water_wave_pattern(object, depth, scale):
             edge_verts[str(verts[0].co.x) + ',' + str(verts[0].co.z)] = True
 
     # Set top verts' y positions. Bottom verts are at 0.
-    density = math.pi * 2 / WATER_WAVE_DISTANCE_MM / (scale/1000) 
+    density = math.pi * 2 / tc.WATER_WAVE_DISTANCE_MM / (scale/1000) 
     for v in bm.verts:
         if v.co.y > extrude_height / 2:
             min_height = -10000
@@ -630,34 +737,32 @@ def fatten(ob):
 def do_ways(ways, height, min_x, min_y, max_x, max_y):
     if ways == None:
         return
-    t = time.clock()
+    t = perf_clock()
     decimate(ways)
     join_matching_edges(ways, min_x, min_y, max_x, max_y)
     raise_ob(ways, height)
     fatten(ways)
-    print("processing %s took %.2f" % (ways.name, time.clock() - t))
+    print("processing %s took %.2f" % (ways.name, perf_clock() - t))
 
 def do_road_areas(roads, height):
     if roads == None:
         return
-    t = time.clock()
+    t = perf_clock()
     decimate(roads)
     raise_ob(roads, height)
     fatten(roads)
-    #print("processing %s took %.2f" % (roads.name, time.clock() - t))
+    #print("processing %s took %.2f" % (roads.name, perf_clock() - t))
 
 def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
-    t = time.clock()
+    t = perf_clock()
     log_memory_checkpoint('process-objects-start')
     mm_to_units = scale / 1000
     if not no_borders:
-        space = (BORDER_WIDTH_MM - BORDER_HORIZONTAL_OVERLAP_MM) * mm_to_units 
+        space = (tc.BORDER_WIDTH_MM - tc.BORDER_HORIZONTAL_OVERLAP_MM) * mm_to_units 
         min_x = min_x + space
         min_y = min_y + space
         max_x = max_x - space
         max_y = max_y - space
-    min_co = (min_x, min_y, 0)
-    max_co = (max_x, max_y, 0)
 
     # First find out everything that we can join together into combined objects and do join,
     # because CPU usage is dominated by each Blender operation iterating through every object in the scene.
@@ -667,10 +772,8 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     road_areas_ped = []
     buildings = []
     rails = []
-    clippable_waterways = []
-    clippable_water_areas = []
-    joinable_waterways = []
-    inner_water_areas = []
+    waterways = []
+    water_areas = []
     deleteables = []
     for ob in all_mesh_objects():
         if ob.name.startswith('BuildingEntrance'):
@@ -690,97 +793,70 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
                     roads_car.append(ob)
         elif ob.name.startswith('Rail'):
             rails.append(ob)
+        elif ob.name.startswith('Waterway') or ob.name.startswith('River'):
+            waterways.append(ob)
+        elif ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
+            water_areas.append(ob)
         else:
-            n_total = len(ob.data.vertices)
-            n_outside = 0
-            for vert in ob.data.vertices:
-                vx, vy, vz = ((ob.matrix_world * vert.co))
-                if vx < min_x or vx > max_x or vy < min_y or vy > max_y:
-                    n_outside = n_outside + 1
-
-            if n_outside == 0:
-                if ob.name.startswith('Waterway') or ob.name.startswith('River'):
-                    joinable_waterways.append(ob)
-                elif ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
-                    inner_water_areas.append(ob)
-                else:
-                    print("UNHANDLED INNER OBJECT TYPE: " + ob.name)
-            elif n_outside == n_total:
-                deleteables.append(ob)
-            else:
-                if ob.name.startswith('Waterway') or ob.name.startswith('River'):
-                    clippable_waterways.append(ob)
-                elif ob.name.startswith('Water') or ob.name.startswith('AreaFountain'):
-                    clippable_water_areas.append(ob)
-                else:
-                    print("UNHANDLED CLIPPABLE OBJECT TYPE: " + ob.name)
-    print("initial steps took %.2f" % (time.clock() - t))
+            print("UNHANDLED OBJECT TYPE: " + ob.name)
+    print("initial steps took %.2f" % (perf_clock() - t))
     log_memory_checkpoint('after-process-objects-initial-classify')
 
     # Delete
-    t = time.clock()
+    t = perf_clock()
     if len(deleteables) > 0:
         bpy.ops.object.select_all(action='DESELECT')
         for ob in deleteables:
             ob.select = True
         bpy.ops.object.delete()
-        #print("deleting %d objects took %.2f" % (len(deleteables), time.clock() - t))
+        #print("deleting %d objects took %.2f" % (len(deleteables), perf_clock() - t))
 
     # Pre-join stuff for performance
-    joined_roads_car = join_and_clip(roads_car, min_co, max_co, 'CarRoads')
-    joined_roads_ped = join_and_clip(roads_ped, min_co, max_co, 'PedestrianRoads')
-    joined_road_areas_car = join_and_clip(road_areas_car, min_co, max_co, 'CarRoadAreas')
-    joined_road_areas_ped = join_and_clip(road_areas_ped, min_co, max_co, 'PedestrianRoadAreas')
-    clipped_rails = join_and_clip(rails, min_co, max_co, 'Rails')
-    joined_buildings = join_and_clip(buildings, min_co, max_co, 'Buildings')
+    joined_roads_car = join_objects(roads_car, 'CarRoads')
+    joined_roads_ped = join_objects(roads_ped, 'PedestrianRoads')
+    joined_road_areas_car = join_objects(road_areas_car, 'CarRoadAreas')
+    joined_road_areas_ped = join_objects(road_areas_ped, 'PedestrianRoadAreas')
+    joined_rails = join_objects(rails, 'Rails')
+    joined_buildings = join_objects(buildings, 'Buildings')
     log_memory_checkpoint('after-pre-join-and-clip')
     
     # Buildings
-    print('META-START:{"buildingCount":%d}:META-END\n' % (len(buildings)))
     if joined_buildings:
-        t = time.clock()
-        extrude_building(joined_buildings, BUILDING_HEIGHT_MM * mm_to_units)
+        t = perf_clock()
+        extrude_building(joined_buildings, tc.BUILDING_HEIGHT_MM * mm_to_units)
         fatten(joined_buildings)
-        print("processing %d buildings took %.2f" % (len(buildings), time.clock() - t))
+        print("processing %d buildings took %.2f" % (len(buildings), perf_clock() - t))
     log_memory_checkpoint('after-buildings')
 
     # Waters
-    t = time.clock()
-    if len(joinable_waterways) > 0:
-        joined_waterways = join_objects(joinable_waterways, 'JoinedWaterways')
-        raise_ob(joined_waterways, WATERWAY_DEPTH_MM * mm_to_units)
-    if len(clippable_waterways) > 0:
-        clipped_waterways = join_and_clip(clippable_waterways, min_co, max_co, 'ClippedWaterways')
-        raise_ob(clipped_waterways, WATERWAY_DEPTH_MM * mm_to_units)
-    if len(clippable_water_areas) > 0:
-        for water in clippable_water_areas:
-            clip_object_to_map(water, min_co, max_co)
-            water_wave_pattern(water, WATER_AREA_DEPTH_MM * mm_to_units, scale)
-        join_objects(clippable_water_areas, 'ClippedWaterAreas')
-    if len(inner_water_areas):
-        for water in inner_water_areas:
-            water_wave_pattern(water, WATER_AREA_DEPTH_MM * mm_to_units, scale)
-        join_objects(inner_water_areas, 'InnerWaterAreas')
-    print("processing waters took %.2f" % (time.clock() - t))
+    t = perf_clock()
+    if len(waterways) > 0:
+        joined_waterways = join_objects(waterways, 'JoinedWaterways')
+        raise_ob(joined_waterways, tc.WATERWAY_DEPTH_MM * mm_to_units)
+    if len(water_areas):
+        for water in water_areas:
+            water_wave_pattern(water, tc.WATER_AREA_DEPTH_MM * mm_to_units, scale)
+        join_objects(water_areas, 'WaterAreas')
+    print("processing waters took %.2f" % (perf_clock() - t))
     log_memory_checkpoint('after-waters')
 
     # Rails
-    if clipped_rails != None:
-        do_ways(clipped_rails, ROAD_HEIGHT_CAR_MM * mm_to_units * 0.99, min_x, min_y, max_x, max_y) # 0.99 to avoid faces in the same coordinates with roads
+    if joined_rails != None:
+        do_ways(joined_rails, tc.ROAD_HEIGHT_CAR_MM * mm_to_units * 0.99, min_x, min_y, max_x, max_y) # 0.99 to avoid faces in the same coordinates with roads
 
     # Roads
-    do_road_areas(joined_road_areas_car, ROAD_HEIGHT_CAR_MM * mm_to_units)
-    do_road_areas(joined_road_areas_ped, ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units)
-    do_ways(joined_roads_car, ROAD_HEIGHT_CAR_MM * mm_to_units, min_x, min_y, max_x, max_y)
-    do_ways(joined_roads_ped, ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units, min_x, min_y, max_x, max_y)
+    do_road_areas(joined_road_areas_car, tc.ROAD_HEIGHT_CAR_MM * mm_to_units)
+    do_road_areas(joined_road_areas_ped, tc.ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units)
+    do_ways(joined_roads_car, tc.ROAD_HEIGHT_CAR_MM * mm_to_units, min_x, min_y, max_x, max_y)
+    do_ways(joined_roads_ped, tc.ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units, min_x, min_y, max_x, max_y)
     log_memory_checkpoint('after-roads-and-rails')
 
 def make_tactile_map(args):
-    t = time.clock()
+    t = perf_clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
 
     process_objects(min_x, min_y, max_x, max_y, args.scale, args.no_borders)
-    print("process_objects() took " + (str(time.clock() - t)))
+    print("process_objects() took " + (str(perf_clock() - t)))
 
     # Create the support cube and borders
     base_cube = create_bounds(min_x, min_y, max_x, max_y, args.scale, args.no_borders)
@@ -796,23 +872,35 @@ def main():
     log_memory_checkpoint('main-start')
     remove_everything()
     log_memory_checkpoint('after-remove-everything')
-    for obj_path in args.obj_paths:
-        import_obj_file(obj_path)
-        log_memory_checkpoint('after-import-obj')
-        base_path = os.path.splitext(obj_path)[0]
-        export_svg(base_path, args)
-        log_memory_checkpoint('after-export-svg')
-        base_cube = make_tactile_map(args)
-        log_memory_checkpoint('after-make-tactile-map')
-        move_everything([-c for c in get_minimum_coordinate(base_cube)])
-        log_memory_checkpoint('after-move-everything')
-        if not args.no_stl_export:
-            export_stl(base_path, args.scale)
-            log_memory_checkpoint('after-export-stl')
-            export_stl_separate(base_path, args.scale)
-            log_memory_checkpoint('after-export-stl-separate')
-            export_blend_file(base_path)
-            log_memory_checkpoint('after-export-blend')
+
+    for mesh_path in args.mesh_paths:
+        import_mesh_file(mesh_path)
+    log_memory_checkpoint('after-import-meshes')
+
+    if args.base_path:
+        base_path = args.base_path
+    else:
+        base_path = os.path.splitext(args.mesh_paths[0])[0]
+    if args.export_wireframe_png:
+        export_wireframe_png(base_path, 'wireframe-flat', args.min_x, args.min_y, args.max_x, args.max_y)
+        log_memory_checkpoint('after-export-wireframe-png-flat')
+    export_svg(base_path, args)
+    log_memory_checkpoint('after-export-svg')
+    base_cube = make_tactile_map(args)
+    log_memory_checkpoint('after-make-tactile-map')
+    move_everything([-c for c in get_minimum_coordinate(base_cube)])
+    log_memory_checkpoint('after-move-everything')
+    if not args.no_stl_export:
+        export_stl(base_path, args.scale)
+        log_memory_checkpoint('after-export-stl')
+        export_stl_separate(base_path, args.scale)
+        log_memory_checkpoint('after-export-stl-separate')
+        export_blend_file(base_path)
+        log_memory_checkpoint('after-export-blend')
+    if args.export_wireframe_png:
+        final_min_x, final_min_y, _final_min_z, final_max_x, final_max_y, _final_max_z = get_object_world_bounds(base_cube)
+        export_wireframe_png(base_path, 'wireframe', final_min_x, final_min_y, final_max_x, final_max_y)
+        log_memory_checkpoint('after-export-wireframe-png-final')
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected when getting into UI
     log_memory_checkpoint('main-end')
 

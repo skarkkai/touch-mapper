@@ -7,6 +7,7 @@ structured map description models from UI code without rendering the page.
 
 1. `test/map-content/generate-map-content-from-osm.py`
    - runs OSM2World on a `.osm` file
+   - runs `clip-2d` (when `--with-blender`) to produce grouped Blender `.ply` inputs
    - runs `python3 -m converter.map_desc` on the generated `map-meta-raw.json`
    - emits generated file paths as JSON
 2. `test/map-content/inspect-map-description.js`
@@ -55,6 +56,11 @@ Optional flags:
 
 - `--scale <int>`: OSM2World `TOUCH_MAPPER_SCALE` value (default `1400`)
 - `--exclude-buildings`: run OSM2World with `TOUCH_MAPPER_EXCLUDE_BUILDINGS=true`
+- `--with-blender`: also run Blender tactile export and write `map.stl`, `map-ways.stl`, `map-rest.stl`, `map.svg`, `map.blend`, pre-modification wireframe-overlay render `map-wireframe-flat.png`, and post-modification wireframe-overlay render `map-wireframe.png` into `--out-dir`
+  - also writes `map-clip-report.json` from the `clip-2d` stage
+- `--diameter <int>` and `--size <float>`: required when `--with-blender` is used
+- `--no-borders`: pass through to Blender export when `--with-blender` is used
+- `--marker1 <json>`: pass marker position JSON through to Blender export when `--with-blender` is used
 
 ## Notes
 
@@ -94,6 +100,15 @@ Optional flags:
 - `--jobs <N>`: max tests to run in parallel
 - `--offline`: use only cached OSM input from `test/map-content/cache/`
 - `--keep-existing-out`: do not clean `test/map-content/out/<category>/` before a run
+- `--with-blender`: run Blender tactile export during generation and keep the generated `map*.stl`, `.svg`, `.blend`, `map-wireframe-flat.png`, and `map-wireframe.png` files in `test/map-content/out/<category>/pipeline/`
+
+### Makefile shortcuts
+
+From `test/map-content/`:
+
+- `make average` / `make complex`: regular map-content runs
+- `make average-bl` / `make complex-bl`: same runs with Blender outputs in each category's `pipeline/` directory
+- `make simple-bl` and `make all-bl` are also available
 
 ## Test Definition Shape
 

@@ -43,7 +43,7 @@ cd $dirname
       exit_code=$?
 
       if [[ "$INSTRUMENTATION_ENABLED" == "true" ]]; then
-        last_progress_line="$(grep -E 'PROGRESS:process-request:' "$work_dir/request.log" | tail -n 1 || true)"
+        last_progress_line="$(grep -E 'PROGRESS ' "$work_dir/request.log" | tail -n 1 || true)"
         if [[ -n "$last_progress_line" ]]; then
           echo "last progress marker before poller loop iteration end: $last_progress_line"
         else
