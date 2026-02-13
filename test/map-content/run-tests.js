@@ -124,15 +124,60 @@ function stageStart(testCategory, stageName) {
   return start;
 }
 
+function childTimingTotalSeconds(timings, stageName) {
+  const prefix = stageName + ".";
+  let total = 0;
+  Object.keys(timings).forEach(function(key) {
+    if (!key.startsWith(prefix)) {
+      return;
+    }
+    const suffix = key.slice(prefix.length);
+    if (!suffix || suffix === "total" || suffix.indexOf(".") !== -1) {
+      return;
+    }
+    const value = timings[key];
+    if (!Number.isFinite(value)) {
+      return;
+    }
+    total += value;
+  });
+  return total;
+}
+
 function stageDone(testCategory, stageName, startMs) {
   const elapsed = (Date.now() - startMs) / 1000;
   process.stdout.write("[" + testCategory + "] DONE " + stageName + " (" + elapsed.toFixed(2) + "s)\n");
   return elapsed;
 }
 
-function stageFail(testCategory, stageName, startMs, error) {
+function stageDoneWithTimings(testCategory, stageName, startMs, timings) {
   const elapsed = (Date.now() - startMs) / 1000;
-  process.stdout.write("[" + testCategory + "] FAIL " + stageName + " (" + elapsed.toFixed(2) + "s): " + error.message + "\n");
+  const childTotal = childTimingTotalSeconds(timings, stageName);
+  const selfTime = Math.max(0, elapsed - childTotal);
+  if (childTotal > 0.0005) {
+    process.stdout.write(
+      "[" + testCategory + "] DONE " + stageName +
+      " (total " + elapsed.toFixed(2) + "s, self " + selfTime.toFixed(2) + "s, child " + childTotal.toFixed(2) + "s)\n"
+    );
+  } else {
+    process.stdout.write("[" + testCategory + "] DONE " + stageName + " (" + elapsed.toFixed(2) + "s)\n");
+  }
+  return elapsed;
+}
+
+function stageFail(testCategory, stageName, startMs, error, timings) {
+  const elapsed = (Date.now() - startMs) / 1000;
+  const childTotal = childTimingTotalSeconds(timings, stageName);
+  const selfTime = Math.max(0, elapsed - childTotal);
+  if (childTotal > 0.0005) {
+    process.stdout.write(
+      "[" + testCategory + "] FAIL " + stageName +
+      " (total " + elapsed.toFixed(2) + "s, self " + selfTime.toFixed(2) + "s, child " + childTotal.toFixed(2) + "s): " +
+      error.message + "\n"
+    );
+  } else {
+    process.stdout.write("[" + testCategory + "] FAIL " + stageName + " (" + elapsed.toFixed(2) + "s): " + error.message + "\n");
+  }
   return elapsed;
 }
 
@@ -140,10 +185,10 @@ async function runStage(testCategory, stageName, timings, fn) {
   const start = stageStart(testCategory, stageName);
   try {
     const result = await fn();
-    timings[stageName] = stageDone(testCategory, stageName, start);
+    timings[stageName] = stageDoneWithTimings(testCategory, stageName, start, timings);
     return result;
   } catch (error) {
-    timings[stageName] = stageFail(testCategory, stageName, start, error);
+    timings[stageName] = stageFail(testCategory, stageName, start, error, timings);
     throw error;
   }
 }
@@ -236,7 +281,7 @@ function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, reques
     "--scale",
     String(Number(requestBody.scale || 1400)),
     "--log-prefix",
-    "[" + testCategory + "]"
+    "[" + testCategory + "]  "
   ];
   if (requestBody.excludeBuildings) {
     args.push("--exclude-buildings");
@@ -348,16 +393,17 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       const requestBody = Object.assign({}, mapInfo.requestBody, {
         withBlender: args.withBlender
       });
-      return runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, requestBody);
+      const generated = await runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, requestBody);
+      if (generated && generated.timings && typeof generated.timings === "object") {
+        Object.keys(generated.timings).forEach(function(key) {
+          const value = generated.timings[key];
+          if (Number.isFinite(value)) {
+            timings["generate-map-content." + key] = value;
+          }
+        });
+      }
+      return generated;
     });
-    if (generation && generation.timings && typeof generation.timings === "object") {
-      Object.keys(generation.timings).forEach(function(key) {
-        const value = generation.timings[key];
-        if (Number.isFinite(value)) {
-          timings["generate-map-content." + key] = value;
-        }
-      });
-    }
 
     const structuredByLocale = await runStage(testCategory, "render-structured-models", timings, async function() {
       const byLocale = {};

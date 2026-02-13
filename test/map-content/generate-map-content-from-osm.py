@@ -24,13 +24,13 @@ class ClipOutputs(TypedDict):
 
 def _stage_start(log_prefix: str, name: str) -> float:
     now = time.time()
-    print(f"{log_prefix} START {name}", file=sys.stderr)
+    print(f"{log_prefix}START {name}", file=sys.stderr)
     return now
 
 
 def _stage_done(log_prefix: str, name: str, start: float) -> float:
     duration = time.time() - start
-    print(f"{log_prefix} DONE {name} ({duration:.2f}s)", file=sys.stderr)
+    print(f"{log_prefix}DONE {name} ({duration:.2f}s)", file=sys.stderr)
     return duration
 
 
@@ -319,8 +319,8 @@ def main() -> int:
     out_dir = Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_log_prefix = args.log_prefix.strip()
-    log_prefix = f"{raw_log_prefix} " if raw_log_prefix else ""
+    # Preserve caller-provided indentation exactly (do not normalize spaces).
+    log_prefix = args.log_prefix if args.log_prefix else ""
     jar_path = ensure_paths(repo_root, osm_path)
     obj_path = out_dir / "map.obj"
     raw_meta_path = out_dir / "map-meta-raw.json"
@@ -357,9 +357,9 @@ def main() -> int:
     map_desc_start = _stage_start(log_prefix, "run-map-desc")
     map_desc_profile: Dict[str, float] = {}
     run_map_desc(str(raw_meta_path), profile=map_desc_profile, pretty_json=pretty_json)
-    timings["run-map-desc"] = _stage_done(log_prefix, "run-map-desc", map_desc_start)
     for key, value in sorted(map_desc_profile.items()):
         timings["run-map-desc." + key] = value
+    timings["run-map-desc"] = _stage_done(log_prefix, "run-map-desc", map_desc_start)
 
     clip_outputs: ClipOutputs | None = None
     if args.with_blender:
