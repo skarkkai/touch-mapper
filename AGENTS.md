@@ -8,6 +8,7 @@ This file is the quick start for contributors and coding agents. Detailed refere
 - For UI-only changes, confirm whether backward compatibility is required.
 - For Python changes, run `pyright` on changed Python files and fix issues.
 - In web templates, edit `web/pre-src/*.pre` (source), not generated `web/src/*.ect`.
+- For all benchmarking and performance comparisons, use exactly one CPU core (for example `taskset -c 0 ...`) because production runs with one core.
 
 ## Quick navigation
 - Coding conventions and build/i18n guidance:
@@ -25,6 +26,10 @@ This file is the quick start for contributors and coding agents. Detailed refere
   - `map-wireframe-flat.png` (pre-modification)
   - `map-wireframe.png` (post-modification)
   - Output directory: `test/map-content/out/<category>/pipeline/`
+
+## Sandbox networking note
+- In this environment, direct `curl` commands run in the terminal with an approved prefix can succeed, but Node's internal `spawnSync("curl", ...)` still runs inside the restricted sandbox and may fail DNS resolution.
+- If map-content fetch fails from Node with curl/DNS errors, use direct shell `curl` to fetch the OSM payload and write it to `test/map-content/cache/<category>/map.osm`, then rerun with `--offline`.
 
 ## Documentation index
 - `doc/development-conventions.md`: repo layout, generated vs source files, web build conventions, i18n rules, Python conventions, deployment notes.

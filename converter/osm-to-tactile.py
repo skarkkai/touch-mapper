@@ -3,11 +3,14 @@
 import argparse
 import re
 import os
+import sys
 import subprocess
 import json
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+from tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
 
 def read_proc_status_kib(field_name):
     try:
@@ -59,7 +62,6 @@ def parse_env_bool(name):
 
 INSTRUMENTATION_ENABLED = (parse_env_bool('TOUCH_MAPPER_INSTRUMENTATION') is True)
 
-
 def pretty_json_enabled():
     forced = parse_env_bool('TOUCH_MAPPER_PRETTY_JSON')
     if forced is not None:
@@ -74,6 +76,28 @@ def write_json_file(path, value, pretty_json):
             handle.write("\n")
             return
         json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
+
+
+def compute_clip_bounds(boundary, scale, no_borders):
+    clip_min_x = boundary['minX']
+    clip_min_y = boundary['minY']
+    clip_max_x = boundary['maxX']
+    clip_max_y = boundary['maxY']
+    if not no_borders:
+        mm_to_units = scale / 1000.0
+        space = (BORDER_WIDTH_MM - BORDER_HORIZONTAL_OVERLAP_MM) * mm_to_units
+        clip_min_x += space
+        clip_min_y += space
+        clip_max_x -= space
+        clip_max_y -= space
+    if clip_min_x >= clip_max_x or clip_min_y >= clip_max_y:
+        raise Exception("invalid clip bounds after border inset")
+    return {
+        'minX': clip_min_x,
+        'minY': clip_min_y,
+        'maxX': clip_max_x,
+        'maxY': clip_max_y,
+    }
 
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Convert .osm file into a tactile map. Writes one or more .stl files in the input file's directory.''')
@@ -122,7 +146,46 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
 
     return meta
 
-def run_blender(obj_path, boundary, args):
+def run_clip_2d(obj_path, clip_bounds):
+    log_memory_checkpoint('before-clip-2d')
+    out_dir = os.path.dirname(obj_path)
+    clip_report_path = os.path.join(out_dir, 'map-clip-report.json')
+    clip_cmd = [
+        'node',
+        os.path.join(script_dir, 'clip-2d.js'),
+        '--input-obj', obj_path,
+        '--out-dir', out_dir,
+        '--basename', 'map-clip',
+        '--report', clip_report_path,
+        '--min-x', str(clip_bounds['minX']),
+        '--min-y', str(clip_bounds['minY']),
+        '--max-x', str(clip_bounds['maxX']),
+        '--max-y', str(clip_bounds['maxY']),
+    ]
+    output = subprocess_output(clip_cmd)
+    if output:
+        print(output)
+
+    if not os.path.exists(clip_report_path):
+        raise Exception("clip-2d did not produce report")
+    with open(clip_report_path, 'r') as f:
+        report = json.load(f)
+    file_entries = report.get('files', [])
+    mesh_paths = []
+    for entry in file_entries:
+        mesh_path = entry.get('path')
+        if not mesh_path:
+            continue
+        if not os.path.exists(mesh_path):
+            raise Exception("clip-2d output missing: " + mesh_path)
+        mesh_paths.append(mesh_path)
+    if not mesh_paths:
+        raise Exception("clip-2d produced no meshes")
+    log_memory_checkpoint('after-clip-2d')
+    return mesh_paths
+
+
+def run_blender(mesh_paths, boundary, args, output_base_path):
     log_memory_checkpoint('before-blender')
     blender_dir = os.path.join(script_dir, 'blender')
     blender_env = os.environ.copy()
@@ -142,6 +205,7 @@ def run_blender(obj_path, boundary, args):
         '--max-y', str(boundary['maxY']),
         '--diameter', str(args.diameter),
         '--size', str(args.size),
+        '--base-path', output_base_path,
     ]
     if args.foreground:
         script_args.append('--no-stl-export')
@@ -151,7 +215,7 @@ def run_blender(obj_path, boundary, args):
         script_args.append('--no-borders')
     if args.marker1:
         script_args.extend(('--marker1', args.marker1))
-    cmd = [blender_path] + blender_args + ['--python', obj_to_tactile_path, '--'] + script_args + [obj_path]
+    cmd = [blender_path] + blender_args + ['--python', obj_to_tactile_path, '--'] + script_args + mesh_paths
     output = subprocess_output(cmd)
     
     # Strip junk output by OBJ importer
@@ -220,9 +284,13 @@ def main():
 
     print_size(args.scale, boundary)
 
+    # Run clip-2d
+    clip_bounds = compute_clip_bounds(boundary, args.scale, args.no_borders)
+    mesh_paths = run_clip_2d(obj_path, clip_bounds)
+
     # Run Blender
     meta_path = input_basename + '-meta.json'
-    blender_meta = run_blender(obj_path, boundary, args)
+    blender_meta = run_blender(mesh_paths, boundary, args, input_basename)
     meta.update(blender_meta)
     write_json_file(meta_path, meta, pretty_json_enabled())
     log_memory_checkpoint('main-end')

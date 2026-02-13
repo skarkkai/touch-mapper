@@ -9,13 +9,16 @@ This document describes converter data flow and stage names used by code comment
 - OSM2World outputs:
   - `map.obj`: geometry (height is applied later in Blender).
   - `map-meta-raw.json`: semantic metadata before Touch Mapper enrichment.
+  - `clip-2d` then clips `map.obj` into grouped `.ply` meshes for Blender input.
 
 ## Processing pipeline
 1. OSM data is fetched from OSM servers for the requested area.
 2. OSM2World reads OSM data and outputs `map.obj` and `map-meta-raw.json`.
-3. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
-4. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including real `requestId`).
-5. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions.
+3. `clip-2d` clips OBJ triangles to map bounds and writes grouped `.ply` files plus `map-clip-report.json`.
+4. Blender (`obj-to-tactile.py`) reads grouped `.ply` files and writes tactile outputs (`map.stl`, split STLs, SVG, blend, wireframes).
+5. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
+6. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including real `requestId`).
+7. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions.
 
 ## Metadata stage names (must stay in sync)
 Any time you change these stages, keep this document and in-code stage comments synchronized.
