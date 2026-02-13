@@ -57,6 +57,11 @@ public final class JTSTriangulationUtil {
 			Collection<SimplePolygonXZ> holes,
 			Collection<LineSegmentXZ> segments,
 			Collection<VectorXZ> points) {
+
+		TriangulationInputSanitizer.SanitizedPolygonData sanitized =
+				TriangulationInputSanitizer.sanitize(polygon, holes);
+		polygon = sanitized.getOuterPolygon();
+		holes = sanitized.getHoles();
 			
 		ConformingDelaunayTriangulationBuilder triangulationBuilder =
 			new ConformingDelaunayTriangulationBuilder();

@@ -43,6 +43,11 @@ public final class Poly2TriTriangulationUtil {
 			Collection<SimplePolygonXZ> holes,
 			Collection<LineSegmentXZ> segments,
 			Collection<VectorXZ> points) throws TriangulationException {
+
+		TriangulationInputSanitizer.SanitizedPolygonData sanitized =
+				TriangulationInputSanitizer.sanitize(outerPolygon, holes);
+		outerPolygon = sanitized.getOuterPolygon();
+		holes = sanitized.getHoles();
 		
 		/* remove any problematic data (duplicate points) from the input */
 		

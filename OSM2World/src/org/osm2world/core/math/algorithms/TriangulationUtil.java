@@ -10,6 +10,7 @@ import org.osm2world.core.math.PolygonWithHolesXZ;
 import org.osm2world.core.math.SimplePolygonXZ;
 import org.osm2world.core.math.TriangleXZ;
 import org.osm2world.core.math.VectorXZ;
+import org.osm2world.core.util.TriangulationConfig;
 
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 
@@ -26,6 +27,23 @@ public class TriangulationUtil {
 			SimplePolygonXZ outerPolygon,
 			Collection<SimplePolygonXZ> holes,
 			Collection<VectorXZ> points) {
+
+		return triangulate(outerPolygon, holes, points,
+				TriangulationConfig.getCollinearToleranceMeters());
+
+	}
+
+	static final List<TriangleXZ> triangulate(
+			SimplePolygonXZ outerPolygon,
+			Collection<SimplePolygonXZ> holes,
+			Collection<VectorXZ> points,
+			double collinearToleranceMeters) {
+
+		TriangulationInputSanitizer.SanitizedPolygonData sanitized =
+				TriangulationInputSanitizer.sanitize(
+						outerPolygon, holes, collinearToleranceMeters);
+		outerPolygon = sanitized.getOuterPolygon();
+		holes = sanitized.getHoles();
 		
 		if (points.isEmpty() && outerPolygon.size() <= 100) {
 			
