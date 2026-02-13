@@ -76,7 +76,9 @@ public class OSMToMapDataConverter {
 		MapData mapData = new MapData(mapNodes, mapWaySegs, mapAreas,
 				calculateFileBoundary(osmData.getBounds()));
 		
-		calculateIntersectionsInMapData(mapData);
+		boolean skipAreaAreaOverlaps = config.getBoolean("touchMapperSkipAreaAreaOverlaps", true);
+		boolean skipNodeAreaOverlaps = config.getBoolean("touchMapperSkipNodeAreaOverlaps", true);
+		calculateIntersectionsInMapData(mapData, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
 
 		return mapData;
 
@@ -230,9 +232,13 @@ public class OSMToMapDataConverter {
 	 * calculates intersections and adds the information to the
 	 * {@link MapElement}s
 	 */
-	private static void calculateIntersectionsInMapData(MapData mapData) {
+	private static void calculateIntersectionsInMapData(
+			MapData mapData,
+			boolean skipAreaAreaOverlaps,
+			boolean skipNodeAreaOverlaps) {
 		
 		MapDataIndex index = new MapIntersectionGrid(mapData.getDataBoundary());
+		Set<MapElement> dedupNearbyElements = new HashSet<MapElement>();
 		
 		for (MapElement e1 : mapData.getMapElements()) {
 			
@@ -247,20 +253,21 @@ public class OSMToMapDataConverter {
 				nearbyElements = leaves.iterator().next();
 			} else {
 				// collect and de-duplicate elements from all the leaves
-				Set<MapElement> elementSet = new HashSet<MapElement>();
+				dedupNearbyElements.clear();
 				for (Iterable<MapElement> leaf : leaves) {
 					for (MapElement e : leaf) {
-						elementSet.add(e);
+						dedupNearbyElements.add(e);
 					}
 				}
-				nearbyElements = elementSet;
+				nearbyElements = dedupNearbyElements;
 			}
 			
 			for (MapElement e2 : nearbyElements) {
 			
 				if (e1 == e2) { continue; }
 				
-				addOverlapBetween(e1, e2);
+				addOverlapBetween(
+						e1, e2, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
 				
 			}
 			
@@ -273,37 +280,68 @@ public class OSMToMapDataConverter {
 	 * to both, if it exists. It calls the appropriate
 	 * subtype-specific addOverlapBetween method
 	 */
-	private static void addOverlapBetween(MapElement e1, MapElement e2) {
+	private static void addOverlapBetween(MapElement e1, MapElement e2,
+			boolean skipAreaAreaOverlaps, boolean skipNodeAreaOverlaps) {
 		
 		if (e1 instanceof MapWaySegment
 				&& e2 instanceof MapWaySegment) {
 			
-			addOverlapBetween((MapWaySegment) e1, (MapWaySegment) e2);
+			MapWaySegment line1 = (MapWaySegment) e1;
+			MapWaySegment line2 = (MapWaySegment) e2;
+			if (boundingBoxesMayOverlapOrTouch(line1, line2)) {
+				addOverlapBetween(line1, line2);
+			}
 			
 		} else if (e1 instanceof MapWaySegment
 				&& e2 instanceof MapArea) {
 			
-			addOverlapBetween((MapWaySegment) e1, (MapArea) e2);
+			MapWaySegment line = (MapWaySegment) e1;
+			MapArea area = (MapArea) e2;
+			if (boundingBoxesMayOverlapOrTouch(line, area)) {
+				addOverlapBetween(line, area);
+			}
 			
 		} else if (e1 instanceof MapArea
 				&& e2 instanceof MapWaySegment) {
 			
-			addOverlapBetween((MapWaySegment) e2, (MapArea) e1);
+			MapWaySegment line = (MapWaySegment) e2;
+			MapArea area = (MapArea) e1;
+			if (boundingBoxesMayOverlapOrTouch(line, area)) {
+				addOverlapBetween(line, area);
+			}
 			
 		} else if (e1 instanceof MapArea
 				&& e2 instanceof MapArea) {
+
+			if (skipAreaAreaOverlaps) { return; }
 			
-			addOverlapBetween((MapArea) e1, (MapArea) e2);
+			MapArea area1 = (MapArea) e1;
+			MapArea area2 = (MapArea) e2;
+			if (boundingBoxesMayOverlapOrTouch(area1, area2)) {
+				addOverlapBetween(area1, area2);
+			}
 			
 		} else if (e1 instanceof MapNode
 				&& e2 instanceof MapArea) {
+
+			if (skipNodeAreaOverlaps) { return; }
 			
-			addOverlapBetween((MapNode) e1, (MapArea) e2);
+			MapNode node = (MapNode) e1;
+			MapArea area = (MapArea) e2;
+			if (area.getAxisAlignedBoundingBoxXZ().contains(node.getPos())) {
+				addOverlapBetween(node, area);
+			}
 			
 		} else if (e1 instanceof MapArea
 				&& e2 instanceof MapNode) {
+
+			if (skipNodeAreaOverlaps) { return; }
 			
-			addOverlapBetween((MapNode) e2, (MapArea) e1);
+			MapNode node = (MapNode) e2;
+			MapArea area = (MapArea) e1;
+			if (area.getAxisAlignedBoundingBoxXZ().contains(node.getPos())) {
+				addOverlapBetween(node, area);
+			}
 			
 		}
 		
@@ -346,22 +384,24 @@ public class OSMToMapDataConverter {
 			MapWaySegment line, MapArea area) {
 		
 		final LineSegmentXZ segmentXZ = line.getLineSegment();
+		final boolean connectedToArea = line.isConnectedTo(area);
 		
 		/* check whether the line corresponds to one of the area segments */
-				
-		for (MapAreaSegment areaSegment : area.getAreaSegments()) {
-			if (areaSegment.sharesBothNodes(line)) {
-				
-				MapOverlapWA newOverlap =
-					new MapOverlapWA(line, area, MapOverlapType.SHARE_SEGMENT,
-							Collections.<VectorXZ>emptyList(),
-							Collections.<MapAreaSegment>emptyList());
-				
-				line.addOverlap(newOverlap);
-				area.addOverlap(newOverlap);
-				
-				return;
-				
+		if (connectedToArea) {
+			for (MapAreaSegment areaSegment : area.getAreaSegments()) {
+				if (areaSegment.sharesBothNodes(line)) {
+					
+					MapOverlapWA newOverlap =
+						new MapOverlapWA(line, area, MapOverlapType.SHARE_SEGMENT,
+								Collections.<VectorXZ>emptyList(),
+								Collections.<MapAreaSegment>emptyList());
+					
+					line.addOverlap(newOverlap);
+					area.addOverlap(newOverlap);
+					
+					return;
+					
+				}
 			}
 		}
 		
@@ -373,7 +413,7 @@ public class OSMToMapDataConverter {
 		{
 			final PolygonWithHolesXZ polygon = area.getPolygon();
 			
-			if (!line.isConnectedTo(area)) {
+			if (!connectedToArea) {
 	
 				intersects = polygon.intersects(segmentXZ);
 				contains = !intersects && polygon.contains(segmentXZ);
@@ -447,6 +487,19 @@ public class OSMToMapDataConverter {
 			
 		}
 		
+	}
+
+	private static boolean boundingBoxesMayOverlapOrTouch(
+			MapElement element1, MapElement element2) {
+
+		AxisAlignedBoundingBoxXZ b1 = element1.getAxisAlignedBoundingBoxXZ();
+		AxisAlignedBoundingBoxXZ b2 = element2.getAxisAlignedBoundingBoxXZ();
+
+		return !(b1.maxX < b2.minX
+				|| b1.minX > b2.maxX
+				|| b1.maxZ < b2.minZ
+				|| b1.minZ > b2.maxZ);
+
 	}
 
 	/**
