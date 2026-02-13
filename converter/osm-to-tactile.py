@@ -78,6 +78,11 @@ def write_json_file(path, value, pretty_json):
         json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
 
 
+def write_text_file(path, text):
+    with open(path, 'w', encoding='utf-8') as handle:
+        handle.write(text)
+
+
 def compute_clip_bounds(boundary, scale, no_borders):
     clip_min_x = boundary['minX']
     clip_min_y = boundary['minY']
@@ -112,15 +117,28 @@ def do_cmdline():
     args = parser.parse_args()
     return args
 
-def subprocess_output(cmd, env=None):
+def subprocess_output(cmd, env=None, output_log_path=None):
     print("running: " + " ".join(cmd) + "  " + str(env))
     en = os.environ.copy()
     if env:
         en.update(env)
     try:
-        return subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=en).decode("utf-8")
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=en).decode("utf-8", errors='replace')
+        if output_log_path:
+            write_text_file(output_log_path, output)
+        return output
     except subprocess.CalledProcessError as e:
-        print("subprocess failed with error code: {}".format(e.output.decode("utf-8")))
+        output = e.output.decode("utf-8", errors='replace')
+        if output_log_path:
+            write_text_file(output_log_path, output)
+            print(
+                "subprocess failed with exit code {}: see {}".format(
+                    e.returncode,
+                    output_log_path
+                )
+            )
+        else:
+            print("subprocess failed with error code: {}".format(output))
         raise e
 
 def run_osm2world(input_path, output_path, scale, exclude_buildings):
@@ -133,8 +151,20 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings):
         '-jar', osm2world_path,
         '-i', input_path,
         '-o', output_path]
-    output = subprocess_output(cmd, { 'TOUCH_MAPPER_SCALE': str(scale), 'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5', 'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false') })
-    print(output)
+    output_basename = os.path.splitext(os.path.basename(output_path))[0]
+    osm2world_log_path = os.path.join(
+        os.path.dirname(output_path),
+        output_basename + '-osm2world.log'
+    )
+    subprocess_output(
+        cmd,
+        {
+            'TOUCH_MAPPER_SCALE': str(scale),
+            'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5',
+            'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false')
+        },
+        output_log_path=osm2world_log_path
+    )
 
     meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
     if not os.path.exists(meta_path):
@@ -222,10 +252,6 @@ def run_blender(mesh_paths, boundary, args, output_base_path):
     output = re.sub("Warning Cannot scanfill, fallback on a triangle fan.\n", '', output)
     output = re.sub("convertViewVec: called in an invalid context\n", '', output)
     
-    print("----------- obj-to-tactile.py output: -----------")
-    print(output)
-    print("----------- end obj-to-tactile.py output -----------")
-
     if INSTRUMENTATION_ENABLED:
         blender_memory_matches = re.finditer(
             r'^MEMORY:(?P<label>[^ ]+) VmRSS=(?P<rss>[0-9?]+)kB \([^)]+\) VmHWM=(?P<hwm>[0-9?]+)kB',
@@ -252,13 +278,7 @@ def run_blender(mesh_paths, boundary, args, output_base_path):
             )
     log_memory_checkpoint('after-blender')
     
-    # Find some info from the output
-    meta = {}
-    iterator = re.compile('^META-START:({.+}):META-END$', re.MULTILINE).finditer(output)
-    for match in iterator:
-        entry_json = match.group(1);
-        meta.update(json.loads(entry_json))
-    return meta
+    return {}
 
 def print_size(scale, boundary):
     sizeX = boundary['maxX'] - boundary['minX']
@@ -290,8 +310,7 @@ def main():
 
     # Run Blender
     meta_path = input_basename + '-meta.json'
-    blender_meta = run_blender(mesh_paths, boundary, args, input_basename)
-    meta.update(blender_meta)
+    run_blender(mesh_paths, boundary, args, input_basename)
     write_json_file(meta_path, meta, pretty_json_enabled())
     log_memory_checkpoint('main-end')
 

@@ -484,7 +484,6 @@ def import_mesh_file(mesh_path):
             ob.name = target_name
         else:
             ob.name = target_name + ('_%03d' % i)
-    print("importing mesh took " + (str(perf_clock() - t)))
 
 # Extrude floor to a flat-roofed building
 def extrude_building(ob, height):
@@ -822,7 +821,6 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     log_memory_checkpoint('after-pre-join-and-clip')
     
     # Buildings
-    print('META-START:{"buildingCount":%d}:META-END\n' % (len(buildings)))
     if joined_buildings:
         t = perf_clock()
         extrude_building(joined_buildings, tc.BUILDING_HEIGHT_MM * mm_to_units)
