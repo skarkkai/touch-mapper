@@ -236,6 +236,15 @@ function fetchWithCurl(url) {
   return result.stdout;
 }
 
+function overpassMapUrls(bbox) {
+  // Public instances from OSM wiki (current list), using map endpoint for bbox export.
+  return [
+    "https://overpass.private.coffee/api/map?bbox=" + encodeURIComponent(bbox),
+    "https://overpass-api.de/api/map?bbox=" + encodeURIComponent(bbox),
+    "https://maps.mail.ru/osm/tools/overpass/api/map?bbox=" + encodeURIComponent(bbox)
+  ];
+}
+
 async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
   if (fs.existsSync(cacheOsmPath)) {
     return;
@@ -248,11 +257,9 @@ async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
     throw new Error("requestBody.effectiveArea is required to fetch OSM");
   }
   const bbox = [area.lonMin, area.latMin, area.lonMax, area.latMax].join(",");
-  const urls = [
-    "https://api.openstreetmap.org/api/0.6/map?bbox=" + encodeURIComponent(bbox),
-    "https://overpass-api.de/api/map?bbox=" + encodeURIComponent(bbox),
-    "https://overpass.kumi.systems/api/map?bbox=" + encodeURIComponent(bbox)
-  ];
+  const urls = overpassMapUrls(bbox).concat([
+    "https://api.openstreetmap.org/api/0.6/map?bbox=" + encodeURIComponent(bbox)
+  ]);
   let response = null;
   let lastError = null;
   for (let i = 0; i < urls.length; i += 1) {

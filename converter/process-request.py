@@ -156,23 +156,32 @@ def update_progress(s3, map_bucket_name, map_object_name, stage):
     s3.Bucket(map_bucket_name).put_object(Key=map_object_name, ACL='public-read', \
         CacheControl='no-cache', StorageClass='GLACIER_IR', Metadata={ 'processing-stage': stage })
 
+
+def overpass_map_urls(bbox):
+    # Public instances from OSM wiki (current list), using map endpoint for bbox export.
+    return [
+        "https://overpass.private.coffee/api/map?bbox=" + bbox,
+        "https://overpass-api.de/api/map?bbox=" + bbox,
+        "https://maps.mail.ru/osm/tools/overpass/api/map?bbox=" + bbox,
+    ]
+
+
 def get_osm(progress_updater, request_body, work_dir):
     # TODO: verify the requested region isn't too large
     progress_updater('reading_osm')
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
-    attempts = [
-        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
+    attempts = [{
+          'url': url,
+          'method': lambda target_url: get_osm_overpass_api(
+              url=target_url,
+              timeout=40,
+              request_body=request_body,
+              osm_path=osm_path
+          ),
+        } for url in overpass_map_urls(bbox)] + [
+        { 'url': "https://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
           'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
         },
     ]
