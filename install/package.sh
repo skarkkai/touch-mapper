@@ -18,7 +18,7 @@ mkdir dist
 cp -alH ../blender dist/
 mkdir dist/OSM2World
 cp -alH ../OSM2World/build dist/OSM2World/
-cp -plH ../converter/*{py,sh} dist/
+cp -plH ../converter/*{py,sh,js} dist/
 cp -aH ../converter/map_desc dist/
 cp -aH ../converter/py-lib dist/
 cp -aH ../install/{ec2-restart-pollers.sh,ec2-init.sh} dist/
