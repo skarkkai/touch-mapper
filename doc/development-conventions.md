@@ -60,5 +60,5 @@ This document collects day-to-day coding conventions for Touch Mapper.
 - `install/run-dev-converter.sh` runs OSM -> STL converter locally.
 
 ## Setup references
-- See `README.md` for full local setup and web workflow.
+- See `doc/development-setup.md` for full local setup and web workflow.
 - `init.sh` installs system dependencies and builds `OSM2World`.

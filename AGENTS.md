@@ -1,43 +1,96 @@
-# Touch Mapper
+# Touch Mapper Agent Guide
 
-This file is the quick start for contributors and coding agents. Detailed references now live under `doc/`.
+Use this file as the quick operating guide for coding agents and contributors.
+Keep it specific, command-first, and easy to scan.
 
-## Critical rules
-- Prioritize accessibility in UI and content; this tool is used by visually impaired users.
-- In `converter/`, do not preserve backward compatibility by default. If producer output changes, consumer updates are expected.
+## Start here (copy/paste commands)
+
+```bash
+# Initial setup
+./init.sh
+
+# Fast converter/map-description verification
+node test/map-content/run-tests.js --category average --offline --jobs 1
+
+# Python type checks (required for changed Python files)
+pyright converter/osm-to-tactile.py
+
+# Web app local build/serve
+cd web
+make build
+make serve
+```
+
+Performance and benchmark comparisons must run on one core:
+
+```bash
+taskset -c 0 node test/map-content/run-tests.js --category complex --offline --jobs 1
+```
+
+## Repo map
+
+- `web/`: static UI (templates, JS, Less, locales).
+- `converter/`: OSM -> tactile map conversion pipeline (Python + helper scripts).
+- `test/map-content/`: map-description verification and regression tooling.
+- `OSM2World/`: vendored rendering/conversion dependency; change only when needed.
+- `install/`: AWS packaging/deployment scripts.
+- `doc/`: contributor and agent guidance.
+
+## Source-of-truth rules
+
+- Accessibility comes first in UI and content. Touch Mapper is used by visually impaired users.
+- In `converter/`, do not preserve backward compatibility by default. If producer output changes, update consumers.
 - For UI-only changes, confirm whether backward compatibility is required.
-- For Python changes, run `pyright` on changed Python files and fix issues.
-- In web templates, edit `web/pre-src/*.pre` (source), not generated `web/src/*.ect`.
-- For all benchmarking and performance comparisons, use exactly one CPU core (for example `taskset -c 0 ...`) because production runs with one core.
+- Edit template sources in `web/pre-src/*.pre`, not generated `web/src/*.ect`.
+- For translations, update `web/locales/<lang>/tm.json` files together in the same change.
 
-## Quick navigation
-- Coding conventions and build/i18n guidance:
-  - `doc/development-conventions.md`
-- Map-content verification workflow and visual regression outputs:
-  - `doc/map-content-verification.md`
-  - `doc/map-description-introspection.md`
-- Converter pipeline and metadata stage definitions:
-  - `doc/converter-pipeline-stages.md`
+## Validation by change type
 
-## Common workflows
-- Fast map-content check:
-  - `node test/map-content/run-tests.js --category average --offline --jobs 1`
-- Blender visual regression artifacts (when using `--with-blender`):
-  - `map-wireframe-flat.png` (pre-modification)
-  - `map-wireframe.png` (post-modification)
-  - Output directory: `test/map-content/out/<category>/pipeline/`
+- Python changes:
+  - Run `pyright` on changed Python files and fix issues.
+- Converter map-description changes:
+  - Run `node test/map-content/run-tests.js --category average --offline --jobs 1`.
+  - If geometry changes are involved, run with `--with-blender` and review:
+    - `test/map-content/out/<category>/pipeline/map-wireframe-flat.png`
+    - `test/map-content/out/<category>/pipeline/map-wireframe.png`
+- UI text or description-model wording changes:
+  - Validate locale outputs (`en`, `de`, `fi`, `nl`) and check simulated map-description text quality.
+- Performance claims:
+  - Use single-core runs only (`taskset -c 0 ...`).
+
+## Boundaries
+
+Always:
+- Keep edits scoped to the task.
+- Update docs when behavior or workflow changes.
+- Prefer changing sources over generated artifacts.
+
+Ask first:
+- UI-only backward compatibility expectations.
+- Large deployment/runtime changes in `install/` or AWS workflows.
+- OSM2World vendor updates that are not required for the task.
+
+Never:
+- Edit generated `web/src/*.ect` as the primary change.
+- Present multi-core benchmarks as comparable to production.
+- Skip required `pyright` checks for changed Python files.
 
 ## Sandbox networking note
-- In this environment, direct `curl` commands run in the terminal with an approved prefix can succeed, but Node's internal `spawnSync("curl", ...)` still runs inside the restricted sandbox and may fail DNS resolution.
-- If map-content fetch fails from Node with curl/DNS errors, use direct shell `curl` to fetch the OSM payload and write it to `test/map-content/cache/<category>/map.osm`, then rerun with `--offline`.
 
-## Documentation index
-- `doc/development-conventions.md`: repo layout, generated vs source files, web build conventions, i18n rules, Python conventions, deployment notes.
-- `doc/map-content-verification.md`: category suite usage, locale validation expectations, visual regression artifacts.
-- `doc/converter-pipeline-stages.md`: OSM2World outputs, processing flow, and canonical metadata stage names.
-- `doc/map-description-introspection.md`: canonical CLI workflow for local map-description generation and inspection.
-- `doc/map-description-model-schema.md`: schema reference for map-description JSON models.
-- `doc/deployed-map-inspection.md`: inspecting deployed map artifacts via persistent map ID.
-- `doc/ui-visual-baseline.md`: visual/style baseline for start/area/map views.
-- `doc/way-area-extrusion-tiers.md`: way/area/building tactile extrusion tiers.
+- In this environment, direct shell `curl` may work while Node `spawnSync("curl", ...)` fails DNS.
+- If map-content fetch fails from Node:
+  - Fetch with shell `curl` into `test/map-content/cache/<category>/map.osm`.
+  - Re-run tests with `--offline`.
+
+## Docs index
+
+- `doc/development-conventions.md`: coding conventions, web/i18n details, Python guidelines.
+- `doc/development-setup.md`: local setup, AWS setup, and development workflows.
+- `doc/map-content-verification.md`: category suites, locale checks, and visual artifacts.
+- `doc/map-description-introspection.md`: canonical map-description inspection CLI flow.
+- `doc/converter-pipeline-stages.md`: OSM2World outputs and metadata stage names.
+- `doc/map-description-model-schema.md`: map-description JSON schema.
+- `doc/deployed-map-inspection.md`: inspect deployed map artifacts via map ID.
+- `doc/ui-visual-baseline.md`: UI visual/style baseline.
+- `doc/way-area-extrusion-tiers.md`: tactile extrusion tiers.
 - `doc/creating-new-server.doc`: legacy server provisioning notes.
