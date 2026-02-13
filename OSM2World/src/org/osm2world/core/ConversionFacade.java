@@ -39,6 +39,7 @@ import org.osm2world.core.target.Target;
 import org.osm2world.core.target.TargetUtil;
 import org.osm2world.core.target.common.material.Materials;
 import org.osm2world.core.util.FaultTolerantIterationUtil;
+import org.osm2world.core.util.TouchMapperProfile;
 import org.osm2world.core.util.FaultTolerantIterationUtil.Operation;
 import org.osm2world.core.util.functions.DefaultFactory;
 import org.osm2world.core.util.functions.Factory;
@@ -217,6 +218,8 @@ public class ConversionFacade {
 			List<WorldModule> worldModules, Configuration config,
 			List<Target<?>> targets)
 			throws IOException {
+
+		long totalStart = TouchMapperProfile.start();
 		
 		if (osmFile == null) {
 			throw new IllegalArgumentException("osmFile must not be null");
@@ -232,7 +235,9 @@ public class ConversionFacade {
 			/* try to read file using Osmosis */
 			
 			try {
+				long readOsmStart = TouchMapperProfile.start();
 				osmData = new OsmosisReader(osmFile).getData();
+				TouchMapperProfile.logMillis("input.read_osmosis_ms", readOsmStart);
 			} catch (IOException e) {
 				
 				System.out.println("could not read file," +
@@ -250,17 +255,23 @@ public class ConversionFacade {
 			
 			File tempFile;
 			try {
+				long josmCleanupStart = TouchMapperProfile.start();
 				tempFile = JOSMFileHack.createTempOSMFile(osmFile);
+				TouchMapperProfile.logMillis("input.josm_cleanup_ms", josmCleanupStart);
 			} catch (Exception e2) {
 				throw new IOException("could not read OSM file" +
 						" (not even with workaround for JOSM files)", e2);
 			}
 			
+			long readCleanedStart = TouchMapperProfile.start();
 			osmData = new OsmosisReader(tempFile).getData();
+			TouchMapperProfile.logMillis("input.read_cleaned_osmosis_ms", readCleanedStart);
 			
 		}
 		
-		return createRepresentations(osmData, worldModules, config, targets);
+		Results results = createRepresentations(osmData, worldModules, config, targets);
+		TouchMapperProfile.logMillis("conversion.from_file_total_ms", totalStart);
+		return results;
 		
 	}
 	
@@ -286,6 +297,8 @@ public class ConversionFacade {
 			List<WorldModule> worldModules, Configuration config,
 			List<Target<?>> targets)
 			throws IOException, BoundingBoxSizeException {
+
+		long totalStart = TouchMapperProfile.start();
 		
 		/* check the inputs */
 		
@@ -311,10 +324,16 @@ public class ConversionFacade {
 		updatePhase(Phase.MAP_DATA);
 		
 		OriginMapProjection mapProjection = mapProjectionFactory.make();
+		long mapProjectionStart = TouchMapperProfile.start();
 		mapProjection.setOrigin(osmData);
+		TouchMapperProfile.logMillis("map_data.map_projection_origin_ms",
+				mapProjectionStart);
 		
 		OSMToMapDataConverter converter = new OSMToMapDataConverter(mapProjection, config);
+		long mapDataCreationStart = TouchMapperProfile.start();
 		MapData mapData = converter.createMapData(osmData);
+		TouchMapperProfile.logMillis("map_data.converter_total_ms",
+				mapDataCreationStart);
 		
 		AxisAlignedBoundingBoxXZ boundary = mapData.getBoundary();
 		
@@ -331,7 +350,10 @@ public class ConversionFacade {
 		
 		WorldCreator moduleManager =
 			new WorldCreator(config, worldModules);
+		long worldModulesStart = TouchMapperProfile.start();
 		moduleManager.addRepresentationsTo(mapData);
+		TouchMapperProfile.logMillis("representation.world_creator_total_ms",
+				worldModulesStart);
 		
 		/* determine elevations */
 		updatePhase(Phase.ELEVATION);
@@ -343,7 +365,9 @@ public class ConversionFacade {
 			eleData = new SRTMData(new File(srtmDir), mapProjection);
 		}
 		
+		long elevationsStart = TouchMapperProfile.start();
 		calculateElevations(mapData, eleData, config);
+		TouchMapperProfile.logMillis("elevation.total_ms", elevationsStart);
 		
 		/* create terrain */
 		updatePhase(Phase.TERRAIN); //TODO this phase may be obsolete
@@ -354,13 +378,19 @@ public class ConversionFacade {
 		boolean underground = config.getBoolean("renderUnderground", true);
 		
 		if (targets != null) {
+			long targetsStart = TouchMapperProfile.start();
 			for (Target<?> target : targets) {
 				TargetUtil.renderWorldObjects(target, mapData, underground);
 				target.finish();
 			}
+			TouchMapperProfile.logMillis("output.targets_render_and_finish_ms",
+					targetsStart);
 		}
 
+		long addressesStart = TouchMapperProfile.start();
 		AddressGatherer.gather(osmData, mapData);
+		TouchMapperProfile.logMillis("output.address_gather_ms", addressesStart);
+		TouchMapperProfile.logMillis("conversion.from_osm_data_total_ms", totalStart);
 		
 		return new Results(mapProjection, mapData, eleData);
 		

@@ -18,6 +18,7 @@ import org.osm2world.core.math.VectorXZ;
 import org.osm2world.core.target.TargetUtil;
 import org.osm2world.core.target.common.rendering.Camera;
 import org.osm2world.core.target.common.rendering.Projection;
+import org.osm2world.core.util.TouchMapperProfile;
 
 /**
  * utility class for creating an Wavefront OBJ file
@@ -32,6 +33,8 @@ public final class ObjWriter {
 			MapProjection mapProjection,
 			Camera camera, Projection projection)
 			throws IOException {
+
+		long totalStart = TouchMapperProfile.start();
 		
 		if (!objFile.exists()) {
 			objFile.createNewFile();
@@ -59,14 +62,20 @@ public final class ObjWriter {
 		
 		ObjTarget target = new ObjTarget(objStream, mtlStream);
 		
+		long renderStart = TouchMapperProfile.start();
 		TargetUtil.renderWorldObjects(target, mapData, true);
+		TouchMapperProfile.logMillis("output.obj.render_world_objects_ms",
+				renderStart);
 		
 		objStream.close();
 		mtlStream.close();
 
 		File metaFile = new File(objFile.getAbsoluteFile().getParentFile(),
 				"map-meta-raw.json");
+		long writeMetaStart = TouchMapperProfile.start();
 		MapMetaWriter.write(metaFile, mapData);
+		TouchMapperProfile.logMillis("output.obj.write_map_meta_ms", writeMetaStart);
+		TouchMapperProfile.logMillis("output.obj.total_ms", totalStart);
 		
 	}
 	
@@ -76,6 +85,8 @@ public final class ObjWriter {
 			Camera camera, Projection projection,
 			int primitiveThresholdPerFile)
 			throws IOException {
+
+		long totalStart = TouchMapperProfile.start();
 					
 		if (!objDirectory.exists()) {
 			objDirectory.mkdir();
@@ -147,12 +158,19 @@ public final class ObjWriter {
 		
 		/* write file content */
 		
+		long renderStart = TouchMapperProfile.start();
 		TargetUtil.renderWorldObjects(objIterator, mapData, primitiveThresholdPerFile);
+		TouchMapperProfile.logMillis("output.obj_split.render_world_objects_ms",
+				renderStart);
 		
 		mtlStream.close();
 
 		File metaFile = new File(objDirectory, "map-meta-raw.json");
+		long writeMetaStart = TouchMapperProfile.start();
 		MapMetaWriter.write(metaFile, mapData);
+		TouchMapperProfile.logMillis("output.obj_split.write_map_meta_ms",
+				writeMetaStart);
+		TouchMapperProfile.logMillis("output.obj_split.total_ms", totalStart);
 		
 	}
 

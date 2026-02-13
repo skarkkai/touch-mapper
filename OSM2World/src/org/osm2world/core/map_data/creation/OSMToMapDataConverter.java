@@ -45,6 +45,7 @@ import org.osm2world.core.osm.data.OSMRelation;
 import org.osm2world.core.osm.data.OSMWay;
 import org.osm2world.core.osm.ruleset.HardcodedRuleset;
 import org.osm2world.core.osm.ruleset.Ruleset;
+import org.osm2world.core.util.TouchMapperProfile;
 import org.osm2world.core.util.FaultTolerantIterationUtil.Operation;
 
 /**
@@ -66,17 +67,38 @@ public class OSMToMapDataConverter {
 	}
 
 	public MapData createMapData(OSMData osmData) throws IOException {
+
+		long totalStart = TouchMapperProfile.start();
 		
 		final List<MapNode> mapNodes = new ArrayList<MapNode>();
 		final List<MapWaySegment> mapWaySegs = new ArrayList<MapWaySegment>();
 		final List<MapArea> mapAreas = new ArrayList<MapArea>();
 		
+		long createElementsStart = TouchMapperProfile.start();
 		createMapElements(osmData, mapNodes, mapWaySegs, mapAreas);
+		TouchMapperProfile.logMillis("map_data.create_elements_ms", createElementsStart);
 		
 		MapData mapData = new MapData(mapNodes, mapWaySegs, mapAreas,
 				calculateFileBoundary(osmData.getBounds()));
 		
-		calculateIntersectionsInMapData(mapData);
+		boolean skipIntersections = config.getBoolean("touchMapperSkipIntersections", false);
+		boolean skipAreaAreaOverlaps = config.getBoolean("touchMapperSkipAreaAreaOverlaps", true);
+		boolean skipNodeAreaOverlaps = config.getBoolean("touchMapperSkipNodeAreaOverlaps", true);
+		TouchMapperProfile.logValue("map_data.skip_area_area_overlaps", skipAreaAreaOverlaps);
+		TouchMapperProfile.logValue("map_data.skip_node_area_overlaps", skipNodeAreaOverlaps);
+		if (skipIntersections) {
+			TouchMapperProfile.logValue("map_data.intersections_skipped", true);
+		} else {
+			long intersectionsStart = TouchMapperProfile.start();
+			calculateIntersectionsInMapData(
+					mapData, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
+			TouchMapperProfile.logMillis("map_data.calculate_intersections_ms",
+					intersectionsStart);
+		}
+		TouchMapperProfile.logValue("map_data.nodes_count", mapNodes.size());
+		TouchMapperProfile.logValue("map_data.way_segments_count", mapWaySegs.size());
+		TouchMapperProfile.logValue("map_data.areas_count", mapAreas.size());
+		TouchMapperProfile.logMillis("map_data.total_ms", totalStart);
 
 		return mapData;
 
@@ -94,6 +116,7 @@ public class OSMToMapDataConverter {
 		/* create MapNode for each OSM node */
 
 		final Map<OSMNode, MapNode> nodeMap = new HashMap<OSMNode, MapNode>();
+		long mapNodesStart = TouchMapperProfile.start();
 
 		for (OSMNode node : osmData.getNodes()) {
 			VectorXZ nodePos = mapProjection.calcPos(node.lat, node.lon);
@@ -101,12 +124,17 @@ public class OSMToMapDataConverter {
 			mapNodes.add(mapNode);
 			nodeMap.put(node, mapNode);
 		}
+		TouchMapperProfile.logMillis("map_elements.nodes_ms", mapNodesStart);
+		TouchMapperProfile.logValue("map_elements.nodes_count", mapNodes.size());
 		
 		/* create areas ... */
 		
 		final Map<OSMWay, MapArea> areaMap = new HashMap<OSMWay, MapArea>();
 				
 		/* ... based on multipolygons */
+
+		final int multipolygonAreasStartCount = mapAreas.size();
+		long multipolygonsStart = TouchMapperProfile.start();
 		
 		iterate(osmData.getRelations(), new Operation<OSMRelation>() {
 			@Override public void perform(OSMRelation relation) {
@@ -132,8 +160,14 @@ public class OSMToMapDataConverter {
 				
 			}
 		});
+		TouchMapperProfile.logMillis("map_elements.multipolygons_ms", multipolygonsStart);
+		TouchMapperProfile.logValue("map_elements.multipolygon_areas_count",
+				mapAreas.size() - multipolygonAreasStartCount);
 		
 		/* ... based on coastline ways */
+
+		final int coastlinesStartCount = mapAreas.size();
+		long coastlinesStart = TouchMapperProfile.start();
 		
 		for (MapArea area : MultipolygonAreaBuilder.createAreasForCoastlines(
 				osmData, nodeMap, mapNodes,
@@ -146,8 +180,14 @@ public class OSMToMapDataConverter {
 			}
 			
 		}
+		TouchMapperProfile.logMillis("map_elements.coastlines_ms", coastlinesStart);
+		TouchMapperProfile.logValue("map_elements.coastline_areas_count",
+				mapAreas.size() - coastlinesStartCount);
 		
 		/* ... based on closed ways */
+
+		final int closedWaysStartCount = mapAreas.size();
+		long closedWaysStart = TouchMapperProfile.start();
 		
 		for (OSMWay way : osmData.getWays()) {
 			if (way.isClosed() && !areaMap.containsKey(way)) {
@@ -177,11 +217,18 @@ public class OSMToMapDataConverter {
 				}
 			}
 		}
+		TouchMapperProfile.logMillis("map_elements.closed_ways_ms", closedWaysStart);
+		TouchMapperProfile.logValue("map_elements.closed_way_areas_count",
+				mapAreas.size() - closedWaysStartCount);
 		
 		/* ... for empty terrain */
 		
 		AxisAlignedBoundingBoxXZ terrainBoundary =
 				calculateFileBoundary(osmData.getBounds());
+
+		final int emptyTerrainNodeStartCount = mapNodes.size();
+		final int emptyTerrainAreaStartCount = mapAreas.size();
+		long emptyTerrainStart = TouchMapperProfile.start();
 		
 		if (terrainBoundary != null
 				&& config.getBoolean("createTerrain", true)) {
@@ -194,14 +241,25 @@ public class OSMToMapDataConverter {
 			//TODO fall back on data boundary if file does not contain bounds
 			
 		}
+		TouchMapperProfile.logMillis("map_elements.empty_terrain_ms", emptyTerrainStart);
+		TouchMapperProfile.logValue("map_elements.empty_terrain_nodes_added",
+				mapNodes.size() - emptyTerrainNodeStartCount);
+		TouchMapperProfile.logValue("map_elements.empty_terrain_areas_added",
+				mapAreas.size() - emptyTerrainAreaStartCount);
 				
 		/* finish calculations */
+
+		long adjacentAreaSegmentsStart = TouchMapperProfile.start();
 		
 		for (MapNode node : nodeMap.values()) {
 			node.calculateAdjacentAreaSegments();
 		}
+		TouchMapperProfile.logMillis("map_elements.adjacent_area_segments_ms",
+				adjacentAreaSegmentsStart);
 		
 		/* create way segments from remaining ways */
+
+		long waySegmentsStart = TouchMapperProfile.start();
 		
 		for (OSMWay way : osmData.getWays()) {
 			if (!way.tags.isEmpty() && !areaMap.containsKey(way)) {
@@ -223,6 +281,8 @@ public class OSMToMapDataConverter {
 				
 			}
 		}
+		TouchMapperProfile.logMillis("map_elements.way_segments_ms", waySegmentsStart);
+		TouchMapperProfile.logValue("map_elements.way_segments_count", mapWaySegs.size());
 		
 	}
 	
@@ -230,9 +290,13 @@ public class OSMToMapDataConverter {
 	 * calculates intersections and adds the information to the
 	 * {@link MapElement}s
 	 */
-	private static void calculateIntersectionsInMapData(MapData mapData) {
+	private static void calculateIntersectionsInMapData(
+			MapData mapData,
+			boolean skipAreaAreaOverlaps,
+			boolean skipNodeAreaOverlaps) {
 		
 		MapDataIndex index = new MapIntersectionGrid(mapData.getDataBoundary());
+		Set<MapElement> dedupNearbyElements = new HashSet<MapElement>();
 		
 		for (MapElement e1 : mapData.getMapElements()) {
 			
@@ -247,20 +311,21 @@ public class OSMToMapDataConverter {
 				nearbyElements = leaves.iterator().next();
 			} else {
 				// collect and de-duplicate elements from all the leaves
-				Set<MapElement> elementSet = new HashSet<MapElement>();
+				dedupNearbyElements.clear();
 				for (Iterable<MapElement> leaf : leaves) {
 					for (MapElement e : leaf) {
-						elementSet.add(e);
+						dedupNearbyElements.add(e);
 					}
 				}
-				nearbyElements = elementSet;
+				nearbyElements = dedupNearbyElements;
 			}
 			
 			for (MapElement e2 : nearbyElements) {
 			
 				if (e1 == e2) { continue; }
 				
-				addOverlapBetween(e1, e2);
+				addOverlapBetween(
+						e1, e2, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
 				
 			}
 			
@@ -273,37 +338,68 @@ public class OSMToMapDataConverter {
 	 * to both, if it exists. It calls the appropriate
 	 * subtype-specific addOverlapBetween method
 	 */
-	private static void addOverlapBetween(MapElement e1, MapElement e2) {
+	private static void addOverlapBetween(MapElement e1, MapElement e2,
+			boolean skipAreaAreaOverlaps, boolean skipNodeAreaOverlaps) {
 		
 		if (e1 instanceof MapWaySegment
 				&& e2 instanceof MapWaySegment) {
 			
-			addOverlapBetween((MapWaySegment) e1, (MapWaySegment) e2);
+			MapWaySegment line1 = (MapWaySegment) e1;
+			MapWaySegment line2 = (MapWaySegment) e2;
+			if (boundingBoxesMayOverlapOrTouch(line1, line2)) {
+				addOverlapBetween(line1, line2);
+			}
 			
 		} else if (e1 instanceof MapWaySegment
 				&& e2 instanceof MapArea) {
 			
-			addOverlapBetween((MapWaySegment) e1, (MapArea) e2);
+			MapWaySegment line = (MapWaySegment) e1;
+			MapArea area = (MapArea) e2;
+			if (boundingBoxesMayOverlapOrTouch(line, area)) {
+				addOverlapBetween(line, area);
+			}
 			
 		} else if (e1 instanceof MapArea
 				&& e2 instanceof MapWaySegment) {
 			
-			addOverlapBetween((MapWaySegment) e2, (MapArea) e1);
+			MapWaySegment line = (MapWaySegment) e2;
+			MapArea area = (MapArea) e1;
+			if (boundingBoxesMayOverlapOrTouch(line, area)) {
+				addOverlapBetween(line, area);
+			}
 			
 		} else if (e1 instanceof MapArea
 				&& e2 instanceof MapArea) {
+
+			if (skipAreaAreaOverlaps) { return; }
 			
-			addOverlapBetween((MapArea) e1, (MapArea) e2);
+			MapArea area1 = (MapArea) e1;
+			MapArea area2 = (MapArea) e2;
+			if (boundingBoxesMayOverlapOrTouch(area1, area2)) {
+				addOverlapBetween(area1, area2);
+			}
 			
 		} else if (e1 instanceof MapNode
 				&& e2 instanceof MapArea) {
+
+			if (skipNodeAreaOverlaps) { return; }
 			
-			addOverlapBetween((MapNode) e1, (MapArea) e2);
+			MapNode node = (MapNode) e1;
+			MapArea area = (MapArea) e2;
+			if (area.getAxisAlignedBoundingBoxXZ().contains(node.getPos())) {
+				addOverlapBetween(node, area);
+			}
 			
 		} else if (e1 instanceof MapArea
 				&& e2 instanceof MapNode) {
+
+			if (skipNodeAreaOverlaps) { return; }
 			
-			addOverlapBetween((MapNode) e2, (MapArea) e1);
+			MapNode node = (MapNode) e2;
+			MapArea area = (MapArea) e1;
+			if (area.getAxisAlignedBoundingBoxXZ().contains(node.getPos())) {
+				addOverlapBetween(node, area);
+			}
 			
 		}
 		
@@ -346,22 +442,24 @@ public class OSMToMapDataConverter {
 			MapWaySegment line, MapArea area) {
 		
 		final LineSegmentXZ segmentXZ = line.getLineSegment();
+		final boolean connectedToArea = line.isConnectedTo(area);
 		
 		/* check whether the line corresponds to one of the area segments */
-				
-		for (MapAreaSegment areaSegment : area.getAreaSegments()) {
-			if (areaSegment.sharesBothNodes(line)) {
-				
-				MapOverlapWA newOverlap =
-					new MapOverlapWA(line, area, MapOverlapType.SHARE_SEGMENT,
-							Collections.<VectorXZ>emptyList(),
-							Collections.<MapAreaSegment>emptyList());
-				
-				line.addOverlap(newOverlap);
-				area.addOverlap(newOverlap);
-				
-				return;
-				
+		if (connectedToArea) {
+			for (MapAreaSegment areaSegment : area.getAreaSegments()) {
+				if (areaSegment.sharesBothNodes(line)) {
+					
+					MapOverlapWA newOverlap =
+						new MapOverlapWA(line, area, MapOverlapType.SHARE_SEGMENT,
+								Collections.<VectorXZ>emptyList(),
+								Collections.<MapAreaSegment>emptyList());
+					
+					line.addOverlap(newOverlap);
+					area.addOverlap(newOverlap);
+					
+					return;
+					
+				}
 			}
 		}
 		
@@ -373,7 +471,7 @@ public class OSMToMapDataConverter {
 		{
 			final PolygonWithHolesXZ polygon = area.getPolygon();
 			
-			if (!line.isConnectedTo(area)) {
+			if (!connectedToArea) {
 	
 				intersects = polygon.intersects(segmentXZ);
 				contains = !intersects && polygon.contains(segmentXZ);
@@ -447,6 +545,19 @@ public class OSMToMapDataConverter {
 			
 		}
 		
+	}
+
+	private static boolean boundingBoxesMayOverlapOrTouch(
+			MapElement element1, MapElement element2) {
+
+		AxisAlignedBoundingBoxXZ b1 = element1.getAxisAlignedBoundingBoxXZ();
+		AxisAlignedBoundingBoxXZ b2 = element2.getAxisAlignedBoundingBoxXZ();
+
+		return !(b1.maxX < b2.minX
+				|| b1.minX > b2.maxX
+				|| b1.maxZ < b2.minZ
+				|| b1.minZ > b2.maxZ);
+
 	}
 
 	/**

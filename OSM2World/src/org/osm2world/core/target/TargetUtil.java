@@ -10,6 +10,8 @@ import org.osm2world.core.map_data.data.MapElement;
 import org.osm2world.core.map_elevation.data.GroundState;
 import org.osm2world.core.target.common.RenderableToPrimitiveTarget;
 import org.osm2world.core.target.statistics.StatisticsTarget;
+import org.osm2world.core.util.IgnoredExceptionLog;
+import org.osm2world.core.util.TouchMapperProfile;
 import org.osm2world.core.util.FaultTolerantIterationUtil.Operation;
 import org.osm2world.core.world.data.WorldObject;
 
@@ -24,24 +26,51 @@ public final class TargetUtil {
 	public static <R extends Renderable> void renderWorldObjects(
 			final Target<R> target, final MapData mapData,
 			final boolean renderUnderground) {
+
+		long totalStart = TouchMapperProfile.start();
+		int renderedCandidates = 0;
+		int ignoredExceptions = 0;
+		int suppressedExceptions = 0;
+		long exceptionLoggingNanos = 0;
 		
 		for (MapElement mapElement : mapData.getMapElements()) {
 			for (WorldObject r : mapElement.getRepresentations()) {
 				if (renderUnderground || r.getGroundState() != GroundState.BELOW) {
+					renderedCandidates++;
 				
 					try {
 						renderObject(target, r);
 					} catch (Exception e) {
-						System.err.println("ignored exception:");
-						//TODO proper logging
-						e.printStackTrace();
-						System.err.println("this exception occurred for the following input:\n"
-								+ mapElement);
+						long catchStartNanos = TouchMapperProfile.start();
+						ignoredExceptions++;
+						if (IgnoredExceptionLog.shouldLogDetailed(ignoredExceptions)) {
+							IgnoredExceptionLog.logDetailed(e, mapElement);
+						} else {
+							if (suppressedExceptions == 0) {
+								IgnoredExceptionLog.logSuppressionNotice(
+										"TargetUtil.renderWorldObjects");
+							}
+							suppressedExceptions++;
+						}
+						if (TouchMapperProfile.isEnabled()) {
+							exceptionLoggingNanos += (System.nanoTime() - catchStartNanos);
+						}
 					}
 					
 				}
 			}
 		}
+		IgnoredExceptionLog.logSummary("TargetUtil.renderWorldObjects",
+				ignoredExceptions, suppressedExceptions);
+		TouchMapperProfile.logValue("render.world_objects.candidate_count",
+				renderedCandidates);
+		TouchMapperProfile.logValue("render.world_objects.ignored_exceptions",
+				ignoredExceptions);
+		TouchMapperProfile.logValue("render.world_objects.suppressed_exceptions",
+				suppressedExceptions);
+		TouchMapperProfile.logNanosAsMillis(
+				"render.world_objects.exception_logging_ms", exceptionLoggingNanos);
+		TouchMapperProfile.logMillis("render.world_objects.total_ms", totalStart);
 	}
 
 	/**
