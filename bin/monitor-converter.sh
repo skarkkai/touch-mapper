@@ -13,7 +13,7 @@ log_file=""
 
 usage() {
     cat <<'EOF'
-Usage: ./monitor-converter.sh [options]
+Usage: ./bin/monitor-converter.sh [options]
 
 Streams converter diagnostics in one timestamped output:
 - vmstat
