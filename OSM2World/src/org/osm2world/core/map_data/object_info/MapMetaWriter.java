@@ -45,7 +45,6 @@ public final class MapMetaWriter {
 		root.put("ways", buildWays(mapData));
 		root.put("areas", buildAreas(mapData));
 
-		System.out.println(root);
 		writer.writeValue(outputFile, root);
 	}
 
