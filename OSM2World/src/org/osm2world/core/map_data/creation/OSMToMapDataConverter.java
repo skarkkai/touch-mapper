@@ -45,6 +45,7 @@ import org.osm2world.core.osm.data.OSMRelation;
 import org.osm2world.core.osm.data.OSMWay;
 import org.osm2world.core.osm.ruleset.HardcodedRuleset;
 import org.osm2world.core.osm.ruleset.Ruleset;
+import org.osm2world.core.util.TouchMapperProfile;
 import org.osm2world.core.util.FaultTolerantIterationUtil.Operation;
 
 /**
@@ -66,12 +67,16 @@ public class OSMToMapDataConverter {
 	}
 
 	public MapData createMapData(OSMData osmData) throws IOException {
+
+		long totalStart = TouchMapperProfile.start();
 		
 		final List<MapNode> mapNodes = new ArrayList<MapNode>();
 		final List<MapWaySegment> mapWaySegs = new ArrayList<MapWaySegment>();
 		final List<MapArea> mapAreas = new ArrayList<MapArea>();
 		
+		long createElementsStart = TouchMapperProfile.start();
 		createMapElements(osmData, mapNodes, mapWaySegs, mapAreas);
+		TouchMapperProfile.logMillis("map_data.create_elements_ms", createElementsStart);
 		
 		MapData mapData = new MapData(mapNodes, mapWaySegs, mapAreas,
 				calculateFileBoundary(osmData.getBounds()));
@@ -79,9 +84,21 @@ public class OSMToMapDataConverter {
 		boolean skipIntersections = config.getBoolean("touchMapperSkipIntersections", false);
 		boolean skipAreaAreaOverlaps = config.getBoolean("touchMapperSkipAreaAreaOverlaps", true);
 		boolean skipNodeAreaOverlaps = config.getBoolean("touchMapperSkipNodeAreaOverlaps", true);
-		if (!skipIntersections) {
-			calculateIntersectionsInMapData(mapData, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
+		TouchMapperProfile.logValue("map_data.skip_area_area_overlaps", skipAreaAreaOverlaps);
+		TouchMapperProfile.logValue("map_data.skip_node_area_overlaps", skipNodeAreaOverlaps);
+		if (skipIntersections) {
+			TouchMapperProfile.logValue("map_data.intersections_skipped", true);
+		} else {
+			long intersectionsStart = TouchMapperProfile.start();
+			calculateIntersectionsInMapData(
+					mapData, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
+			TouchMapperProfile.logMillis("map_data.calculate_intersections_ms",
+					intersectionsStart);
 		}
+		TouchMapperProfile.logValue("map_data.nodes_count", mapNodes.size());
+		TouchMapperProfile.logValue("map_data.way_segments_count", mapWaySegs.size());
+		TouchMapperProfile.logValue("map_data.areas_count", mapAreas.size());
+		TouchMapperProfile.logMillis("map_data.total_ms", totalStart);
 
 		return mapData;
 
@@ -99,6 +116,7 @@ public class OSMToMapDataConverter {
 		/* create MapNode for each OSM node */
 
 		final Map<OSMNode, MapNode> nodeMap = new HashMap<OSMNode, MapNode>();
+		long mapNodesStart = TouchMapperProfile.start();
 
 		for (OSMNode node : osmData.getNodes()) {
 			VectorXZ nodePos = mapProjection.calcPos(node.lat, node.lon);
@@ -106,12 +124,17 @@ public class OSMToMapDataConverter {
 			mapNodes.add(mapNode);
 			nodeMap.put(node, mapNode);
 		}
+		TouchMapperProfile.logMillis("map_elements.nodes_ms", mapNodesStart);
+		TouchMapperProfile.logValue("map_elements.nodes_count", mapNodes.size());
 		
 		/* create areas ... */
 		
 		final Map<OSMWay, MapArea> areaMap = new HashMap<OSMWay, MapArea>();
 				
 		/* ... based on multipolygons */
+
+		final int multipolygonAreasStartCount = mapAreas.size();
+		long multipolygonsStart = TouchMapperProfile.start();
 		
 		iterate(osmData.getRelations(), new Operation<OSMRelation>() {
 			@Override public void perform(OSMRelation relation) {
@@ -137,8 +160,14 @@ public class OSMToMapDataConverter {
 				
 			}
 		});
+		TouchMapperProfile.logMillis("map_elements.multipolygons_ms", multipolygonsStart);
+		TouchMapperProfile.logValue("map_elements.multipolygon_areas_count",
+				mapAreas.size() - multipolygonAreasStartCount);
 		
 		/* ... based on coastline ways */
+
+		final int coastlinesStartCount = mapAreas.size();
+		long coastlinesStart = TouchMapperProfile.start();
 		
 		for (MapArea area : MultipolygonAreaBuilder.createAreasForCoastlines(
 				osmData, nodeMap, mapNodes,
@@ -151,8 +180,14 @@ public class OSMToMapDataConverter {
 			}
 			
 		}
+		TouchMapperProfile.logMillis("map_elements.coastlines_ms", coastlinesStart);
+		TouchMapperProfile.logValue("map_elements.coastline_areas_count",
+				mapAreas.size() - coastlinesStartCount);
 		
 		/* ... based on closed ways */
+
+		final int closedWaysStartCount = mapAreas.size();
+		long closedWaysStart = TouchMapperProfile.start();
 		
 		for (OSMWay way : osmData.getWays()) {
 			if (way.isClosed() && !areaMap.containsKey(way)) {
@@ -182,11 +217,18 @@ public class OSMToMapDataConverter {
 				}
 			}
 		}
+		TouchMapperProfile.logMillis("map_elements.closed_ways_ms", closedWaysStart);
+		TouchMapperProfile.logValue("map_elements.closed_way_areas_count",
+				mapAreas.size() - closedWaysStartCount);
 		
 		/* ... for empty terrain */
 		
 		AxisAlignedBoundingBoxXZ terrainBoundary =
 				calculateFileBoundary(osmData.getBounds());
+
+		final int emptyTerrainNodeStartCount = mapNodes.size();
+		final int emptyTerrainAreaStartCount = mapAreas.size();
+		long emptyTerrainStart = TouchMapperProfile.start();
 		
 		if (terrainBoundary != null
 				&& config.getBoolean("createTerrain", true)) {
@@ -199,14 +241,25 @@ public class OSMToMapDataConverter {
 			//TODO fall back on data boundary if file does not contain bounds
 			
 		}
+		TouchMapperProfile.logMillis("map_elements.empty_terrain_ms", emptyTerrainStart);
+		TouchMapperProfile.logValue("map_elements.empty_terrain_nodes_added",
+				mapNodes.size() - emptyTerrainNodeStartCount);
+		TouchMapperProfile.logValue("map_elements.empty_terrain_areas_added",
+				mapAreas.size() - emptyTerrainAreaStartCount);
 				
 		/* finish calculations */
+
+		long adjacentAreaSegmentsStart = TouchMapperProfile.start();
 		
 		for (MapNode node : nodeMap.values()) {
 			node.calculateAdjacentAreaSegments();
 		}
+		TouchMapperProfile.logMillis("map_elements.adjacent_area_segments_ms",
+				adjacentAreaSegmentsStart);
 		
 		/* create way segments from remaining ways */
+
+		long waySegmentsStart = TouchMapperProfile.start();
 		
 		for (OSMWay way : osmData.getWays()) {
 			if (!way.tags.isEmpty() && !areaMap.containsKey(way)) {
@@ -228,6 +281,8 @@ public class OSMToMapDataConverter {
 				
 			}
 		}
+		TouchMapperProfile.logMillis("map_elements.way_segments_ms", waySegmentsStart);
+		TouchMapperProfile.logValue("map_elements.way_segments_count", mapWaySegs.size());
 		
 	}
 	

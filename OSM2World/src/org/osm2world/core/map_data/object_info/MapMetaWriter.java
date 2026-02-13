@@ -25,6 +25,7 @@ import org.osm2world.core.osm.data.OSMElement;
 import org.osm2world.core.osm.data.OSMNode;
 import org.osm2world.core.osm.data.OSMRelation;
 import org.osm2world.core.osm.data.OSMWay;
+import org.osm2world.core.util.TouchMapperProfile;
 import org.osm2world.core.world.data.WorldObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,15 +38,38 @@ public final class MapMetaWriter {
 	private MapMetaWriter() {}
 
 	public static void write(File outputFile, MapData mapData) throws IOException {
+		long totalStart = TouchMapperProfile.start();
 		ObjectWriter writer = new ObjectMapper().writer();
 
 		Map<String, Object> root = new LinkedHashMap<String, Object>();
-		root.put("meta", buildMeta(mapData));
-		root.put("nodes", buildNodes(mapData));
-		root.put("ways", buildWays(mapData));
-		root.put("areas", buildAreas(mapData));
+		long buildMetaStart = TouchMapperProfile.start();
+		Map<String, Object> meta = buildMeta(mapData);
+		TouchMapperProfile.logMillis("map_meta.build_meta_ms", buildMetaStart);
 
+		long buildNodesStart = TouchMapperProfile.start();
+		List<Map<String, Object>> nodes = buildNodes(mapData);
+		TouchMapperProfile.logMillis("map_meta.build_nodes_ms", buildNodesStart);
+
+		long buildWaysStart = TouchMapperProfile.start();
+		List<Map<String, Object>> ways = buildWays(mapData);
+		TouchMapperProfile.logMillis("map_meta.build_ways_ms", buildWaysStart);
+
+		long buildAreasStart = TouchMapperProfile.start();
+		List<Map<String, Object>> areas = buildAreas(mapData);
+		TouchMapperProfile.logMillis("map_meta.build_areas_ms", buildAreasStart);
+
+		root.put("meta", meta);
+		root.put("nodes", nodes);
+		root.put("ways", ways);
+		root.put("areas", areas);
+		TouchMapperProfile.logValue("map_meta.nodes_count", nodes.size());
+		TouchMapperProfile.logValue("map_meta.ways_count", ways.size());
+		TouchMapperProfile.logValue("map_meta.areas_count", areas.size());
+
+		long writeStart = TouchMapperProfile.start();
 		writer.writeValue(outputFile, root);
+		TouchMapperProfile.logMillis("map_meta.write_file_ms", writeStart);
+		TouchMapperProfile.logMillis("map_meta.total_ms", totalStart);
 	}
 
 	private static Map<String, Object> buildMeta(MapData mapData) {
