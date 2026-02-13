@@ -435,10 +435,19 @@ function dedupeAndWriteBucket(bucket, outPath, quantization) {
   writeBinaryPly(outPath, vertsX, vertsY, faces);
 }
 
+function prepareTmpDir(outDir) {
+  const tmpDir = path.join(outDir, "tmp");
+  // clip-2d outputs are ephemeral intermediates; clear before each run.
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpDir, { recursive: true });
+  return tmpDir;
+}
+
 function main() {
   const started = performance.now();
   const args = parseArgs(process.argv.slice(2));
   fs.mkdirSync(args.outDir, { recursive: true });
+  const tmpOutDir = prepareTmpDir(args.outDir);
 
   const bounds = {
     minX: args.minX,
@@ -568,7 +577,7 @@ function main() {
     } else {
       filename = args.basename + "-" + bucket.group.replace(/_/g, "-") + ".ply";
     }
-    const outPath = path.join(args.outDir, filename);
+    const outPath = path.join(tmpOutDir, filename);
     dedupeAndWriteBucket(bucket, outPath, args.quantization);
     bucket.path = outPath;
     files.push({
@@ -593,6 +602,7 @@ function main() {
   const report = {
     inputObjPath: path.resolve(args.inputObj),
     outDir: path.resolve(args.outDir),
+    tmpOutDir: path.resolve(tmpOutDir),
     bounds,
     quantization: args.quantization,
     eps,
