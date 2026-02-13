@@ -245,9 +245,109 @@ function overpassMapUrls(bbox) {
   ];
 }
 
+function parseBoundsFromOsmText(osmText) {
+  const tagMatch = osmText.match(/<bounds\b[^>]*>/i);
+  if (!tagMatch) {
+    return null;
+  }
+  const tag = tagMatch[0];
+  function readAttr(name) {
+    const doubleQuoted = tag.match(new RegExp(name + "\\s*=\\s*\"([^\"]+)\"", "i"));
+    if (doubleQuoted) {
+      return Number(doubleQuoted[1]);
+    }
+    const singleQuoted = tag.match(new RegExp(name + "\\s*=\\s*'([^']+)'", "i"));
+    if (singleQuoted) {
+      return Number(singleQuoted[1]);
+    }
+    return NaN;
+  }
+  const parsed = {
+    lonMin: readAttr("minlon"),
+    lonMax: readAttr("maxlon"),
+    latMin: readAttr("minlat"),
+    latMax: readAttr("maxlat")
+  };
+  if (!Number.isFinite(parsed.lonMin) || !Number.isFinite(parsed.lonMax) ||
+      !Number.isFinite(parsed.latMin) || !Number.isFinite(parsed.latMax)) {
+    return null;
+  }
+  return parsed;
+}
+
+function inspectOsmPayloadForCache(payload, requestBody, sourceLabel) {
+  const text = Buffer.isBuffer(payload) ? payload.toString("utf8") : String(payload);
+  const head = text.slice(0, 8192).toLowerCase();
+  if (head.indexOf("<osm") === -1) {
+    return {
+      stale: true,
+      reason: sourceLabel + " is not OSM XML (missing <osm> root element)"
+    };
+  }
+
+  const area = requestBody && requestBody.effectiveArea ? requestBody.effectiveArea : null;
+  if (!area) {
+    return { stale: false, reason: "" };
+  }
+
+  const expected = {
+    lonMin: Number(area.lonMin),
+    lonMax: Number(area.lonMax),
+    latMin: Number(area.latMin),
+    latMax: Number(area.latMax)
+  };
+  if (!Number.isFinite(expected.lonMin) || !Number.isFinite(expected.lonMax) ||
+      !Number.isFinite(expected.latMin) || !Number.isFinite(expected.latMax)) {
+    return { stale: false, reason: "" };
+  }
+
+  const found = parseBoundsFromOsmText(text);
+  if (!found) {
+    return {
+      stale: true,
+      reason: sourceLabel + " is missing a parseable <bounds> tag"
+    };
+  }
+
+  const requestSpan = Math.max(
+    Math.abs(expected.lonMax - expected.lonMin),
+    Math.abs(expected.latMax - expected.latMin)
+  );
+  const tolerance = Math.max(1e-5, requestSpan * 0.01);
+  const diffs = {
+    lonMin: Math.abs(found.lonMin - expected.lonMin),
+    lonMax: Math.abs(found.lonMax - expected.lonMax),
+    latMin: Math.abs(found.latMin - expected.latMin),
+    latMax: Math.abs(found.latMax - expected.latMax)
+  };
+  const worstDiff = Math.max(diffs.lonMin, diffs.lonMax, diffs.latMin, diffs.latMax);
+  if (worstDiff > tolerance) {
+    return {
+      stale: true,
+      reason:
+        sourceLabel +
+        " bounds do not match requestBody.effectiveArea (worst diff " +
+        worstDiff.toExponential(3) +
+        ", tolerance " +
+        tolerance.toExponential(3) +
+        ")"
+    };
+  }
+
+  return { stale: false, reason: "" };
+}
+
 async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
   if (fs.existsSync(cacheOsmPath)) {
-    return;
+    const cachedPayload = fs.readFileSync(cacheOsmPath);
+    const cachedInspection = inspectOsmPayloadForCache(cachedPayload, requestBody, "cached OSM");
+    if (!cachedInspection.stale) {
+      return;
+    }
+    if (offline) {
+      throw new Error("Offline mode enabled and cached OSM is stale: " + cachedInspection.reason);
+    }
+    process.stdout.write("[cache] stale map.osm detected, refetching: " + cachedInspection.reason + "\n");
   }
   if (offline) {
     throw new Error("Offline mode enabled and cached OSM not found: " + cacheOsmPath);
@@ -264,7 +364,16 @@ async function fetchOsmToCache(cacheOsmPath, requestBody, offline) {
   let lastError = null;
   for (let i = 0; i < urls.length; i += 1) {
     try {
-      response = fetchWithCurl(urls[i]);
+      const fetchedPayload = fetchWithCurl(urls[i]);
+      const fetchedInspection = inspectOsmPayloadForCache(
+        fetchedPayload,
+        requestBody,
+        "response from " + urls[i]
+      );
+      if (fetchedInspection.stale) {
+        throw new Error(fetchedInspection.reason);
+      }
+      response = fetchedPayload;
       break;
     } catch (error) {
       lastError = error;
