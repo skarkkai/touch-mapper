@@ -10,6 +10,7 @@ import org.osm2world.core.map_data.data.MapElement;
 import org.osm2world.core.map_elevation.data.GroundState;
 import org.osm2world.core.target.common.RenderableToPrimitiveTarget;
 import org.osm2world.core.target.statistics.StatisticsTarget;
+import org.osm2world.core.util.IgnoredExceptionLog;
 import org.osm2world.core.util.FaultTolerantIterationUtil.Operation;
 import org.osm2world.core.world.data.WorldObject;
 
@@ -24,6 +25,8 @@ public final class TargetUtil {
 	public static <R extends Renderable> void renderWorldObjects(
 			final Target<R> target, final MapData mapData,
 			final boolean renderUnderground) {
+		int ignoredExceptions = 0;
+		int suppressedExceptions = 0;
 		
 		for (MapElement mapElement : mapData.getMapElements()) {
 			for (WorldObject r : mapElement.getRepresentations()) {
@@ -32,16 +35,23 @@ public final class TargetUtil {
 					try {
 						renderObject(target, r);
 					} catch (Exception e) {
-						System.err.println("ignored exception:");
-						//TODO proper logging
-						e.printStackTrace();
-						System.err.println("this exception occurred for the following input:\n"
-								+ mapElement);
+						ignoredExceptions++;
+						if (IgnoredExceptionLog.shouldLogDetailed(ignoredExceptions)) {
+							IgnoredExceptionLog.logDetailed(e, mapElement);
+						} else {
+							if (suppressedExceptions == 0) {
+								IgnoredExceptionLog.logSuppressionNotice(
+										"TargetUtil.renderWorldObjects");
+							}
+							suppressedExceptions++;
+						}
 					}
 					
 				}
 			}
 		}
+		IgnoredExceptionLog.logSummary("TargetUtil.renderWorldObjects",
+				ignoredExceptions, suppressedExceptions);
 	}
 
 	/**

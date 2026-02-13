@@ -14,18 +14,28 @@ final public class FaultTolerantIterationUtil {
 	
 	public static final <T> void iterate(
 			Iterable<? extends T> collection, Operation<T> operation) {
+		int exceptionCount = 0;
+		int suppressedExceptionCount = 0;
 		
 		for (T input : collection) {
 			try {
 				operation.perform(input);
 			} catch (Exception e) {
-				System.err.println("ignored exception:");
-				//TODO proper logging
-				e.printStackTrace();
-				System.err.println("this exception occurred for the following input:\n"
-						+ input);
+				exceptionCount++;
+				if (IgnoredExceptionLog.shouldLogDetailed(exceptionCount)) {
+					IgnoredExceptionLog.logDetailed(e, input);
+				} else {
+					if (suppressedExceptionCount == 0) {
+						IgnoredExceptionLog.logSuppressionNotice(
+								"FaultTolerantIterationUtil.iterate");
+					}
+					suppressedExceptionCount++;
+				}
 			}
 		}
+
+		IgnoredExceptionLog.logSummary("FaultTolerantIterationUtil.iterate",
+				exceptionCount, suppressedExceptionCount);
 		
 	}
 	
