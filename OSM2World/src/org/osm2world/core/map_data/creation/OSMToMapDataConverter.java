@@ -76,9 +76,12 @@ public class OSMToMapDataConverter {
 		MapData mapData = new MapData(mapNodes, mapWaySegs, mapAreas,
 				calculateFileBoundary(osmData.getBounds()));
 		
+		boolean skipIntersections = config.getBoolean("touchMapperSkipIntersections", false);
 		boolean skipAreaAreaOverlaps = config.getBoolean("touchMapperSkipAreaAreaOverlaps", true);
 		boolean skipNodeAreaOverlaps = config.getBoolean("touchMapperSkipNodeAreaOverlaps", true);
-		calculateIntersectionsInMapData(mapData, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
+		if (!skipIntersections) {
+			calculateIntersectionsInMapData(mapData, skipAreaAreaOverlaps, skipNodeAreaOverlaps);
+		}
 
 		return mapData;
 
