@@ -8,7 +8,7 @@ public final class TriangulationConfig {
 	public static final String COLLINEAR_TOLERANCE_ENV =
 			"TOUCH_MAPPER_TRIANGULATION_COLLINEAR_TOLERANCE_M";
 
-	public static final double DEFAULT_COLLINEAR_TOLERANCE_M = 0.01;
+	public static final double DEFAULT_COLLINEAR_TOLERANCE_M = 0.05;
 
 	private static final double collinearToleranceMeters =
 			parseCollinearToleranceMeters(System.getenv(COLLINEAR_TOLERANCE_ENV));
