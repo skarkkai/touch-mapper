@@ -61,6 +61,8 @@
   }
 
   function infoLoadHandler(info, textStatus, jqXHR){
+    storeMapSettingsFromInfo(info);
+
     $(".map-address").text(info.addrLong);
 
     var meta = {

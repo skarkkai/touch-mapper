@@ -212,3 +212,65 @@ function loadInfoJson(id) {
     return data;
   });
 }
+
+window.storeMapSettingsFromInfo = function(info) {
+  if (!info || typeof info !== "object") {
+    return;
+  }
+
+  var MAP_SIZE_PRESET_VALUES = {
+    "17": true,
+    "20": true
+  };
+  var MAP_SCALE_PRESET_VALUES = {
+    "1000": true,
+    "1400": true,
+    "1800": true,
+    "2400": true,
+    "3200": true,
+    "4200": true,
+    "5600": true,
+    "7500": true,
+    "9999": true
+  };
+
+  function withDefault(value, defaultValue) {
+    if (value === undefined || value === null) {
+      return defaultValue;
+    }
+    return value;
+  }
+
+  function toPresetOrEmpty(value, allowedValues) {
+    var key = "" + value;
+    if (Object.prototype.hasOwnProperty.call(allowedValues, key)) {
+      return value;
+    }
+    return "";
+  }
+
+  setLocalStorage("addresses", JSON.stringify([{
+    addrShort: withDefault(info.addrShort, ""),
+    addrLong: withDefault(info.addrLong, ""),
+    lat: info.lat,
+    lon: info.lon
+  }]));
+  setLocalStorage("addressesSelectedIndex", 0);
+
+  setLocalStorage("offsetX", info.offsetX);
+  setLocalStorage("offsetY", info.offsetY);
+  setLocalStorage("printing-tech", withDefault(info.printingTech, "3d"));
+  setLocalStorage("exclude-buildings", withDefault(info.excludeBuildings, false));
+  setLocalStorage("hide-location-marker", withDefault(info.hideLocationMarker, false));
+  setLocalStorage("map-size-preset", toPresetOrEmpty(info.size, MAP_SIZE_PRESET_VALUES));
+  setLocalStorage("map-scale-preset", toPresetOrEmpty(info.scale, MAP_SCALE_PRESET_VALUES));
+  setLocalStorage("advancedMode", withDefault(info.advancedMode, false));
+  setLocalStorage("lat", info.lat);
+  setLocalStorage("lon", info.lon);
+  setLocalStorage("size", info.size);
+  setLocalStorage("scale", info.scale);
+  setLocalStorage("multipartMode", withDefault(info.multipartMode, false));
+  setLocalStorage("multipartXpc", info.multipartXpc);
+  setLocalStorage("multipartYpc", info.multipartYpc);
+  setLocalStorage("previousAddress", withDefault(info.addrLong, ""));
+};

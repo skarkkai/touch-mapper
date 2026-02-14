@@ -195,37 +195,7 @@ function initInputs(outputs, osmDragPanInteraction) {
 
 function setParametersByMapId(id) {
   return loadInfoJson(id).done(function(data, textStatus, jqXHR){
-
-      // Set address as when searching
-      setLocalStorage("addresses", JSON.stringify([{
-        addrShort: data.addrShort,
-        addrLong: data.addrLong,
-        lat: data.lat,
-        lon: data.lon
-      }]));
-      setLocalStorage("addressesSelectedIndex", 0);
-
-      // Set area view parameters
-      setLocalStorage("offsetX", data.offsetX);
-      setLocalStorage("offsetY", data.offsetY);
-      setLocalStorage("printing-tech", data.printingTech || "3d");
-      setLocalStorage("exclude-buildings", data.excludeBuildings || false);
-      setLocalStorage("hide-location-marker", data.hideLocationMarker || false);
-      setLocalStorage("map-size-preset",
-        optionExistsInSelect($("#map-size-preset"), data.size) ? data.size
-          : ""); // empty value makes initInputs() use global default
-      setLocalStorage("map-scale-preset",
-        optionExistsInSelect($("#map-scale-preset"), data.scale) ? data.scale
-          : ""); // empty value makes initInputs() use global default
-      setLocalStorage("advancedMode", data.advancedMode);
-      setLocalStorage("lat", data.lat);
-      setLocalStorage("lon", data.lon);
-      setLocalStorage("size", data.size);
-      setLocalStorage("scale", data.scale);
-      setLocalStorage("multipartMode", data.multipartMode);
-      setLocalStorage("multipartXpc", data.multipartXpc);
-      setLocalStorage("multipartYpc", data.multipartYpc);
-
+      storeMapSettingsFromInfo(data);
       return true;
     });
 }
