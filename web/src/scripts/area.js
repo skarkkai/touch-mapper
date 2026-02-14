@@ -235,8 +235,20 @@ function setParametersFromBlindSquare() {
     return isNaN(number) ? null : number;
   }
 
-  function setLocalStorageIfPresent(localStorageKey, paramName, parser) {
-    var raw = getUrlParam(paramName);
+  function getUrlParamFromNames(paramNames) {
+    var names = Array.isArray(paramNames) ? paramNames : [paramNames];
+    var i;
+    for (i = 0; i < names.length; i++) {
+      var raw = getUrlParam(names[i]);
+      if (hasNonEmpty(raw)) {
+        return raw;
+      }
+    }
+    return null;
+  }
+
+  function setLocalStorageIfPresent(localStorageKey, paramNames, parser) {
+    var raw = getUrlParamFromNames(paramNames);
     if (!hasNonEmpty(raw)) {
       return null;
     }
@@ -268,9 +280,9 @@ function setParametersFromBlindSquare() {
   }
 
   var currentAddress = selectedAddressFromStorage() || {};
-  var urlAddrName = getUrlParam("addrName");
-  var urlLat = getUrlParam("lat");
-  var urlLon = getUrlParam("lon");
+  var urlAddrName = getUrlParamFromNames(["addrName", "addr_name"]);
+  var urlLat = getUrlParamFromNames(["lat", "latitude"]);
+  var urlLon = getUrlParamFromNames(["lon", "lng", "longitude"]);
   if (hasNonEmpty(urlAddrName) || hasNonEmpty(urlLat) || hasNonEmpty(urlLon)) {
     var addrShort = hasNonEmpty(urlAddrName) ? urlAddrName : currentAddress.addrShort;
     var addrLong = hasNonEmpty(urlAddrName) ? urlAddrName : currentAddress.addrLong;
@@ -287,28 +299,29 @@ function setParametersFromBlindSquare() {
     }
   }
 
-  setLocalStorageIfPresent("lat", "lat", parseFloatParam);
-  setLocalStorageIfPresent("lon", "lon", parseFloatParam);
-  setLocalStorageIfPresent("printing-tech", "printingTech", function(value) {
-    return value === "2d" || value === "3d" ? value : null;
+  setLocalStorageIfPresent("lat", ["lat", "latitude"], parseFloatParam);
+  setLocalStorageIfPresent("lon", ["lon", "lng", "longitude"], parseFloatParam);
+  setLocalStorageIfPresent("printing-tech", ["printingTech", "printing-tech", "printing_tech"], function(value) {
+    var normalized = ("" + value).toLowerCase();
+    return normalized === "2d" || normalized === "3d" ? normalized : null;
   });
-  setLocalStorageIfPresent("offsetX", "offsetX", parseIntParam);
-  setLocalStorageIfPresent("offsetY", "offsetY", parseIntParam);
-  setLocalStorageIfPresent("advancedMode", "advancedMode", parseBoolean);
-  setLocalStorageIfPresent("exclude-buildings", "excludeBuildings", parseBoolean);
-  setLocalStorageIfPresent("hide-location-marker", "hideLocationMarker", parseBoolean);
-  setLocalStorageIfPresent("multipartMode", "multipartMode", parseBoolean);
-  setLocalStorageIfPresent("multipartXpc", "multipartXpc", parseIntParam);
-  setLocalStorageIfPresent("multipartYpc", "multipartYpc", parseIntParam);
+  setLocalStorageIfPresent("offsetX", ["offsetX", "offset_x", "x-offset", "xOffset"], parseIntParam);
+  setLocalStorageIfPresent("offsetY", ["offsetY", "offset_y", "y-offset", "yOffset"], parseIntParam);
+  setLocalStorageIfPresent("advancedMode", ["advancedMode", "advanced_mode", "advanced-mode"], parseBoolean);
+  setLocalStorageIfPresent("exclude-buildings", ["excludeBuildings", "exclude_buildings", "exclude-buildings"], parseBoolean);
+  setLocalStorageIfPresent("hide-location-marker", ["hideLocationMarker", "hide_location_marker", "hide-location-marker"], parseBoolean);
+  setLocalStorageIfPresent("multipartMode", ["multipartMode", "multipart_mode", "multipart-mode"], parseBoolean);
+  setLocalStorageIfPresent("multipartXpc", ["multipartXpc", "multipart_xpc", "multipart-xpc"], parseIntParam);
+  setLocalStorageIfPresent("multipartYpc", ["multipartYpc", "multipart_ypc", "multipart-ypc"], parseIntParam);
 
-  var sizeValue = setLocalStorageIfPresent("size", "size", parseFloatParam);
+  var sizeValue = setLocalStorageIfPresent("size", ["size", "mapSize", "map_size"], parseFloatParam);
   if (sizeValue !== null) {
     setLocalStorage(
       "map-size-preset",
       optionExistsInSelect($("#map-size-preset"), sizeValue) ? sizeValue : ""
     );
   }
-  var scaleValue = setLocalStorageIfPresent("scale", "scale", parseIntParam);
+  var scaleValue = setLocalStorageIfPresent("scale", ["scale", "mapScale", "map_scale"], parseIntParam);
   if (scaleValue !== null) {
     setLocalStorage(
       "map-scale-preset",

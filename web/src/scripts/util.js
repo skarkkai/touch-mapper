@@ -272,28 +272,40 @@ window.storeMapSettingsFromInfo = function(info) {
     return defaultValue;
   }
 
+  var addrShort = getInfoValue(["addrShort", "addr_short"], "");
+  var addrLong = getInfoValue(["addrLong", "addr_long"], "");
+  var lat = getInfoValue(["lat"], undefined);
+  var lon = getInfoValue(["lon"], undefined);
+  var printingTech = getInfoValue(["printingTech", "printing_tech"], "3d");
+  var excludeBuildings = getInfoValue(["excludeBuildings", "exclude_buildings"], false);
+  var hideLocationMarker = getInfoValue(["hideLocationMarker", "hide_location_marker"], false);
+  var size = getInfoValue(["size"], undefined);
+  var scale = getInfoValue(["scale"], undefined);
+  var advancedMode = getInfoValue(["advancedMode", "advanced_mode"], false);
+  var multipartMode = getInfoValue(["multipartMode", "multipart_mode"], false);
+
   setLocalStorage("addresses", JSON.stringify([{
-    addrShort: withDefault(info.addrShort, ""),
-    addrLong: withDefault(info.addrLong, ""),
-    lat: info.lat,
-    lon: info.lon
+    addrShort: withDefault(addrShort, ""),
+    addrLong: withDefault(addrLong, ""),
+    lat: lat,
+    lon: lon
   }]));
   setLocalStorage("addressesSelectedIndex", 0);
 
   setLocalStorage("offsetX", getInfoValue(["offsetX", "offset_x"], 0));
   setLocalStorage("offsetY", getInfoValue(["offsetY", "offset_y"], 0));
-  setLocalStorage("printing-tech", withDefault(info.printingTech, "3d"));
-  setLocalStorage("exclude-buildings", withDefault(info.excludeBuildings, false));
-  setLocalStorage("hide-location-marker", withDefault(info.hideLocationMarker, false));
-  setLocalStorage("map-size-preset", toPresetOrEmpty(info.size, MAP_SIZE_PRESET_VALUES));
-  setLocalStorage("map-scale-preset", toPresetOrEmpty(info.scale, MAP_SCALE_PRESET_VALUES));
-  setLocalStorage("advancedMode", withDefault(info.advancedMode, false));
-  setLocalStorage("lat", info.lat);
-  setLocalStorage("lon", info.lon);
-  setLocalStorage("size", info.size);
-  setLocalStorage("scale", info.scale);
-  setLocalStorage("multipartMode", getInfoValue(["multipartMode", "multipart_mode"], false));
+  setLocalStorage("printing-tech", printingTech);
+  setLocalStorage("exclude-buildings", excludeBuildings);
+  setLocalStorage("hide-location-marker", hideLocationMarker);
+  setLocalStorage("map-size-preset", toPresetOrEmpty(size, MAP_SIZE_PRESET_VALUES));
+  setLocalStorage("map-scale-preset", toPresetOrEmpty(scale, MAP_SCALE_PRESET_VALUES));
+  setLocalStorage("advancedMode", advancedMode);
+  setLocalStorage("lat", lat);
+  setLocalStorage("lon", lon);
+  setLocalStorage("size", size);
+  setLocalStorage("scale", scale);
+  setLocalStorage("multipartMode", multipartMode);
   setLocalStorage("multipartXpc", getInfoValue(["multipartXpc", "multipart_xpc"], 0));
   setLocalStorage("multipartYpc", getInfoValue(["multipartYpc", "multipart_ypc"], 0));
-  setLocalStorage("previousAddress", withDefault(info.addrLong, ""));
+  setLocalStorage("previousAddress", withDefault(addrLong, ""));
 };
