@@ -2,7 +2,7 @@
 
 set -e
 
-BLENDER_DL_URL=https://download.blender.org/release/Blender2.78/blender-2.78c-linux-glibc219-x86_64.tar.bz2How
+BLENDER_DL_URL=https://download.blender.org/release/Blender2.78/blender-2.78c-linux-glibc219-x86_64.tar.bz2
 BLENDER_VERSION=2.78
 
 # Download Blender. Best to keep using the old version.

@@ -21,8 +21,9 @@ import gzip
 import copy
 import signal
 import atexit
-from typing import Optional
-from telemetry import TelemetryLogger
+import socket
+
+import stats_pipeline
 
 STORE_AGE = 8640000
 time_clock = getattr(time, 'clock', time.time)
@@ -43,22 +44,14 @@ def parse_env_bool(name):
 
 INSTRUMENTATION_ENABLED = (parse_env_bool(INSTRUMENTATION_ENV_VAR) is True)
 INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
-COMPONENT_REQUEST = 'request'
-COMPONENT_POLL = 'poll'
-COMPONENT_OSM_FETCH = 'osm-fetch'
-COMPONENT_OSM_TO_TACTILE = 'osm-to-tactile'
-COMPONENT_MAP_DESC = 'map-desc'
-COMPONENT_MAP_CONTENT = 'map-content'
-COMPONENT_UPLOAD_PRIMARY = 'upload-primary'
-COMPONENT_SVG_TO_PDF = 'svg-to-pdf'
-COMPONENT_UPLOAD_SECONDARY = 'upload-secondary'
+STATS_ENABLED = True
+STATS_QUICKTIME_MODE = False
 progress_state = {
     'status': 'starting',
     'stage': 'bootstrap',
     'request_id': None,
     'termination_signal': None,
 }
-TELEMETRY = None  # type: Optional[TelemetryLogger]
 
 
 def read_proc_status_kib(field_name):
@@ -82,25 +75,19 @@ def log_memory_checkpoint(label):
     vm_rss_kib = read_proc_status_kib('VmRSS')
     vm_hwm_kib = read_proc_status_kib('VmHWM')
     if vm_rss_kib is None and vm_hwm_kib is None:
-        message = 'MEMORY {label} unavailable'.format(label=label)
-        if TELEMETRY is not None:
-            TELEMETRY.log(message)
-        else:
-            print(message)
+        print('MEMORY:process-request:{label} unavailable'.format(label=label))
         return
     vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
     vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
-    message = 'MEMORY {label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
-        label=label,
-        rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
-        rss_mib=vm_rss_mib,
-        hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
-        hwm_mib=vm_hwm_mib
+    print(
+        'MEMORY:process-request:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
+            label=label,
+            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
+            rss_mib=vm_rss_mib,
+            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
+            hwm_mib=vm_hwm_mib
+        )
     )
-    if TELEMETRY is not None:
-        TELEMETRY.log(message)
-    else:
-        print(message)
 
 
 def compact_log_text(value, max_length=240):
@@ -110,51 +97,40 @@ def compact_log_text(value, max_length=240):
     return text
 
 
-def _format_max_rss(max_rss_kib):
-    if max_rss_kib is None:
-        return 'n/a'
-    return '{:.1f} MiB'.format(float(max_rss_kib) / 1024.0)
-
-
-def _max_opt(a, b):
-    if a is None:
-        return b
-    if b is None:
-        return a
-    return a if a >= b else b
-
-
 def log_progress(stage, status=None, request_id=None, detail=None):
+    if not INSTRUMENTATION_ENABLED:
+        return
     if request_id is not None:
         progress_state['request_id'] = request_id
     if status is not None:
         progress_state['status'] = status
     progress_state['stage'] = stage
-    fields = {
-        'requestId': progress_state['request_id'],
-        'status': progress_state['status'],
-        'ts': datetime.datetime.utcnow().isoformat() + 'Z',
-    }
+    parts = [
+        'PROGRESS:process-request:{stage}'.format(stage=stage),
+        'ts={ts}'.format(ts=datetime.datetime.utcnow().isoformat() + 'Z'),
+        'status={status}'.format(status=progress_state['status']),
+    ]
+    if progress_state['request_id'] is not None:
+        parts.append('requestId={request_id}'.format(request_id=progress_state['request_id']))
     if detail:
-        fields['detail'] = compact_log_text(detail)
-    if TELEMETRY is not None:
-        TELEMETRY.log('PROGRESS {stage}'.format(stage=stage), fields=fields)
-    else:
-        print('PROGRESS {stage}'.format(stage=stage))
+        parts.append('detail={detail}'.format(detail=compact_log_text(detail)))
+    print(" ".join(parts))
 
 
 def log_exit_progress():
-    fields = {
-        'last_stage': progress_state['stage'],
-        'requestId': progress_state['request_id'],
-        'signal': progress_state['termination_signal'],
-        'status': progress_state['status'],
-        'ts': datetime.datetime.utcnow().isoformat() + 'Z',
-    }
-    if TELEMETRY is not None:
-        TELEMETRY.log('PROGRESS exit', fields=fields)
-    else:
-        print('PROGRESS exit')
+    if not INSTRUMENTATION_ENABLED:
+        return
+    parts = [
+        'PROGRESS:process-request:exit',
+        'ts={ts}'.format(ts=datetime.datetime.utcnow().isoformat() + 'Z'),
+        'status={status}'.format(status=progress_state['status']),
+        'last_stage={stage}'.format(stage=progress_state['stage']),
+    ]
+    if progress_state['request_id'] is not None:
+        parts.append('requestId={request_id}'.format(request_id=progress_state['request_id']))
+    if progress_state['termination_signal'] is not None:
+        parts.append('signal={signal}'.format(signal=progress_state['termination_signal']))
+    print(" ".join(parts))
 
 
 def handle_termination_signal(signum, frame):
@@ -169,9 +145,50 @@ def handle_termination_signal(signum, frame):
     raise SystemExit(128 + signum)
 
 
-atexit.register(log_exit_progress)
-signal.signal(signal.SIGTERM, handle_termination_signal)
-signal.signal(signal.SIGINT, handle_termination_signal)
+if INSTRUMENTATION_ENABLED:
+    atexit.register(log_exit_progress)
+    signal.signal(signal.SIGTERM, handle_termination_signal)
+    signal.signal(signal.SIGINT, handle_termination_signal)
+
+
+def now_iso_utc():
+    return datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+
+
+def stats_root_dir_from_work_dir(work_dir):
+    if work_dir:
+        runtime_dir = os.path.dirname(os.path.abspath(work_dir))
+        environment_dir = os.path.dirname(runtime_dir)
+        return os.path.join(environment_dir, 'stats')
+    return os.path.join(os.path.dirname(script_dir), 'stats')
+
+
+def count_entries(value):
+    return len(value) if isinstance(value, list) else None
+
+
+def extract_boundary(meta):
+    if not isinstance(meta, dict):
+        return {}
+    nested = meta.get('meta')
+    if not isinstance(nested, dict):
+        return {}
+    boundary = nested.get('boundary')
+    if isinstance(boundary, dict):
+        return boundary
+    return {}
+
+
+def duration_since(start_time):
+    if start_time is None:
+        return None
+    return time_clock() - start_time
+
+
+def json_profile_or_none(profile):
+    if not profile:
+        return None
+    return json.dumps(profile, separators=(',', ':'), ensure_ascii=False)
 
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Create STL and put into S3 based on a SQS request''')
@@ -184,34 +201,24 @@ def update_progress(s3, map_bucket_name, map_object_name, stage):
     s3.Bucket(map_bucket_name).put_object(Key=map_object_name, ACL='public-read', \
         CacheControl='no-cache', StorageClass='GLACIER_IR', Metadata={ 'processing-stage': stage })
 
-
-def overpass_map_urls(bbox):
-    # Public instances from OSM wiki (current list), using map endpoint for bbox export.
-    return [
-        "https://overpass-api.de/api/map?bbox=" + bbox,
-        "https://overpass.private.coffee/api/map?bbox=" + bbox,
-        "https://maps.mail.ru/osm/tools/overpass/api/map?bbox=" + bbox,
-    ]
-
-
-def get_osm(progress_updater, request_body, work_dir, telemetry):
+def get_osm(progress_updater, request_body, work_dir):
     # TODO: verify the requested region isn't too large
     progress_updater('reading_osm')
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
-    attempts = [{
-          'url': url,
-          'method': lambda target_url: get_osm_overpass_api(
-              url=target_url,
-              timeout=40,
-              request_body=request_body,
-              osm_path=osm_path,
-              telemetry=telemetry
-          ),
-        } for url in overpass_map_urls(bbox)] + [
-        { 'url': "https://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
-          'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path, telemetry=telemetry),
+    attempts = [
+        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
+          'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
+        },
+        { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
+          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
+        },
+        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
+          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
+        },
+        { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
+          'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
         },
     ]
     for i, attempt in enumerate(attempts):
@@ -221,25 +228,25 @@ def get_osm(progress_updater, request_body, work_dir, telemetry):
         except Exception as e:
             msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
             if i == len(attempts) - 1:
-                raise Exception(msg)
+                raise(msg)
             else:
-                telemetry.log(msg)
+                print(msg)
 
-def get_osm_overpass_api(url, timeout, request_body, osm_path, telemetry):
-    telemetry.log("running: GET " + url)
+def get_osm_overpass_api(url, timeout, request_body, osm_path):
+    print("getting " + url)
     osm_data = urllib.request.urlopen(url, timeout=timeout).read().decode('utf8')
     eff_area = request_body['effectiveArea']
     bounds = '  <bounds minlat="{}" minlon="{}" maxlat="{}" maxlon="{}"/>'.format( eff_area['latMin'], eff_area['lonMin'], eff_area['latMax'], eff_area['lonMax'] )
     with open(osm_path, 'wb') as f:
         f.write(bytes(re.sub(r'<meta [^>]+>\n', r'\g<0>' + bounds, osm_data, count=1), 'UTF-8'))
 
-def get_osm_main_api(url, timeout, osm_path, telemetry):
-    telemetry.log("running: GET " + url)
+def get_osm_main_api(url, timeout, osm_path):
+    print("getting " + url)
     osm_data = urllib.request.urlopen(url, timeout=timeout).read()
     with open(osm_path, 'wb') as f:
         f.write(osm_data)
 
-def run_osm_to_tactile(progress_updater, osm_path, request_body, telemetry):
+def run_osm_to_tactile(progress_updater, osm_path, request_body):
     try:
         log_memory_checkpoint('before-osm-to-tactile-subprocess')
         progress_updater('converting')
@@ -258,14 +265,8 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body, telemetry):
             if 0.04 < marker1x < 0.96 and 0.04 < marker1y < 0.96:
                 args.extend([ '--marker1', json.dumps({ 'x': marker1x, 'y': marker1y }) ])
         cmd = ['./osm-to-tactile.py'] + args + [osm_path]
-        run_result = telemetry.run_subprocess(
-            cmd,
-            env={
-                'TOUCH_MAPPER_LOG_DEPTH_BASE': '2'
-            },
-            cwd=script_dir,
-            depth_offset=1
-        )
+        print("running: " + " ".join(cmd))
+        subprocess.check_call(cmd)
 
         with open(os.path.dirname(osm_path) + '/map.stl', 'rb') as f:
             stl = f.read()
@@ -280,14 +281,8 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body, telemetry):
         with open(os.path.dirname(osm_path) + '/map-meta-raw.json', 'r') as f:
             meta = f.read()
 
-        timings_payload = None
-        timings_path = os.path.join(os.path.dirname(osm_path), 'osm-to-tactile-timings.json')
-        if os.path.exists(timings_path):
-            with open(timings_path, 'r') as f:
-                timings_payload = json.load(f)
-
         log_memory_checkpoint('after-osm-to-tactile-subprocess')
-        return stl, stl_ways, stl_rest, svg, blend, json.loads(meta), run_result.get('maxRssKiB'), timings_payload
+        return stl, stl_ways, stl_rest, svg, blend, json.loads(meta)
     except Exception as e:
         raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
 
@@ -302,6 +297,7 @@ def receive_sqs_msg(queue_name, poll_time):
         )
         if len(messages) > 0:
             message = messages[0]
+            print(message.body)
 
             # Delete message immediately so we won't start looping on it if processing fails
             response = queue.delete_messages(Entries=[{
@@ -385,7 +381,7 @@ def build_info_payload(request_body, meta):
     return info
 
 
-def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args, progress_logger=None, live_logger=None):
+def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args, progress_logger=None):
     def upload_blob(key, body, content_type):
         try:
             if progress_logger is not None:
@@ -399,10 +395,7 @@ def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, ble
             if progress_logger is not None:
                 progress_logger('upload-secondary-item-done', detail='key={}'.format(key))
         except Exception as e:
-            if live_logger is not None:
-                live_logger("upload failed for {}: {}".format(key, e))
-            else:
-                print("upload failed for {}: {}".format(key, e))
+            print("upload failed for {}: {}".format(key, e))
             if progress_logger is not None:
                 progress_logger('upload-secondary-item-failed', detail='key={} error={}'.format(key, e))
 
@@ -420,122 +413,167 @@ def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, ble
             try:
                 future.result()
             except Exception as e:
-                if live_logger is not None:
-                    live_logger("upload worker failed: {}".format(e))
-                else:
-                    print("upload worker failed: {}".format(e))
+                print("upload worker failed: {}".format(e))
 
 def run_map_desc(raw_meta_path, profile=None):
     import map_desc
     map_desc.run_map_desc(raw_meta_path, profile=profile)
 
 def main():
-    global TELEMETRY
     # TODO: if output S3 object already exists, exit immediately
-    TELEMETRY = TelemetryLogger(component=COMPONENT_REQUEST, base_depth=0)
     s3 = None
+    stats_s3 = None
     map_bucket_name = None
+    stats_bucket_name = None
     map_object_name = None
+    info_object_name = None
+    map_content_key = None
     name_base = None
-    request_max_rss_kib = None
-    request_entire_start = time_clock()
+    request_body = None
     request_id = None
+    map_id = None
+    args = None
+    stats_root_dir = None
+    environment = None
+    worker_name = 'unknown'
+    current_stage = 'bootstrap'
+    failure_stage = None
+    failure_class = None
+    failure_message = None
+    failure_exception = None
+    status = 'starting'
+    processing_start_time = None
+
+    timing_get_osm_seconds = None
+    timing_osm_to_tactile_seconds = None
+    timing_map_desc_seconds = None
+    timing_map_content_read_seconds = None
+    timing_upload_primary_seconds = None
+    timing_svg_to_pdf_seconds = None
+    timing_upload_secondary_seconds = None
+
+    stl = None
+    stl_ways = None
+    stl_rest = None
+    svg = None
+    pdf = None
+    blend = None
+    map_content = None
+    info = None
+    meta = None
+    map_desc_profile = {}
+
+    stl_bytes = None
+    stl_gzip_bytes = None
+    stl_ways_bytes = None
+    stl_rest_bytes = None
+    svg_bytes = None
+    pdf_bytes = None
+    blend_bytes = None
+    map_content_bytes = None
+    map_content_gzip_bytes = None
+    info_json_bytes = None
+
     try:
-        progress_logger = log_progress
+        t = time_clock()
+        progress_logger = (log_progress if INSTRUMENTATION_ENABLED else None)
         log_progress('main-start', status='running')
+        status = 'running'
         environment = os.environ['TM_ENVIRONMENT']
         queue_name = environment + "-requests-touch-mapper"
         map_bucket_name = environment + ".maps.touch-mapper"
+        stats_bucket_name = environment + ".stats.touch-mapper"
         args = do_cmdline()
+        stats_root_dir = stats_root_dir_from_work_dir(args.work_dir)
+        if args.work_dir:
+            worker_name = os.path.basename(os.path.normpath(args.work_dir))
+
+        if STATS_ENABLED:
+            try:
+                stats_s3 = boto3.resource('s3')
+                if not STATS_QUICKTIME_MODE:
+                    try:
+                        stats_pipeline.run_daily_upload_if_due(
+                            stats_root_dir=stats_root_dir,
+                            s3_resource=stats_s3,
+                            stats_bucket_name=stats_bucket_name
+                        )
+                    except Exception as e:
+                        print("stats daily upload failed: " + str(e))
+            except Exception as e:
+                print("stats init failed: " + str(e))
+                stats_s3 = None
+
         log_memory_checkpoint('main-start')
 
         # Receive SQS msg
-        poll_stage = TELEMETRY.start_stage('poll', component=COMPONENT_POLL)
+        current_stage = 'poll'
         log_progress('poll-start')
+        print("\n\n============= STARTING TO POLL AT %s ===========" % (datetime.datetime.now().isoformat()))
         request_body = receive_sqs_msg(queue_name, args.poll_time)
         if request_body == None:
             log_progress('poll-empty', status='idle')
-            poll_node = TELEMETRY.end_stage(poll_stage, own_max_rss_kib=None)
-            request_max_rss_kib = _max_opt(request_max_rss_kib, poll_node.get('maxRssKiB'))
+            status = 'idle'
             return
         request_id = request_body.get('requestId')
+        map_id = stats_pipeline.map_id_from_request_id(request_id)
+        processing_start_time = time_clock()
         log_progress('poll-returned', request_id=request_id)
-        poll_node = TELEMETRY.end_stage(poll_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, poll_node.get('maxRssKiB'))
+        print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
         log_memory_checkpoint('after-receive-sqs')
 
         # Get OSM data
-        get_osm_stage = TELEMETRY.start_stage('get-osm', component=COMPONENT_OSM_FETCH)
+        current_stage = 'get-osm'
+        get_osm_start_time = time_clock()
         log_progress('get-osm-start')
-        s3 = boto3.resource('s3')
+        s3 = stats_s3 if stats_s3 is not None else boto3.resource('s3')
         map_object_name = 'map/data/' + request_body['requestId'] + '.stl'
         name_base = map_object_name[:-4]
         bucket = s3.Bucket(map_bucket_name)
         progress_updater = functools.partial(update_progress, s3, map_bucket_name, map_object_name)
-        osm_path = get_osm(progress_updater, request_body, args.work_dir, TELEMETRY)
+        osm_path = get_osm(progress_updater, request_body, args.work_dir)
         if osm_path is None:
             raise Exception("OSM path not available")
+        timing_get_osm_seconds = duration_since(get_osm_start_time)
         log_progress('get-osm-done')
-        get_osm_node = TELEMETRY.end_stage(get_osm_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, get_osm_node.get('maxRssKiB'))
         log_memory_checkpoint('after-get-osm')
 
         # Convert OSM => STL
-        osm_to_tactile_stage = TELEMETRY.start_stage('osm-to-tactile', component=COMPONENT_OSM_TO_TACTILE)
+        current_stage = 'osm-to-tactile'
+        osm_to_tactile_start_time = time_clock()
         log_progress('osm-to-tactile-start')
-        stl, stl_ways, stl_rest, svg, blend, meta, osm_to_tactile_rss_kib, osm_to_tactile_timings = run_osm_to_tactile(
-            progress_updater,
-            osm_path,
-            request_body,
-            TELEMETRY
-        )
-        if isinstance(osm_to_tactile_timings, dict):
-            for child in osm_to_tactile_timings.get('stages', []):
-                if isinstance(child, dict):
-                    TELEMETRY.attach_external_child(osm_to_tactile_stage, child)
+        stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
+        timing_osm_to_tactile_seconds = duration_since(osm_to_tactile_start_time)
+        stl_bytes = len(stl)
+        stl_ways_bytes = len(stl_ways)
+        stl_rest_bytes = len(stl_rest)
+        svg_bytes = len(svg)
+        blend_bytes = len(blend)
         log_progress('osm-to-tactile-done')
-        osm_to_tactile_node = TELEMETRY.end_stage(
-            osm_to_tactile_stage,
-            own_max_rss_kib=osm_to_tactile_rss_kib
-        )
-        request_max_rss_kib = _max_opt(request_max_rss_kib, osm_to_tactile_node.get('maxRssKiB'))
         raw_meta_path = os.path.join(os.path.dirname(osm_path), 'map-meta-raw.json')
         log_memory_checkpoint('after-run-osm-to-tactile')
 
         # Enrich map-meta.json
-        map_desc_stage = TELEMETRY.start_stage('map-desc', component=COMPONENT_MAP_DESC)
+        current_stage = 'map-desc'
+        map_desc_start_time = time_clock()
         log_progress('map-desc-start')
         map_desc_profile = {}
         run_map_desc(raw_meta_path, profile=map_desc_profile)
-        for key in ('group-map-data', 'write-map-meta', 'write-map-meta-augmented', 'write-map-content'):
-            value = map_desc_profile.get(key)
-            if isinstance(value, (int, float)):
-                TELEMETRY.attach_external_child(
-                    map_desc_stage,
-                    {
-                        'name': 'map-desc.' + key,
-                        'component': 'map-desc',
-                        'totalSec': float(value),
-                        'selfSec': float(value),
-                        'childSec': 0.0,
-                        'maxRssKiB': None,
-                        'children': [],
-                    }
-                )
+        timing_map_desc_seconds = duration_since(map_desc_start_time)
         log_progress('map-desc-done')
-        map_desc_node = TELEMETRY.end_stage(map_desc_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, map_desc_node.get('maxRssKiB'))
         log_memory_checkpoint('after-run-map-desc')
 
-        map_content_stage = TELEMETRY.start_stage('map-content-read', component=COMPONENT_MAP_CONTENT)
+        current_stage = 'map-content-read'
+        map_content_read_start_time = time_clock()
         map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
         log_progress('map-content-read-start', detail='path={}'.format(map_content_path))
         with open(map_content_path, 'rb') as f:
             map_content = f.read()
         map_content = attach_request_metadata_to_map_content(map_content, request_body)
+        map_content_bytes = len(map_content)
+        map_content_gzip_bytes = len(gzip.compress(map_content, compresslevel=5))
+        timing_map_content_read_seconds = duration_since(map_content_read_start_time)
         log_progress('map-content-read-done')
-        map_content_node = TELEMETRY.end_stage(map_content_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, map_content_node.get('maxRssKiB'))
         log_memory_checkpoint('after-attach-request-metadata')
 
         common_args = {
@@ -544,10 +582,16 @@ def main():
         }
 
         # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of created maps.
+        current_stage = 'prepare-upload'
         json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
+        info_object_name = json_object_name
+        map_content_key = name_base + '.map-content.json'
         info = build_info_payload(request_body, meta)
+        info_json_bytes = len(json.dumps(info).encode('utf8'))
+        stl_gzip_bytes = len(gzip.compress(stl, compresslevel=5))
 
-        upload_primary_stage = TELEMETRY.start_stage('upload-primary', component=COMPONENT_UPLOAD_PRIMARY)
+        current_stage = 'upload-primary'
+        upload_primary_start_time = time_clock()
         log_progress('upload-primary-start')
         upload_primary_assets(
             bucket,
@@ -560,20 +604,25 @@ def main():
             common_args,
             progress_logger=progress_logger
         )
+        timing_upload_primary_seconds = duration_since(upload_primary_start_time)
         log_progress('upload-primary-done')
-        upload_primary_node = TELEMETRY.end_stage(upload_primary_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, upload_primary_node.get('maxRssKiB'))
+        print("Processing main request took " + str(time_clock() - t))
         log_memory_checkpoint('after-upload-primary-assets')
 
         # Create PDF from SVG and put it to S3
-        svg_to_pdf_stage = TELEMETRY.start_stage('svg-to-pdf', component=COMPONENT_SVG_TO_PDF)
+        current_stage = 'svg-to-pdf'
+        svg_to_pdf_start_time = time_clock()
         log_progress('svg-to-pdf-start')
         pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
+        if isinstance(pdf, bytes):
+            pdf_bytes = len(pdf)
+        else:
+            pdf_bytes = None
+        timing_svg_to_pdf_seconds = duration_since(svg_to_pdf_start_time)
         log_progress('svg-to-pdf-done')
-        svg_to_pdf_node = TELEMETRY.end_stage(svg_to_pdf_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, svg_to_pdf_node.get('maxRssKiB'))
 
-        upload_secondary_stage = TELEMETRY.start_stage('upload-secondary', component=COMPONENT_UPLOAD_SECONDARY)
+        current_stage = 'upload-secondary'
+        upload_secondary_start_time = time_clock()
         log_progress('upload-secondary-start')
         upload_secondary_assets(
             bucket,
@@ -584,52 +633,146 @@ def main():
             stl_rest,
             blend,
             common_args,
-            progress_logger=progress_logger,
-            live_logger=lambda line: (
-                TELEMETRY.log(line, component=COMPONENT_UPLOAD_SECONDARY)
-                if TELEMETRY is not None else print(line)
-            )
+            progress_logger=progress_logger
         )
+        timing_upload_secondary_seconds = duration_since(upload_secondary_start_time)
         log_progress('upload-secondary-done')
-        upload_secondary_node = TELEMETRY.end_stage(upload_secondary_stage, own_max_rss_kib=None)
-        request_max_rss_kib = _max_opt(request_max_rss_kib, upload_secondary_node.get('maxRssKiB'))
         log_memory_checkpoint('after-upload-secondary-assets')
 
-        request_entire_sec = time_clock() - request_entire_start
-        TELEMETRY.log(
-            "SUMMARY request-entire (total {:.2f}s, maxRSS {})".format(
-                request_entire_sec,
-                _format_max_rss(request_max_rss_kib)
-            )
-        )
-        timings_dir = args.work_dir if args.work_dir else os.path.dirname(osm_path)
-        timings_path = os.path.join(timings_dir, 'request-timings.json')
-        TELEMETRY.write_json(
-            timings_path,
-            extra={
-                'requestId': request_id,
-                'totals': {
-                    'requestEntireSec': request_entire_sec,
-                }
-            }
-        )
-        TELEMETRY.log('timings-json: ' + timings_path)
+        print("Processing entire request took " + str(time_clock() - t))
         log_progress('complete', status='success')
-    except Exception as e:
-        try:
-            if TELEMETRY is not None:
-                TELEMETRY.log("process-request failed: " + str(e))
-            else:
+        status = 'success'
+    except BaseException as e:
+        failure_exception = e
+        failure_stage = current_stage
+        failure_class = e.__class__.__name__
+        failure_message = str(e)
+        status = 'failed'
+        if isinstance(e, Exception):
+            try:
                 print("process-request failed: " + str(e))
-            log_progress('failed', status='failed', detail=str(e))
-            log_memory_checkpoint('failed')
-            if s3 != None and map_bucket_name is not None and map_object_name is not None:
-                # Put map file that contains just the error message in metadata
-                s3.Bucket(map_bucket_name).put_object(Key=map_object_name, Body=b'', ACL='public-read', \
-                    CacheControl='max-age=8640000', StorageClass='GLACIER_IR', Metadata={ 'error-msg': str(e) })
-        except:
-            pass
-        sys.exit(1)
+                log_progress('failed', status='failed', detail=str(e))
+                log_memory_checkpoint('failed')
+                if s3 != None and map_bucket_name is not None and map_object_name is not None:
+                    # Put map file that contains just the error message in metadata
+                    s3.Bucket(map_bucket_name).put_object(Key=map_object_name, Body=b'', ACL='public-read', \
+                        CacheControl='max-age=8640000', StorageClass='GLACIER_IR', Metadata={ 'error-msg': str(e) })
+            except Exception:
+                pass
+    finally:
+        if STATS_ENABLED and request_body is not None:
+            try:
+                if stats_root_dir is None:
+                    stats_root_dir = stats_root_dir_from_work_dir((args.work_dir if args else None))
+                if map_id is None:
+                    map_id = stats_pipeline.map_id_from_request_id(request_id)
+                boundary = extract_boundary(meta)
+                marker1 = request_body.get('marker1') if isinstance(request_body, dict) else None
+                marker1_lat = None
+                marker1_lon = None
+                has_marker1 = False
+                if isinstance(marker1, dict):
+                    marker1_lat = marker1.get('lat')
+                    marker1_lon = marker1.get('lon')
+                    has_marker1 = (marker1_lat is not None and marker1_lon is not None)
+
+                total_elapsed = duration_since(processing_start_time)
+                stats_record = {
+                    'schema_version': 1,
+                    'timestamp': now_iso_utc(),
+                    'event_date': datetime.datetime.utcnow().date().isoformat(),
+                    'day': datetime.datetime.utcnow().strftime('%d'),
+                    'environment': environment,
+                    'worker': worker_name,
+                    'host': socket.gethostname(),
+                    'pid': os.getpid(),
+                    'request_id': request_id,
+                    'map_id': map_id,
+                    'status': status,
+                    'failure_stage': failure_stage,
+                    'failure_class': failure_class,
+                    'failure_message': failure_message,
+                    'termination_signal': progress_state.get('termination_signal'),
+                    'maps_bucket': map_bucket_name,
+                    'map_object_key': map_object_name,
+                    'info_object_key': info_object_name,
+                    'map_content_key': map_content_key,
+                    'browser_fingerprint': request_body.get('browserFingerprint'),
+                    'browser_ip': request_body.get('browserIp'),
+                    'browser_ip_country': None,
+                    'browser_ip_country_code': None,
+                    'browser_ip_region': None,
+                    'browser_ip_city': None,
+                    'browser_ip_latitude': None,
+                    'browser_ip_longitude': None,
+                    'addr_short': request_body.get('addrShort'),
+                    'addr_long': request_body.get('addrLong'),
+                    'printing_tech': request_body.get('printingTech'),
+                    'offset_x': request_body.get('offsetX'),
+                    'offset_y': request_body.get('offsetY'),
+                    'size_cm': request_body.get('size'),
+                    'exclude_buildings': request_body.get('excludeBuildings'),
+                    'hide_location_marker': request_body.get('hideLocationMarker'),
+                    'lon': request_body.get('lon'),
+                    'lat': request_body.get('lat'),
+                    'effective_lon_min': ((request_body.get('effectiveArea') or {}).get('lonMin')),
+                    'effective_lon_max': ((request_body.get('effectiveArea') or {}).get('lonMax')),
+                    'effective_lat_min': ((request_body.get('effectiveArea') or {}).get('latMin')),
+                    'effective_lat_max': ((request_body.get('effectiveArea') or {}).get('latMax')),
+                    'scale': request_body.get('scale'),
+                    'diameter_m': request_body.get('diameter'),
+                    'multipart_mode': request_body.get('multipartMode'),
+                    'no_borders': request_body.get('noBorders'),
+                    'multipart_xpc': request_body.get('multipartXpc'),
+                    'multipart_ypc': request_body.get('multipartYpc'),
+                    'advanced_mode': request_body.get('advancedMode'),
+                    'marker1_lat': marker1_lat,
+                    'marker1_lon': marker1_lon,
+                    'has_marker1': has_marker1,
+                    'timing_get_osm_seconds': timing_get_osm_seconds,
+                    'timing_osm_to_tactile_seconds': timing_osm_to_tactile_seconds,
+                    'timing_map_desc_seconds': timing_map_desc_seconds,
+                    'timing_map_content_read_seconds': timing_map_content_read_seconds,
+                    'timing_upload_primary_seconds': timing_upload_primary_seconds,
+                    'timing_svg_to_pdf_seconds': timing_svg_to_pdf_seconds,
+                    'timing_upload_secondary_seconds': timing_upload_secondary_seconds,
+                    'timing_total_seconds': total_elapsed,
+                    'timing_failed_after_seconds': (total_elapsed if status == 'failed' else None),
+                    'stl_bytes': stl_bytes,
+                    'stl_gzip_bytes': stl_gzip_bytes,
+                    'stl_ways_bytes': stl_ways_bytes,
+                    'stl_rest_bytes': stl_rest_bytes,
+                    'svg_bytes': svg_bytes,
+                    'pdf_bytes': pdf_bytes,
+                    'blend_bytes': blend_bytes,
+                    'map_content_bytes': map_content_bytes,
+                    'map_content_gzip_bytes': map_content_gzip_bytes,
+                    'info_json_bytes': info_json_bytes,
+                    'meta_nodes_count': count_entries((meta or {}).get('nodes') if isinstance(meta, dict) else None),
+                    'meta_ways_count': count_entries((meta or {}).get('ways') if isinstance(meta, dict) else None),
+                    'meta_areas_count': count_entries((meta or {}).get('areas') if isinstance(meta, dict) else None),
+                    'boundary_min_x': boundary.get('minX'),
+                    'boundary_min_y': boundary.get('minY'),
+                    'boundary_max_x': boundary.get('maxX'),
+                    'boundary_max_y': boundary.get('maxY'),
+                    'map_desc_profile_json': json_profile_or_none(map_desc_profile),
+                }
+                stats_pipeline.write_attempt_record(
+                    stats_root_dir=stats_root_dir,
+                    record=stats_record,
+                    quicktime_mode=STATS_QUICKTIME_MODE,
+                    s3_resource=stats_s3,
+                    stats_bucket_name=stats_bucket_name
+                )
+            except Exception as stats_error:
+                print("stats write failed: " + str(stats_error))
+
+        if failure_exception is not None:
+            if isinstance(failure_exception, SystemExit):
+                raise failure_exception
+            if isinstance(failure_exception, KeyboardInterrupt):
+                raise failure_exception
+            sys.exit(1)
 
 # never output anything
 
