@@ -139,10 +139,19 @@ function initInputs(outputs, osmDragPanInteraction) {
     .change();
 
   // Scale preset
+  var mapScalePresetElem = $("#map-scale-preset");
+  var storedScalePreset = getLocalStorageStr("map-scale-preset", "2400");
+  if (! optionExistsInSelect(mapScalePresetElem, storedScalePreset)) {
+    storedScalePreset = "";
+    setLocalStorage("map-scale-preset", storedScalePreset);
+  }
   $("#map-scale-preset").change(function(){
-    $("#scale-input").val($(this).val()).change();
-    setLocalStorage("map-scale-preset", $(this).val());
-  }).val(getLocalStorageStr("map-scale-preset", "2400"))
+    var preset = $(this).val() || "";
+    if (preset !== "") {
+      $("#scale-input").val(preset).change();
+    }
+    setLocalStorage("map-scale-preset", preset);
+  }).val(storedScalePreset)
     .change();
 
   // Advanced mode

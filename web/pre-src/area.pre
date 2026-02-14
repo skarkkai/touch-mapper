@@ -79,7 +79,10 @@
         <option value="4200">1:4200</option>
         <option value="5600">1:5600 &ndash; {{ map_scale__5600 }}</option>
         <option value="7500">1:7500</option>
-        <option value="9999">1:9999 &ndash; {{ map_scale__9999 }}</option>
+        <option value="10000">1:10000</option>
+        <option value="13000">1:13000</option>
+        <option value="17000">1:17000</option>
+        <option value="23000">1:23000</option>
       </select>
       <div class="map-scale-coverage" aria-live="polite"></div>
     </div>
@@ -167,7 +170,7 @@
       </div>
       <div class="col col2">
         <span class="one-to">1 :</span>
-        <input id="scale-input" type="number" value="2400" min="500" max="9999" required />
+        <input id="scale-input" type="number" value="2400" min="500" max="99999" required />
       </div>
     </div>
 
