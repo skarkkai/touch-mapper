@@ -375,14 +375,21 @@ def export_wireframe_png(base_path, output_name, min_x, min_y, max_x, max_y):
     print("creating wireframe PNG took %.2f" % (time.time() - t))
 
 def create_cube(min_x, min_y, max_x, max_y, min_z, max_z):
+    x1 = min(min_x, max_x)
+    x2 = max(min_x, max_x)
+    y1 = min(min_y, max_y)
+    y2 = max(min_y, max_y)
+    z1 = min(min_z, max_z)
+    z2 = max(min_z, max_z)
+
     bpy.ops.mesh.primitive_cube_add()
     cube = bpy.context.active_object
     bpy.ops.object.mode_set(mode = 'EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.normals_make_consistent()
     bpy.ops.object.mode_set(mode = 'OBJECT')
-    cube.location = [ (min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2 ]
-    cube.scale = [ (max_x - min_x) / 2, (max_y - min_y) / 2, (max_z - min_z) / 2 ]
+    cube.location = [ (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2 ]
+    cube.scale = [ (x2 - x1) / 2, (y2 - y1) / 2, (z2 - z1) / 2 ]
     bpy.context.scene.update() # flush changes to location and scale
     return cube
 
