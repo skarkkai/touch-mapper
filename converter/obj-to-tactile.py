@@ -533,7 +533,7 @@ def water_remesh_and_extrude(object, extrude_height):
     bpy.ops.object.mode_set(mode = 'OBJECT')
 
     # Remesh
-    max_dimension = max(object.dimensions[0], object.dimensions[2])
+    max_dimension = max(object.dimensions[0], object.dimensions[1])
     depth = min(max(math.log2(max_dimension) - 1, 2), 8) # Max vertex distance == 2m => max dimension 128 == remesh depth 6 (or so)
     modifier = object.modifiers.new('Modifier', 'REMESH')
     modifier.octree_depth = math.ceil(depth)
@@ -550,23 +550,23 @@ def water_wave_pattern(object, depth, scale):
     bm = bmesh.from_edit_mesh(object.data)
     bm.verts.ensure_lookup_table()
 
-    # Record x,z positions of edge verts (verts of non-horizontal edges)
+    # Record x,y positions of edge verts (verts of non-horizontal edges)
     edge_verts = {}
     for edge in bm.edges:
         verts = edge.verts
-        if abs(verts[0].co.y - verts[1].co.y) > extrude_height / 2:
-            edge_verts[str(verts[0].co.x) + ',' + str(verts[0].co.z)] = True
+        if abs(verts[0].co.z - verts[1].co.z) > extrude_height / 2:
+            edge_verts[str(verts[0].co.x) + ',' + str(verts[0].co.y)] = True
 
-    # Set top verts' y positions. Bottom verts are at 0.
+    # Set top verts' z positions. Bottom verts are at 0.
     density = math.pi * 2 / tc.WATER_WAVE_DISTANCE_MM / (scale/1000) 
     for v in bm.verts:
-        if v.co.y > extrude_height / 2:
+        if v.co.z > extrude_height / 2:
             min_height = -10000
-            if str(v.co.x) + ',' + str(v.co.z) in edge_verts:
+            if str(v.co.x) + ',' + str(v.co.y) in edge_verts:
                 min_height = depth / 4
-            v.co.y = max(min_height, (math.sin(v.co.x * density) + math.sin(v.co.z * density)) * depth / 4 + depth / 2)
+            v.co.z = max(min_height, (math.sin(v.co.x * density) + math.sin(v.co.y * density)) * depth / 4 + depth / 2)
         else:
-            v.co.y = 0
+            v.co.z = 0
     bmesh.update_edit_mesh(object.data, tessface=False, destructive=False)
 
     bpy.ops.object.mode_set(mode = 'OBJECT')
