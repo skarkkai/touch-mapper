@@ -38,10 +38,22 @@ function eraseCookie(name) {
 }
 
 function computeLonLat(data) {
-  var metersPerDeg = mapCalc.metersPerDegree(data.get("lat"));
+  function toNumberOrDefault(value, defaultValue) {
+    var parsed = parseFloat(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  var lat = toNumberOrDefault(data.get("lat"), 0);
+  var lon = toNumberOrDefault(data.get("lon"), 0);
+  var offsetX = toNumberOrDefault(data.get("offsetX"), 0);
+  var offsetY = toNumberOrDefault(data.get("offsetY"), 0);
+  var multipartXpc = toNumberOrDefault(data.get("multipartXpc"), 0);
+  var multipartYpc = toNumberOrDefault(data.get("multipartYpc"), 0);
+  var diameter = toNumberOrDefault(mapDiameter(), 0);
+  var metersPerDeg = mapCalc.metersPerDegree(lat);
   return [
-      data.get("lon") + (data.get("offsetX") + data.get("multipartXpc") / 100 * mapDiameter()) / metersPerDeg.lon,
-      data.get("lat") + (data.get("offsetY") + data.get("multipartYpc") / 100 * mapDiameter()) / metersPerDeg.lat ];
+      lon + (offsetX + multipartXpc / 100 * diameter) / metersPerDeg.lon,
+      lat + (offsetY + multipartYpc / 100 * diameter) / metersPerDeg.lat ];
 }
 
 function getUrlParam(name, url) {
@@ -181,7 +193,8 @@ function getLocalStorageStr(key, defaultValue) {
 }
 function getLocalStorageInt(key, defaultValue) {
   var str = getLocalStorageStr(key);
-  return str ? parseInt(str, 10) : defaultValue;
+  var value = str ? parseInt(str, 10) : defaultValue;
+  return isNaN(value) ? defaultValue : value;
 }
 
 function newMapId() {
@@ -249,6 +262,16 @@ window.storeMapSettingsFromInfo = function(info) {
     return "";
   }
 
+  function getInfoValue(keys, defaultValue) {
+    var i;
+    for (i = 0; i < keys.length; i++) {
+      if (info[keys[i]] !== undefined && info[keys[i]] !== null) {
+        return info[keys[i]];
+      }
+    }
+    return defaultValue;
+  }
+
   setLocalStorage("addresses", JSON.stringify([{
     addrShort: withDefault(info.addrShort, ""),
     addrLong: withDefault(info.addrLong, ""),
@@ -257,8 +280,8 @@ window.storeMapSettingsFromInfo = function(info) {
   }]));
   setLocalStorage("addressesSelectedIndex", 0);
 
-  setLocalStorage("offsetX", info.offsetX);
-  setLocalStorage("offsetY", info.offsetY);
+  setLocalStorage("offsetX", getInfoValue(["offsetX", "offset_x"], 0));
+  setLocalStorage("offsetY", getInfoValue(["offsetY", "offset_y"], 0));
   setLocalStorage("printing-tech", withDefault(info.printingTech, "3d"));
   setLocalStorage("exclude-buildings", withDefault(info.excludeBuildings, false));
   setLocalStorage("hide-location-marker", withDefault(info.hideLocationMarker, false));
@@ -269,8 +292,8 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage("lon", info.lon);
   setLocalStorage("size", info.size);
   setLocalStorage("scale", info.scale);
-  setLocalStorage("multipartMode", withDefault(info.multipartMode, false));
-  setLocalStorage("multipartXpc", info.multipartXpc);
-  setLocalStorage("multipartYpc", info.multipartYpc);
+  setLocalStorage("multipartMode", getInfoValue(["multipartMode", "multipart_mode"], false));
+  setLocalStorage("multipartXpc", getInfoValue(["multipartXpc", "multipart_xpc"], 0));
+  setLocalStorage("multipartYpc", getInfoValue(["multipartYpc", "multipart_ypc"], 0));
   setLocalStorage("previousAddress", withDefault(info.addrLong, ""));
 };
