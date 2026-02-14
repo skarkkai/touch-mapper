@@ -24,8 +24,8 @@
     </target>
 
     <target name="clean">
-	<delete includeemptydirs="true"><fileset dir="bin" includes="**/*"/></delete>
-	<delete includeemptydirs="true"><fileset dir="build" includes="*" excludes="*.config,*.inc,*.sh,*.bat,texture*"/></delete>
+	<delete includeemptydirs="true"><fileset dir="bin" includes="**/*" erroronmissingdir="false"/></delete>
+	<delete includeemptydirs="true"><fileset dir="build" includes="*" excludes="*.config,*.inc,*.sh,*.bat,texture*" erroronmissingdir="false"/></delete>
 	<delete dir="doc/javadoc"/>
     </target>
 

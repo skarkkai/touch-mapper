@@ -18,8 +18,8 @@ echo "/swap  none  swap  sw 0  0" | sudo tee -a /etc/fstab
 dir=~ubuntu/touch-mapper
 for execmode in test prod; do
     mkdir -p $dir/$execmode/runtime
+    mkdir -p $dir/$execmode/stats
 done
 
 # Make a symlink whose target will be installed a bit later
 sudo ln -s $dir/test/dist/ec2-init.sh /etc/init.d/touch-mapper
-

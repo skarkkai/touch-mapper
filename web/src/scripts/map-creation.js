@@ -53,6 +53,66 @@
     pollProgress(startTime, requestId);
   }
 
+  function sendSqsRequest(msg) {
+    var body = encodeURIComponent(JSON.stringify(msg));
+    $.ajax({
+        type: "GET",
+        url: window.TM_MAP_REQUEST_SQS_QUEUE + "?Action=SendMessage&MessageBody=" + body + "&Version=2012-11-05"
+    }).done(function(d, textStatus, jqXHR){
+      sqsSendDone(msg.requestId);
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+      showError("can't access SQS queue: " + textStatus + ": " + errorThrown);
+    });
+  }
+
+  function withBrowserIp(msg, done) {
+    $.ajax({
+      type: "GET",
+      url: "https://api.ipify.org?format=json",
+      dataType: "json",
+      timeout: 1500
+    }).done(function(response) {
+      if (response && typeof response.ip === "string" && response.ip.length > 0) {
+        msg.browserIp = response.ip;
+      }
+    }).always(function() {
+      done();
+    });
+  }
+
+  function hashStringFNV1a(text) {
+    var hash = 2166136261;
+    for (var i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return ("00000000" + (hash >>> 0).toString(16)).slice(-8);
+  }
+
+  function buildBrowserFingerprint() {
+    var timezone = "";
+    try {
+      timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    } catch (e) {
+      timezone = "";
+    }
+    var parts = [
+      navigator.userAgent || "",
+      navigator.language || "",
+      (navigator.languages || []).join(","),
+      navigator.platform || "",
+      timezone,
+      String(screen.width || ""),
+      String(screen.height || ""),
+      String(screen.colorDepth || ""),
+      String(window.devicePixelRatio || ""),
+      String(navigator.hardwareConcurrency || ""),
+      String(navigator.deviceMemory || ""),
+      String(navigator.maxTouchPoints || "")
+    ];
+    return "fp1-" + hashStringFNV1a(parts.join("|"));
+  }
+
   window.submitMapCreation = function() {
     var radius = mapDiameter() / 2;
     if (Math.abs(data.get("offsetX")) >= radius || Math.abs(data.get("offsetY")) >= radius) {
@@ -92,6 +152,7 @@
       multipartXpc: data.get("multipartXpc"),
       multipartYpc: data.get("multipartYpc"),
       advancedMode: data.get("advancedMode") || false,
+      browserFingerprint: buildBrowserFingerprint(),
       requestId: (function(){
           var id = newMapId() + "/" + data.get("selected_addr_short").replace(/[\x00-\x1F\x80-\x9F/]/g, '_');
           var xpc = data.get("multipartXpc");
@@ -109,15 +170,9 @@
         lon: parseFloat(data.get("lon"))
       };
     }
-    var body = encodeURIComponent(JSON.stringify(msg));
     $("#submit-button").val(window.TM.translations.progress__connecting);
-    $.ajax({
-        type: "GET",
-        url: window.TM_MAP_REQUEST_SQS_QUEUE + "?Action=SendMessage&MessageBody=" + body + "&Version=2012-11-05"
-    }).done(function(d, textStatus, jqXHR){
-      sqsSendDone(msg.requestId);
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-      showError("can't access SQS queue: " + textStatus + ": " + errorThrown);
+    withBrowserIp(msg, function() {
+      sendSqsRequest(msg);
     });
     //fbq('track', 'ViewContent');
   };

@@ -4,21 +4,28 @@
     "Environment": {
       "Description": "Environment Name: test, prod, or dev-USERNAME",
       "Type": "String",
-      "AllowedPattern" : "dev-.+|test|prod"
+      "AllowedPattern": "dev-.+|test|prod"
     },
     "IsDevEnv": {
       "Description": "True if this is a development environment, so eg. has no Route53 domain name. Environment name should start with 'dev-'.",
       "Type": "String",
-      "AllowedPattern" : "true|false"
+      "AllowedPattern": "true|false"
     },
     "Domain": {
       "Description": "CloudFront domain for non-dev. Also defines S3 bucket names.",
       "Type": "String",
-      "AllowedPattern" : ".*touch-mapper.org"
+      "AllowedPattern": ".*touch-mapper.org"
     }
   },
   "Conditions": {
-    "IsDevEnv": { "Fn::Equals": [ { "Ref": "IsDevEnv" }, "true" ] }
+    "IsDevEnv": {
+      "Fn::Equals": [
+        {
+          "Ref": "IsDevEnv"
+        },
+        "true"
+      ]
+    }
   },
   "Resources": {
     "Logs": {
@@ -28,7 +35,17 @@
         "VersioningConfiguration": {
           "Status": "Suspended"
         },
-        "BucketName": { "Fn::Join": [ ".", [ { "Ref" : "Environment"}, "logs.touch-mapper" ] ] }
+        "BucketName": {
+          "Fn::Join": [
+            ".",
+            [
+              {
+                "Ref": "Environment"
+              },
+              "logs.touch-mapper"
+            ]
+          ]
+        }
       }
     },
     "WebBucket": {
@@ -48,14 +65,20 @@
         "VersioningConfiguration": {
           "Status": "Suspended"
         },
-        "BucketName": { "Ref": "Domain" }
+        "BucketName": {
+          "Ref": "Domain"
+        }
       }
     },
     "WebBucketRedirect": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
         "WebsiteConfiguration": {
-          "RedirectAllRequestsTo": { "HostName": { "Ref": "Domain" } }
+          "RedirectAllRequestsTo": {
+            "HostName": {
+              "Ref": "Domain"
+            }
+          }
         },
         "AccessControl": "PublicRead",
         "LoggingConfiguration": {
@@ -67,7 +90,17 @@
         "VersioningConfiguration": {
           "Status": "Suspended"
         },
-        "BucketName": { "Fn::Join": [ ".", [ "www", { "Ref": "Domain" } ] ] }
+        "BucketName": {
+          "Fn::Join": [
+            ".",
+            [
+              "www",
+              {
+                "Ref": "Domain"
+              }
+            ]
+          ]
+        }
       }
     },
     "MapsBucket": {
@@ -84,24 +117,80 @@
           "LogFilePrefix": "maps/"
         },
         "CorsConfiguration": {
-          "CorsRules": [{
-            "AllowedMethods": ["GET", "HEAD"],
-            "AllowedOrigins": ["*"],
-            "ExposedHeaders": ["x-amz-meta-processing-stage", "x-amz-meta-error-msg"]
-          }]
+          "CorsRules": [
+            {
+              "AllowedMethods": [
+                "GET",
+                "HEAD"
+              ],
+              "AllowedOrigins": [
+                "*"
+              ],
+              "ExposedHeaders": [
+                "x-amz-meta-processing-stage",
+                "x-amz-meta-error-msg"
+              ]
+            }
+          ]
         },
         "LifecycleConfiguration": {
-          "Rules": [{
-            "ExpirationInDays": "180",
-            "Id": "Delete after 180 days",
-            "Prefix": "map/data/",
-            "Status": "Enabled"
-          }]
+          "Rules": [
+            {
+              "ExpirationInDays": "180",
+              "Id": "Delete after 180 days",
+              "Prefix": "map/data/",
+              "Status": "Enabled"
+            }
+          ]
         },
         "VersioningConfiguration": {
           "Status": "Suspended"
         },
-        "BucketName": { "Fn::Join": [ ".", [ { "Ref" : "Environment"}, "maps.touch-mapper" ] ] }
+        "BucketName": {
+          "Fn::Join": [
+            ".",
+            [
+              {
+                "Ref": "Environment"
+              },
+              "maps.touch-mapper"
+            ]
+          ]
+        }
+      }
+    },
+    "StatsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "BucketName": {
+          "Fn::Join": [
+            ".",
+            [
+              {
+                "Ref": "Environment"
+              },
+              "stats.touch-mapper"
+            ]
+          ]
+        }
       }
     },
     "RequestsQueue": {
@@ -112,25 +201,539 @@
         "MessageRetentionPeriod": "300",
         "ReceiveMessageWaitTimeSeconds": "20",
         "VisibilityTimeout": "600",
-        "QueueName": { "Fn::Join": [ "-", [ { "Ref" : "Environment"}, "requests-touch-mapper" ] ] }
+        "QueueName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "Environment"
+              },
+              "requests-touch-mapper"
+            ]
+          ]
+        }
       }
     },
     "RequestsSqsPolicy": {
       "Type": "AWS::SQS::QueuePolicy",
       "Properties": {
-        "Queues": [{
-          "Ref": "RequestsQueue"
-        }],
+        "Queues": [
+          {
+            "Ref": "RequestsQueue"
+          }
+        ],
         "PolicyDocument": {
           "Version": "2012-10-17",
-          "Statement": [{
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": ["SQS:GetQueueAttributes", "SQS:SendMessage"],
-            "Resource": {
-              "Fn::GetAtt": ["RequestsQueue", "Arn"]
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": [
+                "SQS:GetQueueAttributes",
+                "SQS:SendMessage"
+              ],
+              "Resource": {
+                "Fn::GetAtt": [
+                  "RequestsQueue",
+                  "Arn"
+                ]
+              }
             }
-          }]
+          ]
+        }
+      }
+    },
+    "StatsAthenaDatabase": {
+      "Type": "AWS::Glue::Database",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseInput": {
+          "Name": {
+            "Fn::Join": [
+              "_",
+              [
+                "touch_mapper_stats",
+                {
+                  "Fn::Join": [
+                    "_",
+                    {
+                      "Fn::Split": [
+                        "-",
+                        {
+                          "Ref": "Environment"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "ApplicationStatsJsonTable": {
+      "Type": "AWS::Glue::Table",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseName": {
+          "Ref": "StatsAthenaDatabase"
+        },
+        "TableInput": {
+          "Name": "application_stats_json",
+          "TableType": "EXTERNAL_TABLE",
+          "Parameters": {
+            "EXTERNAL": "TRUE",
+            "classification": "json",
+            "projection.enabled": "true",
+            "projection.year.type": "integer",
+            "projection.year.range": "2024,2100",
+            "projection.month.type": "integer",
+            "projection.month.range": "1,12",
+            "projection.month.digits": "2",
+            "storage.location.template": {
+              "Fn::Join": [
+                "",
+                [
+                  "s3://",
+                  {
+                    "Ref": "StatsBucket"
+                  },
+                  "/stats-json/${year}/${month}/"
+                ]
+              ]
+            }
+          },
+          "PartitionKeys": [
+            {
+              "Name": "year",
+              "Type": "string",
+              "Comment": "Partition key for UTC year derived from S3 object path."
+            },
+            {
+              "Name": "month",
+              "Type": "string",
+              "Comment": "Partition key for UTC month derived from S3 object path."
+            }
+          ],
+          "StorageDescriptor": {
+            "Columns": [
+              {
+                "Name": "schema_version",
+                "Type": "int",
+                "Comment": "Version number of this telemetry record schema for backward-compatible query handling."
+              },
+              {
+                "Name": "timestamp",
+                "Type": "string",
+                "Comment": "UTC time when the telemetry record was written in ISO 8601 format."
+              },
+              {
+                "Name": "event_date",
+                "Type": "string",
+                "Comment": "UTC calendar date for the record in YYYY-MM-DD format."
+              },
+              {
+                "Name": "day",
+                "Type": "string",
+                "Comment": "UTC day-of-month component as two digits."
+              },
+              {
+                "Name": "environment",
+                "Type": "string",
+                "Comment": "Deployment environment name that processed the request."
+              },
+              {
+                "Name": "worker",
+                "Type": "string",
+                "Comment": "Worker identifier derived from the runtime worker directory."
+              },
+              {
+                "Name": "host",
+                "Type": "string",
+                "Comment": "Host machine name where processing occurred."
+              },
+              {
+                "Name": "pid",
+                "Type": "int",
+                "Comment": "Operating system process id of the converter process."
+              },
+              {
+                "Name": "request_id",
+                "Type": "string",
+                "Comment": "Full map request identifier received from the browser payload."
+              },
+              {
+                "Name": "map_id",
+                "Type": "string",
+                "Comment": "Map identifier prefix derived from request_id before the slash."
+              },
+              {
+                "Name": "status",
+                "Type": "string",
+                "Comment": "Terminal processing status such as success or failed."
+              },
+              {
+                "Name": "failure_stage",
+                "Type": "string",
+                "Comment": "Pipeline stage active when processing failed, if any."
+              },
+              {
+                "Name": "failure_class",
+                "Type": "string",
+                "Comment": "Exception class name captured on processing failure."
+              },
+              {
+                "Name": "failure_message",
+                "Type": "string",
+                "Comment": "Exception message captured on processing failure."
+              },
+              {
+                "Name": "termination_signal",
+                "Type": "int",
+                "Comment": "Termination signal number if the process received SIGTERM or SIGINT."
+              },
+              {
+                "Name": "maps_bucket",
+                "Type": "string",
+                "Comment": "S3 bucket name used for main map artifact uploads."
+              },
+              {
+                "Name": "map_object_key",
+                "Type": "string",
+                "Comment": "S3 object key of the primary STL completion marker object."
+              },
+              {
+                "Name": "info_object_key",
+                "Type": "string",
+                "Comment": "S3 object key of the map info JSON object."
+              },
+              {
+                "Name": "map_content_key",
+                "Type": "string",
+                "Comment": "S3 object key of the map-content JSON object."
+              },
+              {
+                "Name": "browser_fingerprint",
+                "Type": "string",
+                "Comment": "Hashed browser fingerprint used for approximate unique visitor estimation."
+              },
+              {
+                "Name": "browser_ip",
+                "Type": "string",
+                "Comment": "Public client IP address reported by browser-side lookup when available."
+              },
+              {
+                "Name": "browser_ip_country",
+                "Type": "string",
+                "Comment": "Country name resolved from browser_ip geolocation lookup."
+              },
+              {
+                "Name": "browser_ip_country_code",
+                "Type": "string",
+                "Comment": "Country code resolved from browser_ip geolocation lookup."
+              },
+              {
+                "Name": "browser_ip_region",
+                "Type": "string",
+                "Comment": "Region or state resolved from browser_ip geolocation lookup."
+              },
+              {
+                "Name": "browser_ip_city",
+                "Type": "string",
+                "Comment": "City resolved from browser_ip geolocation lookup."
+              },
+              {
+                "Name": "browser_ip_latitude",
+                "Type": "double",
+                "Comment": "Latitude resolved from browser_ip geolocation lookup."
+              },
+              {
+                "Name": "browser_ip_longitude",
+                "Type": "double",
+                "Comment": "Longitude resolved from browser_ip geolocation lookup."
+              },
+              {
+                "Name": "addr_short",
+                "Type": "string",
+                "Comment": "Short address label selected by the user."
+              },
+              {
+                "Name": "addr_long",
+                "Type": "string",
+                "Comment": "Full address label selected by the user."
+              },
+              {
+                "Name": "printing_tech",
+                "Type": "string",
+                "Comment": "Selected printing technology mode such as 3d or 2d."
+              },
+              {
+                "Name": "offset_x",
+                "Type": "int",
+                "Comment": "Map area X-offset in meters from the selected center."
+              },
+              {
+                "Name": "offset_y",
+                "Type": "int",
+                "Comment": "Map area Y-offset in meters from the selected center."
+              },
+              {
+                "Name": "size_cm",
+                "Type": "double",
+                "Comment": "Requested physical map size in centimeters."
+              },
+              {
+                "Name": "exclude_buildings",
+                "Type": "boolean",
+                "Comment": "Whether building geometry was excluded from map generation."
+              },
+              {
+                "Name": "hide_location_marker",
+                "Type": "boolean",
+                "Comment": "Whether the location marker was omitted from the map."
+              },
+              {
+                "Name": "lon",
+                "Type": "double",
+                "Comment": "Requested map center longitude sent by browser."
+              },
+              {
+                "Name": "lat",
+                "Type": "double",
+                "Comment": "Requested map center latitude sent by browser."
+              },
+              {
+                "Name": "effective_lon_min",
+                "Type": "double",
+                "Comment": "Minimum longitude of the effective requested map bounding box."
+              },
+              {
+                "Name": "effective_lon_max",
+                "Type": "double",
+                "Comment": "Maximum longitude of the effective requested map bounding box."
+              },
+              {
+                "Name": "effective_lat_min",
+                "Type": "double",
+                "Comment": "Minimum latitude of the effective requested map bounding box."
+              },
+              {
+                "Name": "effective_lat_max",
+                "Type": "double",
+                "Comment": "Maximum latitude of the effective requested map bounding box."
+              },
+              {
+                "Name": "scale",
+                "Type": "int",
+                "Comment": "Requested map scale denominator used for conversion."
+              },
+              {
+                "Name": "diameter_m",
+                "Type": "int",
+                "Comment": "Requested map diameter in meters for the selected area."
+              },
+              {
+                "Name": "multipart_mode",
+                "Type": "boolean",
+                "Comment": "Whether multipart map mode was enabled by the user."
+              },
+              {
+                "Name": "no_borders",
+                "Type": "boolean",
+                "Comment": "Whether map border geometry generation was disabled."
+              },
+              {
+                "Name": "multipart_xpc",
+                "Type": "int",
+                "Comment": "Multipart horizontal offset as percent of map diameter."
+              },
+              {
+                "Name": "multipart_ypc",
+                "Type": "int",
+                "Comment": "Multipart vertical offset as percent of map diameter."
+              },
+              {
+                "Name": "advanced_mode",
+                "Type": "boolean",
+                "Comment": "Whether advanced UI options were enabled for this request."
+              },
+              {
+                "Name": "marker1_lat",
+                "Type": "double",
+                "Comment": "Latitude of marker1 when a marker was included."
+              },
+              {
+                "Name": "marker1_lon",
+                "Type": "double",
+                "Comment": "Longitude of marker1 when a marker was included."
+              },
+              {
+                "Name": "has_marker1",
+                "Type": "boolean",
+                "Comment": "True when marker1 coordinates were present in request payload."
+              },
+              {
+                "Name": "timing_get_osm_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent downloading OSM data."
+              },
+              {
+                "Name": "timing_osm_to_tactile_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent in OSM-to-tactile conversion stage."
+              },
+              {
+                "Name": "timing_map_desc_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent generating map description metadata."
+              },
+              {
+                "Name": "timing_map_content_read_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent reading and enriching map-content JSON."
+              },
+              {
+                "Name": "timing_upload_primary_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent uploading primary map artifacts."
+              },
+              {
+                "Name": "timing_svg_to_pdf_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent converting SVG to PDF."
+              },
+              {
+                "Name": "timing_upload_secondary_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent uploading secondary map artifacts."
+              },
+              {
+                "Name": "timing_total_seconds",
+                "Type": "double",
+                "Comment": "Total elapsed seconds from request pickup to terminal state."
+              },
+              {
+                "Name": "timing_failed_after_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds until failure for failed attempts, otherwise null."
+              },
+              {
+                "Name": "stl_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of the generated STL artifact."
+              },
+              {
+                "Name": "stl_gzip_bytes",
+                "Type": "bigint",
+                "Comment": "Gzipped byte size of the generated STL artifact."
+              },
+              {
+                "Name": "stl_ways_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of the generated ways-only STL artifact."
+              },
+              {
+                "Name": "stl_rest_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of the generated rest-of-map STL artifact."
+              },
+              {
+                "Name": "svg_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of the generated SVG artifact."
+              },
+              {
+                "Name": "pdf_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of the generated PDF artifact."
+              },
+              {
+                "Name": "blend_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of the generated Blender artifact."
+              },
+              {
+                "Name": "map_content_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of map-content JSON after request metadata attachment."
+              },
+              {
+                "Name": "map_content_gzip_bytes",
+                "Type": "bigint",
+                "Comment": "Gzipped byte size of map-content JSON after request metadata attachment."
+              },
+              {
+                "Name": "info_json_bytes",
+                "Type": "bigint",
+                "Comment": "Uncompressed byte size of info JSON uploaded for map page bootstrap."
+              },
+              {
+                "Name": "meta_nodes_count",
+                "Type": "int",
+                "Comment": "Count of node entries present in raw converter metadata."
+              },
+              {
+                "Name": "meta_ways_count",
+                "Type": "int",
+                "Comment": "Count of way entries present in raw converter metadata."
+              },
+              {
+                "Name": "meta_areas_count",
+                "Type": "int",
+                "Comment": "Count of area entries present in raw converter metadata."
+              },
+              {
+                "Name": "boundary_min_x",
+                "Type": "double",
+                "Comment": "Minimum X value of map boundary from converter metadata."
+              },
+              {
+                "Name": "boundary_min_y",
+                "Type": "double",
+                "Comment": "Minimum Y value of map boundary from converter metadata."
+              },
+              {
+                "Name": "boundary_max_x",
+                "Type": "double",
+                "Comment": "Maximum X value of map boundary from converter metadata."
+              },
+              {
+                "Name": "boundary_max_y",
+                "Type": "double",
+                "Comment": "Maximum Y value of map boundary from converter metadata."
+              },
+              {
+                "Name": "map_desc_profile_json",
+                "Type": "string",
+                "Comment": "JSON string containing detailed map description stage profiling timings."
+              }
+            ],
+            "Location": {
+              "Fn::Join": [
+                "",
+                [
+                  "s3://",
+                  {
+                    "Ref": "StatsBucket"
+                  },
+                  "/stats-json/"
+                ]
+              ]
+            },
+            "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+            "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+            "SerdeInfo": {
+              "SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe",
+              "Parameters": {
+                "ignore.malformed.json": "true"
+              }
+            }
+          }
         }
       }
     },
@@ -142,14 +745,25 @@
         },
         "PolicyDocument": {
           "Version": "2012-10-17",
-          "Statement": [{
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": {
-              "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "WebBucket" }, "/*"]]
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "WebBucket"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
             }
-          }]
+          ]
         }
       }
     },
@@ -158,22 +772,54 @@
       "Properties": {
         "DistributionConfig": {
           "Aliases": [
-            { "Ref": "Domain" },
-            { "Fn::Join": [ "", [ "*.", { "Ref": "Domain" } ] ] }
+            {
+              "Ref": "Domain"
+            },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "*.",
+                  {
+                    "Ref": "Domain"
+                  }
+                ]
+              ]
+            }
           ],
           "Enabled": true,
           "PriceClass": "PriceClass_All",
           "Origins": [
             {
               "Id": "web",
-              "DomainName": { "Fn::Select": [ "2", { "Fn::Split": [ "/", { "Fn::GetAtt": [ "WebBucket", "WebsiteURL" ] } ] } ] } ,
+              "DomainName": {
+                "Fn::Select": [
+                  "2",
+                  {
+                    "Fn::Split": [
+                      "/",
+                      {
+                        "Fn::GetAtt": [
+                          "WebBucket",
+                          "WebsiteURL"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
               "CustomOriginConfig": {
                 "OriginProtocolPolicy": "http-only"
               }
             },
             {
               "Id": "maps",
-              "DomainName": { "Fn::GetAtt": [ "MapsBucket", "DomainName" ] },
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "MapsBucket",
+                  "DomainName"
+                ]
+              },
               "S3OriginConfig": {}
             }
           ],
@@ -186,15 +832,22 @@
             "MaxTTL": 3600,
             "Compress": true,
             "AllowedMethods": [
-              "HEAD", "GET", "OPTIONS"
+              "HEAD",
+              "GET",
+              "OPTIONS"
             ],
             "CachedMethods": [
-              "HEAD", "GET"
+              "HEAD",
+              "GET"
             ],
             "ForwardedValues": {
               "QueryString": false,
-              "Headers": [ "Origin" ],
-              "Cookies": { "Forward": "none" }
+              "Headers": [
+                "Origin"
+              ],
+              "Cookies": {
+                "Forward": "none"
+              }
             }
           },
           "CacheBehaviors": [
@@ -204,32 +857,42 @@
               "ViewerProtocolPolicy": "allow-all",
               "MinTTL": 0,
               "AllowedMethods": [
-                "HEAD", "GET", "OPTIONS"
+                "HEAD",
+                "GET",
+                "OPTIONS"
               ],
               "CachedMethods": [
-                "HEAD", "GET"
+                "HEAD",
+                "GET"
               ],
               "ForwardedValues": {
                 "QueryString": false,
-                "Cookies": { "Forward": "none" }
+                "Cookies": {
+                  "Forward": "none"
+                }
               }
             }
           ],
           "HttpVersion": "http2",
           "ViewerCertificate": {
             "Fn::If": [
-                "IsDevEnv",
-                {
-                  "CloudFrontDefaultCertificate": true
-                },
-                {
-                  "AcmCertificateArn": "arn:aws:acm:us-east-1:730535225693:certificate/9dbd7fe0-68f5-4973-8d3a-b95623e476db",
-                  "SslSupportMethod": "sni-only"
-                }
+              "IsDevEnv",
+              {
+                "CloudFrontDefaultCertificate": true
+              },
+              {
+                "AcmCertificateArn": "arn:aws:acm:us-east-1:730535225693:certificate/9dbd7fe0-68f5-4973-8d3a-b95623e476db",
+                "SslSupportMethod": "sni-only"
+              }
             ]
           },
           "Logging": {
-            "Bucket": { "Fn::GetAtt": [ "Logs", "DomainName" ] },
+            "Bucket": {
+              "Fn::GetAtt": [
+                "Logs",
+                "DomainName"
+              ]
+            },
             "Prefix": "webCloudFront/"
           }
         }
@@ -243,31 +906,56 @@
           "Statement": [
             {
               "Effect": "Allow",
-              "Principal": { "Service": "lambda.amazonaws.com" },
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
               "Action": "sts:AssumeRole"
             }
           ]
         },
-        "Policies": [ {
-	  "PolicyName": "EmailSendingPolicy",
-          "PolicyDocument": {
-            "Version": "2012-10-17",
-            "Statement": [ {
-              "Effect": "Allow",
-              "Action": [ "ses:SendEmail" ],
-              "Resource": [ "*" ]
-            } ]
+        "Policies": [
+          {
+            "PolicyName": "EmailSendingPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ses:SendEmail"
+                  ],
+                  "Resource": [
+                    "*"
+                  ]
+                }
+              ]
+            }
           }
-        } ]
+        ]
       }
     },
     "EmailSendingLambda": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "lambda-email-sending.lambda_handler",
-        "Role": { "Fn::GetAtt" : ["EmailSendingRole", "Arn"] },
+        "Role": {
+          "Fn::GetAtt": [
+            "EmailSendingRole",
+            "Arn"
+          ]
+        },
         "Code": {
-          "S3Bucket": { "Fn::Join": [ ".", [ { "Ref" : "Environment"}, "internal.touch-mapper" ] ] },
+          "S3Bucket": {
+            "Fn::Join": [
+              ".",
+              [
+                {
+                  "Ref": "Environment"
+                },
+                "internal.touch-mapper"
+              ]
+            ]
+          },
           "S3Key": "lambda-email-sending.zip"
         },
         "Runtime": "python2.7",
@@ -279,18 +967,40 @@
   "Outputs": {
     "cloudFrontDomainName": {
       "Value": {
-        "Fn::GetAtt": ["CloudFront", "DomainName"]
+        "Fn::GetAtt": [
+          "CloudFront",
+          "DomainName"
+        ]
       }
     },
     "WebBucketUrl": {
       "Value": {
-        "Fn::GetAtt": ["WebBucket", "WebsiteURL"]
+        "Fn::GetAtt": [
+          "WebBucket",
+          "WebsiteURL"
+        ]
       }
     },
     "mapsBucket": {
       "Value": {
-        "Fn::GetAtt": ["MapsBucket", "DomainName"]
+        "Fn::GetAtt": [
+          "MapsBucket",
+          "DomainName"
+        ]
       }
+    },
+    "statsBucket": {
+      "Value": {
+        "Ref": "StatsBucket"
+      }
+    },
+    "statsAthenaDatabase": {
+      "Value": {
+        "Ref": "StatsAthenaDatabase"
+      }
+    },
+    "statsAthenaTable": {
+      "Value": "application_stats_json"
     },
     "requestsQueue": {
       "Value": {
