@@ -12,14 +12,13 @@ import argparse
 import urllib.request
 import urllib.parse
 import subprocess
-import concurrent.futures
 import functools
-import json
 import time
 import datetime
 import math
 import gzip
 import copy
+import io
 import signal
 import atexit
 import xml.etree.ElementTree as ET
@@ -225,6 +224,29 @@ def duration_since(start_time):
     if start_time is None:
         return None
     return time_clock() - start_time
+
+
+def read_process_rss_kib():
+    try:
+        with open('/proc/self/status', 'r') as f:
+            for line in f:
+                if line.startswith('VmRSS:'):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        return int(parts[1])
+    except Exception:
+        return None
+    return None
+
+
+def track_process_rss_kib(ctx):
+    rss_kib = read_process_rss_kib()
+    if rss_kib is None:
+        return
+    ctx['rss_process_request_last_kib'] = rss_kib
+    peak = ctx.get('rss_process_request_peak_kib')
+    if peak is None or rss_kib > peak:
+        ctx['rss_process_request_peak_kib'] = rss_kib
 
 
 def interpreted_request_bool(request_body, key, default=False):
@@ -982,22 +1004,20 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
         cmd = ['./osm-to-tactile.py'] + args + [osm_path]
         print("running: " + " ".join(cmd))
         subprocess.check_call(cmd)
-
-        with open(os.path.dirname(osm_path) + '/map.stl', 'rb') as f:
-            stl = f.read()
-        with open(os.path.dirname(osm_path) + '/map-ways.stl', 'rb') as f:
-            stl_ways = f.read()
-        with open(os.path.dirname(osm_path) + '/map-rest.stl', 'rb') as f:
-            stl_rest = f.read()
-        with open(os.path.dirname(osm_path) + '/map.svg', 'rb') as f:
-            svg = f.read()
-        with open(os.path.dirname(osm_path) + '/map.blend', 'rb') as f:
-            blend = f.read()
-        with open(os.path.dirname(osm_path) + '/map-meta-raw.json', 'r') as f:
-            meta = f.read()
+        output_dir = os.path.dirname(osm_path)
+        artifact_paths = {
+            'stl_path': os.path.join(output_dir, 'map.stl'),
+            'stl_ways_path': os.path.join(output_dir, 'map-ways.stl'),
+            'stl_rest_path': os.path.join(output_dir, 'map-rest.stl'),
+            'svg_path': os.path.join(output_dir, 'map.svg'),
+            'blend_path': os.path.join(output_dir, 'map.blend'),
+            'meta_raw_path': os.path.join(output_dir, 'map-meta-raw.json'),
+        }
+        with open(artifact_paths['meta_raw_path'], 'r') as f:
+            meta = json.load(f)
 
         rss_kib = read_osm_to_tactile_rss_kib(os.path.dirname(osm_path))
-        return stl, stl_ways, stl_rest, svg, blend, json.loads(meta), rss_kib
+        return artifact_paths, meta, rss_kib
     except Exception as e:
         raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
 
@@ -1026,19 +1046,43 @@ def receive_sqs_msg(queue_name, poll_time):
             return request
     return None
 
-def svg_to_pdf(svg_path):
+def svg_to_pdf(svg_path, pdf_path):
     try:
-        import cairosvg  # type: ignore[import-not-found]
-        return cairosvg.svg2pdf(url=svg_path)
+        # Run conversion in a short-lived subprocess so Cairo/Pango allocations
+        # do not remain in process-request.py RSS after PDF generation.
+        cmd = [
+            sys.executable,
+            '-c',
+            'import cairosvg,sys; cairosvg.svg2pdf(url=sys.argv[1], write_to=sys.argv[2])',
+            svg_path,
+            pdf_path
+        ]
+        subprocess.check_call(cmd)
     except Exception as e:
         raise Exception("Can't convert SVG to PDF: " + str(e))
 
 
+def gzip_file_to_bytes(path, compresslevel=5, rss_tracker=None):
+    out = io.BytesIO()
+    with open(path, 'rb') as src:
+        with gzip.GzipFile(fileobj=out, mode='wb', compresslevel=compresslevel) as gz:
+            while True:
+                chunk = src.read(1024 * 1024)
+                if not chunk:
+                    break
+                gz.write(chunk)
+                if rss_tracker is not None:
+                    rss_tracker()
+    if rss_tracker is not None:
+        rss_tracker()
+    return out.getvalue()
+
+
 def upload_primary_assets(bucket, json_object_name, info, name_base,
-                          map_object_name, map_content, stl, common_args,
+                          map_object_name, map_content, stl_path, common_args,
+                          rss_tracker=None,
                           progress_logger=None):
-    # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to
-    # parameters of created maps (obsolete logic since maps are now available for only a few months)
+    # Put the augmented request to S3
     if progress_logger is not None:
         progress_logger('upload-primary-info-json-start', detail='key={}'.format(json_object_name))
     bucket.put_object(
@@ -1060,6 +1104,8 @@ def upload_primary_assets(bucket, json_object_name, info, name_base,
         **common_args,
         ContentType='application/json'
     )
+    if rss_tracker is not None:
+        rss_tracker()
     if progress_logger is not None:
         progress_logger('upload-primary-map-content-done', detail='key={}'.format(map_content_key))
 
@@ -1068,10 +1114,12 @@ def upload_primary_assets(bucket, json_object_name, info, name_base,
         progress_logger('upload-primary-stl-start', detail='key={}'.format(map_object_name))
     bucket.put_object(
         Key=map_object_name,
-        Body=gzip.compress(stl, compresslevel=5),
+        Body=gzip_file_to_bytes(stl_path, compresslevel=5, rss_tracker=rss_tracker),
         **common_args,
         ContentType='application/sla'
     )
+    if rss_tracker is not None:
+        rss_tracker()
     if progress_logger is not None:
         progress_logger('upload-primary-stl-done', detail='key={}'.format(map_object_name))
 
@@ -1096,17 +1144,19 @@ def build_info_payload(request_body, meta):
     return info
 
 
-def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, blend, common_args, progress_logger=None):
-    def upload_blob(key, body, content_type):
+def upload_secondary_assets(bucket, name_base, svg_path, pdf_path, stl_ways_path, stl_rest_path, blend_path, common_args, rss_tracker=None, progress_logger=None):
+    def upload_blob_from_path(key, path, content_type):
         try:
             if progress_logger is not None:
                 progress_logger('upload-secondary-item-start', detail='key={}'.format(key))
             bucket.put_object(
                 Key=key,
-                Body=gzip.compress(body, compresslevel=5),
+                Body=gzip_file_to_bytes(path, compresslevel=5, rss_tracker=rss_tracker),
                 **common_args,
                 ContentType=content_type
             )
+            if rss_tracker is not None:
+                rss_tracker()
             if progress_logger is not None:
                 progress_logger('upload-secondary-item-done', detail='key={}'.format(key))
         except Exception as e:
@@ -1115,20 +1165,16 @@ def upload_secondary_assets(bucket, name_base, svg, pdf, stl_ways, stl_rest, ble
                 progress_logger('upload-secondary-item-failed', detail='key={} error={}'.format(key, e))
 
     uploads = [
-        (name_base + '.svg', svg, 'image/svg+xml'),
-        (name_base + '.pdf', pdf, 'application/pdf'),
-        (name_base + '-ways.stl', stl_ways, 'application/sla'),
-        (name_base + '-rest.stl', stl_rest, 'application/sla'),
-        (name_base + '.blend', blend, 'application/binary')
+        (name_base + '.svg', svg_path, 'image/svg+xml'),
+        (name_base + '.pdf', pdf_path, 'application/pdf'),
+        (name_base + '-ways.stl', stl_ways_path, 'application/sla'),
+        (name_base + '-rest.stl', stl_rest_path, 'application/sla'),
+        (name_base + '.blend', blend_path, 'application/binary')
     ]
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(uploads)) as executor:
-        futures = [executor.submit(upload_blob, key, body, content_type) for key, body, content_type in uploads]
-        for future in futures:
-            try:
-                future.result()
-            except Exception as e:
-                print("upload worker failed: {}".format(e))
+    # Upload sequentially to avoid keeping multiple large gzip blobs in memory at once.
+    for key, path, content_type in uploads:
+        upload_blob_from_path(key, path, content_type)
 
 def run_map_desc(raw_meta_path, profile=None):
     import map_desc
@@ -1175,6 +1221,8 @@ def init_main_context():
         'rss_blender_kib': None,
         'rss_clip_2d_kib': None,
         'rss_prune_only_big_roads_kib': None,
+        'rss_process_request_last_kib': None,
+        'rss_process_request_peak_kib': None,
     }
 
 
@@ -1291,6 +1339,7 @@ def build_stats_record(ctx):
         'rss_blender_kib': ctx['rss_blender_kib'],
         'rss_clip_2d_kib': ctx['rss_clip_2d_kib'],
         'rss_prune_only_big_roads_kib': ctx['rss_prune_only_big_roads_kib'],
+        'rss_process_request_peak_kib': ctx['rss_process_request_peak_kib'],
     }
 
 
@@ -1300,6 +1349,7 @@ def write_final_stats_if_possible(ctx):
     if ctx['request_body'] is None:
         return
     try:
+        track_process_rss_kib(ctx)
         if ctx['stats_root_dir'] is None:
             args = ctx.get('args')
             work_dir = args.work_dir if args else None
@@ -1334,7 +1384,9 @@ def main():
     ctx = init_main_context()
     try:
         bootstrap_runtime(ctx)
+        track_process_rss_kib(ctx)
         init_stats_services(ctx)
+        track_process_rss_kib(ctx)
 
         # Receive SQS msg
         ctx['current_stage'] = 'poll'
@@ -1351,6 +1403,7 @@ def main():
         ctx['processing_start_time'] = time_clock()
         log_progress('poll-returned', request_id=ctx['request_id'])
         print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
+        track_process_rss_kib(ctx)
 
         # Get OSM data
         ctx['current_stage'] = 'get-osm'
@@ -1370,17 +1423,19 @@ def main():
         ctx['rss_prune_only_big_roads_kib'] = prune_rss_kib
         ctx['timing_get_osm_seconds'] = duration_since(get_osm_start_time)
         log_progress('get-osm-done')
+        track_process_rss_kib(ctx)
 
         # Convert OSM => STL
         ctx['current_stage'] = 'osm-to-tactile'
         log_progress('osm-to-tactile-start')
-        stl, stl_ways, stl_rest, svg, blend, meta, rss_kib = run_osm_to_tactile(progress_updater, osm_path, ctx['request_body'])
+        artifacts, meta, rss_kib = run_osm_to_tactile(progress_updater, osm_path, ctx['request_body'])
         ctx['rss_osm2world_kib'] = rss_kib.get('rss_osm2world_kib')
         ctx['rss_blender_kib'] = rss_kib.get('rss_blender_kib')
         ctx['rss_clip_2d_kib'] = rss_kib.get('rss_clip_2d_kib')
-        ctx['stl_bytes'] = len(stl)
+        ctx['stl_bytes'] = os.path.getsize(artifacts['stl_path'])
         log_progress('osm-to-tactile-done')
-        raw_meta_path = os.path.join(os.path.dirname(osm_path), 'map-meta-raw.json')
+        track_process_rss_kib(ctx)
+        raw_meta_path = artifacts['meta_raw_path']
 
         # Enrich map-meta.json
         ctx['current_stage'] = 'map-desc'
@@ -1389,6 +1444,7 @@ def main():
         run_map_desc(raw_meta_path, profile={})
         ctx['timing_map_desc_seconds'] = duration_since(map_desc_start_time)
         log_progress('map-desc-done')
+        track_process_rss_kib(ctx)
 
         ctx['current_stage'] = 'map-content-read'
         map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
@@ -1398,19 +1454,25 @@ def main():
         map_content = attach_request_metadata_to_map_content(map_content, ctx['request_body'])
         ctx['map_content_gzip_bytes'] = len(gzip.compress(map_content, compresslevel=5))
         log_progress('map-content-read-done')
+        track_process_rss_kib(ctx)
 
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
             'CacheControl': 'max-age=8640000', 'StorageClass': 'GLACIER_IR',
         }
 
-        # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of created maps.
+        # Put the augmented request to S3
         ctx['current_stage'] = 'prepare-upload'
         json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', ctx['request_body']['requestId']) # deadbeef/foo.stl => info/deadbeef.json
         ctx['info_object_name'] = json_object_name
         ctx['map_content_key'] = ctx['name_base'] + '.map-content.json'
         info = build_info_payload(ctx['request_body'], meta)
-        ctx['stl_gzip_bytes'] = len(gzip.compress(stl, compresslevel=5))
+        ctx['stl_gzip_bytes'] = len(gzip_file_to_bytes(
+            artifacts['stl_path'],
+            compresslevel=5,
+            rss_tracker=functools.partial(track_process_rss_kib, ctx)
+        ))
+        track_process_rss_kib(ctx)
 
         # Upload primary assets
         ctx['current_stage'] = 'upload-primary'
@@ -1422,19 +1484,26 @@ def main():
             ctx['name_base'],
             ctx['map_object_name'],
             map_content,
-            stl,
+            artifacts['stl_path'],
             common_args,
+            rss_tracker=functools.partial(track_process_rss_kib, ctx),
             progress_logger=ctx['progress_logger']
         )
         log_progress('upload-primary-done')
+        map_content = None
+        track_process_rss_kib(ctx)
+
+        # Map creation is now considered done by UI
 
         # Create PDF from SVG and put it to S3
         ctx['current_stage'] = 'svg-to-pdf'
         svg_to_pdf_start_time = time_clock()
         log_progress('svg-to-pdf-start')
-        pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
+        pdf_path = os.path.join(os.path.dirname(osm_path), 'map.pdf')
+        svg_to_pdf(artifacts['svg_path'], pdf_path)
         ctx['timing_svg_to_pdf_seconds'] = duration_since(svg_to_pdf_start_time)
         log_progress('svg-to-pdf-done')
+        track_process_rss_kib(ctx)
 
         # Upload secondary assets
         ctx['current_stage'] = 'upload-secondary'
@@ -1442,20 +1511,23 @@ def main():
         upload_secondary_assets(
             bucket,
             ctx['name_base'],
-            svg,
-            pdf,
-            stl_ways,
-            stl_rest,
-            blend,
+            artifacts['svg_path'],
+            pdf_path,
+            artifacts['stl_ways_path'],
+            artifacts['stl_rest_path'],
+            artifacts['blend_path'],
             common_args,
+            rss_tracker=functools.partial(track_process_rss_kib, ctx),
             progress_logger=ctx['progress_logger']
         )
         log_progress('upload-secondary-done')
+        track_process_rss_kib(ctx)
 
         print("Processing entire request took " + str(time_clock() - ctx['main_start_time']))
         log_progress('complete', status='success')
         ctx['status'] = 'success'
     except BaseException as e:
+        track_process_rss_kib(ctx)
         handle_main_exception(ctx, e)
     finally:
         write_final_stats_if_possible(ctx)

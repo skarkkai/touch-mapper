@@ -33,13 +33,17 @@ If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and t
 
 ## RAM telemetry fields
 
-RAM telemetry is always collected from converter subprocess stages using `/usr/bin/time -v` via `converter/telemetry.py` (`maxRssKiB`).
-`process-request.py` reads `osm-to-tactile-timings.json` and stores these fixed fields:
+RAM telemetry combines:
+- Subprocess stage RSS from `/usr/bin/time -v` via `converter/telemetry.py` (`maxRssKiB`)
+- In-process peak RSS sampled from `/proc/self/status` inside `process-request.py` (VmRSS)
+
+`process-request.py` stores these fixed fields:
 
 - `rss_osm2world_kib`
 - `rss_blender_kib`
 - `rss_clip_2d_kib`
 - `rss_prune_only_big_roads_kib` (from `prune-only-big-roads.js` subprocess in `content_mode=only-big-roads`)
+- `rss_process_request_peak_kib` (peak VmRSS observed in `process-request.py` itself)
 
 These represent top memory consumers for the converter pipeline and are written as KiB integers.
 If timings JSON is missing/malformed or RSS is unavailable, fields are stored as `null` and request processing continues.
