@@ -333,34 +333,24 @@
                 "Comment": "UTC time when the telemetry record was written in ISO 8601 format."
               },
               {
-                "Name": "event_date",
-                "Type": "string",
-                "Comment": "UTC calendar date for the record in YYYY-MM-DD format."
-              },
-              {
                 "Name": "day",
                 "Type": "string",
                 "Comment": "UTC day-of-month component as two digits."
               },
               {
-                "Name": "environment",
+                "Name": "code_branch",
                 "Type": "string",
-                "Comment": "Deployment environment name that processed the request."
+                "Comment": "Git branch name parsed from deployed dist/VERSION.txt."
               },
               {
-                "Name": "worker",
+                "Name": "code_deployed",
                 "Type": "string",
-                "Comment": "Worker identifier derived from the runtime worker directory."
+                "Comment": "Deployment tag payload parsed from package-* in deployed dist/VERSION.txt."
               },
               {
-                "Name": "host",
+                "Name": "code_commit",
                 "Type": "string",
-                "Comment": "Host machine name where processing occurred."
-              },
-              {
-                "Name": "pid",
-                "Type": "int",
-                "Comment": "Operating system process id of the converter process."
+                "Comment": "Git commit hash parsed from deployed dist/VERSION.txt."
               },
               {
                 "Name": "request_id",
@@ -396,26 +386,6 @@
                 "Name": "termination_signal",
                 "Type": "int",
                 "Comment": "Termination signal number if the process received SIGTERM or SIGINT."
-              },
-              {
-                "Name": "maps_bucket",
-                "Type": "string",
-                "Comment": "S3 bucket name used for main map artifact uploads."
-              },
-              {
-                "Name": "map_object_key",
-                "Type": "string",
-                "Comment": "S3 object key of the primary STL completion marker object."
-              },
-              {
-                "Name": "info_object_key",
-                "Type": "string",
-                "Comment": "S3 object key of the map info JSON object."
-              },
-              {
-                "Name": "map_content_key",
-                "Type": "string",
-                "Comment": "S3 object key of the map-content JSON object."
               },
               {
                 "Name": "browser_fingerprint",
@@ -456,11 +426,6 @@
                 "Name": "browser_ip_longitude",
                 "Type": "double",
                 "Comment": "Longitude resolved from browser_ip geolocation lookup."
-              },
-              {
-                "Name": "addr_short",
-                "Type": "string",
-                "Comment": "Short address label selected by the user."
               },
               {
                 "Name": "addr_long",
@@ -508,34 +473,9 @@
                 "Comment": "Requested map center latitude sent by browser."
               },
               {
-                "Name": "effective_lon_min",
-                "Type": "double",
-                "Comment": "Minimum longitude of the effective requested map bounding box."
-              },
-              {
-                "Name": "effective_lon_max",
-                "Type": "double",
-                "Comment": "Maximum longitude of the effective requested map bounding box."
-              },
-              {
-                "Name": "effective_lat_min",
-                "Type": "double",
-                "Comment": "Minimum latitude of the effective requested map bounding box."
-              },
-              {
-                "Name": "effective_lat_max",
-                "Type": "double",
-                "Comment": "Maximum latitude of the effective requested map bounding box."
-              },
-              {
                 "Name": "scale",
                 "Type": "int",
                 "Comment": "Requested map scale denominator used for conversion."
-              },
-              {
-                "Name": "diameter_m",
-                "Type": "int",
-                "Comment": "Requested map diameter in meters for the selected area."
               },
               {
                 "Name": "multipart_mode",
@@ -563,29 +503,9 @@
                 "Comment": "Whether advanced UI options were enabled for this request."
               },
               {
-                "Name": "marker1_lat",
-                "Type": "double",
-                "Comment": "Latitude of marker1 when a marker was included."
-              },
-              {
-                "Name": "marker1_lon",
-                "Type": "double",
-                "Comment": "Longitude of marker1 when a marker was included."
-              },
-              {
-                "Name": "has_marker1",
-                "Type": "boolean",
-                "Comment": "True when marker1 coordinates were present in request payload."
-              },
-              {
                 "Name": "timing_get_osm_seconds",
                 "Type": "double",
                 "Comment": "Elapsed seconds spent downloading OSM data."
-              },
-              {
-                "Name": "timing_osm_to_tactile_seconds",
-                "Type": "double",
-                "Comment": "Elapsed seconds spent in OSM-to-tactile conversion stage."
               },
               {
                 "Name": "timing_map_desc_seconds",
@@ -593,24 +513,9 @@
                 "Comment": "Elapsed seconds spent generating map description metadata."
               },
               {
-                "Name": "timing_map_content_read_seconds",
-                "Type": "double",
-                "Comment": "Elapsed seconds spent reading and enriching map-content JSON."
-              },
-              {
-                "Name": "timing_upload_primary_seconds",
-                "Type": "double",
-                "Comment": "Elapsed seconds spent uploading primary map artifacts."
-              },
-              {
                 "Name": "timing_svg_to_pdf_seconds",
                 "Type": "double",
                 "Comment": "Elapsed seconds spent converting SVG to PDF."
-              },
-              {
-                "Name": "timing_upload_secondary_seconds",
-                "Type": "double",
-                "Comment": "Elapsed seconds spent uploading secondary map artifacts."
               },
               {
                 "Name": "timing_total_seconds",
@@ -633,84 +538,9 @@
                 "Comment": "Gzipped byte size of the generated STL artifact."
               },
               {
-                "Name": "stl_ways_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of the generated ways-only STL artifact."
-              },
-              {
-                "Name": "stl_rest_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of the generated rest-of-map STL artifact."
-              },
-              {
-                "Name": "svg_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of the generated SVG artifact."
-              },
-              {
-                "Name": "pdf_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of the generated PDF artifact."
-              },
-              {
-                "Name": "blend_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of the generated Blender artifact."
-              },
-              {
-                "Name": "map_content_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of map-content JSON after request metadata attachment."
-              },
-              {
                 "Name": "map_content_gzip_bytes",
                 "Type": "bigint",
                 "Comment": "Gzipped byte size of map-content JSON after request metadata attachment."
-              },
-              {
-                "Name": "info_json_bytes",
-                "Type": "bigint",
-                "Comment": "Uncompressed byte size of info JSON uploaded for map page bootstrap."
-              },
-              {
-                "Name": "meta_nodes_count",
-                "Type": "int",
-                "Comment": "Count of node entries present in raw converter metadata."
-              },
-              {
-                "Name": "meta_ways_count",
-                "Type": "int",
-                "Comment": "Count of way entries present in raw converter metadata."
-              },
-              {
-                "Name": "meta_areas_count",
-                "Type": "int",
-                "Comment": "Count of area entries present in raw converter metadata."
-              },
-              {
-                "Name": "boundary_min_x",
-                "Type": "double",
-                "Comment": "Minimum X value of map boundary from converter metadata."
-              },
-              {
-                "Name": "boundary_min_y",
-                "Type": "double",
-                "Comment": "Minimum Y value of map boundary from converter metadata."
-              },
-              {
-                "Name": "boundary_max_x",
-                "Type": "double",
-                "Comment": "Maximum X value of map boundary from converter metadata."
-              },
-              {
-                "Name": "boundary_max_y",
-                "Type": "double",
-                "Comment": "Maximum Y value of map boundary from converter metadata."
-              },
-              {
-                "Name": "map_desc_profile_json",
-                "Type": "string",
-                "Comment": "JSON string containing detailed map description stage profiling timings."
               }
             ],
             "Location": {

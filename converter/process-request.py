@@ -22,8 +22,8 @@ import gzip
 import copy
 import signal
 import atexit
-import socket
 import xml.etree.ElementTree as ET
+from typing import Any, Dict
 
 import stats_pipeline
 
@@ -59,6 +59,8 @@ BIG_ROAD_HIGHWAY_VALUES = set([
     'secondary',
     'secondary_link',
 ])
+VERSION_TAG_PACKAGE_RE = re.compile(r'^package-(.+)$')
+CODE_VERSION_WARNING_EMITTED = False
 progress_state = {
     'status': 'starting',
     'stage': 'bootstrap',
@@ -168,6 +170,65 @@ def now_iso_utc():
     return datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
 
 
+def empty_code_version_fields():
+    return {  # type: Dict[str, Any]
+        'code_branch': None,
+        'code_deployed': None,
+        'code_commit': None,
+    }
+
+
+def warn_code_version_once(message):
+    global CODE_VERSION_WARNING_EMITTED
+    if CODE_VERSION_WARNING_EMITTED:
+        return
+    CODE_VERSION_WARNING_EMITTED = True
+    print('code version metadata unavailable: ' + str(message))
+
+
+def read_code_version_fields(base_dir):
+    fields = empty_code_version_fields()
+    version_path = os.path.join(base_dir, 'VERSION.txt')
+    try:
+        with open(version_path, 'r', encoding='utf8') as f:
+            version_line = None
+            for raw_line in f:
+                stripped = raw_line.strip()
+                if stripped:
+                    version_line = stripped
+                    break
+    except Exception as e:
+        warn_code_version_once('failed to read {} ({})'.format(version_path, e))
+        return fields
+
+    if not version_line:
+        warn_code_version_once('empty VERSION.txt at {}'.format(version_path))
+        return fields
+
+    parts = version_line.split()
+    if len(parts) != 4:
+        warn_code_version_once(
+            'unexpected VERSION.txt format at {} (expected 4 fields, got {}): {}'.format(
+                version_path,
+                len(parts),
+                compact_log_text(version_line)
+            )
+        )
+        return fields
+
+    _, branch, tag, commit = parts
+    code_deployed = None
+    tag_match = VERSION_TAG_PACKAGE_RE.match(tag)
+    if tag_match:
+        code_deployed = tag_match.group(1)
+
+    return {
+        'code_branch': branch,
+        'code_deployed': code_deployed,
+        'code_commit': commit,
+    }
+
+
 def stats_root_dir_from_work_dir(work_dir):
     if work_dir:
         runtime_dir = os.path.dirname(os.path.abspath(work_dir))
@@ -176,32 +237,11 @@ def stats_root_dir_from_work_dir(work_dir):
     return os.path.join(os.path.dirname(script_dir), 'stats')
 
 
-def count_entries(value):
-    return len(value) if isinstance(value, list) else None
-
-
-def extract_boundary(meta):
-    if not isinstance(meta, dict):
-        return {}
-    nested = meta.get('meta')
-    if not isinstance(nested, dict):
-        return {}
-    boundary = nested.get('boundary')
-    if isinstance(boundary, dict):
-        return boundary
-    return {}
-
-
 def duration_since(start_time):
     if start_time is None:
         return None
     return time_clock() - start_time
 
-
-def json_profile_or_none(profile):
-    if not profile:
-        return None
-    return json.dumps(profile, separators=(',', ':'), ensure_ascii=False)
 
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Create STL and put into S3 based on a SQS request''')
@@ -862,6 +902,7 @@ def main():
     failure_exception = None
     status = 'starting'
     processing_start_time = None
+    code_version_fields = empty_code_version_fields()
 
     timing_get_osm_seconds = None
     timing_osm_to_tactile_seconds = None
@@ -904,6 +945,7 @@ def main():
         stats_bucket_name = environment + ".stats.touch-mapper"
         args = do_cmdline()
         stats_root_dir = stats_root_dir_from_work_dir(args.work_dir)
+        code_version_fields = read_code_version_fields(script_dir)
         if args.work_dir:
             worker_name = os.path.basename(os.path.normpath(args.work_dir))
 
@@ -1086,26 +1128,14 @@ def main():
                     stats_root_dir = stats_root_dir_from_work_dir((args.work_dir if args else None))
                 if map_id is None:
                     map_id = stats_pipeline.map_id_from_request_id(request_id)
-                boundary = extract_boundary(meta)
-                marker1 = request_body.get('marker1') if isinstance(request_body, dict) else None
-                marker1_lat = None
-                marker1_lon = None
-                has_marker1 = False
-                if isinstance(marker1, dict):
-                    marker1_lat = marker1.get('lat')
-                    marker1_lon = marker1.get('lon')
-                    has_marker1 = (marker1_lat is not None and marker1_lon is not None)
-
                 total_elapsed = duration_since(processing_start_time)
                 stats_record = {
                     'schema_version': 1,
                     'timestamp': now_iso_utc(),
-                    'event_date': datetime.datetime.utcnow().date().isoformat(),
                     'day': datetime.datetime.utcnow().strftime('%d'),
-                    'environment': environment,
-                    'worker': worker_name,
-                    'host': socket.gethostname(),
-                    'pid': os.getpid(),
+                    'code_branch': code_version_fields.get('code_branch'),
+                    'code_deployed': code_version_fields.get('code_deployed'),
+                    'code_commit': code_version_fields.get('code_commit'),
                     'request_id': request_id,
                     'map_id': map_id,
                     'status': status,
@@ -1113,10 +1143,6 @@ def main():
                     'failure_class': failure_class,
                     'failure_message': failure_message,
                     'termination_signal': progress_state.get('termination_signal'),
-                    'maps_bucket': map_bucket_name,
-                    'map_object_key': map_object_name,
-                    'info_object_key': info_object_name,
-                    'map_content_key': map_content_key,
                     'browser_fingerprint': request_body.get('browserFingerprint'),
                     'browser_ip': request_body.get('browserIp'),
                     'browser_ip_country': None,
@@ -1125,7 +1151,6 @@ def main():
                     'browser_ip_city': None,
                     'browser_ip_latitude': None,
                     'browser_ip_longitude': None,
-                    'addr_short': request_body.get('addrShort'),
                     'addr_long': request_body.get('addrLong'),
                     'printing_tech': request_body.get('printingTech'),
                     'offset_x': request_body.get('offsetX'),
@@ -1135,47 +1160,20 @@ def main():
                     'hide_location_marker': request_body.get('hideLocationMarker'),
                     'lon': request_body.get('lon'),
                     'lat': request_body.get('lat'),
-                    'effective_lon_min': ((request_body.get('effectiveArea') or {}).get('lonMin')),
-                    'effective_lon_max': ((request_body.get('effectiveArea') or {}).get('lonMax')),
-                    'effective_lat_min': ((request_body.get('effectiveArea') or {}).get('latMin')),
-                    'effective_lat_max': ((request_body.get('effectiveArea') or {}).get('latMax')),
                     'scale': request_body.get('scale'),
-                    'diameter_m': request_body.get('diameter'),
                     'multipart_mode': request_body.get('multipartMode'),
                     'no_borders': request_body.get('noBorders'),
                     'multipart_xpc': request_body.get('multipartXpc'),
                     'multipart_ypc': request_body.get('multipartYpc'),
                     'advanced_mode': request_body.get('advancedMode'),
-                    'marker1_lat': marker1_lat,
-                    'marker1_lon': marker1_lon,
-                    'has_marker1': has_marker1,
                     'timing_get_osm_seconds': timing_get_osm_seconds,
-                    'timing_osm_to_tactile_seconds': timing_osm_to_tactile_seconds,
                     'timing_map_desc_seconds': timing_map_desc_seconds,
-                    'timing_map_content_read_seconds': timing_map_content_read_seconds,
-                    'timing_upload_primary_seconds': timing_upload_primary_seconds,
                     'timing_svg_to_pdf_seconds': timing_svg_to_pdf_seconds,
-                    'timing_upload_secondary_seconds': timing_upload_secondary_seconds,
                     'timing_total_seconds': total_elapsed,
                     'timing_failed_after_seconds': (total_elapsed if status == 'failed' else None),
                     'stl_bytes': stl_bytes,
                     'stl_gzip_bytes': stl_gzip_bytes,
-                    'stl_ways_bytes': stl_ways_bytes,
-                    'stl_rest_bytes': stl_rest_bytes,
-                    'svg_bytes': svg_bytes,
-                    'pdf_bytes': pdf_bytes,
-                    'blend_bytes': blend_bytes,
-                    'map_content_bytes': map_content_bytes,
                     'map_content_gzip_bytes': map_content_gzip_bytes,
-                    'info_json_bytes': info_json_bytes,
-                    'meta_nodes_count': count_entries((meta or {}).get('nodes') if isinstance(meta, dict) else None),
-                    'meta_ways_count': count_entries((meta or {}).get('ways') if isinstance(meta, dict) else None),
-                    'meta_areas_count': count_entries((meta or {}).get('areas') if isinstance(meta, dict) else None),
-                    'boundary_min_x': boundary.get('minX'),
-                    'boundary_min_y': boundary.get('minY'),
-                    'boundary_max_x': boundary.get('maxX'),
-                    'boundary_max_y': boundary.get('maxY'),
-                    'map_desc_profile_json': json_profile_or_none(map_desc_profile),
                 }
                 stats_pipeline.write_attempt_record(
                     stats_root_dir=stats_root_dir,

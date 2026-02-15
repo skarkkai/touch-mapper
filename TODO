@@ -1,1 +1,2 @@
 - don't save nulls for booleans into telemetry, map those to true/false
+- Clean up process-request.py main loop

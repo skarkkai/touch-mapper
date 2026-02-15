@@ -12,6 +12,25 @@ This document describes the map-attempt telemetry pipeline and the quicktime sim
 - If the same map id is written again on the same day, the existing file is overwritten.
 - Telemetry write runs in the final step so telemetry failures never affect user-visible processing.
 
+## Deploy code version metadata
+
+Converter telemetry reads deployed `dist/VERSION.txt` (same directory as `process-request.py`) once at process startup.
+Expected line format:
+
+`<timestamp> <branch> <tag> <commit>`
+
+Example:
+
+`2026-02-15T08:25:31 touch-mapper.larger-sizes package-20260215-082120 4714eb471656fc2737543657ef5be6e4056bdb11`
+
+Stored telemetry fields:
+
+- `code_branch`: branch value from `VERSION.txt` (example: `touch-mapper.larger-sizes`)
+- `code_deployed`: value extracted from `package-*` tag (example: `20260215-082120`)
+- `code_commit`: commit hash value from `VERSION.txt`
+
+If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and these fields are stored as `null`.
+
 ## Browser IP and geolocation
 
 - Browser code also computes a stable hashed fingerprint (`browserFingerprint`) from browser/device properties.
@@ -95,6 +114,16 @@ SELECT status, count(*)
 FROM application_stats_json
 WHERE year = '2026' AND month = '02'
 GROUP BY status;
+```
+
+Query example grouped by deployed code commit:
+
+```sql
+SELECT code_commit, count(*) AS attempts
+FROM application_stats_json
+WHERE year = '2026' AND month = '02'
+GROUP BY code_commit
+ORDER BY attempts DESC;
 ```
 
 ## Manual pending-stats upload (EC2)
