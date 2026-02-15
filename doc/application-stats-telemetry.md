@@ -31,6 +31,25 @@ Stored telemetry fields:
 
 If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and these fields are stored as `null`.
 
+## RAM telemetry fields
+
+RAM telemetry is always collected from converter subprocess stages using `/usr/bin/time -v` via `converter/telemetry.py` (`maxRssKiB`).
+`process-request.py` reads `osm-to-tactile-timings.json` and stores these fixed fields:
+
+- `rss_osm2world_kib`
+- `rss_blender_kib`
+- `rss_clip_2d_kib`
+
+These represent top memory consumers for the converter pipeline and are written as KiB integers.
+If timings JSON is missing/malformed or RSS is unavailable, fields are stored as `null` and request processing continues.
+
+## OSM size telemetry fields
+
+Converter telemetry also stores two OSM file size fields (bytes):
+
+- `osm_fetched_bytes`: file size immediately after OSM fetch and before content filtering.
+- `osm_pruned_bytes`: file size after content-mode pruning/filtering (`no-buildings`, `only-big-roads`), or same as fetched size when no pruning is applied.
+
 ## Browser IP and geolocation
 
 - Browser code also computes a stable hashed fingerprint (`browserFingerprint`) from browser/device properties.
@@ -124,6 +143,19 @@ FROM application_stats_json
 WHERE year = '2026' AND month = '02'
 GROUP BY code_commit
 ORDER BY attempts DESC;
+```
+
+Query example for monthly RAM percentiles:
+
+```sql
+SELECT
+  format('%s-%02d', year, CAST(month AS INTEGER)) AS year_month,
+  approx_percentile(rss_osm2world_kib, 0.5) AS p50_osm2world_kib,
+  approx_percentile(rss_osm2world_kib, 0.95) AS p95_osm2world_kib
+FROM application_stats_json
+WHERE rss_osm2world_kib IS NOT NULL
+GROUP BY 1
+ORDER BY 1;
 ```
 
 ## Manual pending-stats upload (EC2)

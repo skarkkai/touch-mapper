@@ -541,6 +541,31 @@
                 "Name": "map_content_gzip_bytes",
                 "Type": "bigint",
                 "Comment": "Gzipped byte size of map-content JSON after request metadata attachment."
+              },
+              {
+                "Name": "osm_fetched_bytes",
+                "Type": "bigint",
+                "Comment": "OSM XML byte size on disk immediately after fetch and before content-mode pruning."
+              },
+              {
+                "Name": "osm_pruned_bytes",
+                "Type": "bigint",
+                "Comment": "OSM XML byte size on disk after content-mode pruning/filtering."
+              },
+              {
+                "Name": "rss_osm2world_kib",
+                "Type": "bigint",
+                "Comment": "Maximum RSS in KiB for run-osm2world stage from osm-to-tactile-timings.json (/usr/bin/time -v)."
+              },
+              {
+                "Name": "rss_blender_kib",
+                "Type": "bigint",
+                "Comment": "Maximum RSS in KiB for run-blender stage from osm-to-tactile-timings.json (/usr/bin/time -v)."
+              },
+              {
+                "Name": "rss_clip_2d_kib",
+                "Type": "bigint",
+                "Comment": "Maximum RSS in KiB for run-clip-2d stage from osm-to-tactile-timings.json (/usr/bin/time -v)."
               }
             ],
             "Location": {

@@ -23,13 +23,18 @@ import copy
 import signal
 import atexit
 import xml.etree.ElementTree as ET
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import stats_pipeline
 
 STORE_AGE = 8640000
 time_clock = getattr(time, 'clock', time.time)
 INSTRUMENTATION_ENV_VAR = 'TOUCH_MAPPER_INSTRUMENTATION'
+TOP_RAM_STAGE_TO_FIELD = {
+    'run-osm2world': 'rss_osm2world_kib',
+    'run-blender': 'rss_blender_kib',
+    'run-clip-2d': 'rss_clip_2d_kib',
+}
 
 
 def parse_env_bool(name):
@@ -67,42 +72,6 @@ progress_state = {
     'request_id': None,
     'termination_signal': None,
 }
-
-
-def read_proc_status_kib(field_name):
-    try:
-        with open('/proc/self/status', 'r') as f:
-            for line in f:
-                if not line.startswith(field_name + ':'):
-                    continue
-                parts = line.split()
-                if len(parts) < 2:
-                    return None
-                return int(parts[1])
-    except Exception:
-        return None
-    return None
-
-
-def log_memory_checkpoint(label):
-    if not INSTRUMENTATION_ENABLED:
-        return
-    vm_rss_kib = read_proc_status_kib('VmRSS')
-    vm_hwm_kib = read_proc_status_kib('VmHWM')
-    if vm_rss_kib is None and vm_hwm_kib is None:
-        print('MEMORY:process-request:{label} unavailable'.format(label=label))
-        return
-    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
-    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
-    print(
-        'MEMORY:process-request:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
-            label=label,
-            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
-            rss_mib=vm_rss_mib,
-            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
-            hwm_mib=vm_hwm_mib
-        )
-    )
 
 
 def compact_log_text(value, max_length=240):
@@ -156,7 +125,6 @@ def handle_termination_signal(signum, frame):
             status='terminated',
             detail='signal={}'.format(signum)
         )
-        log_memory_checkpoint('signal-{signal}'.format(signal=signum))
     raise SystemExit(128 + signum)
 
 
@@ -678,11 +646,13 @@ def get_osm(progress_updater, request_body, work_dir):
     for i, attempt in enumerate(attempts):
         try:
             attempt['method'](attempt['url'])
+            fetched_osm_bytes = os.path.getsize(osm_path)
             if content_mode == 'only-big-roads':
                 filter_osm_file_for_only_big_roads(osm_path, request_body)
             elif content_mode == 'no-buildings':
                 filter_osm_file_for_no_buildings(osm_path, request_body)
-            return osm_path
+            pruned_osm_bytes = os.path.getsize(osm_path)
+            return osm_path, fetched_osm_bytes, pruned_osm_bytes
         except Exception as e:
             msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
             if i == len(attempts) - 1:
@@ -713,9 +683,40 @@ def get_osm_main_api(url, timeout, osm_path):
     with open(osm_path, 'wb') as f:
         f.write(osm_data)
 
+def read_osm_to_tactile_rss_kib(output_dir):
+    fields = {}  # type: Dict[str, Optional[int]]
+    fields['rss_osm2world_kib'] = None
+    fields['rss_blender_kib'] = None
+    fields['rss_clip_2d_kib'] = None
+    timings_path = os.path.join(output_dir, 'osm-to-tactile-timings.json')
+    try:
+        with open(timings_path, 'r') as f:
+            payload = json.load(f)
+    except Exception as e:
+        print("warning: can't read {}: {}".format(timings_path, e))
+        return fields
+
+    stages = payload.get('stages')
+    if not isinstance(stages, list):
+        print("warning: invalid stages payload in {}".format(timings_path))
+        return fields
+
+    for stage in stages:
+        if not isinstance(stage, dict):
+            continue
+        stage_name = stage.get('name')
+        if not isinstance(stage_name, str):
+            continue
+        field_name = TOP_RAM_STAGE_TO_FIELD.get(stage_name)
+        if field_name is None:
+            continue
+        rss_value = stage.get('maxRssKiB')
+        if isinstance(rss_value, int):
+            fields[field_name] = rss_value
+    return fields
+
 def run_osm_to_tactile(progress_updater, osm_path, request_body):
     try:
-        log_memory_checkpoint('before-osm-to-tactile-subprocess')
         progress_updater('converting')
         stl_path = os.path.dirname(osm_path) + '/map.stl'
         if os.path.exists(stl_path):
@@ -746,8 +747,8 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
         with open(os.path.dirname(osm_path) + '/map-meta-raw.json', 'r') as f:
             meta = f.read()
 
-        log_memory_checkpoint('after-osm-to-tactile-subprocess')
-        return stl, stl_ways, stl_rest, svg, blend, json.loads(meta)
+        rss_kib = read_osm_to_tactile_rss_kib(os.path.dirname(osm_path))
+        return stl, stl_ways, stl_rest, svg, blend, json.loads(meta), rss_kib
     except Exception as e:
         raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
 
@@ -919,6 +920,11 @@ def init_main_context():
         'stl_bytes': None,
         'stl_gzip_bytes': None,
         'map_content_gzip_bytes': None,
+        'osm_fetched_bytes': None,
+        'osm_pruned_bytes': None,
+        'rss_osm2world_kib': None,
+        'rss_blender_kib': None,
+        'rss_clip_2d_kib': None,
     }
 
 
@@ -967,7 +973,6 @@ def handle_main_exception(ctx, e):
         try:
             print("process-request failed: " + str(e))
             log_progress('failed', status='failed', detail=str(e))
-            log_memory_checkpoint('failed')
             if ctx['s3'] != None and ctx['map_bucket_name'] is not None and ctx['map_object_name'] is not None:
                 # Put map file that contains just the error message in metadata
                 ctx['s3'].Bucket(ctx['map_bucket_name']).put_object(
@@ -1030,6 +1035,11 @@ def build_stats_record(ctx):
         'stl_bytes': ctx['stl_bytes'],
         'stl_gzip_bytes': ctx['stl_gzip_bytes'],
         'map_content_gzip_bytes': ctx['map_content_gzip_bytes'],
+        'osm_fetched_bytes': ctx['osm_fetched_bytes'],
+        'osm_pruned_bytes': ctx['osm_pruned_bytes'],
+        'rss_osm2world_kib': ctx['rss_osm2world_kib'],
+        'rss_blender_kib': ctx['rss_blender_kib'],
+        'rss_clip_2d_kib': ctx['rss_clip_2d_kib'],
     }
 
 
@@ -1075,8 +1085,6 @@ def main():
         bootstrap_runtime(ctx)
         init_stats_services(ctx)
 
-        log_memory_checkpoint('main-start')
-
         # Receive SQS msg
         ctx['current_stage'] = 'poll'
         log_progress('poll-start')
@@ -1092,7 +1100,6 @@ def main():
         ctx['processing_start_time'] = time_clock()
         log_progress('poll-returned', request_id=ctx['request_id'])
         print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
-        log_memory_checkpoint('after-receive-sqs')
 
         # Get OSM data
         ctx['current_stage'] = 'get-osm'
@@ -1103,21 +1110,25 @@ def main():
         ctx['name_base'] = ctx['map_object_name'][:-4]
         bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
         progress_updater = functools.partial(update_progress, ctx['s3'], ctx['map_bucket_name'], ctx['map_object_name'])
-        osm_path = get_osm(progress_updater, ctx['request_body'], ctx['args'].work_dir)
-        if osm_path is None:
+        osm_result = get_osm(progress_updater, ctx['request_body'], ctx['args'].work_dir)
+        if osm_result is None:
             raise Exception("OSM path not available")
+        osm_path, fetched_osm_bytes, pruned_osm_bytes = osm_result
+        ctx['osm_fetched_bytes'] = fetched_osm_bytes
+        ctx['osm_pruned_bytes'] = pruned_osm_bytes
         ctx['timing_get_osm_seconds'] = duration_since(get_osm_start_time)
         log_progress('get-osm-done')
-        log_memory_checkpoint('after-get-osm')
 
         # Convert OSM => STL
         ctx['current_stage'] = 'osm-to-tactile'
         log_progress('osm-to-tactile-start')
-        stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, ctx['request_body'])
+        stl, stl_ways, stl_rest, svg, blend, meta, rss_kib = run_osm_to_tactile(progress_updater, osm_path, ctx['request_body'])
+        ctx['rss_osm2world_kib'] = rss_kib.get('rss_osm2world_kib')
+        ctx['rss_blender_kib'] = rss_kib.get('rss_blender_kib')
+        ctx['rss_clip_2d_kib'] = rss_kib.get('rss_clip_2d_kib')
         ctx['stl_bytes'] = len(stl)
         log_progress('osm-to-tactile-done')
         raw_meta_path = os.path.join(os.path.dirname(osm_path), 'map-meta-raw.json')
-        log_memory_checkpoint('after-run-osm-to-tactile')
 
         # Enrich map-meta.json
         ctx['current_stage'] = 'map-desc'
@@ -1126,7 +1137,6 @@ def main():
         run_map_desc(raw_meta_path, profile={})
         ctx['timing_map_desc_seconds'] = duration_since(map_desc_start_time)
         log_progress('map-desc-done')
-        log_memory_checkpoint('after-run-map-desc')
 
         ctx['current_stage'] = 'map-content-read'
         map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
@@ -1136,7 +1146,6 @@ def main():
         map_content = attach_request_metadata_to_map_content(map_content, ctx['request_body'])
         ctx['map_content_gzip_bytes'] = len(gzip.compress(map_content, compresslevel=5))
         log_progress('map-content-read-done')
-        log_memory_checkpoint('after-attach-request-metadata')
 
         common_args = {
             'ACL': 'public-read', 'ContentEncoding': 'gzip',
@@ -1166,7 +1175,6 @@ def main():
             progress_logger=ctx['progress_logger']
         )
         log_progress('upload-primary-done')
-        log_memory_checkpoint('after-upload-primary-assets')
 
         # Create PDF from SVG and put it to S3
         ctx['current_stage'] = 'svg-to-pdf'
@@ -1191,7 +1199,6 @@ def main():
             progress_logger=ctx['progress_logger']
         )
         log_progress('upload-secondary-done')
-        log_memory_checkpoint('after-upload-secondary-assets')
 
         print("Processing entire request took " + str(time_clock() - ctx['main_start_time']))
         log_progress('complete', status='success')
