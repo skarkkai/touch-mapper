@@ -578,6 +578,11 @@
                 "Comment": "Maximum RSS in KiB for prune-only-big-roads.js subprocess in content_mode=only-big-roads (/usr/bin/time -v)."
               },
               {
+                "Name": "rss_svg_to_pdf_kib",
+                "Type": "bigint",
+                "Comment": "Maximum RSS in KiB for SVG-to-PDF subprocess execution in process-request.py (/usr/bin/time -v)."
+              },
+              {
                 "Name": "rss_process_request_peak_kib",
                 "Type": "bigint",
                 "Comment": "Peak VmRSS in KiB observed within process-request.py while handling the request."

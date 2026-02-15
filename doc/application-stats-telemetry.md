@@ -53,6 +53,7 @@ RAM telemetry combines:
 - `rss_blender_kib`
 - `rss_clip_2d_kib`
 - `rss_prune_only_big_roads_kib` (from `prune-only-big-roads.js` subprocess in `content_mode=only-big-roads`)
+- `rss_svg_to_pdf_kib` (from the CairoSVG subprocess used for SVG -> PDF conversion)
 - `rss_process_request_peak_kib` (peak VmRSS observed in `process-request.py` itself)
 
 These represent top memory consumers for the converter pipeline and are written as KiB integers.

@@ -1057,7 +1057,7 @@ def svg_to_pdf(svg_path, pdf_path):
             svg_path,
             pdf_path
         ]
-        subprocess.check_call(cmd)
+        return run_subprocess_with_max_rss_kib(cmd)
     except Exception as e:
         raise Exception("Can't convert SVG to PDF: " + str(e))
 
@@ -1222,6 +1222,7 @@ def init_main_context():
         'rss_blender_kib': None,
         'rss_clip_2d_kib': None,
         'rss_prune_only_big_roads_kib': None,
+        'rss_svg_to_pdf_kib': None,
         'rss_process_request_last_kib': None,
         'rss_process_request_peak_kib': None,
     }
@@ -1341,6 +1342,7 @@ def build_stats_record(ctx):
         'rss_blender_kib': ctx['rss_blender_kib'],
         'rss_clip_2d_kib': ctx['rss_clip_2d_kib'],
         'rss_prune_only_big_roads_kib': ctx['rss_prune_only_big_roads_kib'],
+        'rss_svg_to_pdf_kib': ctx['rss_svg_to_pdf_kib'],
         'rss_process_request_peak_kib': ctx['rss_process_request_peak_kib'],
     }
 
@@ -1506,7 +1508,7 @@ def main():
         svg_to_pdf_start_time = time_clock()
         log_progress('svg-to-pdf-start')
         pdf_path = os.path.join(os.path.dirname(osm_path), 'map.pdf')
-        svg_to_pdf(artifacts['svg_path'], pdf_path)
+        ctx['rss_svg_to_pdf_kib'] = svg_to_pdf(artifacts['svg_path'], pdf_path)
         ctx['timing_svg_to_pdf_seconds'] = duration_since(svg_to_pdf_start_time)
         log_progress('svg-to-pdf-done')
         track_process_rss_kib(ctx)
