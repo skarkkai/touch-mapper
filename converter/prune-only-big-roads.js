@@ -967,7 +967,80 @@ async function secondPassLoadNodeCoordinates(state, osmPath) {
   });
 }
 
-function computeWayLengthMeters(state, wayIx) {
+function clipSegmentToLonLatBounds(aLon, aLat, bLon, bLat, bounds) {
+  const lonMin = Number(bounds.lonMin);
+  const lonMax = Number(bounds.lonMax);
+  const latMin = Number(bounds.latMin);
+  const latMax = Number(bounds.latMax);
+  if (
+    !Number.isFinite(lonMin) || !Number.isFinite(lonMax) ||
+    !Number.isFinite(latMin) || !Number.isFinite(latMax)
+  ) {
+    return null;
+  }
+
+  const dx = bLon - aLon;
+  const dy = bLat - aLat;
+  let t0 = 0.0;
+  let t1 = 1.0;
+  const eps = 1e-12;
+
+  function clipEdge(p, q) {
+    if (Math.abs(p) <= eps) {
+      return q >= 0.0;
+    }
+    const r = q / p;
+    if (p < 0.0) {
+      if (r > t1) {
+        return false;
+      }
+      if (r > t0) {
+        t0 = r;
+      }
+    } else {
+      if (r < t0) {
+        return false;
+      }
+      if (r < t1) {
+        t1 = r;
+      }
+    }
+    return true;
+  }
+
+  if (!clipEdge(-dx, aLon - lonMin)) {
+    return null;
+  }
+  if (!clipEdge(dx, lonMax - aLon)) {
+    return null;
+  }
+  if (!clipEdge(-dy, aLat - latMin)) {
+    return null;
+  }
+  if (!clipEdge(dy, latMax - aLat)) {
+    return null;
+  }
+  if (t1 < t0) {
+    return null;
+  }
+
+  return {
+    lon0: aLon + t0 * dx,
+    lat0: aLat + t0 * dy,
+    lon1: aLon + t1 * dx,
+    lat1: aLat + t1 * dy,
+  };
+}
+
+function segmentLengthWithinBoundsMeters(aLon, aLat, bLon, bLat, bounds) {
+  const clipped = clipSegmentToLonLatBounds(aLon, aLat, bLon, bLat, bounds);
+  if (clipped === null) {
+    return 0.0;
+  }
+  return computeHaversineM(clipped.lat0, clipped.lon0, clipped.lat1, clipped.lon1);
+}
+
+function computeWayLengthMetersWithinBounds(state, wayIx, bounds) {
   const start = state.wayRefStart[wayIx];
   const len = state.wayRefLen[wayIx];
   let total = 0.0;
@@ -980,11 +1053,12 @@ function computeWayLengthMeters(state, wayIx) {
       continue;
     }
     if (prevIx !== null) {
-      total += computeHaversineM(
-        state.nodeLat[prevIx],
+      total += segmentLengthWithinBoundsMeters(
         state.nodeLon[prevIx],
+        state.nodeLat[prevIx],
+        state.nodeLon[nodeIx],
         state.nodeLat[nodeIx],
-        state.nodeLon[nodeIx]
+        bounds
       );
     }
     prevIx = nodeIx;
@@ -1002,6 +1076,7 @@ function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
   const roadGroupMaxRank = [];
   const roadGroupIxByNameHash = new Map();
   const wayRoadGroupIx = new Int32Array(wayCount);
+  const roadWayLengthWithinBounds = new Float64Array(wayCount);
   wayRoadGroupIx.fill(-1);
 
   for (let wayIx = 0; wayIx < wayCount; wayIx += 1) {
@@ -1010,7 +1085,8 @@ function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
     }
     const rank = state.wayRank[wayIx];
     const nameHash = state.wayRoadNameHash[wayIx];
-    const wayLengthMeters = computeWayLengthMeters(state, wayIx);
+    const wayLengthMeters = computeWayLengthMetersWithinBounds(state, wayIx, bounds);
+    roadWayLengthWithinBounds[wayIx] = wayLengthMeters;
 
     let roadGroupIx;
     if (nameHash === ROAD_NAME_HASH_UNNAMED) {
@@ -1052,7 +1128,7 @@ function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
     if ((state.wayFlags[wayIx] & FLAG_ROAD) !== 0) {
       const roadGroupIx = wayRoadGroupIx[wayIx];
       const roadGroupRank = roadGroupIx >= 0 ? roadGroupMaxRank[roadGroupIx] : state.wayRank[wayIx];
-      if (!removedRanks.has(roadGroupRank)) {
+      if (!removedRanks.has(roadGroupRank) && roadWayLengthWithinBounds[wayIx] > 0.0) {
         state.keepWay[wayIx] = 1;
         state.keptRoadWay[wayIx] = 1;
       }
@@ -1228,6 +1304,27 @@ function formatWayXml(state, wayIx) {
   return lines.join('\n');
 }
 
+function isRelationMemberKept(state, member) {
+  if (member.type === MEMBER_TYPE_NODE) {
+    const nodeIx = state.nodeIdToIx.get(member.ref);
+    if (nodeIx === undefined) {
+      return false;
+    }
+    return state.keepNode[nodeIx] === 1 && state.nodeHasCoord[nodeIx] === 1;
+  }
+  if (member.type === MEMBER_TYPE_WAY) {
+    const wayIx = state.wayIdToIx.get(member.ref);
+    if (wayIx === undefined) {
+      return false;
+    }
+    return state.keepWay[wayIx] === 1;
+  }
+  if (member.type === MEMBER_TYPE_RELATION) {
+    return state.keepRelation.has(member.ref);
+  }
+  return false;
+}
+
 function formatRelationXml(state, relIx) {
   const relId = state.relationIds[relIx];
   const tags = state.relationTags[relIx];
@@ -1237,6 +1334,9 @@ function formatRelationXml(state, relIx) {
   lines.push('  <relation id="' + relId + '">');
   for (let i = 0; i < members.length; i += 1) {
     const m = members[i];
+    if (!isRelationMemberKept(state, m)) {
+      continue;
+    }
     const typeString = memberTypeToString(m.type);
     if (!typeString) {
       continue;
@@ -1599,14 +1699,87 @@ function runRoadGroupingSelfTest() {
   console.log('road-grouping self-test passed');
 }
 
+function assertAlmostEqual(label, actual, expected, tolerance) {
+  if (Math.abs(actual - expected) > tolerance) {
+    throw new Error(label + ': got=' + actual + ' expected=' + expected + ' tolerance=' + tolerance);
+  }
+}
+
+function runBboxLengthSelfTest() {
+  const bounds = {
+    lonMin: 24.0,
+    lonMax: 25.0,
+    latMin: 60.0,
+    latMax: 61.0,
+  };
+
+  const insideSegmentLength = segmentLengthWithinBoundsMeters(24.1, 60.1, 24.2, 60.2, bounds);
+  const expectedInsideLength = computeHaversineM(60.1, 24.1, 60.2, 24.2);
+  assertAlmostEqual('inside segment length', insideSegmentLength, expectedInsideLength, 1e-6);
+
+  const outsideSegmentLength = segmentLengthWithinBoundsMeters(23.0, 59.0, 23.1, 59.1, bounds);
+  assertAlmostEqual('outside segment length', outsideSegmentLength, 0.0, 1e-12);
+
+  const crossingSegmentLength = segmentLengthWithinBoundsMeters(23.5, 60.5, 24.5, 60.5, bounds);
+  const expectedCrossingLength = computeHaversineM(60.5, 24.0, 60.5, 24.5);
+  assertAlmostEqual('crossing segment clipped length', crossingSegmentLength, expectedCrossingLength, 1e-6);
+
+  const edgeTouchSegmentLength = segmentLengthWithinBoundsMeters(24.0, 60.2, 24.8, 60.2, bounds);
+  const expectedEdgeTouchLength = computeHaversineM(60.2, 24.0, 60.2, 24.8);
+  assertAlmostEqual('edge-touch segment length', edgeTouchSegmentLength, expectedEdgeTouchLength, 1e-6);
+
+  const multiSegmentLength =
+    segmentLengthWithinBoundsMeters(23.9, 60.5, 24.2, 60.5, bounds) +
+    segmentLengthWithinBoundsMeters(24.2, 60.5, 24.3, 60.5, bounds);
+  const expectedMultiSegmentLength =
+    computeHaversineM(60.5, 24.0, 60.5, 24.2) +
+    computeHaversineM(60.5, 24.2, 60.5, 24.3);
+  assertAlmostEqual('multi-segment clipped length', multiSegmentLength, expectedMultiSegmentLength, 1e-6);
+
+  const mainStreetHash = hashRoadName32(normalizeRoadNameForGrouping('Main Street'));
+  const areaM2 = 1000000;
+  const targetDensityKmPerKm2 = 0.12;
+  const groupedWithOutsideSegment = computeRoadGroupingKeep(
+    [
+      { rank: 8, nameHash: mainStreetHash, lengthMeters: 100.0 },
+      { rank: 4, nameHash: mainStreetHash, lengthMeters: 0.0 },
+      { rank: 4, nameHash: hashRoadName32(normalizeRoadNameForGrouping('Other Street')), lengthMeters: 120.0 },
+    ],
+    areaM2,
+    targetDensityKmPerKm2
+  );
+  assertTrue('same-name mixed-rank group should stay kept with outside zero-length segment', groupedWithOutsideSegment.kept[0] === true);
+  assertTrue('same-name outside zero-length segment follows group keep decision', groupedWithOutsideSegment.kept[1] === true);
+
+  const relationFilterState = {
+    nodeIdToIx: new Map([[1, 0], [2, 1]]),
+    keepNode: new Uint8Array([1, 0]),
+    nodeHasCoord: new Uint8Array([1, 1]),
+    wayIdToIx: new Map([[10, 0], [11, 1]]),
+    keepWay: new Uint8Array([1, 0]),
+    keepRelation: new Set([100]),
+  };
+  assertTrue('kept node relation member should be kept', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_NODE, ref: 1 }) === true);
+  assertTrue('removed node relation member should be dropped', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_NODE, ref: 2 }) === false);
+  assertTrue('kept way relation member should be kept', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_WAY, ref: 10 }) === true);
+  assertTrue('removed way relation member should be dropped', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_WAY, ref: 11 }) === false);
+  assertTrue('kept relation member should be kept', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_RELATION, ref: 100 }) === true);
+  assertTrue('removed relation member should be dropped', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_RELATION, ref: 101 }) === false);
+
+  console.log('bbox-length self-test passed');
+}
+
 module.exports = {
   parseTagToken,
   streamParseXml,
   collectSummaryWithCustomParser,
   runStreamParseXmlSelfTest,
   runRoadGroupingSelfTest,
+  runBboxLengthSelfTest,
   normalizeRoadNameForGrouping,
   hashRoadName32,
+  segmentLengthWithinBoundsMeters,
+  clipSegmentToLonLatBounds,
 };
 
 if (require.main === module) {
@@ -1618,6 +1791,13 @@ if (require.main === module) {
   } else if (process.argv.indexOf('--self-test-grouping') !== -1) {
     try {
       runRoadGroupingSelfTest();
+    } catch (err) {
+      console.error(String(err && err.stack ? err.stack : err));
+      process.exit(1);
+    }
+  } else if (process.argv.indexOf('--self-test-bbox-length') !== -1) {
+    try {
+      runBboxLengthSelfTest();
     } catch (err) {
       console.error(String(err && err.stack ? err.stack : err));
       process.exit(1);
