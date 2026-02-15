@@ -55,7 +55,7 @@ INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
 VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
-TARGET_ROAD_DENSITY_KM_PER_KM2 = 120.0
+TARGET_ROAD_DENSITY_KM_PER_KM2 = 100.0
 ROAD_BASE_RANK = {
     'service': 0,
     'track': 1,
