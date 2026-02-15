@@ -108,7 +108,7 @@
     "map_content": "Inhalt",
     "content_mode_normal": "Normal",
     "content_mode_no_buildings": "Keine Gebäude",
-    "content_mode_only_big_roads": "Nur große Straßen",
+    "content_mode_only_big_roads": "Nur große Straßen und Wasserflächen",
     "location_marker": "Standortmarkierung",
     "hide_location_marker": "Standortmarkierung ausblenden",
     "advanced_settings": "Erweitert",

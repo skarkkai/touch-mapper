@@ -108,7 +108,7 @@
     "map_content": "Sisältö",
     "content_mode_normal": "Normaali",
     "content_mode_no_buildings": "Ei rakennuksia",
-    "content_mode_only_big_roads": "Vain isot tiet",
+    "content_mode_only_big_roads": "Vain isot tiet ja vesialueet",
     "location_marker": "Sijaintimerkki",
     "hide_location_marker": "Piilota sijaintimerkki",
     "advanced_settings": "Lisävalinnat",

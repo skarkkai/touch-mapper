@@ -23,7 +23,7 @@ import copy
 import signal
 import atexit
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 
 import stats_pipeline
 
@@ -54,16 +54,31 @@ INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
 VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
-BIG_ROAD_HIGHWAY_VALUES = set([
-    'motorway',
-    'motorway_link',
-    'trunk',
-    'trunk_link',
-    'primary',
-    'primary_link',
-    'secondary',
-    'secondary_link',
-])
+TARGET_ROAD_DENSITY_KM_PER_KM2 = 10.0
+ROAD_BASE_RANK = {
+    'service': 0,
+    'track': 1,
+    'path': 2,
+    'footway': 2,
+    'cycleway': 2,
+    'bridleway': 2,
+    'steps': 2,
+    'corridor': 2,
+    'pedestrian': 3,
+    'living_street': 3,
+    'residential': 4,
+    'unclassified': 5,
+    'tertiary': 6,
+    'tertiary_link': 6,
+    'secondary': 7,
+    'secondary_link': 7,
+    'primary': 8,
+    'primary_link': 8,
+    'trunk': 9,
+    'trunk_link': 9,
+    'motorway': 10,
+    'motorway_link': 10,
+}
 VERSION_TAG_PACKAGE_RE = re.compile(r'^package-(.+)$')
 CODE_VERSION_WARNING_EMITTED = False
 progress_state = {
@@ -240,9 +255,148 @@ def ensure_request_content_mode(request_body):
     request_body['contentMode'] = mode
     return mode
 
-def big_road_highway_values_regex():
-    values = sorted(list(BIG_ROAD_HIGHWAY_VALUES))
-    return '^(' + '|'.join(values) + ')$'
+def compute_haversine_m(lat1, lon1, lat2, lon2):
+    earth_radius_m = 6371000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(delta_phi / 2.0) ** 2 +
+        math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+    )
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(max(0.0, 1.0 - a)))
+    return earth_radius_m * c
+
+def parse_lanes(tags):
+    raw = tags.get('lanes')
+    if raw is None:
+        return None
+    match = re.match(r'^\s*([0-9]+)', str(raw))
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except Exception:
+        return None
+
+def parse_maxspeed_kmh(tags):
+    raw = tags.get('maxspeed')
+    if raw is None:
+        return None
+    text = str(raw).strip().lower()
+    if text == '':
+        return None
+    primary = re.split(r'[;,|]', text)[0].strip()
+    match = re.match(r'^([0-9]+(?:\.[0-9]+)?)\s*(mph|mi/h|km/h|kmh|kph)?$', primary)
+    if not match:
+        return None
+    try:
+        value = float(match.group(1))
+    except Exception:
+        return None
+    unit = match.group(2)
+    if unit in ('mph', 'mi/h'):
+        return value * 1.60934
+    return value
+
+def is_truthy_osm(tags, key):
+    value = tags.get(key)
+    if value is None:
+        return False
+    return str(value).strip().lower() in ('yes', 'true', '1')
+
+def compute_way_length_m(way_elem, nodes_by_id):
+    total = 0.0
+    prev = None
+    for nd in way_elem.findall('nd'):
+        ref = nd.get('ref')
+        if ref is None:
+            continue
+        coords = nodes_by_id.get(ref)
+        if coords is None:
+            prev = None
+            continue
+        if prev is not None:
+            total += compute_haversine_m(prev[0], prev[1], coords[0], coords[1])
+        prev = coords
+    return total
+
+def base_road_rank(highway_value):
+    if highway_value is None:
+        return 5
+    normalized = str(highway_value).strip().lower()
+    return ROAD_BASE_RANK.get(normalized, 5)
+
+def adjusted_road_rank(tags):
+    highway = str(tags.get('highway', '')).strip().lower()
+    rank = base_road_rank(highway)
+    lanes = parse_lanes(tags)
+    maxspeed_kmh = parse_maxspeed_kmh(tags)
+
+    if lanes is not None and lanes >= 2:
+        rank += 1
+    if is_truthy_osm(tags, 'oneway'):
+        rank += 1
+    if maxspeed_kmh is not None and maxspeed_kmh >= 70:
+        rank += 1
+    if highway in ('motorway', 'trunk', 'primary'):
+        if (lanes is not None and lanes >= 3) or (maxspeed_kmh is not None and maxspeed_kmh >= 90):
+            rank += 2
+
+    if str(tags.get('access', '')).strip().lower() == 'private':
+        rank -= 1
+    if highway == 'service':
+        service_value = str(tags.get('service', '')).strip().lower()
+        if service_value in ('driveway', 'parking_aisle'):
+            rank -= 2
+    if highway == 'track':
+        tracktype_value = str(tags.get('tracktype', '')).strip().lower()
+        if tracktype_value in ('grade4', 'grade5'):
+            rank -= 1
+
+    if rank < 0:
+        return 0
+    if rank > 10:
+        return 10
+    return rank
+
+def compute_effective_area_m2(effective_area):
+    try:
+        lat_min = float(effective_area['latMin'])
+        lat_max = float(effective_area['latMax'])
+        lon_min = float(effective_area['lonMin'])
+        lon_max = float(effective_area['lonMax'])
+    except Exception:
+        return 0.0
+
+    ns_m = compute_haversine_m(lat_min, lon_min, lat_max, lon_min)
+    lat_mid = (lat_min + lat_max) / 2.0
+    ew_m = compute_haversine_m(lat_mid, lon_min, lat_mid, lon_max)
+    area = abs(ns_m * ew_m)
+    if not math.isfinite(area):
+        return 0.0
+    return area
+
+def derive_removed_rank_buckets(length_by_rank, area_m2, target_density_km_per_km2):
+    removed = set()  # type: Set[int]
+    if area_m2 <= 0:
+        return removed
+    target_m = target_density_km_per_km2 * 1000.0 * (area_m2 / 1000000.0)
+    remaining_m = 0.0
+    for rank in range(0, 11):
+        remaining_m += float(length_by_rank.get(rank, 0.0))
+
+    for rank in range(0, 11):
+        if remaining_m <= target_m:
+            break
+        bucket_m = float(length_by_rank.get(rank, 0.0))
+        if remaining_m - bucket_m >= target_m:
+            removed.add(rank)
+            remaining_m -= bucket_m
+        else:
+            break
+    return removed
 
 def build_overpass_interpreter_query(request_body, content_mode):
     eff_area = request_body['effectiveArea']
@@ -261,7 +415,7 @@ def build_overpass_interpreter_query(request_body, content_mode):
     if content_mode == 'only-big-roads':
         return (
             '[out:xml][timeout:25];'
-            'way({bbox})["highway"~"{highway_regex}"]->.big_roads;'
+            'way({bbox})["highway"]->.all_roads;'
             'way({bbox})["natural"="water"]->.water_areas_a;'
             'way({bbox})["water"]->.water_areas_b;'
             'way({bbox})["landuse"="reservoir"]->.water_areas_c;'
@@ -271,8 +425,8 @@ def build_overpass_interpreter_query(request_body, content_mode):
             'relation({bbox})["landuse"="reservoir"]->.water_relations_c;'
             'relation({bbox})["waterway"="riverbank"]->.water_relations_d;'
             '('
-            '.big_roads;'
-            'relation(bw.big_roads);'
+            '.all_roads;'
+            'relation(bw.all_roads);'
             '.water_areas_a;'
             '.water_areas_b;'
             '.water_areas_c;'
@@ -284,7 +438,7 @@ def build_overpass_interpreter_query(request_body, content_mode):
             ');'
             '(._;>;);'
             'out meta;'
-        ).format(bbox=bbox, highway_regex=big_road_highway_values_regex())
+        ).format(bbox=bbox)
     raise Exception("Unsupported content mode for interpreter query: " + str(content_mode))
 
 def add_or_replace_bounds(osm_data, request_body):
@@ -328,6 +482,13 @@ def has_water_area_tags(tags):
         tags.get('waterway') == 'riverbank'
     )
 
+def has_linear_waterway_tags(tags):
+    waterway = tags.get('waterway')
+    if waterway is None:
+        return False
+    normalized = str(waterway).strip().lower()
+    return normalized not in ('', 'riverbank')
+
 def has_building_tags(tags):
     def is_active_building_value(value):
         if value is None:
@@ -338,9 +499,6 @@ def has_building_tags(tags):
         is_active_building_value(tags.get('building')) or
         is_active_building_value(tags.get('building:part'))
     )
-
-def is_big_road_way(tags):
-    return tags.get('highway') in BIG_ROAD_HIGHWAY_VALUES
 
 def parse_osm_tree(osm_path):
     try:
@@ -482,30 +640,59 @@ def filter_osm_file_for_no_buildings(osm_path, request_body):
 def filter_osm_file_for_only_big_roads(osm_path, request_body):
     tree = parse_osm_tree(osm_path)
     root = tree.getroot()
+    nodes = {}
     ways = {}
     relations = {}
     for child in list(root):
         elem_id = child.get('id')
         if elem_id is None:
             continue
-        if child.tag == 'way':
+        if child.tag == 'node':
+            lat = child.get('lat')
+            lon = child.get('lon')
+            if lat is None or lon is None:
+                continue
+            try:
+                nodes[elem_id] = (float(lat), float(lon))
+            except Exception:
+                continue
+        elif child.tag == 'way':
             ways[elem_id] = child
         elif child.tag == 'relation':
             relations[elem_id] = child
 
-    big_road_way_ids = set()
+    road_way_ids = set()
+    road_rank_by_way = {}
+    length_by_rank = {}
     water_area_way_ids = set()
     water_area_relation_ids = set()
     for way_id, way_elem in ways.items():
         tags = element_tags(way_elem)
-        if is_big_road_way(tags):
-            big_road_way_ids.add(way_id)
+        if tags.get('highway') not in (None, '') and not has_linear_waterway_tags(tags):
+            road_way_ids.add(way_id)
+            rank = adjusted_road_rank(tags)
+            road_rank_by_way[way_id] = rank
+            way_length_m = compute_way_length_m(way_elem, nodes)
+            length_by_rank[rank] = float(length_by_rank.get(rank, 0.0)) + way_length_m
         if has_water_area_tags(tags):
             water_area_way_ids.add(way_id)
     for rel_id, rel_elem in relations.items():
         tags = element_tags(rel_elem)
         if has_water_area_tags(tags):
             water_area_relation_ids.add(rel_id)
+
+    removed_ranks = derive_removed_rank_buckets(
+        length_by_rank=length_by_rank,
+        area_m2=compute_effective_area_m2(request_body['effectiveArea']),
+        target_density_km_per_km2=TARGET_ROAD_DENSITY_KM_PER_KM2
+    )
+    kept_road_way_ids = set()  # type: Set[str]
+    for way_id in road_way_ids:
+        rank = road_rank_by_way.get(way_id)
+        if rank is None:
+            continue
+        if rank not in removed_ranks:
+            kept_road_way_ids.add(way_id)
 
     keep_node_ids = set()
     pending_water_relations = list(water_area_relation_ids)
@@ -534,11 +721,11 @@ def filter_osm_file_for_only_big_roads(osm_path, request_body):
     road_relation_ids = set()
     for rel_id, rel_elem in relations.items():
         for member in rel_elem.findall('member'):
-            if member.get('type') == 'way' and member.get('ref') in big_road_way_ids:
+            if member.get('type') == 'way' and member.get('ref') in kept_road_way_ids:
                 road_relation_ids.add(rel_id)
                 break
 
-    keep_way_ids = set(big_road_way_ids)
+    keep_way_ids = set(kept_road_way_ids)
     keep_way_ids.update(water_area_way_ids)
     keep_relation_ids = set(road_relation_ids)
     keep_relation_ids.update(water_area_relation_ids)
@@ -555,6 +742,12 @@ def filter_osm_file_for_only_big_roads(osm_path, request_body):
             if member_type == 'node':
                 keep_node_ids.add(member_ref)
             elif member_type == 'way' and rel_id in water_area_relation_ids:
+                member_way = ways.get(member_ref)
+                if member_way is None:
+                    continue
+                member_tags = element_tags(member_way)
+                if has_linear_waterway_tags(member_tags):
+                    continue
                 keep_way_ids.add(member_ref)
 
     processed_way_ids = set()
