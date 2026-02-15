@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../styles/[% pagename %].css">
     <link rel="alternate" href="/en" hreflang="en" />
     <link rel="alternate" href="/de" hreflang="de" />
+    <link rel="alternate" href="/es" hreflang="es" />
     <link rel="alternate" href="/fi" hreflang="fi" />
     <link rel="alternate" href="/nl" hreflang="nl" />
   </head>
@@ -49,6 +50,7 @@
             <select class="language-selector" id="language-selector">
               <option value="en">English</option>
               <option value="de">Deutsch</option>
+              <option value="es">Español</option>
               <option value="nl">Nederlands</option>
               <option value="fi">Suomi</option>
             </select><a class="help-link" href="help" target="_blank" aria-label="{{ open_help_aria }}">{{ help }}</a>
