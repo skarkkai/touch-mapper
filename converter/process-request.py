@@ -243,6 +243,12 @@ def duration_since(start_time):
     return time_clock() - start_time
 
 
+def interpreted_request_bool(request_body, key, default=False):
+    if not isinstance(request_body, dict):
+        return bool(default)
+    return bool(request_body.get(key, default))
+
+
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Create STL and put into S3 based on a SQS request''')
     parser.add_argument('--poll-time', metavar='SECONDS', type=int, help="poll for a request at most this long")
@@ -1157,15 +1163,15 @@ def main():
                     'offset_y': request_body.get('offsetY'),
                     'size_cm': request_body.get('size'),
                     'content_mode': request_body.get('contentMode'),
-                    'hide_location_marker': request_body.get('hideLocationMarker'),
+                    'hide_location_marker': interpreted_request_bool(request_body, 'hideLocationMarker', False),
                     'lon': request_body.get('lon'),
                     'lat': request_body.get('lat'),
                     'scale': request_body.get('scale'),
-                    'multipart_mode': request_body.get('multipartMode'),
-                    'no_borders': request_body.get('noBorders'),
+                    'multipart_mode': interpreted_request_bool(request_body, 'multipartMode', False),
+                    'no_borders': interpreted_request_bool(request_body, 'noBorders', False),
                     'multipart_xpc': request_body.get('multipartXpc'),
                     'multipart_ypc': request_body.get('multipartYpc'),
-                    'advanced_mode': request_body.get('advancedMode'),
+                    'advanced_mode': interpreted_request_bool(request_body, 'advancedMode', False),
                     'timing_get_osm_seconds': timing_get_osm_seconds,
                     'timing_map_desc_seconds': timing_map_desc_seconds,
                     'timing_svg_to_pdf_seconds': timing_svg_to_pdf_seconds,
