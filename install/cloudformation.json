@@ -125,10 +125,6 @@
               ],
               "AllowedOrigins": [
                 "*"
-              ],
-              "ExposedHeaders": [
-                "x-amz-meta-processing-stage",
-                "x-amz-meta-error-msg"
               ]
             }
           ]
@@ -381,6 +377,16 @@
                 "Name": "failure_message",
                 "Type": "string",
                 "Comment": "Exception message captured on processing failure."
+              },
+              {
+                "Name": "error_code",
+                "Type": "string",
+                "Comment": "Structured converter error code for UI and analytics, such as unknown or too_large."
+              },
+              {
+                "Name": "error_description",
+                "Type": "string",
+                "Comment": "Diagnostic error text associated with error_code."
               },
               {
                 "Name": "termination_signal",

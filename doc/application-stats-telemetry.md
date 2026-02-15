@@ -41,6 +41,19 @@ Converter telemetry includes per-stage timing fields (seconds), including:
 - `timing_svg_to_pdf_seconds`
 - `timing_total_seconds`
 
+## Status polling and structured errors
+
+Map creation progress is now published to `map/info/<id>.json` via top-level `status`:
+
+- `status.progress` (`20`, `60`, `80`, `100`)
+- `status.errorCode` (`unknown` or `too_large`) on failures
+- `status.errorDescription` diagnostic text on failures
+
+For `too_large`, converter includes size/threshold details in `errorDescription`, for example:
+
+- `OSM data is 73400321 > 73400320 bytes before pruning`
+- `OSM data is 26220000 > 26214400 bytes after pruning`
+
 ## RAM telemetry fields
 
 RAM telemetry combines:
@@ -65,6 +78,11 @@ Converter telemetry also stores two OSM file size fields (bytes):
 
 - `osm_fetched_bytes`: file size immediately after OSM fetch and before content filtering.
 - `osm_pruned_bytes`: file size after content-mode pruning/filtering (`no-buildings`, `only-big-roads`), or same as fetched size when no pruning is applied.
+
+Structured error telemetry fields:
+
+- `error_code`: converter error code (`unknown`, `too_large`, ...)
+- `error_description`: diagnostic text linked to `error_code`
 
 ## Browser IP and geolocation
 

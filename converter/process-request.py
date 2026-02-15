@@ -15,14 +15,13 @@ import subprocess
 import functools
 import time
 import datetime
-import math
 import gzip
 import copy
 import io
 import signal
 import atexit
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional
 
 import stats_pipeline
 
@@ -35,6 +34,12 @@ TOP_RAM_STAGE_TO_FIELD = {
     'run-clip-2d': 'rss_clip_2d_kib',
 }
 MAX_RSS_KIB_RE = re.compile(r'^\s*Maximum resident set size \(kbytes\):\s*([0-9]+)\s*$')
+MAX_OSM_BYTES_GENERAL = 25 * 1024 * 1024
+MAX_OSM_BYTES_ONLY_BIG_ROADS_BEFORE_PRUNE = 70 * 1024 * 1024
+STATUS_PROGRESS_SEEN = 20
+STATUS_PROGRESS_CONVERTING = 60
+STATUS_PROGRESS_UPLOADING_PRIMARY = 80
+STATUS_PROGRESS_DONE = 100
 
 
 def parse_env_bool(name):
@@ -55,30 +60,6 @@ STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
 VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
 TARGET_ROAD_DENSITY_KM_PER_KM2 = 100.0
-ROAD_BASE_RANK = {
-    'service': 0,
-    'track': 1,
-    'path': 2,
-    'footway': 2,
-    'cycleway': 2,
-    'bridleway': 2,
-    'steps': 2,
-    'corridor': 2,
-    'pedestrian': 3,
-    'living_street': 3,
-    'residential': 4,
-    'unclassified': 5,
-    'tertiary': 6,
-    'tertiary_link': 6,
-    'secondary': 7,
-    'secondary_link': 7,
-    'primary': 8,
-    'primary_link': 8,
-    'trunk': 9,
-    'trunk_link': 9,
-    'motorway': 10,
-    'motorway_link': 10,
-}
 VERSION_TAG_PACKAGE_RE = re.compile(r'^package-(.+)$')
 CODE_VERSION_WARNING_EMITTED = False
 progress_state = {
@@ -262,9 +243,65 @@ def do_cmdline():
     args = parser.parse_args()
     return args
 
-def update_progress(s3, map_bucket_name, map_object_name, stage):
-    s3.Bucket(map_bucket_name).put_object(Key=map_object_name, ACL='public-read', \
-        CacheControl='no-cache', StorageClass='GLACIER_IR', Metadata={ 'processing-stage': stage })
+
+class RequestProcessingError(Exception):
+    def __init__(self, code, description):
+        self.code = code
+        self.description = description
+        super(RequestProcessingError, self).__init__(description)
+
+
+def raise_too_large_osm(actual_bytes, threshold_bytes, phase_text):
+    raise RequestProcessingError(
+        code='too_large',
+        description='OSM data is {} > {} bytes {}'.format(actual_bytes, threshold_bytes, phase_text)
+    )
+
+
+def ensure_osm_size_limit(actual_bytes, threshold_bytes, phase_text):
+    if actual_bytes > threshold_bytes:
+        raise_too_large_osm(actual_bytes, threshold_bytes, phase_text)
+
+
+def map_info_object_name_from_request_id(request_id):
+    return 'map/info/' + re.sub(r'\/.+', '.json', request_id) # deadbeef/foo.stl => info/deadbeef.json
+
+
+def write_info_json(bucket, key, payload, cache_control=None):
+    kwargs = {
+        'Key': key,
+        'Body': json.dumps(payload).encode('utf8'),
+        'ACL': 'public-read',
+        'ContentType': 'application/json',
+    }
+    if cache_control is not None:
+        kwargs['CacheControl'] = cache_control
+    bucket.put_object(**kwargs)
+
+
+def write_status_info_json(ctx, progress, error_code=None, error_description=None):
+    if ctx.get('s3') is None or ctx.get('map_bucket_name') is None or ctx.get('info_object_name') is None:
+        return
+    status_payload = {
+        'requestId': ctx.get('request_id'),
+        'status': {
+            'progress': int(progress),
+        }
+    }
+    if error_code is not None:
+        status_payload['status']['errorCode'] = str(error_code)
+    if error_description is not None:
+        status_payload['status']['errorDescription'] = str(error_description)
+    ctx['status_progress'] = int(progress)
+    if error_code is not None:
+        ctx['error_code'] = str(error_code)
+    if error_description is not None:
+        ctx['error_description'] = str(error_description)
+    try:
+        bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
+        write_info_json(bucket, ctx['info_object_name'], status_payload, cache_control='no-cache')
+    except Exception as e:
+        print("status info write failed: " + str(e))
 
 def normalize_content_mode(value):
     if isinstance(value, str):
@@ -277,149 +314,6 @@ def ensure_request_content_mode(request_body):
     mode = normalize_content_mode((request_body or {}).get('contentMode'))
     request_body['contentMode'] = mode
     return mode
-
-def compute_haversine_m(lat1, lon1, lat2, lon2):
-    earth_radius_m = 6371000.0
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    delta_phi = math.radians(lat2 - lat1)
-    delta_lambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(delta_phi / 2.0) ** 2 +
-        math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
-    )
-    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(max(0.0, 1.0 - a)))
-    return earth_radius_m * c
-
-def parse_lanes(tags):
-    raw = tags.get('lanes')
-    if raw is None:
-        return None
-    match = re.match(r'^\s*([0-9]+)', str(raw))
-    if not match:
-        return None
-    try:
-        return int(match.group(1))
-    except Exception:
-        return None
-
-def parse_maxspeed_kmh(tags):
-    raw = tags.get('maxspeed')
-    if raw is None:
-        return None
-    text = str(raw).strip().lower()
-    if text == '':
-        return None
-    primary = re.split(r'[;,|]', text)[0].strip()
-    match = re.match(r'^([0-9]+(?:\.[0-9]+)?)\s*(mph|mi/h|km/h|kmh|kph)?$', primary)
-    if not match:
-        return None
-    try:
-        value = float(match.group(1))
-    except Exception:
-        return None
-    unit = match.group(2)
-    if unit in ('mph', 'mi/h'):
-        return value * 1.60934
-    return value
-
-def is_truthy_osm(tags, key):
-    value = tags.get(key)
-    if value is None:
-        return False
-    return str(value).strip().lower() in ('yes', 'true', '1')
-
-def compute_way_length_m(way_elem, nodes_by_id):
-    total = 0.0
-    prev = None
-    for nd in way_elem.findall('nd'):
-        ref = nd.get('ref')
-        if ref is None:
-            continue
-        coords = nodes_by_id.get(ref)
-        if coords is None:
-            prev = None
-            continue
-        if prev is not None:
-            total += compute_haversine_m(prev[0], prev[1], coords[0], coords[1])
-        prev = coords
-    return total
-
-def base_road_rank(highway_value):
-    if highway_value is None:
-        return 5
-    normalized = str(highway_value).strip().lower()
-    return ROAD_BASE_RANK.get(normalized, 5)
-
-def adjusted_road_rank(tags):
-    highway = str(tags.get('highway', '')).strip().lower()
-    rank = base_road_rank(highway)
-    lanes = parse_lanes(tags)
-    maxspeed_kmh = parse_maxspeed_kmh(tags)
-
-    if lanes is not None and lanes >= 2:
-        rank += 1
-    if is_truthy_osm(tags, 'oneway'):
-        rank += 1
-    if maxspeed_kmh is not None and maxspeed_kmh >= 70:
-        rank += 1
-    if highway in ('motorway', 'trunk', 'primary'):
-        if (lanes is not None and lanes >= 3) or (maxspeed_kmh is not None and maxspeed_kmh >= 90):
-            rank += 2
-
-    if str(tags.get('access', '')).strip().lower() == 'private':
-        rank -= 1
-    if highway == 'service':
-        service_value = str(tags.get('service', '')).strip().lower()
-        if service_value in ('driveway', 'parking_aisle'):
-            rank -= 2
-    if highway == 'track':
-        tracktype_value = str(tags.get('tracktype', '')).strip().lower()
-        if tracktype_value in ('grade4', 'grade5'):
-            rank -= 1
-
-    if rank < 0:
-        return 0
-    if rank > 10:
-        return 10
-    return rank
-
-def compute_effective_area_m2(effective_area):
-    try:
-        lat_min = float(effective_area['latMin'])
-        lat_max = float(effective_area['latMax'])
-        lon_min = float(effective_area['lonMin'])
-        lon_max = float(effective_area['lonMax'])
-    except Exception:
-        return 0.0
-
-    ns_m = compute_haversine_m(lat_min, lon_min, lat_max, lon_min)
-    lat_mid = (lat_min + lat_max) / 2.0
-    ew_m = compute_haversine_m(lat_mid, lon_min, lat_mid, lon_max)
-    area = abs(ns_m * ew_m)
-    if not math.isfinite(area):
-        return 0.0
-    return area
-
-def derive_removed_rank_buckets(length_by_rank, area_m2, target_density_km_per_km2):
-    removed = set()  # type: Set[int]
-    if area_m2 <= 0:
-        return removed
-    target_m = target_density_km_per_km2 * 1000.0 * (area_m2 / 1000000.0)
-    remaining_m = 0.0
-    for rank in range(0, 11):
-        remaining_m += float(length_by_rank.get(rank, 0.0))
-
-    for rank in range(0, 11):
-        if remaining_m <= target_m:
-            break
-        bucket_m = float(length_by_rank.get(rank, 0.0))
-        if remaining_m - bucket_m >= target_m:
-            removed.add(rank)
-            remaining_m -= bucket_m
-        else:
-            break
-    return removed
 
 def build_overpass_interpreter_query(request_body, content_mode):
     eff_area = request_body['effectiveArea']
@@ -496,21 +390,6 @@ def element_tags(elem):
             continue
         tags[key] = child.get('v')
     return tags
-
-def has_water_area_tags(tags):
-    return (
-        tags.get('natural') == 'water' or
-        ('water' in tags and tags.get('water') not in (None, '')) or
-        tags.get('landuse') == 'reservoir' or
-        tags.get('waterway') == 'riverbank'
-    )
-
-def has_linear_waterway_tags(tags):
-    waterway = tags.get('waterway')
-    if waterway is None:
-        return False
-    normalized = str(waterway).strip().lower()
-    return normalized not in ('', 'riverbank')
 
 def has_building_tags(tags):
     def is_active_building_value(value):
@@ -660,150 +539,6 @@ def filter_osm_file_for_no_buildings(osm_path, request_body):
     with open(osm_path, 'wb') as f:
         filtered_tree.write(f, encoding='UTF-8', xml_declaration=True)
 
-def filter_osm_file_for_only_big_roads(osm_path, request_body):
-    tree = parse_osm_tree(osm_path)
-    root = tree.getroot()
-    nodes = {}
-    ways = {}
-    relations = {}
-    for child in list(root):
-        elem_id = child.get('id')
-        if elem_id is None:
-            continue
-        if child.tag == 'node':
-            lat = child.get('lat')
-            lon = child.get('lon')
-            if lat is None or lon is None:
-                continue
-            try:
-                nodes[elem_id] = (float(lat), float(lon))
-            except Exception:
-                continue
-        elif child.tag == 'way':
-            ways[elem_id] = child
-        elif child.tag == 'relation':
-            relations[elem_id] = child
-
-    road_way_ids = set()
-    road_rank_by_way = {}
-    length_by_rank = {}
-    water_area_way_ids = set()
-    water_area_relation_ids = set()
-    for way_id, way_elem in ways.items():
-        tags = element_tags(way_elem)
-        if tags.get('highway') not in (None, '') and not has_linear_waterway_tags(tags):
-            road_way_ids.add(way_id)
-            rank = adjusted_road_rank(tags)
-            road_rank_by_way[way_id] = rank
-            way_length_m = compute_way_length_m(way_elem, nodes)
-            length_by_rank[rank] = float(length_by_rank.get(rank, 0.0)) + way_length_m
-        if has_water_area_tags(tags):
-            water_area_way_ids.add(way_id)
-    for rel_id, rel_elem in relations.items():
-        tags = element_tags(rel_elem)
-        if has_water_area_tags(tags):
-            water_area_relation_ids.add(rel_id)
-
-    removed_ranks = derive_removed_rank_buckets(
-        length_by_rank=length_by_rank,
-        area_m2=compute_effective_area_m2(request_body['effectiveArea']),
-        target_density_km_per_km2=TARGET_ROAD_DENSITY_KM_PER_KM2
-    )
-    kept_road_way_ids = set()  # type: Set[str]
-    for way_id in road_way_ids:
-        rank = road_rank_by_way.get(way_id)
-        if rank is None:
-            continue
-        if rank not in removed_ranks:
-            kept_road_way_ids.add(way_id)
-
-    keep_node_ids = set()
-    pending_water_relations = list(water_area_relation_ids)
-    seen_water_relations = set()
-    while pending_water_relations:
-        rel_id = pending_water_relations.pop()
-        if rel_id in seen_water_relations:
-            continue
-        seen_water_relations.add(rel_id)
-        rel_elem = relations.get(rel_id)
-        if rel_elem is None:
-            continue
-        for member in rel_elem.findall('member'):
-            member_type = member.get('type')
-            member_ref = member.get('ref')
-            if member_ref is None:
-                continue
-            if member_type == 'way':
-                water_area_way_ids.add(member_ref)
-            elif member_type == 'node':
-                keep_node_ids.add(member_ref)
-            elif member_type == 'relation' and member_ref not in seen_water_relations:
-                water_area_relation_ids.add(member_ref)
-                pending_water_relations.append(member_ref)
-
-    road_relation_ids = set()
-    for rel_id, rel_elem in relations.items():
-        for member in rel_elem.findall('member'):
-            if member.get('type') == 'way' and member.get('ref') in kept_road_way_ids:
-                road_relation_ids.add(rel_id)
-                break
-
-    keep_way_ids = set(kept_road_way_ids)
-    keep_way_ids.update(water_area_way_ids)
-    keep_relation_ids = set(road_relation_ids)
-    keep_relation_ids.update(water_area_relation_ids)
-
-    for rel_id in list(keep_relation_ids):
-        rel_elem = relations.get(rel_id)
-        if rel_elem is None:
-            continue
-        for member in rel_elem.findall('member'):
-            member_type = member.get('type')
-            member_ref = member.get('ref')
-            if member_ref is None:
-                continue
-            if member_type == 'node':
-                keep_node_ids.add(member_ref)
-            elif member_type == 'way' and rel_id in water_area_relation_ids:
-                member_way = ways.get(member_ref)
-                if member_way is None:
-                    continue
-                member_tags = element_tags(member_way)
-                if has_linear_waterway_tags(member_tags):
-                    continue
-                keep_way_ids.add(member_ref)
-
-    processed_way_ids = set()
-    pending_way_ids = list(keep_way_ids)
-    while pending_way_ids:
-        way_id = pending_way_ids.pop()
-        if way_id in processed_way_ids:
-            continue
-        processed_way_ids.add(way_id)
-        way_elem = ways.get(way_id)
-        if way_elem is None:
-            continue
-        for nd in way_elem.findall('nd'):
-            ref = nd.get('ref')
-            if ref is not None:
-                keep_node_ids.add(ref)
-
-    new_root = ET.Element(root.tag, root.attrib)
-    for child in list(root):
-        elem_id = child.get('id')
-        if child.tag in ('note', 'meta'):
-            new_root.append(copy.deepcopy(child))
-        elif child.tag == 'node' and elem_id in keep_node_ids:
-            new_root.append(copy.deepcopy(child))
-        elif child.tag == 'way' and elem_id in keep_way_ids:
-            new_root.append(copy.deepcopy(child))
-        elif child.tag == 'relation' and elem_id in keep_relation_ids:
-            new_root.append(copy.deepcopy(child))
-    set_bounds_on_tree(new_root, request_body)
-    filtered_tree = ET.ElementTree(new_root)
-    with open(osm_path, 'wb') as f:
-        filtered_tree.write(f, encoding='UTF-8', xml_declaration=True)
-
 def run_subprocess_with_max_rss_kib(cmd):
     timed_cmd = list(cmd)
     use_time = os.path.exists('/usr/bin/time')
@@ -858,9 +593,8 @@ def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
     print("running: " + " ".join(cmd))
     return run_subprocess_with_max_rss_kib(cmd)
 
-def get_osm(progress_updater, request_body, work_dir):
+def get_osm(request_body, work_dir):
     # TODO: verify the requested region isn't too large
-    progress_updater('reading_osm')
     content_mode = ensure_request_content_mode(request_body)
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
@@ -919,15 +653,40 @@ def get_osm(progress_updater, request_body, work_dir):
             fetched_osm_bytes = os.path.getsize(osm_path)
             prune_rss_kib = None
             if content_mode == 'only-big-roads':
+                ensure_osm_size_limit(
+                    actual_bytes=fetched_osm_bytes,
+                    threshold_bytes=MAX_OSM_BYTES_ONLY_BIG_ROADS_BEFORE_PRUNE,
+                    phase_text='before pruning'
+                )
                 prune_rss_kib = prune_osm_file_for_only_big_roads_with_node(osm_path, request_body)
+                pruned_osm_bytes = os.path.getsize(osm_path)
+                ensure_osm_size_limit(
+                    actual_bytes=pruned_osm_bytes,
+                    threshold_bytes=MAX_OSM_BYTES_GENERAL,
+                    phase_text='after pruning'
+                )
             elif content_mode == 'no-buildings':
+                ensure_osm_size_limit(
+                    actual_bytes=fetched_osm_bytes,
+                    threshold_bytes=MAX_OSM_BYTES_GENERAL,
+                    phase_text='before pruning'
+                )
                 filter_osm_file_for_no_buildings(osm_path, request_body)
-            pruned_osm_bytes = os.path.getsize(osm_path)
+                pruned_osm_bytes = os.path.getsize(osm_path)
+            else:
+                ensure_osm_size_limit(
+                    actual_bytes=fetched_osm_bytes,
+                    threshold_bytes=MAX_OSM_BYTES_GENERAL,
+                    phase_text='before pruning'
+                )
+                pruned_osm_bytes = fetched_osm_bytes
             return osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib
         except Exception as e:
+            if isinstance(e, RequestProcessingError):
+                raise e
             msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
             if i == len(attempts) - 1:
-                raise(msg)
+                raise Exception(msg)
             else:
                 print(msg)
 
@@ -986,9 +745,8 @@ def read_osm_to_tactile_rss_kib(output_dir):
             fields[field_name] = rss_value
     return fields
 
-def run_osm_to_tactile(progress_updater, osm_path, request_body):
+def run_osm_to_tactile(osm_path, request_body):
     try:
-        progress_updater('converting')
         stl_path = os.path.dirname(osm_path) + '/map.stl'
         if os.path.exists(stl_path):
             os.rename(stl_path, stl_path + ".old")
@@ -1134,13 +892,15 @@ def attach_request_metadata_to_map_content(map_content, request_body):
     return json.dumps(map_content_json, ensure_ascii=False, separators=(',', ':')).encode('utf8')
 
 
-def build_info_payload(request_body, meta):
+def build_info_payload(request_body, meta, status_payload=None):
     # info.json is only map-page bootstrap metadata; omit large geometry arrays.
     info = copy.copy(request_body)
     for key, value in meta.items():
         if key in INFO_JSON_META_DENYLIST:
             continue
         info[key] = value
+    if status_payload is not None:
+        info['status'] = copy.deepcopy(status_payload)
     return info
 
 
@@ -1204,7 +964,10 @@ def init_main_context():
         'failure_class': None,
         'failure_message': None,
         'failure_exception': None,
+        'error_code': None,
+        'error_description': None,
         'status': 'starting',
+        'status_progress': None,
         'processing_start_time': None,
         'code_version_fields': empty_code_version_fields(),
         'progress_logger': None,
@@ -1268,23 +1031,24 @@ def handle_main_exception(ctx, e):
     ctx['failure_stage'] = ctx['current_stage']
     ctx['failure_class'] = e.__class__.__name__
     ctx['failure_message'] = str(e)
+    if isinstance(e, RequestProcessingError):
+        ctx['error_code'] = e.code
+        ctx['error_description'] = e.description
+    else:
+        ctx['error_code'] = 'unknown'
+        ctx['error_description'] = str(e)
     ctx['status'] = 'failed'
-    if isinstance(e, Exception):
-        try:
-            print("process-request failed: " + str(e))
-            log_progress('failed', status='failed', detail=str(e))
-            if ctx['s3'] != None and ctx['map_bucket_name'] is not None and ctx['map_object_name'] is not None:
-                # Put map file that contains just the error message in metadata
-                ctx['s3'].Bucket(ctx['map_bucket_name']).put_object(
-                    Key=ctx['map_object_name'],
-                    Body=b'',
-                    ACL='public-read',
-                    CacheControl='max-age=8640000',
-                    StorageClass='GLACIER_IR',
-                    Metadata={ 'error-msg': str(e) }
-                )
-        except Exception:
-            pass
+    try:
+        print("process-request failed: " + str(e))
+        log_progress('failed', status='failed', detail=str(e))
+        write_status_info_json(
+            ctx,
+            progress=(ctx.get('status_progress') if ctx.get('status_progress') is not None else STATUS_PROGRESS_SEEN),
+            error_code=ctx.get('error_code'),
+            error_description=ctx.get('error_description')
+        )
+    except Exception:
+        pass
 
 
 def build_stats_record(ctx):
@@ -1303,6 +1067,8 @@ def build_stats_record(ctx):
         'failure_stage': ctx['failure_stage'],
         'failure_class': ctx['failure_class'],
         'failure_message': ctx['failure_message'],
+        'error_code': ctx['error_code'],
+        'error_description': ctx['error_description'],
         'termination_signal': progress_state.get('termination_signal'),
         'browser_fingerprint': request_body.get('browserFingerprint'),
         'browser_ip': request_body.get('browserIp'),
@@ -1415,10 +1181,11 @@ def main():
         log_progress('get-osm-start')
         ctx['s3'] = ctx['stats_s3'] if ctx['stats_s3'] is not None else boto3.resource('s3')
         ctx['map_object_name'] = 'map/data/' + ctx['request_body']['requestId'] + '.stl'
+        ctx['info_object_name'] = map_info_object_name_from_request_id(ctx['request_body']['requestId'])
         ctx['name_base'] = ctx['map_object_name'][:-4]
         bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
-        progress_updater = functools.partial(update_progress, ctx['s3'], ctx['map_bucket_name'], ctx['map_object_name'])
-        osm_result = get_osm(progress_updater, ctx['request_body'], ctx['args'].work_dir)
+        write_status_info_json(ctx, STATUS_PROGRESS_SEEN)
+        osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir)
         if osm_result is None:
             raise Exception("OSM path not available")
         osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib = osm_result
@@ -1432,7 +1199,8 @@ def main():
         # Convert OSM => STL
         ctx['current_stage'] = 'osm-to-tactile'
         log_progress('osm-to-tactile-start')
-        artifacts, meta, rss_kib = run_osm_to_tactile(progress_updater, osm_path, ctx['request_body'])
+        write_status_info_json(ctx, STATUS_PROGRESS_CONVERTING)
+        artifacts, meta, rss_kib = run_osm_to_tactile(osm_path, ctx['request_body'])
         ctx['rss_osm2world_kib'] = rss_kib.get('rss_osm2world_kib')
         ctx['rss_blender_kib'] = rss_kib.get('rss_blender_kib')
         ctx['rss_clip_2d_kib'] = rss_kib.get('rss_clip_2d_kib')
@@ -1467,10 +1235,13 @@ def main():
 
         # Put the augmented request to S3
         ctx['current_stage'] = 'prepare-upload'
-        json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', ctx['request_body']['requestId']) # deadbeef/foo.stl => info/deadbeef.json
-        ctx['info_object_name'] = json_object_name
+        json_object_name = ctx['info_object_name']
         ctx['map_content_key'] = ctx['name_base'] + '.map-content.json'
-        info = build_info_payload(ctx['request_body'], meta)
+        info = build_info_payload(
+            ctx['request_body'],
+            meta,
+            status_payload={ 'progress': STATUS_PROGRESS_UPLOADING_PRIMARY }
+        )
         ctx['stl_gzip_bytes'] = len(gzip_file_to_bytes(
             artifacts['stl_path'],
             compresslevel=5,
@@ -1482,6 +1253,7 @@ def main():
         ctx['current_stage'] = 'upload-primary'
         upload_primary_start_time = time_clock()
         log_progress('upload-primary-start')
+        write_status_info_json(ctx, STATUS_PROGRESS_UPLOADING_PRIMARY)
         try:
             upload_primary_assets(
                 bucket,
@@ -1501,7 +1273,10 @@ def main():
         map_content = None
         track_process_rss_kib(ctx)
 
-        # Map creation is now considered done by UI
+        # Mark map as ready for client polling
+        info['status'] = { 'progress': STATUS_PROGRESS_DONE }
+        write_info_json(bucket, json_object_name, info)
+        ctx['status_progress'] = STATUS_PROGRESS_DONE
 
         # Create PDF from SVG and put it to S3
         ctx['current_stage'] = 'svg-to-pdf'

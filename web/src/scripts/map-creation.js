@@ -10,6 +10,11 @@
           pollProgress(startTime, requestId);
         }, 1000);
       };
+      var progressLabelKeyByValue = {
+        20: "progress__reading_osm",
+        60: "progress__converting",
+        80: "progress__uploading"
+      };
 
       // Timeout
       if (new Date().getTime() / 1000 - startTime > MAX_WAIT) {
@@ -17,10 +22,11 @@
         return;
       }
 
-      // Check for processing stage
+      // Check for processing status
       $.ajax({
-          type: "HEAD",
-          url: makeS3url(requestId) // CloudFront caches 404 responses, so can't poll through it
+          type: "GET",
+          url: makeS3InfoUrl(requestId), // CloudFront caches 404 responses, so can't poll through it
+          cache: false
       }).fail(function(jqXHR, textStatus, errorThrown){
         if (jqXHR.status === 404) {
             pollAgain();
@@ -28,22 +34,43 @@
             showError("Error: " + textStatus);
         }
       }).done(function(d, textStatus, jqXHR){
-        // Error
-        var errorMsg = jqXHR.getResponseHeader('x-amz-meta-error-msg');
-        if (errorMsg) {
-          showError("Error: " + errorMsg);
+        var payload = d;
+        if (typeof payload === "string") {
+          try {
+            payload = JSON.parse(payload);
+          } catch (e) {
+            pollAgain();
+            return;
+          }
+        }
+        var status = payload && payload.status ? payload.status : null;
+        if (!status) {
+          pollAgain();
           return;
         }
 
-        var stage = jqXHR.getResponseHeader('x-amz-meta-processing-stage');
-        if (stage) {
-          // Progress update
-          var desc = window.TM.translations["progress__" + stage] || stage;
+        if (status.errorCode) {
+          var translationKey = "conversion_error_" + status.errorCode;
+          var localized = window.TM.translations[translationKey] || translationKey;
+          showError(localized);
+          if (status.errorDescription && window.console && window.console.error) {
+            window.console.error("Map conversion failed (" + status.errorCode + "): " + status.errorDescription);
+          }
+          return;
+        }
+
+        var progress = parseInt(status.progress, 10);
+        if (isNaN(progress)) {
+          pollAgain();
+          return;
+        }
+        if (progress >= 100) {
+          location.href = makeMapPageUrlRelative(requestId);
+        } else {
+          var progressKey = progressLabelKeyByValue[progress];
+          var desc = progressKey ? (window.TM.translations[progressKey] || progressKey) : (progress + "%");
           $("#submit-button").val(desc);
           pollAgain();
-        } else {
-          // Completed
-          location.href = makeMapPageUrlRelative(requestId);
         }
       });
   }

@@ -106,6 +106,14 @@ function uriEncodeRequestId(rid) {
     }
   };
 
+  window.makeS3InfoUrl = function(id) {
+    if (idVersion(id) === 2) {
+      return MAPS_S3_HOST + "/map/info/" + idStart(id) + '.json';
+    } else {
+      return MAPS_S3_HOST + "/map/" + idStart(id) + '/info.json';
+    }
+  };
+
   function dataPrefix(id) {
     if (idVersion(id) === 2) {
       return "/map/data/" + uriEncodeRequestId(id);
