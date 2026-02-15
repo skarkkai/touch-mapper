@@ -40,6 +40,7 @@ STATUS_PROGRESS_SEEN = 20
 STATUS_PROGRESS_CONVERTING = 60
 STATUS_PROGRESS_UPLOADING_PRIMARY = 80
 STATUS_PROGRESS_DONE = 100
+NO_GEOMETRY_ERROR_DESCRIPTION = 'Map would contain no geometry in selected area.'
 
 
 def parse_env_bool(name):
@@ -745,9 +746,30 @@ def read_osm_to_tactile_rss_kib(output_dir):
             fields[field_name] = rss_value
     return fields
 
-def run_osm_to_tactile(osm_path, request_body):
+def has_empty_clip_report(output_dir):
+    clip_report_path = os.path.join(output_dir, 'map-clip-report.json')
+    if not os.path.exists(clip_report_path):
+        return False
     try:
-        stl_path = os.path.dirname(osm_path) + '/map.stl'
+        with open(clip_report_path, 'r') as f:
+            report = json.load(f)
+    except Exception:
+        return False
+    file_entries = report.get('files')
+    if not isinstance(file_entries, list):
+        return False
+    for entry in file_entries:
+        if isinstance(entry, dict) and entry.get('path'):
+            return False
+    return True
+
+def run_osm_to_tactile(osm_path, request_body):
+    output_dir = os.path.dirname(osm_path)
+    clip_report_path = os.path.join(output_dir, 'map-clip-report.json')
+    try:
+        if os.path.exists(clip_report_path):
+            os.remove(clip_report_path)
+        stl_path = output_dir + '/map.stl'
         if os.path.exists(stl_path):
             os.rename(stl_path, stl_path + ".old")
         args = ['--scale', str(request_body['scale']), '--diameter', str(request_body['diameter']), '--size', str(request_body['size']), ]
@@ -762,7 +784,6 @@ def run_osm_to_tactile(osm_path, request_body):
         cmd = ['./osm-to-tactile.py'] + args + [osm_path]
         print("running: " + " ".join(cmd))
         subprocess.check_call(cmd)
-        output_dir = os.path.dirname(osm_path)
         artifact_paths = {
             'stl_path': os.path.join(output_dir, 'map.stl'),
             'stl_ways_path': os.path.join(output_dir, 'map-ways.stl'),
@@ -777,6 +798,8 @@ def run_osm_to_tactile(osm_path, request_body):
         rss_kib = read_osm_to_tactile_rss_kib(os.path.dirname(osm_path))
         return artifact_paths, meta, rss_kib
     except Exception as e:
+        if has_empty_clip_report(output_dir):
+            raise RequestProcessingError(code='unknown', description=NO_GEOMETRY_ERROR_DESCRIPTION)
         raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
 
 # Receive a message from SQS and delete it. Poll up to "poll_time" seconds. Return parsed request, or None if no msg received.
