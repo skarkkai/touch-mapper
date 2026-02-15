@@ -26,7 +26,10 @@ from typing import Any, Dict, Optional
 import stats_pipeline
 
 STORE_AGE = 8640000
-time_clock = getattr(time, 'clock', time.time)
+# Use wall-clock timing for stage durations.
+# Python 3.5's time.clock() returns CPU time on Unix, which under-reports
+# network-bound stages like OSM fetch. perf_counter() is monotonic wall-clock.
+time_clock = getattr(time, 'perf_counter', time.time)
 INSTRUMENTATION_ENV_VAR = 'TOUCH_MAPPER_INSTRUMENTATION'
 TOP_RAM_STAGE_TO_FIELD = {
     'run-osm2world': 'rss_osm2world_kib',
