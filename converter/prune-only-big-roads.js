@@ -11,30 +11,44 @@ const MEMBER_TYPE_NODE = 0;
 const MEMBER_TYPE_WAY = 1;
 const MEMBER_TYPE_RELATION = 2;
 const ROAD_NAME_HASH_UNNAMED = -1;
+const ROAD_SCORE_MIN = -100;
+const ROAD_SCORE_MAX = 17;
+const ROAD_SCORE_BUCKET_COUNT = ROAD_SCORE_MAX - ROAD_SCORE_MIN + 1;
 
 const ROAD_BASE_RANK = {
-  service: 0,
-  track: 1,
+  corridor: 0,
+  steps: 1,
   path: 2,
-  footway: 2,
-  cycleway: 2,
-  bridleway: 2,
-  steps: 2,
-  corridor: 2,
-  pedestrian: 3,
-  living_street: 3,
-  residential: 4,
-  unclassified: 5,
-  tertiary: 6,
-  tertiary_link: 6,
-  secondary: 7,
-  secondary_link: 7,
-  primary: 8,
-  primary_link: 8,
-  trunk: 9,
-  trunk_link: 9,
-  motorway: 10,
-  motorway_link: 10,
+  footway: 3,
+  cycleway: 3,
+  bridleway: 3,
+  track: 4,
+  service: 5,
+  living_street: 6,
+  residential: 7,
+  unclassified: 8,
+  tertiary: 9,
+  tertiary_link: 9,
+  secondary: 10,
+  secondary_link: 10,
+  primary: 11,
+  primary_link: 11,
+  trunk: 12,
+  trunk_link: 12,
+  motorway: 13,
+  motorway_link: 13,
+};
+
+const PAVED_SURFACES = {
+  asphalt: true,
+  paved: true,
+  concrete: true,
+};
+
+const PEDESTRIAN_NAV_HIGHWAYS = {
+  path: 2,
+  footway: 3,
+  cycleway: 3,
 };
 
 function usage() {
@@ -52,7 +66,7 @@ function parseArgs(argv) {
     latMin: null,
     lonMax: null,
     latMax: null,
-    targetDensityKmPerKm2: 60.0,
+    targetDensityKmPerKm2: 10.0,
   };
 
   function takeValue(i) {
@@ -628,58 +642,109 @@ function isTruthyOsm(tags, key) {
   return normalized === 'yes' || normalized === 'true' || normalized === '1';
 }
 
+function normalizedTagValue(tags, key) {
+  const raw = tags[key];
+  if (raw === null || raw === undefined) {
+    return '';
+  }
+  return String(raw).trim().toLowerCase();
+}
+
+function hasNonEmptyName(tags) {
+  const raw = tags.name;
+  if (raw === null || raw === undefined) {
+    return false;
+  }
+  return String(raw).trim() !== '';
+}
+
+function clampRoadScore(score) {
+  const n = Math.round(Number(score));
+  if (!Number.isFinite(n)) {
+    return ROAD_SCORE_MIN;
+  }
+  if (n < ROAD_SCORE_MIN) {
+    return ROAD_SCORE_MIN;
+  }
+  if (n > ROAD_SCORE_MAX) {
+    return ROAD_SCORE_MAX;
+  }
+  return n;
+}
+
+function scoreToBucketIx(score) {
+  return clampRoadScore(score) - ROAD_SCORE_MIN;
+}
+
+function bucketIxToScore(bucketIx) {
+  return ROAD_SCORE_MIN + bucketIx;
+}
+
 function baseRoadRank(highwayValue) {
   if (highwayValue === null || highwayValue === undefined) {
-    return 5;
+    return ROAD_SCORE_MIN;
   }
   const normalized = String(highwayValue).trim().toLowerCase();
-  return Object.prototype.hasOwnProperty.call(ROAD_BASE_RANK, normalized) ? ROAD_BASE_RANK[normalized] : 5;
+  if (!Object.prototype.hasOwnProperty.call(ROAD_BASE_RANK, normalized)) {
+    return ROAD_SCORE_MIN;
+  }
+  return ROAD_BASE_RANK[normalized];
 }
 
 function adjustedRoadRank(tags) {
-  const highway = String(tags.highway || '').trim().toLowerCase();
+  const highway = normalizedTagValue(tags, 'highway');
   let rank = baseRoadRank(highway);
-  const lanes = parseLanes(tags);
-  const maxspeedKmh = parseMaxspeedKmh(tags);
 
-  if (lanes !== null && lanes >= 2) {
-    rank += 1;
-  }
-  if (isTruthyOsm(tags, 'oneway')) {
-    rank += 1;
-  }
-  if (maxspeedKmh !== null && maxspeedKmh >= 70) {
-    rank += 1;
-  }
-  if (highway === 'motorway' || highway === 'trunk' || highway === 'primary') {
-    if ((lanes !== null && lanes >= 3) || (maxspeedKmh !== null && maxspeedKmh >= 90)) {
-      rank += 2;
+  if (Object.prototype.hasOwnProperty.call(PEDESTRIAN_NAV_HIGHWAYS, highway)) {
+    if (hasNonEmptyName(tags)) {
+      rank += 6;
+    }
+    if (normalizedTagValue(tags, 'foot') === 'designated' || normalizedTagValue(tags, 'bicycle') === 'designated') {
+      rank += 4;
+    }
+    if (normalizedTagValue(tags, 'footway') === 'crossing' || normalizedTagValue(tags, 'crossing') !== '') {
+      rank += 4;
+    }
+    if (normalizedTagValue(tags, 'public_transport') === 'platform' || normalizedTagValue(tags, 'railway') === 'platform') {
+      rank = Math.max(rank, 10);
     }
   }
 
-  if (String(tags.access || '').trim().toLowerCase() === 'private') {
-    rank -= 1;
-  }
   if (highway === 'service') {
-    const service = String(tags.service || '').trim().toLowerCase();
-    if (service === 'driveway' || service === 'parking_aisle') {
+    const service = normalizedTagValue(tags, 'service');
+    const isPrivate = normalizedTagValue(tags, 'access') === 'private' || normalizedTagValue(tags, 'motor_vehicle') === 'private';
+    if (service === 'driveway') {
+      rank -= 3;
+    }
+    if (service === 'parking_aisle') {
       rank -= 2;
     }
-  }
-  if (highway === 'track') {
-    const tracktype = String(tags.tracktype || '').trim().toLowerCase();
-    if (tracktype === 'grade4' || tracktype === 'grade5') {
-      rank -= 1;
+    if (isPrivate) {
+      rank -= 3;
+    }
+    if (hasNonEmptyName(tags)) {
+      rank += 3;
+    }
+    if (service === 'alley') {
+      rank += 2;
+    }
+    if (!isPrivate && Object.prototype.hasOwnProperty.call(PAVED_SURFACES, normalizedTagValue(tags, 'surface'))) {
+      rank += 1;
     }
   }
 
-  if (rank < 0) {
-    return 0;
+  if (highway === 'track') {
+    const tracktype = normalizedTagValue(tags, 'tracktype');
+    const surface = normalizedTagValue(tags, 'surface');
+    if (tracktype === 'grade1' || Object.prototype.hasOwnProperty.call(PAVED_SURFACES, surface)) {
+      rank += 2;
+    }
+    if (hasNonEmptyName(tags)) {
+      rank += 3;
+    }
   }
-  if (rank > 10) {
-    return 10;
-  }
-  return rank;
+
+  return clampRoadScore(rank);
 }
 
 function normalizeRoadNameForGrouping(raw) {
@@ -745,17 +810,17 @@ function deriveRemovedRankBuckets(lengthByRank, areaM2, targetDensityKmPerKm2) {
   }
   const targetM = targetDensityKmPerKm2 * 1000.0 * (areaM2 / 1000000.0);
   let remainingM = 0.0;
-  for (let rank = 0; rank <= 10; rank += 1) {
-    remainingM += Number(lengthByRank[rank] || 0.0);
+  for (let bucketIx = 0; bucketIx < lengthByRank.length; bucketIx += 1) {
+    remainingM += Number(lengthByRank[bucketIx] || 0.0);
   }
 
-  for (let rank = 0; rank <= 10; rank += 1) {
+  for (let bucketIx = 0; bucketIx < lengthByRank.length; bucketIx += 1) {
     if (remainingM <= targetM) {
       break;
     }
-    const bucketM = Number(lengthByRank[rank] || 0.0);
+    const bucketM = Number(lengthByRank[bucketIx] || 0.0);
     if (remainingM - bucketM >= targetM) {
-      removed.add(rank);
+      removed.add(bucketIxToScore(bucketIx));
       remainingM -= bucketM;
     } else {
       break;
@@ -1071,7 +1136,7 @@ function computeWayLengthMetersWithinBounds(state, wayIx, bounds) {
 // This uses rank-adjusted ways and map-area density target to compute removed buckets.
 function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
   const wayCount = state.wayIds.length;
-  const lengthByRank = new Float64Array(11);
+  const lengthByRank = new Float64Array(ROAD_SCORE_BUCKET_COUNT);
   const roadGroupLength = [];
   const roadGroupMaxRank = [];
   const roadGroupIxByNameHash = new Map();
@@ -1112,7 +1177,7 @@ function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
 
   for (let roadGroupIx = 0; roadGroupIx < roadGroupLength.length; roadGroupIx += 1) {
     const groupRank = roadGroupMaxRank[roadGroupIx];
-    lengthByRank[groupRank] += roadGroupLength[roadGroupIx];
+    lengthByRank[scoreToBucketIx(groupRank)] += roadGroupLength[roadGroupIx];
   }
 
   const removedRanks = deriveRemovedRankBuckets(
@@ -1602,7 +1667,7 @@ function assertTrue(label, condition) {
 }
 
 function computeRoadGroupingKeep(roadEntries, areaM2, targetDensityKmPerKm2) {
-  const lengthByRank = new Float64Array(11);
+  const lengthByRank = new Float64Array(ROAD_SCORE_BUCKET_COUNT);
   const roadGroupLength = [];
   const roadGroupMaxRank = [];
   const roadGroupIxByNameHash = new Map();
@@ -1634,7 +1699,7 @@ function computeRoadGroupingKeep(roadEntries, areaM2, targetDensityKmPerKm2) {
 
   for (let roadGroupIx = 0; roadGroupIx < roadGroupLength.length; roadGroupIx += 1) {
     const rank = roadGroupMaxRank[roadGroupIx];
-    lengthByRank[rank] += roadGroupLength[roadGroupIx];
+    lengthByRank[scoreToBucketIx(rank)] += roadGroupLength[roadGroupIx];
   }
 
   const removedRanks = deriveRemovedRankBuckets(lengthByRank, areaM2, targetDensityKmPerKm2);
@@ -1695,6 +1760,27 @@ function runRoadGroupingSelfTest() {
     0.01
   );
   assertTrue('distinct names should map to distinct groups', groupCheck.entryRoadGroupIx[0] !== groupCheck.entryRoadGroupIx[1]);
+
+  // Ranking behavior tests for OSM-tag-only scoring.
+  const genericFootwayRank = adjustedRoadRank({ highway: 'footway' });
+  const genericServiceRank = adjustedRoadRank({ highway: 'service' });
+  const residentialRank = adjustedRoadRank({ highway: 'residential' });
+  assertTrue('generic footway should rank below generic service', genericFootwayRank < genericServiceRank);
+  assertTrue('generic service should rank below residential', genericServiceRank < residentialRank);
+
+  const primaryRank = adjustedRoadRank({ highway: 'primary' });
+  const primaryLinkRank = adjustedRoadRank({ highway: 'primary_link' });
+  assertTrue('primary_link should rank at least primary', primaryLinkRank >= primaryRank);
+
+  const namedFootwayRank = adjustedRoadRank({ highway: 'footway', name: 'Main Footway' });
+  const serviceDrivewayRank = adjustedRoadRank({ highway: 'service', service: 'driveway' });
+  assertTrue('named footway should outrank generic service driveway', namedFootwayRank > serviceDrivewayRank);
+
+  const unknownRank = adjustedRoadRank({ highway: 'mystery_road' });
+  assertTrue('unknown highway should be assigned very low score', unknownRank === ROAD_SCORE_MIN);
+
+  const platformFootwayRank = adjustedRoadRank({ highway: 'footway', public_transport: 'platform' });
+  assertTrue('platform footway should be promoted to secondary threshold or above', platformFootwayRank >= 10);
 
   console.log('road-grouping self-test passed');
 }

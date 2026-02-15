@@ -63,7 +63,8 @@ INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
 VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
-TARGET_ROAD_DENSITY_KM_PER_KM2 = 100.0
+# Initial heuristic target; lower means more aggressive pruning.
+TARGET_ROAD_DENSITY_KM_PER_KM2 = 50.0
 VERSION_TAG_PACKAGE_RE = re.compile(r'^package-(.+)$')
 CODE_VERSION_WARNING_EMITTED = False
 progress_state = {
