@@ -212,6 +212,12 @@ def duration_since(start_time):
     return time_clock() - start_time
 
 
+def raise_if_exception(value):
+    if isinstance(value, BaseException):
+        raise value
+    raise Exception(str(value))
+
+
 def read_process_rss_kib():
     try:
         with open('/proc/self/status', 'r') as f:
@@ -688,7 +694,7 @@ def get_osm(request_body, work_dir):
             return osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib
         except Exception as e:
             if isinstance(e, RequestProcessingError):
-                raise e
+                raise
             msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
             if i == len(attempts) - 1:
                 raise Exception(msg)
@@ -1170,9 +1176,9 @@ def rethrow_failure_if_needed(ctx):
     if failure_exception is None:
         return
     if isinstance(failure_exception, SystemExit):
-        raise failure_exception
+        raise_if_exception(failure_exception)
     if isinstance(failure_exception, KeyboardInterrupt):
-        raise failure_exception
+        raise_if_exception(failure_exception)
     sys.exit(1)
 
 
