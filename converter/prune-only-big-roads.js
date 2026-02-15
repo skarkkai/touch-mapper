@@ -10,6 +10,7 @@ const FLAG_LINEAR_WATERWAY = 4;
 const MEMBER_TYPE_NODE = 0;
 const MEMBER_TYPE_WAY = 1;
 const MEMBER_TYPE_RELATION = 2;
+const ROAD_NAME_HASH_UNNAMED = -1;
 
 const ROAD_BASE_RANK = {
   service: 0,
@@ -500,6 +501,7 @@ function createState() {
     wayIds: [],
     wayFlags: [],
     wayRank: [],
+    wayRoadNameHash: [],
     wayRefStart: [],
     wayRefLen: [],
     wayTags: [],
@@ -516,6 +518,35 @@ function createState() {
     keepNode: null,
     keepRelation: null,
   };
+}
+
+function finalizeWayIntoState(state, wayData) {
+  const wayTagsMap = wayTagPairsToMap(wayData.tags);
+  let flags = 0;
+  let rank = 0;
+  const highway = wayTagsMap.highway;
+  const linearWaterway = hasLinearWaterwayTags(wayTagsMap);
+
+  if (linearWaterway) {
+    flags |= FLAG_LINEAR_WATERWAY;
+  }
+  if (highway !== null && highway !== undefined && highway !== '' && !linearWaterway) {
+    flags |= FLAG_ROAD;
+    rank = adjustedRoadRank(wayTagsMap);
+  }
+  if (hasWaterAreaTags(wayTagsMap)) {
+    flags |= FLAG_WATER_AREA;
+  }
+
+  const wayIx = state.wayIds.length;
+  state.wayIdToIx.set(wayData.id, wayIx);
+  state.wayIds.push(wayData.id);
+  state.wayFlags.push(flags);
+  state.wayRank.push(rank);
+  state.wayRoadNameHash.push(roadNameHashFromWayTags(wayTagsMap, (flags & FLAG_ROAD) !== 0));
+  state.wayRefStart.push(wayData.refStart);
+  state.wayRefLen.push(wayData.refLen);
+  state.wayTags.push(wayData.tags);
 }
 
 function ensureNodeIx(state, nodeId) {
@@ -651,6 +682,33 @@ function adjustedRoadRank(tags) {
   return rank;
 }
 
+function normalizeRoadNameForGrouping(raw) {
+  if (raw === null || raw === undefined) {
+    return null;
+  }
+  const normalized = String(raw).trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!normalized) {
+    return null;
+  }
+  return normalized;
+}
+
+function hashRoadName32(normalizedRoadName) {
+  // 32-bit hash keeps memory small; rare collisions are acceptable.
+  return hashUpdate(2166136261 >>> 0, normalizedRoadName) >>> 0;
+}
+
+function roadNameHashFromWayTags(wayTagsMap, isRoadWay) {
+  if (!isRoadWay) {
+    return ROAD_NAME_HASH_UNNAMED;
+  }
+  const normalizedRoadName = normalizeRoadNameForGrouping(wayTagsMap.name);
+  if (normalizedRoadName === null) {
+    return ROAD_NAME_HASH_UNNAMED;
+  }
+  return hashRoadName32(normalizedRoadName);
+}
+
 function computeHaversineM(lat1, lon1, lat2, lon2) {
   const earthRadiusM = 6371000.0;
   const phi1 = (lat1 * Math.PI) / 180.0;
@@ -770,32 +828,7 @@ async function firstPassCollectIndexes(state, osmPath) {
       }
 
       if ((token.closing && token.name === 'way') || (token.selfClosing && token.name === 'way')) {
-        const wayTagsMap = wayTagPairsToMap(currentWay.tags);
-        let flags = 0;
-        let rank = 0;
-        const highway = wayTagsMap.highway;
-        const linearWaterway = hasLinearWaterwayTags(wayTagsMap);
-
-        if (linearWaterway) {
-          flags |= FLAG_LINEAR_WATERWAY;
-        }
-        if (highway !== null && highway !== undefined && highway !== '' && !linearWaterway) {
-          flags |= FLAG_ROAD;
-          rank = adjustedRoadRank(wayTagsMap);
-        }
-        if (hasWaterAreaTags(wayTagsMap)) {
-          flags |= FLAG_WATER_AREA;
-        }
-
-        const wayIx = state.wayIds.length;
-        state.wayIdToIx.set(currentWay.id, wayIx);
-        state.wayIds.push(currentWay.id);
-        state.wayFlags.push(flags);
-        state.wayRank.push(rank);
-        state.wayRefStart.push(currentWay.refStart);
-        state.wayRefLen.push(currentWay.refLen);
-        state.wayTags.push(currentWay.tags);
-
+        finalizeWayIntoState(state, currentWay);
         currentWay = null;
       }
       return;
@@ -848,34 +881,8 @@ async function firstPassCollectIndexes(state, osmPath) {
         refLen: 0,
       };
       if (token.selfClosing) {
-        const relike = { closing: true, name: 'way', selfClosing: true };
-        // Trigger finalization block above on the next cycle.
-        if (relike) {
-          const wayTagsMap = wayTagPairsToMap(currentWay.tags);
-          let flags = 0;
-          let rank = 0;
-          const highway = wayTagsMap.highway;
-          const linearWaterway = hasLinearWaterwayTags(wayTagsMap);
-          if (linearWaterway) {
-            flags |= FLAG_LINEAR_WATERWAY;
-          }
-          if (highway !== null && highway !== undefined && highway !== '' && !linearWaterway) {
-            flags |= FLAG_ROAD;
-            rank = adjustedRoadRank(wayTagsMap);
-          }
-          if (hasWaterAreaTags(wayTagsMap)) {
-            flags |= FLAG_WATER_AREA;
-          }
-          const wayIx = state.wayIds.length;
-          state.wayIdToIx.set(currentWay.id, wayIx);
-          state.wayIds.push(currentWay.id);
-          state.wayFlags.push(flags);
-          state.wayRank.push(rank);
-          state.wayRefStart.push(currentWay.refStart);
-          state.wayRefLen.push(currentWay.refLen);
-          state.wayTags.push(currentWay.tags);
-          currentWay = null;
-        }
+        finalizeWayIntoState(state, currentWay);
+        currentWay = null;
       }
       return;
     }
@@ -991,13 +998,45 @@ function computeWayLengthMeters(state, wayIx) {
 function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
   const wayCount = state.wayIds.length;
   const lengthByRank = new Float64Array(11);
+  const roadGroupLength = [];
+  const roadGroupMaxRank = [];
+  const roadGroupIxByNameHash = new Map();
+  const wayRoadGroupIx = new Int32Array(wayCount);
+  wayRoadGroupIx.fill(-1);
 
   for (let wayIx = 0; wayIx < wayCount; wayIx += 1) {
     if ((state.wayFlags[wayIx] & FLAG_ROAD) === 0) {
       continue;
     }
     const rank = state.wayRank[wayIx];
-    lengthByRank[rank] += computeWayLengthMeters(state, wayIx);
+    const nameHash = state.wayRoadNameHash[wayIx];
+    const wayLengthMeters = computeWayLengthMeters(state, wayIx);
+
+    let roadGroupIx;
+    if (nameHash === ROAD_NAME_HASH_UNNAMED) {
+      roadGroupIx = roadGroupLength.length;
+      roadGroupLength.push(0.0);
+      roadGroupMaxRank.push(rank);
+    } else {
+      roadGroupIx = roadGroupIxByNameHash.get(nameHash);
+      if (roadGroupIx === undefined) {
+        roadGroupIx = roadGroupLength.length;
+        roadGroupIxByNameHash.set(nameHash, roadGroupIx);
+        roadGroupLength.push(0.0);
+        roadGroupMaxRank.push(rank);
+      }
+    }
+
+    roadGroupLength[roadGroupIx] += wayLengthMeters;
+    if (rank > roadGroupMaxRank[roadGroupIx]) {
+      roadGroupMaxRank[roadGroupIx] = rank;
+    }
+    wayRoadGroupIx[wayIx] = roadGroupIx;
+  }
+
+  for (let roadGroupIx = 0; roadGroupIx < roadGroupLength.length; roadGroupIx += 1) {
+    const groupRank = roadGroupMaxRank[roadGroupIx];
+    lengthByRank[groupRank] += roadGroupLength[roadGroupIx];
   }
 
   const removedRanks = deriveRemovedRankBuckets(
@@ -1011,8 +1050,9 @@ function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
 
   for (let wayIx = 0; wayIx < wayCount; wayIx += 1) {
     if ((state.wayFlags[wayIx] & FLAG_ROAD) !== 0) {
-      const rank = state.wayRank[wayIx];
-      if (!removedRanks.has(rank)) {
+      const roadGroupIx = wayRoadGroupIx[wayIx];
+      const roadGroupRank = roadGroupIx >= 0 ? roadGroupMaxRank[roadGroupIx] : state.wayRank[wayIx];
+      if (!removedRanks.has(roadGroupRank)) {
         state.keepWay[wayIx] = 1;
         state.keptRoadWay[wayIx] = 1;
       }
@@ -1455,11 +1495,118 @@ async function collectSummaryWithCustomParser(osmPath) {
   return summary;
 }
 
+function assertTrue(label, condition) {
+  if (!condition) {
+    throw new Error(label);
+  }
+}
+
+function computeRoadGroupingKeep(roadEntries, areaM2, targetDensityKmPerKm2) {
+  const lengthByRank = new Float64Array(11);
+  const roadGroupLength = [];
+  const roadGroupMaxRank = [];
+  const roadGroupIxByNameHash = new Map();
+  const entryRoadGroupIx = new Int32Array(roadEntries.length);
+  entryRoadGroupIx.fill(-1);
+
+  for (let i = 0; i < roadEntries.length; i += 1) {
+    const entry = roadEntries[i];
+    let roadGroupIx;
+    if (entry.nameHash === ROAD_NAME_HASH_UNNAMED) {
+      roadGroupIx = roadGroupLength.length;
+      roadGroupLength.push(0.0);
+      roadGroupMaxRank.push(entry.rank);
+    } else {
+      roadGroupIx = roadGroupIxByNameHash.get(entry.nameHash);
+      if (roadGroupIx === undefined) {
+        roadGroupIx = roadGroupLength.length;
+        roadGroupIxByNameHash.set(entry.nameHash, roadGroupIx);
+        roadGroupLength.push(0.0);
+        roadGroupMaxRank.push(entry.rank);
+      }
+    }
+    roadGroupLength[roadGroupIx] += entry.lengthMeters;
+    if (entry.rank > roadGroupMaxRank[roadGroupIx]) {
+      roadGroupMaxRank[roadGroupIx] = entry.rank;
+    }
+    entryRoadGroupIx[i] = roadGroupIx;
+  }
+
+  for (let roadGroupIx = 0; roadGroupIx < roadGroupLength.length; roadGroupIx += 1) {
+    const rank = roadGroupMaxRank[roadGroupIx];
+    lengthByRank[rank] += roadGroupLength[roadGroupIx];
+  }
+
+  const removedRanks = deriveRemovedRankBuckets(lengthByRank, areaM2, targetDensityKmPerKm2);
+  const kept = new Array(roadEntries.length);
+  for (let i = 0; i < roadEntries.length; i += 1) {
+    const roadGroupIx = entryRoadGroupIx[i];
+    kept[i] = !removedRanks.has(roadGroupMaxRank[roadGroupIx]);
+  }
+  return {
+    kept,
+    entryRoadGroupIx,
+  };
+}
+
+function runRoadGroupingSelfTest() {
+  const mainStreetHash = hashRoadName32(normalizeRoadNameForGrouping('Main Street'));
+  const otherStreetHash = hashRoadName32(normalizeRoadNameForGrouping('Other Street'));
+  const areaM2 = 1000000;
+  const targetDensityKmPerKm2 = 0.12;
+
+  const sameNameMixedRanks = computeRoadGroupingKeep(
+    [
+      { rank: 4, nameHash: mainStreetHash, lengthMeters: 100.0 },
+      { rank: 8, nameHash: mainStreetHash, lengthMeters: 100.0 },
+      { rank: 4, nameHash: otherStreetHash, lengthMeters: 120.0 },
+    ],
+    areaM2,
+    targetDensityKmPerKm2
+  );
+  assertTrue('same-name ways should share one group', sameNameMixedRanks.entryRoadGroupIx[0] === sameNameMixedRanks.entryRoadGroupIx[1]);
+  assertTrue('same-name mixed-rank segment A should be kept', sameNameMixedRanks.kept[0] === true);
+  assertTrue('same-name mixed-rank segment B should be kept', sameNameMixedRanks.kept[1] === true);
+  assertTrue('other lower-rank road should be pruned', sameNameMixedRanks.kept[2] === false);
+
+  const unnamedFallback = computeRoadGroupingKeep(
+    [
+      { rank: 4, nameHash: ROAD_NAME_HASH_UNNAMED, lengthMeters: 100.0 },
+      { rank: 8, nameHash: ROAD_NAME_HASH_UNNAMED, lengthMeters: 100.0 },
+    ],
+    areaM2,
+    0.10
+  );
+  assertTrue('unnamed ways should not share a group', unnamedFallback.entryRoadGroupIx[0] !== unnamedFallback.entryRoadGroupIx[1]);
+  assertTrue('unnamed lower-rank road should be pruned independently', unnamedFallback.kept[0] === false);
+  assertTrue('unnamed higher-rank road should be kept independently', unnamedFallback.kept[1] === true);
+
+  const normalizedA = normalizeRoadNameForGrouping(' Main  Street ');
+  const normalizedB = normalizeRoadNameForGrouping('main street');
+  assertTrue('name normalization should collapse case and whitespace', normalizedA === normalizedB);
+  assertTrue('normalized names should produce identical hash', hashRoadName32(normalizedA) === hashRoadName32(normalizedB));
+
+  const groupCheck = computeRoadGroupingKeep(
+    [
+      { rank: 5, nameHash: hashRoadName32(normalizeRoadNameForGrouping('Alpha Way')), lengthMeters: 20.0 },
+      { rank: 5, nameHash: hashRoadName32(normalizeRoadNameForGrouping('Beta Way')), lengthMeters: 20.0 },
+    ],
+    areaM2,
+    0.01
+  );
+  assertTrue('distinct names should map to distinct groups', groupCheck.entryRoadGroupIx[0] !== groupCheck.entryRoadGroupIx[1]);
+
+  console.log('road-grouping self-test passed');
+}
+
 module.exports = {
   parseTagToken,
   streamParseXml,
   collectSummaryWithCustomParser,
   runStreamParseXmlSelfTest,
+  runRoadGroupingSelfTest,
+  normalizeRoadNameForGrouping,
+  hashRoadName32,
 };
 
 if (require.main === module) {
@@ -1468,6 +1615,13 @@ if (require.main === module) {
       console.error(String(err && err.stack ? err.stack : err));
       process.exit(1);
     });
+  } else if (process.argv.indexOf('--self-test-grouping') !== -1) {
+    try {
+      runRoadGroupingSelfTest();
+    } catch (err) {
+      console.error(String(err && err.stack ? err.stack : err));
+      process.exit(1);
+    }
   } else {
     run().catch((err) => {
       console.error(String(err && err.stack ? err.stack : err));
