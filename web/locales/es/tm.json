@@ -168,7 +168,7 @@
     "email_sent": "Correo electrónico enviado",
     "error_sending_email": "Error al enviar correo electrónico",
     "conversion_error_unknown": "La creación del mapa falló.",
-    "conversion_error_too_large": "El área del mapa es demasiado grande para procesarla.",
+    "conversion_error_too_large": "El mapa es demasiado denso para procesarlo.",
     "drag_map": "Arrastra el mapa para ajustar la ubicación",
     "map_diameter": "Diámetro del mapa",
     "label_3d_preview": "Vista previa 3D del mapa táctil",

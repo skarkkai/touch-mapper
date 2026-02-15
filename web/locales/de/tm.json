@@ -168,7 +168,7 @@
     "email_sent": "E-Mail gesendet",
     "error_sending_email": "Fehler beim Senden der E-Mail",
     "conversion_error_unknown": "Kartenerstellung fehlgeschlagen.",
-    "conversion_error_too_large": "Der Kartenbereich ist zu groß für die Verarbeitung.",
+    "conversion_error_too_large": "Die Karte ist zu dicht, um verarbeitet zu werden.",
     "drag_map": "Karte ziehen, um Gebiet anzupassen",
     "map_diameter": "Kartendurchmesser",
     "label_3d_preview": "3D-Vorschau der taktilen Karte",

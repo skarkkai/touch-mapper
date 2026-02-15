@@ -168,7 +168,7 @@
     "email_sent": "Sähköposti lähetetty",
     "error_sending_email": "Virhe sähköpostin lähetyksessä",
     "conversion_error_unknown": "Kartan luonti epäonnistui.",
-    "conversion_error_too_large": "Kartta-alue on liian suuri käsiteltäväksi.",
+    "conversion_error_too_large": "Kartta on liian täysi käsiteltäväksi.",
     "drag_map": "Raahaa karttaa sopivaan kohtaan",
     "map_diameter": "Kartan halkaisija",
     "label_3d_preview": "Kohokartan 3D-esikatselu",

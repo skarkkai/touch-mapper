@@ -168,7 +168,7 @@
     "email_sent": "De e-mail is verzonden",
     "error_sending_email": "Fout bij het verzenden van de e-mail",
     "conversion_error_unknown": "Maken van de kaart is mislukt.",
-    "conversion_error_too_large": "Het kaartgebied is te groot om te verwerken.",
+    "conversion_error_too_large": "De kaart is te dicht om te verwerken.",
     "drag_map": "Sleep de kaart om de locatie aan te passen",
     "map_diameter": "Kaartdiameter",
     "label_3d_preview": "3D-preview van de tactiele kaart",
