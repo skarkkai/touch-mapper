@@ -52,7 +52,7 @@ function parseArgs(argv) {
     latMin: null,
     lonMax: null,
     latMax: null,
-    targetDensityKmPerKm2: 120.0,
+    targetDensityKmPerKm2: 60.0,
   };
 
   function takeValue(i) {

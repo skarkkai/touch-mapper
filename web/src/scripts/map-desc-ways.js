@@ -631,11 +631,11 @@
    * This avoids "Near near ..." and "From in ...".
    */
   function routeText(target) {
-    const segmentInfo = primarySegmentInfo(target);
-    if (!segmentInfo) {
+    const segments = segmentList(target);
+    if (segments.length !== 1) {
       return null;
     }
-    const points = collectSegmentPoints(segmentInfo.segment);
+    const points = collectSegmentPoints(segments[0]);
     if (!points.length) {
       return null;
     }
@@ -932,7 +932,10 @@
   }
 
   function collectEdgeDetails(target) {
-    const segments = segmentList(target);
+    // Keep edge narration consistent with route narration: both should describe
+    // the same representative segment instead of mixing all grouped segments.
+    const primaryInfo = primarySegmentInfo(target);
+    const segments = primaryInfo && primaryInfo.segment ? [primaryInfo.segment] : [];
     const found = {};
     segments.forEach(function(segment){
       const events = segment && Array.isArray(segment.events) ? segment.events : [];
