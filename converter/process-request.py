@@ -884,163 +884,257 @@ def run_map_desc(raw_meta_path, profile=None):
     import map_desc
     map_desc.run_map_desc(raw_meta_path, profile=profile)
 
+
+def init_main_context():
+    return {
+        's3': None,
+        'stats_s3': None,
+        'map_bucket_name': None,
+        'stats_bucket_name': None,
+        'queue_name': None,
+        'map_object_name': None,
+        'info_object_name': None,
+        'map_content_key': None,
+        'name_base': None,
+        'request_body': None,
+        'request_id': None,
+        'map_id': None,
+        'args': None,
+        'stats_root_dir': None,
+        'environment': None,
+        'worker_name': 'unknown',
+        'current_stage': 'bootstrap',
+        'failure_stage': None,
+        'failure_class': None,
+        'failure_message': None,
+        'failure_exception': None,
+        'status': 'starting',
+        'processing_start_time': None,
+        'code_version_fields': empty_code_version_fields(),
+        'progress_logger': None,
+        'main_start_time': None,
+        'timing_get_osm_seconds': None,
+        'timing_map_desc_seconds': None,
+        'timing_svg_to_pdf_seconds': None,
+        'stl_bytes': None,
+        'stl_gzip_bytes': None,
+        'map_content_gzip_bytes': None,
+    }
+
+
+def bootstrap_runtime(ctx):
+    ctx['main_start_time'] = time_clock()
+    ctx['progress_logger'] = (log_progress if INSTRUMENTATION_ENABLED else None)
+    log_progress('main-start', status='running')
+    ctx['status'] = 'running'
+    ctx['environment'] = os.environ['TM_ENVIRONMENT']
+    ctx['queue_name'] = ctx['environment'] + "-requests-touch-mapper"
+    ctx['map_bucket_name'] = ctx['environment'] + ".maps.touch-mapper"
+    ctx['stats_bucket_name'] = ctx['environment'] + ".stats.touch-mapper"
+    ctx['args'] = do_cmdline()
+    ctx['stats_root_dir'] = stats_root_dir_from_work_dir(ctx['args'].work_dir)
+    ctx['code_version_fields'] = read_code_version_fields(script_dir)
+    if ctx['args'].work_dir:
+        ctx['worker_name'] = os.path.basename(os.path.normpath(ctx['args'].work_dir))
+
+
+def init_stats_services(ctx):
+    if not STATS_ENABLED:
+        return
+    try:
+        ctx['stats_s3'] = boto3.resource('s3')
+        if not STATS_QUICKTIME_MODE:
+            try:
+                stats_pipeline.run_daily_upload_if_due(
+                    stats_root_dir=ctx['stats_root_dir'],
+                    s3_resource=ctx['stats_s3'],
+                    stats_bucket_name=ctx['stats_bucket_name']
+                )
+            except Exception as e:
+                print("stats daily upload failed: " + str(e))
+    except Exception as e:
+        print("stats init failed: " + str(e))
+        ctx['stats_s3'] = None
+
+
+def handle_main_exception(ctx, e):
+    ctx['failure_exception'] = e
+    ctx['failure_stage'] = ctx['current_stage']
+    ctx['failure_class'] = e.__class__.__name__
+    ctx['failure_message'] = str(e)
+    ctx['status'] = 'failed'
+    if isinstance(e, Exception):
+        try:
+            print("process-request failed: " + str(e))
+            log_progress('failed', status='failed', detail=str(e))
+            log_memory_checkpoint('failed')
+            if ctx['s3'] != None and ctx['map_bucket_name'] is not None and ctx['map_object_name'] is not None:
+                # Put map file that contains just the error message in metadata
+                ctx['s3'].Bucket(ctx['map_bucket_name']).put_object(
+                    Key=ctx['map_object_name'],
+                    Body=b'',
+                    ACL='public-read',
+                    CacheControl='max-age=8640000',
+                    StorageClass='GLACIER_IR',
+                    Metadata={ 'error-msg': str(e) }
+                )
+        except Exception:
+            pass
+
+
+def build_stats_record(ctx):
+    request_body = ctx['request_body']
+    total_elapsed = duration_since(ctx['processing_start_time'])
+    return {
+        'schema_version': 1,
+        'timestamp': now_iso_utc(),
+        'day': datetime.datetime.utcnow().strftime('%d'),
+        'code_branch': ctx['code_version_fields'].get('code_branch'),
+        'code_deployed': ctx['code_version_fields'].get('code_deployed'),
+        'code_commit': ctx['code_version_fields'].get('code_commit'),
+        'request_id': ctx['request_id'],
+        'map_id': ctx['map_id'],
+        'status': ctx['status'],
+        'failure_stage': ctx['failure_stage'],
+        'failure_class': ctx['failure_class'],
+        'failure_message': ctx['failure_message'],
+        'termination_signal': progress_state.get('termination_signal'),
+        'browser_fingerprint': request_body.get('browserFingerprint'),
+        'browser_ip': request_body.get('browserIp'),
+        'browser_ip_country': None,
+        'browser_ip_country_code': None,
+        'browser_ip_region': None,
+        'browser_ip_city': None,
+        'browser_ip_latitude': None,
+        'browser_ip_longitude': None,
+        'addr_long': request_body.get('addrLong'),
+        'printing_tech': request_body.get('printingTech'),
+        'offset_x': request_body.get('offsetX'),
+        'offset_y': request_body.get('offsetY'),
+        'size_cm': request_body.get('size'),
+        'content_mode': request_body.get('contentMode'),
+        'hide_location_marker': interpreted_request_bool(request_body, 'hideLocationMarker', False),
+        'lon': request_body.get('lon'),
+        'lat': request_body.get('lat'),
+        'scale': request_body.get('scale'),
+        'multipart_mode': interpreted_request_bool(request_body, 'multipartMode', False),
+        'no_borders': interpreted_request_bool(request_body, 'noBorders', False),
+        'multipart_xpc': request_body.get('multipartXpc'),
+        'multipart_ypc': request_body.get('multipartYpc'),
+        'advanced_mode': interpreted_request_bool(request_body, 'advancedMode', False),
+        'timing_get_osm_seconds': ctx['timing_get_osm_seconds'],
+        'timing_map_desc_seconds': ctx['timing_map_desc_seconds'],
+        'timing_svg_to_pdf_seconds': ctx['timing_svg_to_pdf_seconds'],
+        'timing_total_seconds': total_elapsed,
+        'timing_failed_after_seconds': (total_elapsed if ctx['status'] == 'failed' else None),
+        'stl_bytes': ctx['stl_bytes'],
+        'stl_gzip_bytes': ctx['stl_gzip_bytes'],
+        'map_content_gzip_bytes': ctx['map_content_gzip_bytes'],
+    }
+
+
+def write_final_stats_if_possible(ctx):
+    if not STATS_ENABLED:
+        return
+    if ctx['request_body'] is None:
+        return
+    try:
+        if ctx['stats_root_dir'] is None:
+            args = ctx.get('args')
+            work_dir = args.work_dir if args else None
+            ctx['stats_root_dir'] = stats_root_dir_from_work_dir(work_dir)
+        if ctx['map_id'] is None:
+            ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
+
+        stats_pipeline.write_attempt_record(
+            stats_root_dir=ctx['stats_root_dir'],
+            record=build_stats_record(ctx),
+            quicktime_mode=STATS_QUICKTIME_MODE,
+            s3_resource=ctx['stats_s3'],
+            stats_bucket_name=ctx['stats_bucket_name']
+        )
+    except Exception as stats_error:
+        print("stats write failed: " + str(stats_error))
+
+
+def rethrow_failure_if_needed(ctx):
+    failure_exception = ctx['failure_exception']
+    if failure_exception is None:
+        return
+    if isinstance(failure_exception, SystemExit):
+        raise failure_exception
+    if isinstance(failure_exception, KeyboardInterrupt):
+        raise failure_exception
+    sys.exit(1)
+
+
 def main():
     # TODO: if output S3 object already exists, exit immediately
-    s3 = None
-    stats_s3 = None
-    map_bucket_name = None
-    stats_bucket_name = None
-    map_object_name = None
-    info_object_name = None
-    map_content_key = None
-    name_base = None
-    request_body = None
-    request_id = None
-    map_id = None
-    args = None
-    stats_root_dir = None
-    environment = None
-    worker_name = 'unknown'
-    current_stage = 'bootstrap'
-    failure_stage = None
-    failure_class = None
-    failure_message = None
-    failure_exception = None
-    status = 'starting'
-    processing_start_time = None
-    code_version_fields = empty_code_version_fields()
-
-    timing_get_osm_seconds = None
-    timing_osm_to_tactile_seconds = None
-    timing_map_desc_seconds = None
-    timing_map_content_read_seconds = None
-    timing_upload_primary_seconds = None
-    timing_svg_to_pdf_seconds = None
-    timing_upload_secondary_seconds = None
-
-    stl = None
-    stl_ways = None
-    stl_rest = None
-    svg = None
-    pdf = None
-    blend = None
-    map_content = None
-    info = None
-    meta = None
-    map_desc_profile = {}
-
-    stl_bytes = None
-    stl_gzip_bytes = None
-    stl_ways_bytes = None
-    stl_rest_bytes = None
-    svg_bytes = None
-    pdf_bytes = None
-    blend_bytes = None
-    map_content_bytes = None
-    map_content_gzip_bytes = None
-    info_json_bytes = None
-
+    ctx = init_main_context()
     try:
-        t = time_clock()
-        progress_logger = (log_progress if INSTRUMENTATION_ENABLED else None)
-        log_progress('main-start', status='running')
-        status = 'running'
-        environment = os.environ['TM_ENVIRONMENT']
-        queue_name = environment + "-requests-touch-mapper"
-        map_bucket_name = environment + ".maps.touch-mapper"
-        stats_bucket_name = environment + ".stats.touch-mapper"
-        args = do_cmdline()
-        stats_root_dir = stats_root_dir_from_work_dir(args.work_dir)
-        code_version_fields = read_code_version_fields(script_dir)
-        if args.work_dir:
-            worker_name = os.path.basename(os.path.normpath(args.work_dir))
-
-        if STATS_ENABLED:
-            try:
-                stats_s3 = boto3.resource('s3')
-                if not STATS_QUICKTIME_MODE:
-                    try:
-                        stats_pipeline.run_daily_upload_if_due(
-                            stats_root_dir=stats_root_dir,
-                            s3_resource=stats_s3,
-                            stats_bucket_name=stats_bucket_name
-                        )
-                    except Exception as e:
-                        print("stats daily upload failed: " + str(e))
-            except Exception as e:
-                print("stats init failed: " + str(e))
-                stats_s3 = None
+        bootstrap_runtime(ctx)
+        init_stats_services(ctx)
 
         log_memory_checkpoint('main-start')
 
         # Receive SQS msg
-        current_stage = 'poll'
+        ctx['current_stage'] = 'poll'
         log_progress('poll-start')
         print("\n\n============= STARTING TO POLL AT %s ===========" % (datetime.datetime.now().isoformat()))
-        request_body = receive_sqs_msg(queue_name, args.poll_time)
-        if request_body == None:
+        ctx['request_body'] = receive_sqs_msg(ctx['queue_name'], ctx['args'].poll_time)
+        if ctx['request_body'] == None:
             log_progress('poll-empty', status='idle')
-            status = 'idle'
+            ctx['status'] = 'idle'
             return
-        request_body['contentMode'] = normalize_content_mode(request_body.get('contentMode'))
-        request_id = request_body.get('requestId')
-        map_id = stats_pipeline.map_id_from_request_id(request_id)
-        processing_start_time = time_clock()
-        log_progress('poll-returned', request_id=request_id)
+        ctx['request_body']['contentMode'] = normalize_content_mode(ctx['request_body'].get('contentMode'))
+        ctx['request_id'] = ctx['request_body'].get('requestId')
+        ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
+        ctx['processing_start_time'] = time_clock()
+        log_progress('poll-returned', request_id=ctx['request_id'])
         print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
         log_memory_checkpoint('after-receive-sqs')
 
         # Get OSM data
-        current_stage = 'get-osm'
+        ctx['current_stage'] = 'get-osm'
         get_osm_start_time = time_clock()
         log_progress('get-osm-start')
-        s3 = stats_s3 if stats_s3 is not None else boto3.resource('s3')
-        map_object_name = 'map/data/' + request_body['requestId'] + '.stl'
-        name_base = map_object_name[:-4]
-        bucket = s3.Bucket(map_bucket_name)
-        progress_updater = functools.partial(update_progress, s3, map_bucket_name, map_object_name)
-        osm_path = get_osm(progress_updater, request_body, args.work_dir)
+        ctx['s3'] = ctx['stats_s3'] if ctx['stats_s3'] is not None else boto3.resource('s3')
+        ctx['map_object_name'] = 'map/data/' + ctx['request_body']['requestId'] + '.stl'
+        ctx['name_base'] = ctx['map_object_name'][:-4]
+        bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
+        progress_updater = functools.partial(update_progress, ctx['s3'], ctx['map_bucket_name'], ctx['map_object_name'])
+        osm_path = get_osm(progress_updater, ctx['request_body'], ctx['args'].work_dir)
         if osm_path is None:
             raise Exception("OSM path not available")
-        timing_get_osm_seconds = duration_since(get_osm_start_time)
+        ctx['timing_get_osm_seconds'] = duration_since(get_osm_start_time)
         log_progress('get-osm-done')
         log_memory_checkpoint('after-get-osm')
 
         # Convert OSM => STL
-        current_stage = 'osm-to-tactile'
-        osm_to_tactile_start_time = time_clock()
+        ctx['current_stage'] = 'osm-to-tactile'
         log_progress('osm-to-tactile-start')
-        stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, request_body)
-        timing_osm_to_tactile_seconds = duration_since(osm_to_tactile_start_time)
-        stl_bytes = len(stl)
-        stl_ways_bytes = len(stl_ways)
-        stl_rest_bytes = len(stl_rest)
-        svg_bytes = len(svg)
-        blend_bytes = len(blend)
+        stl, stl_ways, stl_rest, svg, blend, meta = run_osm_to_tactile(progress_updater, osm_path, ctx['request_body'])
+        ctx['stl_bytes'] = len(stl)
         log_progress('osm-to-tactile-done')
         raw_meta_path = os.path.join(os.path.dirname(osm_path), 'map-meta-raw.json')
         log_memory_checkpoint('after-run-osm-to-tactile')
 
         # Enrich map-meta.json
-        current_stage = 'map-desc'
+        ctx['current_stage'] = 'map-desc'
         map_desc_start_time = time_clock()
         log_progress('map-desc-start')
-        map_desc_profile = {}
-        run_map_desc(raw_meta_path, profile=map_desc_profile)
-        timing_map_desc_seconds = duration_since(map_desc_start_time)
+        run_map_desc(raw_meta_path, profile={})
+        ctx['timing_map_desc_seconds'] = duration_since(map_desc_start_time)
         log_progress('map-desc-done')
         log_memory_checkpoint('after-run-map-desc')
 
-        current_stage = 'map-content-read'
-        map_content_read_start_time = time_clock()
+        ctx['current_stage'] = 'map-content-read'
         map_content_path = os.path.join(os.path.dirname(osm_path), 'map-content.json')
         log_progress('map-content-read-start', detail='path={}'.format(map_content_path))
         with open(map_content_path, 'rb') as f:
             map_content = f.read()
-        map_content = attach_request_metadata_to_map_content(map_content, request_body)
-        map_content_bytes = len(map_content)
-        map_content_gzip_bytes = len(gzip.compress(map_content, compresslevel=5))
-        timing_map_content_read_seconds = duration_since(map_content_read_start_time)
+        map_content = attach_request_metadata_to_map_content(map_content, ctx['request_body'])
+        ctx['map_content_gzip_bytes'] = len(gzip.compress(map_content, compresslevel=5))
         log_progress('map-content-read-done')
         log_memory_checkpoint('after-attach-request-metadata')
 
@@ -1050,153 +1144,64 @@ def main():
         }
 
         # Put the augmented request to S3. No reduced redundancy, because this provides permanent access to parameters of created maps.
-        current_stage = 'prepare-upload'
-        json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', request_body['requestId']) # deadbeef/foo.stl => info/deadbeef.json
-        info_object_name = json_object_name
-        map_content_key = name_base + '.map-content.json'
-        info = build_info_payload(request_body, meta)
-        info_json_bytes = len(json.dumps(info).encode('utf8'))
-        stl_gzip_bytes = len(gzip.compress(stl, compresslevel=5))
+        ctx['current_stage'] = 'prepare-upload'
+        json_object_name = 'map/info/' + re.sub(r'\/.+', '.json', ctx['request_body']['requestId']) # deadbeef/foo.stl => info/deadbeef.json
+        ctx['info_object_name'] = json_object_name
+        ctx['map_content_key'] = ctx['name_base'] + '.map-content.json'
+        info = build_info_payload(ctx['request_body'], meta)
+        ctx['stl_gzip_bytes'] = len(gzip.compress(stl, compresslevel=5))
 
-        current_stage = 'upload-primary'
-        upload_primary_start_time = time_clock()
+        # Upload primary assets
+        ctx['current_stage'] = 'upload-primary'
         log_progress('upload-primary-start')
         upload_primary_assets(
             bucket,
             json_object_name,
             info,
-            name_base,
-            map_object_name,
+            ctx['name_base'],
+            ctx['map_object_name'],
             map_content,
             stl,
             common_args,
-            progress_logger=progress_logger
+            progress_logger=ctx['progress_logger']
         )
-        timing_upload_primary_seconds = duration_since(upload_primary_start_time)
         log_progress('upload-primary-done')
-        print("Processing main request took " + str(time_clock() - t))
+        print("Processing main request took " + str(time_clock() - ctx['main_start_time']))
         log_memory_checkpoint('after-upload-primary-assets')
 
         # Create PDF from SVG and put it to S3
-        current_stage = 'svg-to-pdf'
+        ctx['current_stage'] = 'svg-to-pdf'
         svg_to_pdf_start_time = time_clock()
         log_progress('svg-to-pdf-start')
         pdf = svg_to_pdf(os.path.dirname(osm_path) + '/map.svg')
-        if isinstance(pdf, bytes):
-            pdf_bytes = len(pdf)
-        else:
-            pdf_bytes = None
-        timing_svg_to_pdf_seconds = duration_since(svg_to_pdf_start_time)
+        ctx['timing_svg_to_pdf_seconds'] = duration_since(svg_to_pdf_start_time)
         log_progress('svg-to-pdf-done')
 
-        current_stage = 'upload-secondary'
-        upload_secondary_start_time = time_clock()
+        # Upload secondary assets
+        ctx['current_stage'] = 'upload-secondary'
         log_progress('upload-secondary-start')
         upload_secondary_assets(
             bucket,
-            name_base,
+            ctx['name_base'],
             svg,
             pdf,
             stl_ways,
             stl_rest,
             blend,
             common_args,
-            progress_logger=progress_logger
+            progress_logger=ctx['progress_logger']
         )
-        timing_upload_secondary_seconds = duration_since(upload_secondary_start_time)
         log_progress('upload-secondary-done')
         log_memory_checkpoint('after-upload-secondary-assets')
 
-        print("Processing entire request took " + str(time_clock() - t))
+        print("Processing entire request took " + str(time_clock() - ctx['main_start_time']))
         log_progress('complete', status='success')
-        status = 'success'
+        ctx['status'] = 'success'
     except BaseException as e:
-        failure_exception = e
-        failure_stage = current_stage
-        failure_class = e.__class__.__name__
-        failure_message = str(e)
-        status = 'failed'
-        if isinstance(e, Exception):
-            try:
-                print("process-request failed: " + str(e))
-                log_progress('failed', status='failed', detail=str(e))
-                log_memory_checkpoint('failed')
-                if s3 != None and map_bucket_name is not None and map_object_name is not None:
-                    # Put map file that contains just the error message in metadata
-                    s3.Bucket(map_bucket_name).put_object(Key=map_object_name, Body=b'', ACL='public-read', \
-                        CacheControl='max-age=8640000', StorageClass='GLACIER_IR', Metadata={ 'error-msg': str(e) })
-            except Exception:
-                pass
+        handle_main_exception(ctx, e)
     finally:
-        if STATS_ENABLED and request_body is not None:
-            try:
-                if stats_root_dir is None:
-                    stats_root_dir = stats_root_dir_from_work_dir((args.work_dir if args else None))
-                if map_id is None:
-                    map_id = stats_pipeline.map_id_from_request_id(request_id)
-                total_elapsed = duration_since(processing_start_time)
-                stats_record = {
-                    'schema_version': 1,
-                    'timestamp': now_iso_utc(),
-                    'day': datetime.datetime.utcnow().strftime('%d'),
-                    'code_branch': code_version_fields.get('code_branch'),
-                    'code_deployed': code_version_fields.get('code_deployed'),
-                    'code_commit': code_version_fields.get('code_commit'),
-                    'request_id': request_id,
-                    'map_id': map_id,
-                    'status': status,
-                    'failure_stage': failure_stage,
-                    'failure_class': failure_class,
-                    'failure_message': failure_message,
-                    'termination_signal': progress_state.get('termination_signal'),
-                    'browser_fingerprint': request_body.get('browserFingerprint'),
-                    'browser_ip': request_body.get('browserIp'),
-                    'browser_ip_country': None,
-                    'browser_ip_country_code': None,
-                    'browser_ip_region': None,
-                    'browser_ip_city': None,
-                    'browser_ip_latitude': None,
-                    'browser_ip_longitude': None,
-                    'addr_long': request_body.get('addrLong'),
-                    'printing_tech': request_body.get('printingTech'),
-                    'offset_x': request_body.get('offsetX'),
-                    'offset_y': request_body.get('offsetY'),
-                    'size_cm': request_body.get('size'),
-                    'content_mode': request_body.get('contentMode'),
-                    'hide_location_marker': interpreted_request_bool(request_body, 'hideLocationMarker', False),
-                    'lon': request_body.get('lon'),
-                    'lat': request_body.get('lat'),
-                    'scale': request_body.get('scale'),
-                    'multipart_mode': interpreted_request_bool(request_body, 'multipartMode', False),
-                    'no_borders': interpreted_request_bool(request_body, 'noBorders', False),
-                    'multipart_xpc': request_body.get('multipartXpc'),
-                    'multipart_ypc': request_body.get('multipartYpc'),
-                    'advanced_mode': interpreted_request_bool(request_body, 'advancedMode', False),
-                    'timing_get_osm_seconds': timing_get_osm_seconds,
-                    'timing_map_desc_seconds': timing_map_desc_seconds,
-                    'timing_svg_to_pdf_seconds': timing_svg_to_pdf_seconds,
-                    'timing_total_seconds': total_elapsed,
-                    'timing_failed_after_seconds': (total_elapsed if status == 'failed' else None),
-                    'stl_bytes': stl_bytes,
-                    'stl_gzip_bytes': stl_gzip_bytes,
-                    'map_content_gzip_bytes': map_content_gzip_bytes,
-                }
-                stats_pipeline.write_attempt_record(
-                    stats_root_dir=stats_root_dir,
-                    record=stats_record,
-                    quicktime_mode=STATS_QUICKTIME_MODE,
-                    s3_resource=stats_s3,
-                    stats_bucket_name=stats_bucket_name
-                )
-            except Exception as stats_error:
-                print("stats write failed: " + str(stats_error))
-
-        if failure_exception is not None:
-            if isinstance(failure_exception, SystemExit):
-                raise failure_exception
-            if isinstance(failure_exception, KeyboardInterrupt):
-                raise failure_exception
-            sys.exit(1)
+        write_final_stats_if_possible(ctx)
+        rethrow_failure_if_needed(ctx)
 
 # never output anything
 
