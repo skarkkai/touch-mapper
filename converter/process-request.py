@@ -1166,7 +1166,6 @@ def main():
             progress_logger=ctx['progress_logger']
         )
         log_progress('upload-primary-done')
-        print("Processing main request took " + str(time_clock() - ctx['main_start_time']))
         log_memory_checkpoint('after-upload-primary-assets')
 
         # Create PDF from SVG and put it to S3

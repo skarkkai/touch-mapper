@@ -22,7 +22,6 @@ SWAP_RE = re.compile(
 )
 POLL_START_RE = re.compile(r"STARTING TO POLL AT\s+(.+?)\s*=*$")
 POLL_RETURN_RE = re.compile(r"Poll returned at\s+(.+)$")
-PROC_MAIN_RE = re.compile(r"Processing main request took\s+([0-9.]+)")
 PROC_ENTIRE_RE = re.compile(r"Processing entire request took\s+([0-9.]+)")
 SUMMARY_ENTIRE_RE = re.compile(r"SUMMARY request-entire \(total\s+([0-9.]+)s,")
 OSM2WORLD_IGNORED_RE = re.compile(
@@ -140,7 +139,6 @@ def main() -> int:
 
     poll_starts = []  # type: List[str]
     poll_returns = []  # type: List[str]
-    main_durations = []  # type: List[float]
     entire_durations = []  # type: List[float]
     summary_entire_durations = []  # type: List[float]
     ignored_connector_exception_count = 0
@@ -242,9 +240,6 @@ def main() -> int:
                 m_poll_return = POLL_RETURN_RE.search(msg)
                 if m_poll_return:
                     poll_returns.append(m_poll_return.group(1))
-                m_main = PROC_MAIN_RE.search(msg)
-                if m_main:
-                    main_durations.append(float(m_main.group(1)))
                 m_entire = PROC_ENTIRE_RE.search(msg)
                 if m_entire:
                     entire_durations.append(float(m_entire.group(1)))
@@ -321,9 +316,6 @@ def main() -> int:
     print("poll_returns: {}".format(len(poll_returns)))
     if poll_returns:
         print("last_poll_return: {}".format(poll_returns[-1]))
-    print("processing_main_count: {}".format(len(main_durations)))
-    if main_durations:
-        print("processing_main_last_seconds: {:.3f}".format(main_durations[-1]))
     print("processing_entire_count: {}".format(len(entire_durations)))
     if entire_durations:
         print("processing_entire_last_seconds: {:.3f}".format(entire_durations[-1]))
