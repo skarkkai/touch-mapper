@@ -31,6 +31,16 @@ Stored telemetry fields:
 
 If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and these fields are stored as `null`.
 
+## Timing telemetry fields
+
+Converter telemetry includes per-stage timing fields (seconds), including:
+
+- `timing_get_osm_seconds`
+- `timing_map_desc_seconds`
+- `timing_upload_primary_seconds` (total for primary uploads: info JSON, map-content JSON, main STL)
+- `timing_svg_to_pdf_seconds`
+- `timing_total_seconds`
+
 ## RAM telemetry fields
 
 RAM telemetry combines:

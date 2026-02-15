@@ -513,6 +513,11 @@
                 "Comment": "Elapsed seconds spent generating map description metadata."
               },
               {
+                "Name": "timing_upload_primary_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent uploading primary map artifacts (info.json, map-content.json, and main STL)."
+              },
+              {
                 "Name": "timing_svg_to_pdf_seconds",
                 "Type": "double",
                 "Comment": "Elapsed seconds spent converting SVG to PDF."

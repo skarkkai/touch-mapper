@@ -1211,6 +1211,7 @@ def init_main_context():
         'main_start_time': None,
         'timing_get_osm_seconds': None,
         'timing_map_desc_seconds': None,
+        'timing_upload_primary_seconds': None,
         'timing_svg_to_pdf_seconds': None,
         'stl_bytes': None,
         'stl_gzip_bytes': None,
@@ -1327,6 +1328,7 @@ def build_stats_record(ctx):
         'advanced_mode': interpreted_request_bool(request_body, 'advancedMode', False),
         'timing_get_osm_seconds': ctx['timing_get_osm_seconds'],
         'timing_map_desc_seconds': ctx['timing_map_desc_seconds'],
+        'timing_upload_primary_seconds': ctx['timing_upload_primary_seconds'],
         'timing_svg_to_pdf_seconds': ctx['timing_svg_to_pdf_seconds'],
         'timing_total_seconds': total_elapsed,
         'timing_failed_after_seconds': (total_elapsed if ctx['status'] == 'failed' else None),
@@ -1476,19 +1478,23 @@ def main():
 
         # Upload primary assets
         ctx['current_stage'] = 'upload-primary'
+        upload_primary_start_time = time_clock()
         log_progress('upload-primary-start')
-        upload_primary_assets(
-            bucket,
-            json_object_name,
-            info,
-            ctx['name_base'],
-            ctx['map_object_name'],
-            map_content,
-            artifacts['stl_path'],
-            common_args,
-            rss_tracker=functools.partial(track_process_rss_kib, ctx),
-            progress_logger=ctx['progress_logger']
-        )
+        try:
+            upload_primary_assets(
+                bucket,
+                json_object_name,
+                info,
+                ctx['name_base'],
+                ctx['map_object_name'],
+                map_content,
+                artifacts['stl_path'],
+                common_args,
+                rss_tracker=functools.partial(track_process_rss_kib, ctx),
+                progress_logger=ctx['progress_logger']
+            )
+        finally:
+            ctx['timing_upload_primary_seconds'] = duration_since(upload_primary_start_time)
         log_progress('upload-primary-done')
         map_content = None
         track_process_rss_kib(ctx)
