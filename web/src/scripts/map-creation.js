@@ -5,6 +5,14 @@
   var MAX_WAIT = 10 * 60; // time out after this many seconds
 
   function pollProgress(startTime, requestId) {
+      function showPollingError(message, consoleMessage) {
+        $("#submit-button").prop("disabled", false);
+        $("#submit-button").val(message);
+        showError(message);
+        if (consoleMessage && window.console && window.console.error) {
+          window.console.error(consoleMessage);
+        }
+      }
       var pollAgain = function(){
         setTimeout(function(){
           pollProgress(startTime, requestId);
@@ -18,7 +26,7 @@
 
       // Timeout
       if (new Date().getTime() / 1000 - startTime > MAX_WAIT) {
-        showError("Processing took too long");
+        showPollingError("Processing took too long", "Map conversion polling timed out.");
         return;
       }
 
@@ -31,7 +39,7 @@
         if (jqXHR.status === 404) {
             pollAgain();
         } else {
-            showError("Error: " + textStatus);
+            showPollingError("Error: " + textStatus, "Map conversion polling request failed: " + textStatus + ": " + errorThrown);
         }
       }).done(function(d, textStatus, jqXHR){
         var payload = d;
@@ -51,8 +59,9 @@
 
         if (status.errorCode) {
           var translationKey = "conversion_error_" + status.errorCode;
-          var localized = window.TM.translations[translationKey] || translationKey;
-          showError(localized);
+          var genericError = window.TM.translations.conversion_error_unknown || "Map conversion failed.";
+          var localized = window.TM.translations[translationKey] || genericError;
+          showPollingError(localized);
           if (status.errorDescription && window.console && window.console.error) {
             window.console.error("Map conversion failed (" + status.errorCode + "): " + status.errorDescription);
           }
