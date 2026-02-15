@@ -275,12 +275,23 @@ window.storeMapSettingsFromInfo = function(info) {
     return defaultValue;
   }
 
+  function normalizeContentMode(value) {
+    if (value === undefined || value === null) {
+      return "normal";
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads") {
+      return normalized;
+    }
+    return "normal";
+  }
+
   var addrShort = getInfoValue(["addrShort", "addr_short"], "");
   var addrLong = getInfoValue(["addrLong", "addr_long"], "");
   var lat = getInfoValue(["lat"], undefined);
   var lon = getInfoValue(["lon"], undefined);
   var printingTech = getInfoValue(["printingTech", "printing_tech"], "3d");
-  var excludeBuildings = getInfoValue(["excludeBuildings", "exclude_buildings"], false);
+  var contentMode = normalizeContentMode(getInfoValue(["contentMode"], "normal"));
   var hideLocationMarker = getInfoValue(["hideLocationMarker", "hide_location_marker"], false);
   var size = getInfoValue(["size"], undefined);
   var scale = getInfoValue(["scale"], undefined);
@@ -298,7 +309,8 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage("offsetX", getInfoValue(["offsetX", "offset_x"], 0));
   setLocalStorage("offsetY", getInfoValue(["offsetY", "offset_y"], 0));
   setLocalStorage("printing-tech", printingTech);
-  setLocalStorage("exclude-buildings", excludeBuildings);
+  setLocalStorage("content-mode", contentMode);
+  localStorage.removeItem("exclude-buildings");
   setLocalStorage("hide-location-marker", hideLocationMarker);
   setLocalStorage("map-size-preset", toPresetOrEmpty(size, MAP_SIZE_PRESET_VALUES));
   setLocalStorage("map-scale-preset", toPresetOrEmpty(scale, MAP_SCALE_PRESET_VALUES));

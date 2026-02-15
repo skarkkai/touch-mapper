@@ -52,6 +52,22 @@ function initInputs(outputs, osmDragPanInteraction) {
   var DEFAULT_PRINT_SIZE_2D = "27.9";
   var DEFAULT_PRINT_SIZE_3D = "17";
   var mapScaleCoverage = $(".map-scale-coverage");
+  var VALID_CONTENT_MODES = {
+    "normal": true,
+    "no-buildings": true,
+    "only-big-roads": true
+  };
+
+  function normalizeContentMode(value) {
+    if (value === undefined || value === null) {
+      return "normal";
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(VALID_CONTENT_MODES, normalized)) {
+      return normalized;
+    }
+    return "normal";
+  }
 
   function interpolateTranslation(key, replacements) {
     var text = window.TM && window.TM.translations ? window.TM.translations[key] : "";
@@ -127,7 +143,9 @@ function initInputs(outputs, osmDragPanInteraction) {
   }
 
   // Map content selection
-  initSimpleInput("exclude-buildings", $("#exclude-buildings"), "checkbox", true);
+  localStorage.removeItem("exclude-buildings");
+  setLocalStorage("content-mode", normalizeContentMode(getLocalStorageStr("content-mode", "normal")));
+  initSimpleInput("content-mode", $("#content-mode"), "str", "normal");
   initSimpleInput("hide-location-marker", $("#hide-location-marker"), "checkbox", false);
 
   // Print size preset
@@ -244,6 +262,17 @@ function setParametersFromBlindSquare() {
     return isNaN(number) ? null : number;
   }
 
+  function parseContentMode(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads") {
+      return normalized;
+    }
+    return null;
+  }
+
   function getUrlParamFromNames(paramNames) {
     var names = Array.isArray(paramNames) ? paramNames : [paramNames];
     var i;
@@ -317,7 +346,7 @@ function setParametersFromBlindSquare() {
   setLocalStorageIfPresent("offsetX", ["offsetX", "offset_x", "x-offset", "xOffset"], parseIntParam);
   setLocalStorageIfPresent("offsetY", ["offsetY", "offset_y", "y-offset", "yOffset"], parseIntParam);
   setLocalStorageIfPresent("advancedMode", ["advancedMode", "advanced_mode", "advanced-mode"], parseBoolean);
-  setLocalStorageIfPresent("exclude-buildings", ["excludeBuildings", "exclude_buildings", "exclude-buildings"], parseBoolean);
+  setLocalStorageIfPresent("content-mode", ["contentMode"], parseContentMode);
   setLocalStorageIfPresent("hide-location-marker", ["hideLocationMarker", "hide_location_marker", "hide-location-marker"], parseBoolean);
   setLocalStorageIfPresent("multipartMode", ["multipartMode", "multipart_mode", "multipart-mode"], parseBoolean);
   setLocalStorageIfPresent("multipartXpc", ["multipartXpc", "multipart_xpc", "multipart-xpc"], parseIntParam);

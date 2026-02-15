@@ -116,9 +116,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", required=True, help="Directory for generated files")
     parser.add_argument("--scale", type=int, default=1400, help="TOUCH_MAPPER_SCALE for OSM2World")
     parser.add_argument(
-        "--exclude-buildings",
-        action="store_true",
-        help="Set TOUCH_MAPPER_EXCLUDE_BUILDINGS=true for OSM2World run",
+        "--content-mode",
+        choices=["normal", "no-buildings", "only-big-roads"],
+        default="normal",
+        help="Content mode for conversion. no-buildings maps to TOUCH_MAPPER_EXCLUDE_BUILDINGS=true.",
     )
     parser.add_argument(
         "--with-blender",
@@ -345,7 +346,7 @@ def main() -> int:
         env={
             "TOUCH_MAPPER_SCALE": str(args.scale),
             "TOUCH_MAPPER_EXTRUDER_WIDTH": "0.5",
-            "TOUCH_MAPPER_EXCLUDE_BUILDINGS": "true" if args.exclude_buildings else "false",
+            "TOUCH_MAPPER_EXCLUDE_BUILDINGS": "true" if args.content_mode == "no-buildings" else "false",
         },
     )
     timings["run-osm2world"] = _stage_done(log_prefix, "run-osm2world", osm2world_start)
@@ -401,6 +402,7 @@ def main() -> int:
     result = {
         "repoRoot": str(repo_root),
         "inputOsmPath": str(osm_path),
+        "contentMode": args.content_mode,
         "outputDir": str(out_dir),
         "mapObjPath": str(obj_path),
         "mapMetaRawPath": str(raw_meta_path),

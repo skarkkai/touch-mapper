@@ -1,0 +1,1 @@
+- don't save nulls for booleans into telemetry, map those to true/false

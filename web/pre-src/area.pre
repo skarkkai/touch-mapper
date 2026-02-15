@@ -90,11 +90,14 @@
 
   <div class="row main-row">
     <div class="col col1">
-      <label>{{ map_content }}:</label>
+      <label for="content-mode">{{ map_content }}:</label>
     </div>
     <div class="col col2 content-selection-container">
-      <input id="exclude-buildings" type="checkbox" />
-      <label for="exclude-buildings">{{ exclude_buildings }}</label>
+      <select id="content-mode">
+        <option value="normal">{{ content_mode_normal }}</option>
+        <option value="no-buildings">{{ content_mode_no_buildings }}</option>
+        <option value="only-big-roads">{{ content_mode_only_big_roads }}</option>
+      </select>
     </div>
   </div>
 

@@ -10,6 +10,7 @@ import boto3  # type: ignore[import-not-found]
 import json
 import argparse
 import urllib.request
+import urllib.parse
 import subprocess
 import concurrent.futures
 import functools
@@ -22,6 +23,7 @@ import copy
 import signal
 import atexit
 import socket
+import xml.etree.ElementTree as ET
 
 import stats_pipeline
 
@@ -46,6 +48,17 @@ INSTRUMENTATION_ENABLED = (parse_env_bool(INSTRUMENTATION_ENV_VAR) is True)
 INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
+VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
+BIG_ROAD_HIGHWAY_VALUES = set([
+    'motorway',
+    'motorway_link',
+    'trunk',
+    'trunk_link',
+    'primary',
+    'primary_link',
+    'secondary',
+    'secondary_link',
+])
 progress_state = {
     'status': 'starting',
     'stage': 'bootstrap',
@@ -201,29 +214,428 @@ def update_progress(s3, map_bucket_name, map_object_name, stage):
     s3.Bucket(map_bucket_name).put_object(Key=map_object_name, ACL='public-read', \
         CacheControl='no-cache', StorageClass='GLACIER_IR', Metadata={ 'processing-stage': stage })
 
+def normalize_content_mode(value):
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in VALID_CONTENT_MODES:
+            return normalized
+    return 'normal'
+
+def ensure_request_content_mode(request_body):
+    mode = normalize_content_mode((request_body or {}).get('contentMode'))
+    request_body['contentMode'] = mode
+    return mode
+
+def big_road_highway_values_regex():
+    values = sorted(list(BIG_ROAD_HIGHWAY_VALUES))
+    return '^(' + '|'.join(values) + ')$'
+
+def build_overpass_interpreter_query(request_body, content_mode):
+    eff_area = request_body['effectiveArea']
+    bbox = "{},{},{},{}".format(eff_area['latMin'], eff_area['lonMin'], eff_area['latMax'], eff_area['lonMax'])
+    if content_mode == 'no-buildings':
+        return (
+            '[out:xml][timeout:25];'
+            '('
+            'node({bbox})[~"."~"."]["building"!~"."]["building:part"!~"."];'
+            'way({bbox})[~"."~"."]["building"!~"."]["building:part"!~"."];'
+            'relation({bbox})[~"."~"."]["building"!~"."]["building:part"!~"."];'
+            ');'
+            '(._;>;);'
+            'out meta;'
+        ).format(bbox=bbox)
+    if content_mode == 'only-big-roads':
+        return (
+            '[out:xml][timeout:25];'
+            'way({bbox})["highway"~"{highway_regex}"]->.big_roads;'
+            'way({bbox})["natural"="water"]->.water_areas_a;'
+            'way({bbox})["water"]->.water_areas_b;'
+            'way({bbox})["landuse"="reservoir"]->.water_areas_c;'
+            'way({bbox})["waterway"="riverbank"]->.water_areas_d;'
+            'relation({bbox})["natural"="water"]->.water_relations_a;'
+            'relation({bbox})["water"]->.water_relations_b;'
+            'relation({bbox})["landuse"="reservoir"]->.water_relations_c;'
+            'relation({bbox})["waterway"="riverbank"]->.water_relations_d;'
+            '('
+            '.big_roads;'
+            'relation(bw.big_roads);'
+            '.water_areas_a;'
+            '.water_areas_b;'
+            '.water_areas_c;'
+            '.water_areas_d;'
+            '.water_relations_a;'
+            '.water_relations_b;'
+            '.water_relations_c;'
+            '.water_relations_d;'
+            ');'
+            '(._;>;);'
+            'out meta;'
+        ).format(bbox=bbox, highway_regex=big_road_highway_values_regex())
+    raise Exception("Unsupported content mode for interpreter query: " + str(content_mode))
+
+def add_or_replace_bounds(osm_data, request_body):
+    if isinstance(osm_data, bytes):
+        osm_text = osm_data.decode('utf8')
+    else:
+        osm_text = str(osm_data)
+    eff_area = request_body['effectiveArea']
+    bounds_line = '  <bounds minlat="{}" minlon="{}" maxlat="{}" maxlon="{}"/>'.format(
+        eff_area['latMin'],
+        eff_area['lonMin'],
+        eff_area['latMax'],
+        eff_area['lonMax']
+    )
+    if re.search(r'<bounds [^>]+/>\s*', osm_text):
+        return re.sub(r'<bounds [^>]+/>\s*', bounds_line + '\n', osm_text, count=1)
+    if re.search(r'<meta [^>]+/>\s*', osm_text):
+        return re.sub(r'(<meta [^>]+/>\s*)', r'\1' + bounds_line + '\n', osm_text, count=1)
+    return re.sub(r'(<osm[^>]*>\s*)', r'\1' + bounds_line + '\n', osm_text, count=1)
+
+def write_osm_with_bounds(osm_data, request_body, osm_path):
+    with open(osm_path, 'wb') as f:
+        f.write(add_or_replace_bounds(osm_data, request_body).encode('utf8'))
+
+def element_tags(elem):
+    tags = {}
+    for child in list(elem):
+        if child.tag != 'tag':
+            continue
+        key = child.get('k')
+        if key is None:
+            continue
+        tags[key] = child.get('v')
+    return tags
+
+def has_water_area_tags(tags):
+    return (
+        tags.get('natural') == 'water' or
+        ('water' in tags and tags.get('water') not in (None, '')) or
+        tags.get('landuse') == 'reservoir' or
+        tags.get('waterway') == 'riverbank'
+    )
+
+def has_building_tags(tags):
+    def is_active_building_value(value):
+        if value is None:
+            return False
+        normalized = str(value).strip().lower()
+        return normalized != '' and normalized != 'no'
+    return (
+        is_active_building_value(tags.get('building')) or
+        is_active_building_value(tags.get('building:part'))
+    )
+
+def is_big_road_way(tags):
+    return tags.get('highway') in BIG_ROAD_HIGHWAY_VALUES
+
+def parse_osm_tree(osm_path):
+    try:
+        tree = ET.parse(osm_path)
+        return tree
+    except Exception as e:
+        raise Exception("Can't parse OSM XML at {}: {}".format(osm_path, e))
+
+def set_bounds_on_tree(root, request_body):
+    eff_area = request_body['effectiveArea']
+    bounds_attrs = {
+        'minlat': str(eff_area['latMin']),
+        'minlon': str(eff_area['lonMin']),
+        'maxlat': str(eff_area['latMax']),
+        'maxlon': str(eff_area['lonMax']),
+    }
+    for child in list(root):
+        if child.tag == 'bounds':
+            child.attrib = bounds_attrs
+            return
+    bounds_elem = ET.Element('bounds', bounds_attrs)
+    insert_index = 0
+    for i, child in enumerate(list(root)):
+        if child.tag in ('note', 'meta'):
+            insert_index = i + 1
+            continue
+        if child.tag in ('node', 'way', 'relation'):
+            break
+        insert_index = i + 1
+    root.insert(insert_index, bounds_elem)
+
+def filter_osm_file_for_no_buildings(osm_path, request_body):
+    tree = parse_osm_tree(osm_path)
+    root = tree.getroot()
+    ways = {}
+    relations = {}
+    for child in list(root):
+        elem_id = child.get('id')
+        if elem_id is None:
+            continue
+        if child.tag == 'way':
+            ways[elem_id] = child
+        elif child.tag == 'relation':
+            relations[elem_id] = child
+
+    building_way_ids = set()
+    building_relation_ids = set()
+    for way_id, way_elem in ways.items():
+        if has_building_tags(element_tags(way_elem)):
+            building_way_ids.add(way_id)
+    for rel_id, rel_elem in relations.items():
+        if has_building_tags(element_tags(rel_elem)):
+            building_relation_ids.add(rel_id)
+
+    pending_building_relations = list(building_relation_ids)
+    seen_building_relations = set()
+    while pending_building_relations:
+        rel_id = pending_building_relations.pop()
+        if rel_id in seen_building_relations:
+            continue
+        seen_building_relations.add(rel_id)
+        rel_elem = relations.get(rel_id)
+        if rel_elem is None:
+            continue
+        for member in rel_elem.findall('member'):
+            member_type = member.get('type')
+            member_ref = member.get('ref')
+            if member_ref is None:
+                continue
+            if member_type == 'way':
+                building_way_ids.add(member_ref)
+            elif member_type == 'relation' and member_ref not in seen_building_relations:
+                building_relation_ids.add(member_ref)
+                pending_building_relations.append(member_ref)
+
+    keep_way_ids = set(ways.keys()) - building_way_ids
+    keep_relation_ids = set(relations.keys()) - building_relation_ids
+
+    keep_node_ids = set()
+    for way_id in keep_way_ids:
+        way_elem = ways.get(way_id)
+        if way_elem is None:
+            continue
+        for nd in way_elem.findall('nd'):
+            ref = nd.get('ref')
+            if ref is not None:
+                keep_node_ids.add(ref)
+
+    for rel_id in keep_relation_ids:
+        rel_elem = relations.get(rel_id)
+        if rel_elem is None:
+            continue
+        for member in rel_elem.findall('member'):
+            member_type = member.get('type')
+            member_ref = member.get('ref')
+            if member_ref is None:
+                continue
+            if member_type == 'node':
+                keep_node_ids.add(member_ref)
+
+    new_root = ET.Element(root.tag, root.attrib)
+    for child in list(root):
+        elem_id = child.get('id')
+        if child.tag in ('note', 'meta'):
+            new_root.append(copy.deepcopy(child))
+            continue
+        if child.tag == 'node':
+            tags = element_tags(child)
+            if has_building_tags(tags):
+                continue
+            if len(tags) == 0 and elem_id not in keep_node_ids:
+                continue
+            new_root.append(copy.deepcopy(child))
+            continue
+        if child.tag == 'way':
+            if elem_id in keep_way_ids:
+                new_root.append(copy.deepcopy(child))
+            continue
+        if child.tag == 'relation' and elem_id in keep_relation_ids:
+            rel_copy = copy.deepcopy(child)
+            for member in list(rel_copy):
+                if member.tag != 'member':
+                    continue
+                member_type = member.get('type')
+                member_ref = member.get('ref')
+                if member_ref is None:
+                    continue
+                if member_type == 'way' and member_ref in building_way_ids:
+                    rel_copy.remove(member)
+                elif member_type == 'relation' and member_ref in building_relation_ids:
+                    rel_copy.remove(member)
+            new_root.append(rel_copy)
+
+    set_bounds_on_tree(new_root, request_body)
+    filtered_tree = ET.ElementTree(new_root)
+    with open(osm_path, 'wb') as f:
+        filtered_tree.write(f, encoding='UTF-8', xml_declaration=True)
+
+def filter_osm_file_for_only_big_roads(osm_path, request_body):
+    tree = parse_osm_tree(osm_path)
+    root = tree.getroot()
+    ways = {}
+    relations = {}
+    for child in list(root):
+        elem_id = child.get('id')
+        if elem_id is None:
+            continue
+        if child.tag == 'way':
+            ways[elem_id] = child
+        elif child.tag == 'relation':
+            relations[elem_id] = child
+
+    big_road_way_ids = set()
+    water_area_way_ids = set()
+    water_area_relation_ids = set()
+    for way_id, way_elem in ways.items():
+        tags = element_tags(way_elem)
+        if is_big_road_way(tags):
+            big_road_way_ids.add(way_id)
+        if has_water_area_tags(tags):
+            water_area_way_ids.add(way_id)
+    for rel_id, rel_elem in relations.items():
+        tags = element_tags(rel_elem)
+        if has_water_area_tags(tags):
+            water_area_relation_ids.add(rel_id)
+
+    keep_node_ids = set()
+    pending_water_relations = list(water_area_relation_ids)
+    seen_water_relations = set()
+    while pending_water_relations:
+        rel_id = pending_water_relations.pop()
+        if rel_id in seen_water_relations:
+            continue
+        seen_water_relations.add(rel_id)
+        rel_elem = relations.get(rel_id)
+        if rel_elem is None:
+            continue
+        for member in rel_elem.findall('member'):
+            member_type = member.get('type')
+            member_ref = member.get('ref')
+            if member_ref is None:
+                continue
+            if member_type == 'way':
+                water_area_way_ids.add(member_ref)
+            elif member_type == 'node':
+                keep_node_ids.add(member_ref)
+            elif member_type == 'relation' and member_ref not in seen_water_relations:
+                water_area_relation_ids.add(member_ref)
+                pending_water_relations.append(member_ref)
+
+    road_relation_ids = set()
+    for rel_id, rel_elem in relations.items():
+        for member in rel_elem.findall('member'):
+            if member.get('type') == 'way' and member.get('ref') in big_road_way_ids:
+                road_relation_ids.add(rel_id)
+                break
+
+    keep_way_ids = set(big_road_way_ids)
+    keep_way_ids.update(water_area_way_ids)
+    keep_relation_ids = set(road_relation_ids)
+    keep_relation_ids.update(water_area_relation_ids)
+
+    for rel_id in list(keep_relation_ids):
+        rel_elem = relations.get(rel_id)
+        if rel_elem is None:
+            continue
+        for member in rel_elem.findall('member'):
+            member_type = member.get('type')
+            member_ref = member.get('ref')
+            if member_ref is None:
+                continue
+            if member_type == 'node':
+                keep_node_ids.add(member_ref)
+            elif member_type == 'way' and rel_id in water_area_relation_ids:
+                keep_way_ids.add(member_ref)
+
+    processed_way_ids = set()
+    pending_way_ids = list(keep_way_ids)
+    while pending_way_ids:
+        way_id = pending_way_ids.pop()
+        if way_id in processed_way_ids:
+            continue
+        processed_way_ids.add(way_id)
+        way_elem = ways.get(way_id)
+        if way_elem is None:
+            continue
+        for nd in way_elem.findall('nd'):
+            ref = nd.get('ref')
+            if ref is not None:
+                keep_node_ids.add(ref)
+
+    new_root = ET.Element(root.tag, root.attrib)
+    for child in list(root):
+        elem_id = child.get('id')
+        if child.tag in ('note', 'meta'):
+            new_root.append(copy.deepcopy(child))
+        elif child.tag == 'node' and elem_id in keep_node_ids:
+            new_root.append(copy.deepcopy(child))
+        elif child.tag == 'way' and elem_id in keep_way_ids:
+            new_root.append(copy.deepcopy(child))
+        elif child.tag == 'relation' and elem_id in keep_relation_ids:
+            new_root.append(copy.deepcopy(child))
+    set_bounds_on_tree(new_root, request_body)
+    filtered_tree = ET.ElementTree(new_root)
+    with open(osm_path, 'wb') as f:
+        filtered_tree.write(f, encoding='UTF-8', xml_declaration=True)
+
 def get_osm(progress_updater, request_body, work_dir):
     # TODO: verify the requested region isn't too large
     progress_updater('reading_osm')
+    content_mode = ensure_request_content_mode(request_body)
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
-    attempts = [
-        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
-          'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
-        },
-    ]
+    if content_mode == 'normal':
+        attempts = [
+            { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
+              'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
+            },
+            { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
+              'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
+            },
+            { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
+              'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
+            },
+            { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
+              'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
+            },
+        ]
+    else:
+        attempts = [
+            { 'url': "https://overpass.private.coffee/api/interpreter",
+              'method': lambda url: get_osm_overpass_interpreter_api(
+                  url=url,
+                  timeout=20,
+                  request_body=request_body,
+                  content_mode=content_mode,
+                  osm_path=osm_path
+              ),
+            },
+            { 'url': "https://overpass-api.de/api/interpreter",
+              'method': lambda url: get_osm_overpass_interpreter_api(
+                  url=url,
+                  timeout=40,
+                  request_body=request_body,
+                  content_mode=content_mode,
+                  osm_path=osm_path
+              ),
+            },
+            { 'url': "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+              'method': lambda url: get_osm_overpass_interpreter_api(
+                  url=url,
+                  timeout=60,
+                  request_body=request_body,
+                  content_mode=content_mode,
+                  osm_path=osm_path
+              ),
+            },
+            { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
+              'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
+            },
+        ]
     for i, attempt in enumerate(attempts):
         try:
             attempt['method'](attempt['url'])
+            if content_mode == 'only-big-roads':
+                filter_osm_file_for_only_big_roads(osm_path, request_body)
+            elif content_mode == 'no-buildings':
+                filter_osm_file_for_no_buildings(osm_path, request_body)
             return osm_path
         except Exception as e:
             msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
@@ -234,11 +646,20 @@ def get_osm(progress_updater, request_body, work_dir):
 
 def get_osm_overpass_api(url, timeout, request_body, osm_path):
     print("getting " + url)
-    osm_data = urllib.request.urlopen(url, timeout=timeout).read().decode('utf8')
-    eff_area = request_body['effectiveArea']
-    bounds = '  <bounds minlat="{}" minlon="{}" maxlat="{}" maxlon="{}"/>'.format( eff_area['latMin'], eff_area['lonMin'], eff_area['latMax'], eff_area['lonMax'] )
-    with open(osm_path, 'wb') as f:
-        f.write(bytes(re.sub(r'<meta [^>]+>\n', r'\g<0>' + bounds, osm_data, count=1), 'UTF-8'))
+    osm_data = urllib.request.urlopen(url, timeout=timeout).read()
+    write_osm_with_bounds(osm_data, request_body, osm_path)
+
+def get_osm_overpass_interpreter_api(url, timeout, request_body, content_mode, osm_path):
+    print("getting " + url + " (mode=" + content_mode + ")")
+    query = build_overpass_interpreter_query(request_body, content_mode)
+    payload = urllib.parse.urlencode({ 'data': query }).encode('utf8')
+    request = urllib.request.Request(
+        url,
+        data=payload,
+        headers={ 'Content-Type': 'application/x-www-form-urlencoded' }
+    )
+    osm_data = urllib.request.urlopen(request, timeout=timeout).read()
+    write_osm_with_bounds(osm_data, request_body, osm_path)
 
 def get_osm_main_api(url, timeout, osm_path):
     print("getting " + url)
@@ -256,8 +677,6 @@ def run_osm_to_tactile(progress_updater, osm_path, request_body):
         args = ['--scale', str(request_body['scale']), '--diameter', str(request_body['diameter']), '--size', str(request_body['size']), ]
         if request_body.get('noBorders', False):
             args.append('--no-borders')
-        if request_body.get('excludeBuildings', False):
-            args.append('--exclude-buildings')
         if not request_body.get('hideLocationMarker', False) and not request_body.get('multipartMode', False) and 'marker1' in request_body:
             eff_area = request_body['effectiveArea']
             marker1x = (request_body['marker1']['lon'] - eff_area['lonMin']) / (eff_area['lonMax'] - eff_area['lonMin'])
@@ -515,6 +934,7 @@ def main():
             log_progress('poll-empty', status='idle')
             status = 'idle'
             return
+        request_body['contentMode'] = normalize_content_mode(request_body.get('contentMode'))
         request_id = request_body.get('requestId')
         map_id = stats_pipeline.map_id_from_request_id(request_id)
         processing_start_time = time_clock()
@@ -711,7 +1131,7 @@ def main():
                     'offset_x': request_body.get('offsetX'),
                     'offset_y': request_body.get('offsetY'),
                     'size_cm': request_body.get('size'),
-                    'exclude_buildings': request_body.get('excludeBuildings'),
+                    'content_mode': request_body.get('contentMode'),
                     'hide_location_marker': request_body.get('hideLocationMarker'),
                     'lon': request_body.get('lon'),
                     'lat': request_body.get('lat'),

@@ -129,7 +129,7 @@
       offsetX: data.get("offsetX"),
       offsetY: data.get("offsetY"),
       size: data.get("size"),
-      excludeBuildings: data.get("exclude-buildings"),
+      contentMode: data.get("content-mode") || "normal",
       hideLocationMarker: data.get("hide-location-marker") || false,
       lon: data.get("lon"),
       lat: data.get("lat"),

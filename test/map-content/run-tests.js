@@ -399,9 +399,8 @@ function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, reques
     "--log-prefix",
     "[" + testCategory + "]  "
   ];
-  if (requestBody.excludeBuildings) {
-    args.push("--exclude-buildings");
-  }
+  const contentMode = typeof requestBody.contentMode === "string" ? requestBody.contentMode : "normal";
+  args.push("--content-mode", contentMode);
   if (requestBody.noBorders) {
     args.push("--no-borders");
   }

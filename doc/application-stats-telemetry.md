@@ -101,6 +101,8 @@ GROUP BY status;
 
 To force-upload all pending local stats JSON files for one environment:
 
+The script is deployed on EC2 at `~/touch-mapper/<environment>/dist/upload-pending-stats.py` for both `test` and `prod`.
+
 ```bash
 # On EC2 host
 cd ~/touch-mapper/<environment>/dist
@@ -111,9 +113,13 @@ Examples:
 
 ```bash
 cd ~/touch-mapper/test/dist
+./upload-pending-stats.py
+# or explicitly:
 ./upload-pending-stats.py test
 
 cd ~/touch-mapper/prod/dist
+./upload-pending-stats.py
+# or explicitly:
 ./upload-pending-stats.py prod
 ```
 

@@ -78,6 +78,10 @@ Never:
   - Fetch with shell `curl` into `test/map-content/cache/<category>/map.osm`.
   - Re-run tests with `--offline`.
 
+## Deployment structure
+
+- On EC2, converter files are deployed under `~/touch-mapper/<environment>/dist/` (for `test` and `prod`).
+
 ## Docs index
 
 - `doc/development-conventions.md`: coding conventions, web/i18n details, Python guidelines.

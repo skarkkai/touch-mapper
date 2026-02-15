@@ -13,14 +13,28 @@ sys.path.insert(1, script_dir)
 import stats_pipeline
 
 
+def infer_environment_from_script_dir(current_script_dir):
+    probe = os.path.abspath(current_script_dir)
+    while True:
+        name = os.path.basename(probe)
+        if name in ('test', 'prod'):
+            return name
+        parent = os.path.dirname(probe)
+        if parent == probe:
+            break
+        probe = parent
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Upload pending local stats JSON files to S3 for one Touch Mapper environment.'
     )
     parser.add_argument(
         'environment',
+        nargs='?',
         choices=['test', 'prod'],
-        help='Environment whose local stats should be uploaded.'
+        help='Environment whose local stats should be uploaded. Defaults from script location when under .../test/... or .../prod/....'
     )
     parser.add_argument(
         '--tm-root',
@@ -32,7 +46,16 @@ def parse_args():
         action='store_true',
         help='Keep local month directories even if they are already complete.'
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.environment is None:
+        inferred_environment = infer_environment_from_script_dir(script_dir)
+        if inferred_environment is not None:
+            args.environment = inferred_environment
+        else:
+            parser.error('environment is required unless script path has test or prod as an ancestor directory')
+
+    return args
 
 
 def iter_month_dirs(stats_root_dir):

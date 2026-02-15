@@ -488,9 +488,9 @@
                 "Comment": "Requested physical map size in centimeters."
               },
               {
-                "Name": "exclude_buildings",
-                "Type": "boolean",
-                "Comment": "Whether building geometry was excluded from map generation."
+                "Name": "content_mode",
+                "Type": "string",
+                "Comment": "Selected content mode: normal, no-buildings, or only-big-roads."
               },
               {
                 "Name": "hide_location_marker",
