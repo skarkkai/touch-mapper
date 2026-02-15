@@ -39,6 +39,7 @@ RAM telemetry is always collected from converter subprocess stages using `/usr/b
 - `rss_osm2world_kib`
 - `rss_blender_kib`
 - `rss_clip_2d_kib`
+- `rss_prune_only_big_roads_kib` (from `prune-only-big-roads.js` subprocess in `content_mode=only-big-roads`)
 
 These represent top memory consumers for the converter pipeline and are written as KiB integers.
 If timings JSON is missing/malformed or RSS is unavailable, fields are stored as `null` and request processing continues.

@@ -35,6 +35,7 @@ TOP_RAM_STAGE_TO_FIELD = {
     'run-blender': 'rss_blender_kib',
     'run-clip-2d': 'rss_clip_2d_kib',
 }
+MAX_RSS_KIB_RE = re.compile(r'^\s*Maximum resident set size \(kbytes\):\s*([0-9]+)\s*$')
 
 
 def parse_env_bool(name):
@@ -781,6 +782,60 @@ def filter_osm_file_for_only_big_roads(osm_path, request_body):
     with open(osm_path, 'wb') as f:
         filtered_tree.write(f, encoding='UTF-8', xml_declaration=True)
 
+def run_subprocess_with_max_rss_kib(cmd):
+    timed_cmd = list(cmd)
+    use_time = os.path.exists('/usr/bin/time')
+    if use_time:
+        timed_cmd = ['/usr/bin/time', '-v'] + timed_cmd
+
+    process = subprocess.Popen(
+        timed_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    stdout_data, stderr_data = process.communicate()
+    stdout_text = stdout_data.decode('utf8', errors='replace')
+    stderr_text = stderr_data.decode('utf8', errors='replace')
+
+    max_rss_kib = None
+    if use_time:
+        for line in stderr_text.splitlines():
+            match = MAX_RSS_KIB_RE.match(line)
+            if match is not None:
+                try:
+                    max_rss_kib = int(match.group(1))
+                except Exception:
+                    max_rss_kib = None
+
+    if process.returncode != 0:
+        raise Exception(
+            "command failed ({}) for {} stderr={}".format(
+                process.returncode,
+                " ".join(cmd),
+                compact_log_text(stderr_text, max_length=1000)
+            )
+        )
+
+    if stdout_text.strip() != '':
+        print(stdout_text.strip())
+
+    return max_rss_kib
+
+def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
+    eff_area = request_body['effectiveArea']
+    cmd = [
+        'node',
+        os.path.join(script_dir, 'prune-only-big-roads.js'),
+        '--osm', osm_path,
+        '--lon-min', str(eff_area['lonMin']),
+        '--lat-min', str(eff_area['latMin']),
+        '--lon-max', str(eff_area['lonMax']),
+        '--lat-max', str(eff_area['latMax']),
+        '--target-density-km-per-km2', str(TARGET_ROAD_DENSITY_KM_PER_KM2),
+    ]
+    print("running: " + " ".join(cmd))
+    return run_subprocess_with_max_rss_kib(cmd)
+
 def get_osm(progress_updater, request_body, work_dir):
     # TODO: verify the requested region isn't too large
     progress_updater('reading_osm')
@@ -840,12 +895,13 @@ def get_osm(progress_updater, request_body, work_dir):
         try:
             attempt['method'](attempt['url'])
             fetched_osm_bytes = os.path.getsize(osm_path)
+            prune_rss_kib = None
             if content_mode == 'only-big-roads':
-                filter_osm_file_for_only_big_roads(osm_path, request_body)
+                prune_rss_kib = prune_osm_file_for_only_big_roads_with_node(osm_path, request_body)
             elif content_mode == 'no-buildings':
                 filter_osm_file_for_no_buildings(osm_path, request_body)
             pruned_osm_bytes = os.path.getsize(osm_path)
-            return osm_path, fetched_osm_bytes, pruned_osm_bytes
+            return osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib
         except Exception as e:
             msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
             if i == len(attempts) - 1:
@@ -1118,6 +1174,7 @@ def init_main_context():
         'rss_osm2world_kib': None,
         'rss_blender_kib': None,
         'rss_clip_2d_kib': None,
+        'rss_prune_only_big_roads_kib': None,
     }
 
 
@@ -1233,6 +1290,7 @@ def build_stats_record(ctx):
         'rss_osm2world_kib': ctx['rss_osm2world_kib'],
         'rss_blender_kib': ctx['rss_blender_kib'],
         'rss_clip_2d_kib': ctx['rss_clip_2d_kib'],
+        'rss_prune_only_big_roads_kib': ctx['rss_prune_only_big_roads_kib'],
     }
 
 
@@ -1306,9 +1364,10 @@ def main():
         osm_result = get_osm(progress_updater, ctx['request_body'], ctx['args'].work_dir)
         if osm_result is None:
             raise Exception("OSM path not available")
-        osm_path, fetched_osm_bytes, pruned_osm_bytes = osm_result
+        osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib = osm_result
         ctx['osm_fetched_bytes'] = fetched_osm_bytes
         ctx['osm_pruned_bytes'] = pruned_osm_bytes
+        ctx['rss_prune_only_big_roads_kib'] = prune_rss_kib
         ctx['timing_get_osm_seconds'] = duration_since(get_osm_start_time)
         log_progress('get-osm-done')
 

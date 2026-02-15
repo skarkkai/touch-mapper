@@ -566,6 +566,11 @@
                 "Name": "rss_clip_2d_kib",
                 "Type": "bigint",
                 "Comment": "Maximum RSS in KiB for run-clip-2d stage from osm-to-tactile-timings.json (/usr/bin/time -v)."
+              },
+              {
+                "Name": "rss_prune_only_big_roads_kib",
+                "Type": "bigint",
+                "Comment": "Maximum RSS in KiB for prune-only-big-roads.js subprocess in content_mode=only-big-roads (/usr/bin/time -v)."
               }
             ],
             "Location": {

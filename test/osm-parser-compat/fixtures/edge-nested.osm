@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="fixture">
+  <node id="1" lat="60" lon="24"><tag k="name" v="A &amp; B"/></node>
+  <node id="2" lat="60.1" lon="24.1"/>
+  <way id="10"><nd ref="1"/><nd ref="2"/><tag k="highway" v="residential"/></way>
+  <relation id="20"><member type="way" ref="10" role="outer"/><tag k="type" v="multipolygon"/></relation>
+</osm>

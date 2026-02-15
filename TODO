@@ -1,2 +1,7 @@
-- don't save nulls for booleans into telemetry, map those to true/false
-- Spanish
+Refuse too large map data size
+
+Map https://test.touch-mapper.org/fi/map?map=B57bd2c8b2f3d765 says:
+Major road Turunväylä, 8590 meters
+From the center to the west part
+Crosses east edge in the south and west edge near the center
+But that's impossible, both by visual inspection, and because parts of the roads must exist near east edge or south-east corner since the road crosses east edge.

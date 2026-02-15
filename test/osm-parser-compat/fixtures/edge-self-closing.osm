@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="fixture">
+  <node id="1" lat="60" lon="24"/>
+  <way id="10"/>
+  <relation id="20"/>
+</osm>

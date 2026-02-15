@@ -1,0 +1,13 @@
+{
+  "name": "touch-mapper-osm-parser-compat",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Compatibility checks between custom OSM parser and sax",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "sax": "1.2.4"
+  },
+  "scripts": {
+    "compare": "node compare-osm-parsers.js"
+  }
+}
