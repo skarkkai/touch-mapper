@@ -54,7 +54,7 @@ const PEDESTRIAN_NAV_HIGHWAYS = {
 function usage() {
   return [
     'Usage:',
-    '  prune-only-big-roads.js --osm <path> --lon-min <n> --lat-min <n> --lon-max <n> --lat-max <n> [--target-density-km-per-km2 <n>] [--output <path>]',
+    '  prune-only-big-roads.js --osm <path> --lon-min <n> --lat-min <n> --lon-max <n> --lat-max <n> --print-size-cm <n> --map-scale <n> [--target-road-density <n>] [--output <path>]',
   ].join('\n');
 }
 
@@ -66,7 +66,9 @@ function parseArgs(argv) {
     latMin: null,
     lonMax: null,
     latMax: null,
-    targetDensityKmPerKm2: 10.0,
+    printSizeCm: null,
+    mapScale: null,
+    targetRoadDensity: 1.2,
   };
 
   function takeValue(i) {
@@ -96,8 +98,14 @@ function parseArgs(argv) {
     } else if (arg === '--lat-max') {
       out.latMax = Number(takeValue(i));
       i += 1;
-    } else if (arg === '--target-density-km-per-km2') {
-      out.targetDensityKmPerKm2 = Number(takeValue(i));
+    } else if (arg === '--print-size-cm') {
+      out.printSizeCm = Number(takeValue(i));
+      i += 1;
+    } else if (arg === '--map-scale') {
+      out.mapScale = Number(takeValue(i));
+      i += 1;
+    } else if (arg === '--target-road-density') {
+      out.targetRoadDensity = Number(takeValue(i));
       i += 1;
     } else if (arg === '--help' || arg === '-h') {
       throw new Error(usage());
@@ -112,8 +120,14 @@ function parseArgs(argv) {
   if (!Number.isFinite(out.lonMin) || !Number.isFinite(out.latMin) || !Number.isFinite(out.lonMax) || !Number.isFinite(out.latMax)) {
     throw new Error('All bounds args are required and must be numeric\n' + usage());
   }
-  if (!Number.isFinite(out.targetDensityKmPerKm2) || out.targetDensityKmPerKm2 < 0) {
-    throw new Error('--target-density-km-per-km2 must be a non-negative number');
+  if (!Number.isFinite(out.printSizeCm) || out.printSizeCm <= 0) {
+    throw new Error('--print-size-cm must be a positive number');
+  }
+  if (!Number.isFinite(out.mapScale) || out.mapScale <= 0) {
+    throw new Error('--map-scale must be a positive number');
+  }
+  if (!Number.isFinite(out.targetRoadDensity) || out.targetRoadDensity < 0) {
+    throw new Error('--target-road-density must be a non-negative number');
   }
   if (!out.output) {
     out.output = out.osm;
@@ -787,39 +801,28 @@ function computeHaversineM(lat1, lon1, lat2, lon2) {
   return earthRadiusM * c;
 }
 
-function computeEffectiveAreaM2(bounds) {
-  const latMin = Number(bounds.latMin);
-  const latMax = Number(bounds.latMax);
-  const lonMin = Number(bounds.lonMin);
-  const lonMax = Number(bounds.lonMax);
-  if (!Number.isFinite(latMin) || !Number.isFinite(latMax) || !Number.isFinite(lonMin) || !Number.isFinite(lonMax)) {
-    return 0.0;
-  }
-
-  const nsM = computeHaversineM(latMin, lonMin, latMax, lonMin);
-  const latMid = (latMin + latMax) / 2.0;
-  const ewM = computeHaversineM(latMid, lonMin, latMid, lonMax);
-  const area = Math.abs(nsM * ewM);
-  return Number.isFinite(area) ? area : 0.0;
+function computeTargetRoadLengthMeters(printSizeCm, mapScale, targetRoadDensity) {
+  const printAreaCm2 = printSizeCm * printSizeCm;
+  const targetPrintedRoadLengthCm = targetRoadDensity * printAreaCm2;
+  return targetPrintedRoadLengthCm * mapScale / 100.0;
 }
 
-function deriveRemovedRankBuckets(lengthByRank, areaM2, targetDensityKmPerKm2) {
+function deriveRemovedRankBuckets(lengthByRank, targetRoadLengthM) {
   const removed = new Set();
-  if (!(areaM2 > 0)) {
+  if (!(targetRoadLengthM > 0)) {
     return removed;
   }
-  const targetM = targetDensityKmPerKm2 * 1000.0 * (areaM2 / 1000000.0);
   let remainingM = 0.0;
   for (let bucketIx = 0; bucketIx < lengthByRank.length; bucketIx += 1) {
     remainingM += Number(lengthByRank[bucketIx] || 0.0);
   }
 
   for (let bucketIx = 0; bucketIx < lengthByRank.length; bucketIx += 1) {
-    if (remainingM <= targetM) {
+    if (remainingM <= targetRoadLengthM) {
       break;
     }
     const bucketM = Number(lengthByRank[bucketIx] || 0.0);
-    if (remainingM - bucketM >= targetM) {
+    if (remainingM - bucketM >= targetRoadLengthM) {
       removed.add(bucketIxToScore(bucketIx));
       remainingM -= bucketM;
     } else {
@@ -1133,8 +1136,8 @@ function computeWayLengthMetersWithinBounds(state, wayIx, bounds) {
 }
 
 // Step 3: Build road-meter totals by rank and decide all-or-none bucket pruning.
-// This uses rank-adjusted ways and map-area density target to compute removed buckets.
-function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
+// This uses rank-adjusted ways and printout-area road-density target to compute removed buckets.
+function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, targetRoadDensity) {
   const wayCount = state.wayIds.length;
   const lengthByRank = new Float64Array(ROAD_SCORE_BUCKET_COUNT);
   const roadGroupLength = [];
@@ -1180,11 +1183,8 @@ function thirdStepComputePruningDecision(state, bounds, targetDensityKmPerKm2) {
     lengthByRank[scoreToBucketIx(groupRank)] += roadGroupLength[roadGroupIx];
   }
 
-  const removedRanks = deriveRemovedRankBuckets(
-    lengthByRank,
-    computeEffectiveAreaM2(bounds),
-    targetDensityKmPerKm2
-  );
+  const targetRoadLengthM = computeTargetRoadLengthMeters(printSizeCm, mapScale, targetRoadDensity);
+  const removedRanks = deriveRemovedRankBuckets(lengthByRank, targetRoadLengthM);
 
   state.keepWay = new Uint8Array(wayCount);
   state.keptRoadWay = new Uint8Array(wayCount);
@@ -1508,7 +1508,7 @@ async function run() {
 
   await firstPassCollectIndexes(state, args.osm);
   await secondPassLoadNodeCoordinates(state, args.osm);
-  thirdStepComputePruningDecision(state, bounds, args.targetDensityKmPerKm2);
+  thirdStepComputePruningDecision(state, bounds, args.printSizeCm, args.mapScale, args.targetRoadDensity);
   const keepNodeFromRelations = fourthStepApplyRelationKeepLogic(state);
   fifthStepMarkKeptNodes(state, keepNodeFromRelations);
 
@@ -1666,7 +1666,7 @@ function assertTrue(label, condition) {
   }
 }
 
-function computeRoadGroupingKeep(roadEntries, areaM2, targetDensityKmPerKm2) {
+function computeRoadGroupingKeep(roadEntries, targetRoadLengthM) {
   const lengthByRank = new Float64Array(ROAD_SCORE_BUCKET_COUNT);
   const roadGroupLength = [];
   const roadGroupMaxRank = [];
@@ -1702,7 +1702,7 @@ function computeRoadGroupingKeep(roadEntries, areaM2, targetDensityKmPerKm2) {
     lengthByRank[scoreToBucketIx(rank)] += roadGroupLength[roadGroupIx];
   }
 
-  const removedRanks = deriveRemovedRankBuckets(lengthByRank, areaM2, targetDensityKmPerKm2);
+  const removedRanks = deriveRemovedRankBuckets(lengthByRank, targetRoadLengthM);
   const kept = new Array(roadEntries.length);
   for (let i = 0; i < roadEntries.length; i += 1) {
     const roadGroupIx = entryRoadGroupIx[i];
@@ -1717,8 +1717,7 @@ function computeRoadGroupingKeep(roadEntries, areaM2, targetDensityKmPerKm2) {
 function runRoadGroupingSelfTest() {
   const mainStreetHash = hashRoadName32(normalizeRoadNameForGrouping('Main Street'));
   const otherStreetHash = hashRoadName32(normalizeRoadNameForGrouping('Other Street'));
-  const areaM2 = 1000000;
-  const targetDensityKmPerKm2 = 0.12;
+  const targetRoadLengthM = 100.0;
 
   const sameNameMixedRanks = computeRoadGroupingKeep(
     [
@@ -1726,8 +1725,7 @@ function runRoadGroupingSelfTest() {
       { rank: 8, nameHash: mainStreetHash, lengthMeters: 100.0 },
       { rank: 4, nameHash: otherStreetHash, lengthMeters: 120.0 },
     ],
-    areaM2,
-    targetDensityKmPerKm2
+    targetRoadLengthM
   );
   assertTrue('same-name ways should share one group', sameNameMixedRanks.entryRoadGroupIx[0] === sameNameMixedRanks.entryRoadGroupIx[1]);
   assertTrue('same-name mixed-rank segment A should be kept', sameNameMixedRanks.kept[0] === true);
@@ -1739,8 +1737,7 @@ function runRoadGroupingSelfTest() {
       { rank: 4, nameHash: ROAD_NAME_HASH_UNNAMED, lengthMeters: 100.0 },
       { rank: 8, nameHash: ROAD_NAME_HASH_UNNAMED, lengthMeters: 100.0 },
     ],
-    areaM2,
-    0.10
+    targetRoadLengthM
   );
   assertTrue('unnamed ways should not share a group', unnamedFallback.entryRoadGroupIx[0] !== unnamedFallback.entryRoadGroupIx[1]);
   assertTrue('unnamed lower-rank road should be pruned independently', unnamedFallback.kept[0] === false);
@@ -1756,8 +1753,7 @@ function runRoadGroupingSelfTest() {
       { rank: 5, nameHash: hashRoadName32(normalizeRoadNameForGrouping('Alpha Way')), lengthMeters: 20.0 },
       { rank: 5, nameHash: hashRoadName32(normalizeRoadNameForGrouping('Beta Way')), lengthMeters: 20.0 },
     ],
-    areaM2,
-    0.01
+    10.0
   );
   assertTrue('distinct names should map to distinct groups', groupCheck.entryRoadGroupIx[0] !== groupCheck.entryRoadGroupIx[1]);
 
@@ -1823,16 +1819,14 @@ function runBboxLengthSelfTest() {
   assertAlmostEqual('multi-segment clipped length', multiSegmentLength, expectedMultiSegmentLength, 1e-6);
 
   const mainStreetHash = hashRoadName32(normalizeRoadNameForGrouping('Main Street'));
-  const areaM2 = 1000000;
-  const targetDensityKmPerKm2 = 0.12;
+  const targetRoadLengthM = 100.0;
   const groupedWithOutsideSegment = computeRoadGroupingKeep(
     [
       { rank: 8, nameHash: mainStreetHash, lengthMeters: 100.0 },
       { rank: 4, nameHash: mainStreetHash, lengthMeters: 0.0 },
       { rank: 4, nameHash: hashRoadName32(normalizeRoadNameForGrouping('Other Street')), lengthMeters: 120.0 },
     ],
-    areaM2,
-    targetDensityKmPerKm2
+    targetRoadLengthM
   );
   assertTrue('same-name mixed-rank group should stay kept with outside zero-length segment', groupedWithOutsideSegment.kept[0] === true);
   assertTrue('same-name outside zero-length segment follows group keep decision', groupedWithOutsideSegment.kept[1] === true);

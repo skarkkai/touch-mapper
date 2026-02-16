@@ -63,8 +63,8 @@ INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
 VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
-# Initial heuristic target; lower means more aggressive pruning.
-TARGET_ROAD_DENSITY_KM_PER_KM2 = 50.0
+# Target kept-road density relative to printout area (printed road cm per printout cm^2).
+TARGET_ROAD_DENSITY = 1.2
 VERSION_TAG_PACKAGE_RE = re.compile(r'^package-(.+)$')
 CODE_VERSION_WARNING_EMITTED = False
 progress_state = {
@@ -599,7 +599,9 @@ def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
         '--lat-min', str(eff_area['latMin']),
         '--lon-max', str(eff_area['lonMax']),
         '--lat-max', str(eff_area['latMax']),
-        '--target-density-km-per-km2', str(TARGET_ROAD_DENSITY_KM_PER_KM2),
+        '--print-size-cm', str(request_body['size']),
+        '--map-scale', str(request_body['scale']),
+        '--target-road-density', str(TARGET_ROAD_DENSITY),
     ]
     print("running: " + " ".join(cmd))
     return run_subprocess_with_max_rss_kib(cmd)

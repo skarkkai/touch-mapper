@@ -1,20 +1,5 @@
-Refuse too large map data size
+Use connectivity graph based pruning of roads in only-big-roads mode. Combined with osm tag approach.
 
-Map https://test.touch-mapper.org/fi/map?map=B57bd2c8b2f3d765 says:
-Major road Turunväylä, 8590 meters
-From the center to the west part
-Crosses east edge in the south and west edge near the center
-But that's impossible, both by visual inspection, and because parts of the roads must exist near east edge or south-east corner since the road crosses east edge.
+Show also train tracks in big-roads mode
 
----
-
-If the osm file is over 25M before pruning in normal or no-buildings mode, or after pruning in big-roads-only mode, refuse the operation as following. Instead of monitoring existence of the stl file by polling head requests, browser will poll GET for the meta.json (S3 /map/info/<id>.json). That file is added key 
-
---
-
-In road size classification, use fewer elements so that pieces of roads don't get cut off. OR: group roads by name, not by osmId, and assign highest score of any osmId segment of the road. Road names can maybe be hashed into integers for memory savings -- a rare hash conflict is acceptable.
-
-Shouldn't road ranking code been removed from process-request.py?
-
-Only count road meters within bounding box
-
+Alerting of increased error rates over a day, or usage drops over a week

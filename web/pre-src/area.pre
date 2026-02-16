@@ -165,7 +165,7 @@
         <label for="map-size">{{ custom_map_size }}:</label>
       </div>
       <div class="col col2">
-        <input id="map-size-input" pattern="[0-9]+(\.[0-9]+)?" required />
+        <input id="map-size-input" type="number" max="99.9" step="0.1" pattern="[0-9]+(\.[0-9]+)?" required />
         <span class="map-size-unit">{{ unit_cm }}</span>
       </div>
     </div>

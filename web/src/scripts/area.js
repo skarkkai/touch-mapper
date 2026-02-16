@@ -262,6 +262,14 @@ function setParametersFromBlindSquare() {
     return isNaN(number) ? null : number;
   }
 
+  function parseMapSizeParam(value) {
+    var number = parseFloatParam(value);
+    if (number === null || number >= 100) {
+      return null;
+    }
+    return number;
+  }
+
   function parseContentMode(value) {
     if (!hasNonEmpty(value)) {
       return null;
@@ -352,7 +360,7 @@ function setParametersFromBlindSquare() {
   setLocalStorageIfPresent("multipartXpc", ["multipartXpc", "multipart_xpc", "multipart-xpc"], parseIntParam);
   setLocalStorageIfPresent("multipartYpc", ["multipartYpc", "multipart_ypc", "multipart-ypc"], parseIntParam);
 
-  var sizeValue = setLocalStorageIfPresent("size", ["size", "mapSize", "map_size"], parseFloatParam);
+  var sizeValue = setLocalStorageIfPresent("size", ["size", "mapSize", "map_size"], parseMapSizeParam);
   if (sizeValue !== null) {
     setLocalStorage(
       "map-size-preset",
