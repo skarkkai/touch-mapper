@@ -3,3 +3,5 @@ Use connectivity graph based pruning of roads in only-big-roads mode. Combined w
 Show also train tracks in big-roads mode
 
 Alerting of increased error rates over a day, or usage drops over a week
+
+See if resvg uses less memory than current svg2pdf

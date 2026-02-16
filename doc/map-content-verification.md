@@ -1,5 +1,7 @@
 # Map-Content Verification
 
+This is the authoritative source for verification commands and content/locale review workflow.
+
 Use this workflow when changing converter map-description logic or related UI description-model code.
 
 ## Core suite

@@ -1,5 +1,7 @@
 # Way/Area Extrusion Tiers (Low / High / Building)
 
+This is the authoritative source for tactile extrusion tier constants and mappings.
+
 This document records how way/area features are rendered into tactile height tiers in the Blender conversion step.
 
 It is derived from:

@@ -6,6 +6,12 @@ Touch Mapper generates tactile maps for blind and visually impaired users. Every
 
 If unsure, stop and consult files in `doc/`.
 
+## Scope and authority
+
+`AGENTS.md` is authoritative for non-negotiable policy and guardrails.
+`doc/*.md` is authoritative for procedures, commands, and implementation details.
+If guidance conflicts, follow `doc/*.md` for operational behavior.
+
 ---
 
 # Critical invariants (never violate)
@@ -26,21 +32,12 @@ Priority order:
 
 Never reverse this order.
 
-Vertical elevation encodes meaning:
-
-| Feature | Elevation |
-|--------|-----------|
-| Car roads | ~0.8 mm |
-| Pedestrian roads | ~1.5 mm |
-| Buildings | ~2.9 mm |
-
-These elevations must remain distinguishable by touch.
-
+Vertical elevation encodes meaning and must remain tactually distinguishable.
 Road width is part of tactile encoding and must not be arbitrarily changed.
-
 Ground elevation must remain ignored.
-
 Non-manifold geometry and overlapping solids are acceptable if prints are tactually correct.
+
+Authoritative tier constants and mappings: `doc/way-area-extrusion-tiers.md`.
 
 ---
 
@@ -62,20 +59,19 @@ Rules:
 
 - Do not merge pipeline stages.
 - Do not bypass stages.
-- Do not change stage responsibilities without updating doc/converter-pipeline-stages.md
+- Do not change stage responsibilities without updating `doc/converter-pipeline-stages.md`.
 
 Metadata lifecycle must remain consistent:
 
-map-meta-raw.json  
-→ map-meta.augmented.json  
-→ map-meta.json  
-→ map-content.json  
+`map-meta-raw.json` → `map-meta.augmented.json` → `map-meta.json` → `map-content.json`
+
+Authoritative stage definitions: `doc/converter-pipeline-stages.md`.
 
 ---
 
 ## map-content.json is a UI contract
 
-map-content.json defines what users perceive in textual map description.
+`map-content.json` defines what users perceive in textual map description.
 
 Default sections include:
 
@@ -86,15 +82,19 @@ Default sections include:
 - buildings
 - otherLinear
 
-Agents modifying map-content.json must:
+Agents modifying `map-content.json` must:
 
-- Update schema docs
-- Update verification tests
-- Validate UI description output
+- Update schema docs.
+- Update verification tests.
+- Validate UI description output.
 
-Backward compatibility is NOT required.
+Backward compatibility is not required. Maps are mostly ephemeral.
 
-Maps are mostly ephemeral.
+Authoritative schema and verification workflows:
+
+- `doc/map-description-model-schema.md`
+- `doc/map-content-verification.md`
+- `doc/map-description-introspection.md`
 
 ---
 
@@ -112,13 +112,9 @@ Agents must not introduce additional hidden filtering modes.
 
 ## "Only big roads" pruning rules (strict)
 
-Goal:
-
-Maintain tactile readability at scale.
+Goal: maintain tactile readability at scale.
 
 Primary requirement:
-
-User must feel:
 
 - biggest roads are present
 - continuity is preserved
@@ -127,242 +123,65 @@ Never allow:
 
 - chopped roads
 - unnatural gaps
-- density correct but structure broken
+- density-correct but structure-broken output
 
-Density target alone is insufficient.
-
-Continuity perception is primary.
+Density target alone is insufficient. Continuity perception is primary.
 
 ---
 
-# Start here (copy/paste commands)
-
-```bash
-# Initial setup
-./init.sh
-
-# Fast converter/map-description verification
-node test/map-content/run-tests.js --category average --offline --jobs 1
-
-# Python type checks
-pyright converter/osm-to-tactile.py
-
-# Web build/serve
-cd web
-make build
-make serve
-````
-
----
-
-# Repo structure
-
-* web/
-  Static UI, html + JS
-
-* converter/
-  Conversion pipeline (Python, Node, Blender)
-
-* test/map-content/
-  Regression and tactile description verification
-
-* doc/
-  Authoritative design documentation
-
-* OSM2World/
-  Vendored dependency
-
-* install/
-  Deployment scripts
-
----
-
-# Development rules
+# Development guardrails
 
 Always:
 
-* Scope changes tightly
-* Preserve tactile meaning
-* Update docs if behavior changes
-* Edit template sources in web/pre-src/, not generated files
-* Update all locales when changing UI text
+- Scope changes tightly.
+- Preserve tactile meaning.
+- Update docs if behavior changes.
 
 Never:
 
-* Compromise tactile clarity
-* Introduce hidden pipeline coupling
-* Assume geometric correctness is more important than tactile clarity
-* Use Python newer than 3.5
-* Present multi-core performance as production performance
+- Compromise tactile clarity.
+- Introduce hidden pipeline coupling.
+- Assume geometric correctness is more important than tactile clarity.
+- Use Python newer than 3.5 where Blender/runtime constraints apply.
+- Present multi-core performance as production performance.
 
----
+Performance baseline constraints:
 
-# Validation requirements by change type
+- Production assumptions are single core, 1 GB RAM, EC2 T-class instance.
+- Benchmark with `taskset -c 0` when making performance claims.
 
-## Converter changes
+Runtime architecture constraints:
 
-Run:
+Browser → SQS message → EC2 converter → S3 output → browser fetch
 
-```bash
-node test/map-content/run-tests.js --category average --offline --jobs 1
-```
-
-If geometry changed:
-
-```bash
-node test/map-content/run-tests.js --category average --with-blender --jobs 1
-```
-
-Review visually:
-
-test/map-content/out/*/pipeline/map-wireframe.png
-
----
-
-## Python changes
-
-Run:
-
-```bash
-pyright converter/osm-to-tactile.py
-```
-
-Fix all errors.
-
----
-
-## map-content.json changes
-
-Must verify:
-
-* UI description text correctness
-* Schema validity
-* Locale outputs
-
----
-
-## UI changes
-
-Edit:
-
-web/pre-src/
-
-Then:
-
-make build
-
-Check locales:
-
-* en
-* fi
-* de
-* nl
-* sp
-
-English is source of truth. Finnish translations are human-verified and must be considered when choosing other translations.
-
----
-
-## Performance claims
-
-Production environment:
-
-* single core
-* 1 GB RAM
-* EC2 T-class instance
-
-Always benchmark with:
-
-```bash
-taskset -c 0
-```
-
-Never claim performance from multi-core runs.
-
----
-
-# Runtime architecture constraints
-
-Production system:
-
-Browser
-→ SQS message
-→ EC2 converter
-→ S3 output
-→ browser fetch
-
-Execution time:
-
-1–300 seconds
-
-Memory budget:
-
-1 GB RAM maximum
-
-Agents must not introduce memory-heavy operations without strong justification.
-
+Execution time: 1-300 seconds.
+Memory budget: 1 GB RAM maximum.
 OSM data reading over Overpass API is dominant cost.
 
----
+Temporary file policy:
 
-# Temporary file policy
+- Use `.tmp/` and `bin/tmpctl`.
+- Do not use `/tmp/` for project temp files.
 
-Always use:
+Web i18n guardrail:
 
-.tmp/
+- There is no full runtime locale dictionary.
+- JS must receive text through templates or `data-*` attributes.
+- Locale files live in `web/locales/<lang>/tm.json`.
 
-Never use:
-
-/tmp/
-
-Use:
-
-bin/tmpctl
+Authoritative coding conventions: `doc/development-conventions.md`.
 
 ---
-
-# Web system constraints
-
-There is no runtime locale dictionary.
-
-JS must receive text via:
-
-* templates
-* data-* attributes
-
-Translation files:
-
-web/locales/<lang>/tm.json
-
-English is authoritative fallback.
-
----
-
-# Core philosophy summary
-
-Touch Mapper is a tactile language.
-
-Not a renderer.
-
-Not a GIS viewer.
-
-Not a geometry processor.
-
-Every change must preserve tactile meaning.
-
-If a change improves geometric correctness but harms tactile clarity, reject it.
-
-````
 
 ## Docs index
 
 - `doc/development-conventions.md`: coding conventions, web/i18n details, Python guidelines.
-- `doc/development-setup.md`: local setup, AWS setup, and development workflows.
-- `doc/map-content-verification.md`: category suites, locale checks, and visual artifacts.
+- `doc/development-setup.md`: authoritative local setup and developer workflows.
+- `doc/map-content-verification.md`: authoritative verification commands and locale/visual checks.
 - `doc/map-description-introspection.md`: canonical map-description inspection CLI flow.
-- `doc/converter-pipeline-stages.md`: OSM2World outputs and metadata stage names.
+- `doc/converter-pipeline-stages.md`: authoritative OSM2World outputs, pipeline stage names, and metadata lifecycle.
 - `doc/map-description-model-schema.md`: map-description JSON schema.
 - `doc/deployed-map-inspection.md`: inspect deployed map artifacts via map ID.
 - `doc/ui-visual-baseline.md`: UI visual/style baseline.
-- `doc/way-area-extrusion-tiers.md`: tactile extrusion tiers.
+- `doc/way-area-extrusion-tiers.md`: authoritative tactile extrusion tiers.
 - `doc/creating-new-server.doc`: legacy server provisioning notes.

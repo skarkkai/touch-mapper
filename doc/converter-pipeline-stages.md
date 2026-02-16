@@ -1,5 +1,7 @@
 # Converter Pipeline Stages
 
+This is the authoritative source for converter stage names and metadata lifecycle definitions.
+
 This document describes converter data flow and stage names used by code comments and artifacts.
 
 ## OSM2World notes
