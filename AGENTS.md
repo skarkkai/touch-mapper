@@ -1,9 +1,141 @@
 # Touch Mapper Agent Guide
 
-Use this file as the quick operating guide for coding agents and contributors.
-Keep it specific, command-first, and easy to scan.
+This file is the operational contract for coding agents and contributors.
 
-## Start here (copy/paste commands)
+Touch Mapper generates tactile maps for blind and visually impaired users. Every change must preserve tactile clarity, semantic encoding, and pipeline integrity.
+
+If unsure, stop and consult files in `doc/`.
+
+---
+
+# Critical invariants (never violate)
+
+These are architectural truths of Touch Mapper.
+
+## Accessibility and tactile semantics
+
+Touch Mapper is a symbolic tactile encoding system, not a realistic renderer.
+
+Priority order:
+
+1. Tactile clarity
+2. Semantic contrast
+3. Printability
+4. Performance
+5. Geometric correctness
+
+Never reverse this order.
+
+Vertical elevation encodes meaning:
+
+| Feature | Elevation |
+|--------|-----------|
+| Car roads | ~0.8 mm |
+| Pedestrian roads | ~1.5 mm |
+| Buildings | ~2.9 mm |
+
+These elevations must remain distinguishable by touch.
+
+Road width is part of tactile encoding and must not be arbitrarily changed.
+
+Ground elevation must remain ignored.
+
+Non-manifold geometry and overlapping solids are acceptable if prints are tactually correct.
+
+---
+
+## Pipeline stage integrity (strict)
+
+The converter pipeline is:
+
+OSM
+→ OSM2World
+→ clip-2d
+→ Blender tactile extrusion
+→ metadata enrichment
+→ render-ready model
+→ map-content.json
+→ S3 upload
+→ UI rendering
+
+Rules:
+
+- Do not merge pipeline stages.
+- Do not bypass stages.
+- Do not change stage responsibilities without updating doc/converter-pipeline-stages.md
+
+Metadata lifecycle must remain consistent:
+
+map-meta-raw.json  
+→ map-meta.augmented.json  
+→ map-meta.json  
+→ map-content.json  
+
+---
+
+## map-content.json is a UI contract
+
+map-content.json defines what users perceive in textual map description.
+
+Default sections include:
+
+- roads
+- paths
+- railways
+- waterways
+- buildings
+- otherLinear
+
+Agents modifying map-content.json must:
+
+- Update schema docs
+- Update verification tests
+- Validate UI description output
+
+Backward compatibility is NOT required.
+
+Maps are mostly ephemeral.
+
+---
+
+## Map content authority
+
+Map content is controlled only by UI modes:
+
+1. Normal
+2. No buildings
+3. Only big roads
+
+Agents must not introduce additional hidden filtering modes.
+
+---
+
+## "Only big roads" pruning rules (strict)
+
+Goal:
+
+Maintain tactile readability at scale.
+
+Primary requirement:
+
+User must feel:
+
+- biggest roads are present
+- continuity is preserved
+
+Never allow:
+
+- chopped roads
+- unnatural gaps
+- density correct but structure broken
+
+Density target alone is insufficient.
+
+Continuity perception is primary.
+
+---
+
+# Start here (copy/paste commands)
 
 ```bash
 # Initial setup
@@ -12,75 +144,215 @@ Keep it specific, command-first, and easy to scan.
 # Fast converter/map-description verification
 node test/map-content/run-tests.js --category average --offline --jobs 1
 
-# Python type checks (required for changed Python files)
+# Python type checks
 pyright converter/osm-to-tactile.py
 
-# Web app local build/serve
+# Web build/serve
 cd web
 make build
 make serve
-```
+````
 
-## Repo map
+---
 
-- `web/`: static UI (templates, JS, Less, locales).
-- `converter/`: OSM -> tactile map conversion pipeline (Python + Node + Blender + helper scripts).
-- `test/map-content/`: map-description verification and regression tooling.
-- `OSM2World/`: vendored rendering/conversion dependency.
-- `install/`: AWS packaging/deployment scripts.
-- `doc/`: contributor and agent guidance.
+# Repo structure
 
-## Source-of-truth rules
+* web/
+  Static UI, html + JS
 
-- Accessibility comes first in UI and content. Touch Mapper is used by visually impaired users.
-- In `converter/`, do not preserve backward compatibility by default. If producer output changes, update consumers.
-- For UI-only changes, confirm whether backward compatibility is required.
-- Edit template sources in `web/pre-src/*.pre`, not generated `web/src/*.ect`.
-- For translations, update `web/locales/<lang>/tm.json` files together in the same change.
+* converter/
+  Conversion pipeline (Python, Node, Blender)
 
-## Validation by change type
+* test/map-content/
+  Regression and tactile description verification
 
-- Python changes:
-  - Run `pyright` on changed Python files and fix issues.
-- Converter map-description changes:
-  - Run `node test/map-content/run-tests.js --category average --offline --jobs 1`.
-  - If geometry changes are involved, run with `--with-blender` and review:
-    - `test/map-content/out/<category>/pipeline/map-wireframe-flat.png`
-    - `test/map-content/out/<category>/pipeline/map-wireframe.png`
-- UI text or description-model wording changes:
-  - Validate locale outputs (`en`, `de`, `fi`, `nl`) and check simulated map-description text quality.
-- Performance claims:
-  - Use single-core runs only (`taskset -c 0 ...`).
+* doc/
+  Authoritative design documentation
 
-## Boundaries
+* OSM2World/
+  Vendored dependency
+
+* install/
+  Deployment scripts
+
+---
+
+# Development rules
 
 Always:
-- Keep edits scoped to the task.
-- Update docs when behavior or workflow changes.
-- Prefer changing sources over generated artifacts.
+
+* Scope changes tightly
+* Preserve tactile meaning
+* Update docs if behavior changes
+* Edit template sources in web/pre-src/, not generated files
+* Update all locales when changing UI text
 
 Never:
-- Present multi-core benchmarks as comparable to production.
-- Skip required `pyright` checks for changed Python files.
-- Use python newer than 3.5 because that's what production env has.
 
-## Temporary files policy
+* Compromise tactile clarity
+* Introduce hidden pipeline coupling
+* Assume geometric correctness is more important than tactile clarity
+* Use Python newer than 3.5
+* Present multi-core performance as production performance
 
-- Always create temporary files/directories needed during task execution under `<project-root>/.tmp/`.
-- Create `.tmp/` as needed (`mkdir -p .tmp`).
-- Use `bin/tmpctl` for temporary file manipulation (`mkdir`, `rm`, `mv`, `cp`, `write`) so scoped `.tmp/` operations can run without extra permission prompts.
-- Do not use `/tmp` for new task artifacts unless the user explicitly requests it.
+---
 
-## Sandbox networking note
+# Validation requirements by change type
 
-- In this environment, direct shell `curl` may work while Node `spawnSync("curl", ...)` fails DNS.
-- If map-content fetch fails from Node:
-  - Fetch with shell `curl` into `test/map-content/cache/<category>/map.osm`.
-  - Re-run tests with `--offline`.
+## Converter changes
 
-## Deployment structure
+Run:
 
-- On EC2, converter files are deployed under `~/touch-mapper/<environment>/dist/` (for `test` and `prod`).
+```bash
+node test/map-content/run-tests.js --category average --offline --jobs 1
+```
+
+If geometry changed:
+
+```bash
+node test/map-content/run-tests.js --category average --with-blender --jobs 1
+```
+
+Review visually:
+
+test/map-content/out/*/pipeline/map-wireframe.png
+
+---
+
+## Python changes
+
+Run:
+
+```bash
+pyright converter/osm-to-tactile.py
+```
+
+Fix all errors.
+
+---
+
+## map-content.json changes
+
+Must verify:
+
+* UI description text correctness
+* Schema validity
+* Locale outputs
+
+---
+
+## UI changes
+
+Edit:
+
+web/pre-src/
+
+Then:
+
+make build
+
+Check locales:
+
+* en
+* fi
+* de
+* nl
+* sp
+
+English is source of truth. Finnish translations are human-verified and must be considered when choosing other translations.
+
+---
+
+## Performance claims
+
+Production environment:
+
+* single core
+* 1 GB RAM
+* EC2 T-class instance
+
+Always benchmark with:
+
+```bash
+taskset -c 0
+```
+
+Never claim performance from multi-core runs.
+
+---
+
+# Runtime architecture constraints
+
+Production system:
+
+Browser
+→ SQS message
+→ EC2 converter
+→ S3 output
+→ browser fetch
+
+Execution time:
+
+1–300 seconds
+
+Memory budget:
+
+1 GB RAM maximum
+
+Agents must not introduce memory-heavy operations without strong justification.
+
+OSM data reading over Overpass API is dominant cost.
+
+---
+
+# Temporary file policy
+
+Always use:
+
+.tmp/
+
+Never use:
+
+/tmp/
+
+Use:
+
+bin/tmpctl
+
+---
+
+# Web system constraints
+
+There is no runtime locale dictionary.
+
+JS must receive text via:
+
+* templates
+* data-* attributes
+
+Translation files:
+
+web/locales/<lang>/tm.json
+
+English is authoritative fallback.
+
+---
+
+# Core philosophy summary
+
+Touch Mapper is a tactile language.
+
+Not a renderer.
+
+Not a GIS viewer.
+
+Not a geometry processor.
+
+Every change must preserve tactile meaning.
+
+If a change improves geometric correctness but harms tactile clarity, reject it.
+
+````
 
 ## Docs index
 
