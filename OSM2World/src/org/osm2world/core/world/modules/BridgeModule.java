@@ -34,8 +34,21 @@ import org.osm2world.core.world.network.AbstractNetworkWaySegmentWorldObject;
 public class BridgeModule extends AbstractModule {
 
 	public static final boolean isBridge(TagGroup tags) {
-		return tags.containsKey("bridge")
-			&& !"no".equals(tags.getValue("bridge"));
+		if (!tags.containsKey("bridge")) {
+			return false;
+		}
+		String bridgeValue = tags.getValue("bridge");
+		if ("no".equals(bridgeValue) || "proposed".equals(bridgeValue)) {
+			return false;
+		}
+		/*
+		 * Touch Mapper: highway features tagged bridge=* must remain normal tactile roads
+		 * (no bridge-specific ABOVE handling), except bridge=no/proposed.
+		 */
+		if (tags.containsKey("highway")) {
+			return false;
+		}
+		return true;
 	}
 	
 	public static final boolean isBridge(MapWaySegment segment) {
