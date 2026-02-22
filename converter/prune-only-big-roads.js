@@ -40,18 +40,6 @@ const ROAD_BASE_RANK = {
   motorway_link: 13,
 };
 
-const PAVED_SURFACES = {
-  asphalt: true,
-  paved: true,
-  concrete: true,
-};
-
-const PEDESTRIAN_NAV_HIGHWAYS = {
-  path: 2,
-  footway: 3,
-  cycleway: 3,
-};
-
 const NON_TRACK_RAILWAY_VALUES = {
   platform: true,
   platform_edge: true,
@@ -577,7 +565,7 @@ function finalizeWayIntoState(state, wayData) {
   }
   if (highway !== null && highway !== undefined && highway !== '' && !linearWaterway) {
     flags |= FLAG_ROAD;
-    rank = adjustedRoadRank(wayTagsMap);
+    rank = baseRoadRank(highway);
   }
   if (hasWaterAreaTags(wayTagsMap)) {
     flags |= FLAG_WATER_AREA;
@@ -638,72 +626,6 @@ function hasRailTrackWayTags(tags) {
   return !Object.prototype.hasOwnProperty.call(NON_TRACK_RAILWAY_VALUES, normalized);
 }
 
-function parseLanes(tags) {
-  const raw = tags.lanes;
-  if (raw === null || raw === undefined) {
-    return null;
-  }
-  const m = String(raw).match(/^\s*([0-9]+)/);
-  if (!m) {
-    return null;
-  }
-  const n = Number(m[1]);
-  if (!Number.isFinite(n)) {
-    return null;
-  }
-  return n;
-}
-
-function parseMaxspeedKmh(tags) {
-  const raw = tags.maxspeed;
-  if (raw === null || raw === undefined) {
-    return null;
-  }
-  const text = String(raw).trim().toLowerCase();
-  if (!text) {
-    return null;
-  }
-  const primary = text.split(/[;,|]/)[0].trim();
-  const m = primary.match(/^([0-9]+(?:\.[0-9]+)?)\s*(mph|mi\/h|km\/h|kmh|kph)?$/);
-  if (!m) {
-    return null;
-  }
-  let n = Number(m[1]);
-  if (!Number.isFinite(n)) {
-    return null;
-  }
-  const unit = m[2];
-  if (unit === 'mph' || unit === 'mi/h') {
-    n *= 1.60934;
-  }
-  return n;
-}
-
-function isTruthyOsm(tags, key) {
-  const raw = tags[key];
-  if (raw === null || raw === undefined) {
-    return false;
-  }
-  const normalized = String(raw).trim().toLowerCase();
-  return normalized === 'yes' || normalized === 'true' || normalized === '1';
-}
-
-function normalizedTagValue(tags, key) {
-  const raw = tags[key];
-  if (raw === null || raw === undefined) {
-    return '';
-  }
-  return String(raw).trim().toLowerCase();
-}
-
-function hasNonEmptyName(tags) {
-  const raw = tags.name;
-  if (raw === null || raw === undefined) {
-    return false;
-  }
-  return String(raw).trim() !== '';
-}
-
 function clampRoadScore(score) {
   const n = Math.round(Number(score));
   if (!Number.isFinite(n)) {
@@ -735,62 +657,6 @@ function baseRoadRank(highwayValue) {
     return ROAD_SCORE_MIN;
   }
   return ROAD_BASE_RANK[normalized];
-}
-
-function adjustedRoadRank(tags) {
-  const highway = normalizedTagValue(tags, 'highway');
-  let rank = baseRoadRank(highway);
-
-  if (Object.prototype.hasOwnProperty.call(PEDESTRIAN_NAV_HIGHWAYS, highway)) {
-    if (hasNonEmptyName(tags)) {
-      rank += 6;
-    }
-    if (normalizedTagValue(tags, 'foot') === 'designated' || normalizedTagValue(tags, 'bicycle') === 'designated') {
-      rank += 4;
-    }
-    if (normalizedTagValue(tags, 'footway') === 'crossing' || normalizedTagValue(tags, 'crossing') !== '') {
-      rank += 4;
-    }
-    if (normalizedTagValue(tags, 'public_transport') === 'platform' || normalizedTagValue(tags, 'railway') === 'platform') {
-      rank = Math.max(rank, 10);
-    }
-  }
-
-  if (highway === 'service') {
-    const service = normalizedTagValue(tags, 'service');
-    const isPrivate = normalizedTagValue(tags, 'access') === 'private' || normalizedTagValue(tags, 'motor_vehicle') === 'private';
-    if (service === 'driveway') {
-      rank -= 3;
-    }
-    if (service === 'parking_aisle') {
-      rank -= 2;
-    }
-    if (isPrivate) {
-      rank -= 3;
-    }
-    if (hasNonEmptyName(tags)) {
-      rank += 3;
-    }
-    if (service === 'alley') {
-      rank += 2;
-    }
-    if (!isPrivate && Object.prototype.hasOwnProperty.call(PAVED_SURFACES, normalizedTagValue(tags, 'surface'))) {
-      rank += 1;
-    }
-  }
-
-  if (highway === 'track') {
-    const tracktype = normalizedTagValue(tags, 'tracktype');
-    const surface = normalizedTagValue(tags, 'surface');
-    if (tracktype === 'grade1' || Object.prototype.hasOwnProperty.call(PAVED_SURFACES, surface)) {
-      rank += 2;
-    }
-    if (hasNonEmptyName(tags)) {
-      rank += 3;
-    }
-  }
-
-  return clampRoadScore(rank);
 }
 
 function normalizeRoadNameForGrouping(raw) {
@@ -1168,7 +1034,7 @@ function computeWayLengthMetersWithinBounds(state, wayIx, bounds) {
 }
 
 // Step 3: Build road-meter totals by rank and decide all-or-none bucket pruning.
-// This uses rank-adjusted ways and printout-area road-density target to compute removed buckets.
+// This uses base-rank ways and printout-area road-density target to compute removed buckets.
 function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, targetRoadDensity) {
   const wayCount = state.wayIds.length;
   const lengthByRank = new Float64Array(ROAD_SCORE_BUCKET_COUNT);
@@ -1794,26 +1660,39 @@ function runRoadGroupingSelfTest() {
   );
   assertTrue('distinct names should map to distinct groups', groupCheck.entryRoadGroupIx[0] !== groupCheck.entryRoadGroupIx[1]);
 
-  // Ranking behavior tests for OSM-tag-only scoring.
-  const genericFootwayRank = adjustedRoadRank({ highway: 'footway' });
-  const genericServiceRank = adjustedRoadRank({ highway: 'service' });
-  const residentialRank = adjustedRoadRank({ highway: 'residential' });
+  // Ranking behavior tests for base-highway-only scoring.
+  const genericFootwayRank = baseRoadRank('footway');
+  const genericServiceRank = baseRoadRank('service');
+  const residentialRank = baseRoadRank('residential');
   assertTrue('generic footway should rank below generic service', genericFootwayRank < genericServiceRank);
   assertTrue('generic service should rank below residential', genericServiceRank < residentialRank);
 
-  const primaryRank = adjustedRoadRank({ highway: 'primary' });
-  const primaryLinkRank = adjustedRoadRank({ highway: 'primary_link' });
+  const primaryRank = baseRoadRank('primary');
+  const primaryLinkRank = baseRoadRank('primary_link');
   assertTrue('primary_link should rank at least primary', primaryLinkRank >= primaryRank);
 
-  const namedFootwayRank = adjustedRoadRank({ highway: 'footway', name: 'Main Footway' });
-  const serviceDrivewayRank = adjustedRoadRank({ highway: 'service', service: 'driveway' });
-  assertTrue('named footway should outrank generic service driveway', namedFootwayRank > serviceDrivewayRank);
+  function rankFromWayTags(tags) {
+    const state = createState();
+    const tagPairs = Object.keys(tags).map((key) => [key, tags[key]]);
+    finalizeWayIntoState(state, {
+      id: 1,
+      tags: tagPairs,
+      refStart: 0,
+      refLen: 0,
+    });
+    return state.wayRank[0];
+  }
+  const namedFootwayRank = rankFromWayTags({ highway: 'footway', name: 'Main Footway' });
+  const platformFootwayRank = rankFromWayTags({ highway: 'footway', public_transport: 'platform', railway: 'platform' });
+  const serviceDrivewayRank = rankFromWayTags({ highway: 'service', service: 'driveway', access: 'private' });
+  const trackSurfaceRank = rankFromWayTags({ highway: 'track', tracktype: 'grade1', surface: 'paved', name: 'Track Road' });
+  assertTrue('name tags should not affect rank', namedFootwayRank === baseRoadRank('footway'));
+  assertTrue('platform-related tags should not affect rank', platformFootwayRank === baseRoadRank('footway'));
+  assertTrue('service/access tags should not affect rank', serviceDrivewayRank === baseRoadRank('service'));
+  assertTrue('surface/tracktype tags should not affect rank', trackSurfaceRank === baseRoadRank('track'));
 
-  const unknownRank = adjustedRoadRank({ highway: 'mystery_road' });
+  const unknownRank = baseRoadRank('mystery_road');
   assertTrue('unknown highway should be assigned very low score', unknownRank === ROAD_SCORE_MIN);
-
-  const platformFootwayRank = adjustedRoadRank({ highway: 'footway', public_transport: 'platform' });
-  assertTrue('platform footway should be promoted to secondary threshold or above', platformFootwayRank >= 10);
 
   assertTrue('rail track should be detected', hasRailTrackWayTags({ railway: 'rail' }) === true);
   assertTrue('tram/light rail should be detected', hasRailTrackWayTags({ railway: 'light_rail' }) === true);
