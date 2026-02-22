@@ -329,17 +329,6 @@ def ensure_request_content_mode(request_body):
 def build_overpass_interpreter_query(request_body, content_mode):
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format(eff_area['latMin'], eff_area['lonMin'], eff_area['latMax'], eff_area['lonMax'])
-    if content_mode == 'no-buildings':
-        return (
-            '[out:xml][timeout:25];'
-            '('
-            'node({bbox})[~"."~"."]["building"!~"."]["building:part"!~"."];'
-            'way({bbox})[~"."~"."]["building"!~"."]["building:part"!~"."];'
-            'relation({bbox})[~"."~"."]["building"!~"."]["building:part"!~"."];'
-            ');'
-            '(._;>;);'
-            'out meta;'
-        ).format(bbox=bbox)
     if content_mode == 'only-big-roads':
         return (
             '[out:xml][timeout:25];'
@@ -614,7 +603,9 @@ def get_osm(request_body, work_dir):
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
-    if content_mode == 'normal':
+    # Keep no-buildings fetch behavior aligned with normal mode to avoid
+    # relation-recursion payload blowups from interpreter queries.
+    if content_mode == 'normal' or content_mode == 'no-buildings':
         attempts = [
             { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
               'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
@@ -664,16 +655,21 @@ def get_osm(request_body, work_dir):
         ]
     for i, attempt in enumerate(attempts):
         try:
+            fetch_start_time = time_clock()
             attempt['method'](attempt['url'])
+            fetch_attempt_seconds = duration_since(fetch_start_time)
             fetched_osm_bytes = os.path.getsize(osm_path)
             prune_rss_kib = None
+            prune_only_big_roads_seconds = None
             if content_mode == 'only-big-roads':
                 ensure_osm_size_limit(
                     actual_bytes=fetched_osm_bytes,
                     threshold_bytes=MAX_OSM_BYTES_ONLY_BIG_ROADS_BEFORE_PRUNE,
                     phase_text='before pruning'
                 )
+                prune_start_time = time_clock()
                 prune_rss_kib = prune_osm_file_for_only_big_roads_with_node(osm_path, request_body)
+                prune_only_big_roads_seconds = duration_since(prune_start_time)
                 pruned_osm_bytes = os.path.getsize(osm_path)
                 ensure_osm_size_limit(
                     actual_bytes=pruned_osm_bytes,
@@ -695,7 +691,14 @@ def get_osm(request_body, work_dir):
                     phase_text='before pruning'
                 )
                 pruned_osm_bytes = fetched_osm_bytes
-            return osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib
+            return (
+                osm_path,
+                fetched_osm_bytes,
+                pruned_osm_bytes,
+                prune_rss_kib,
+                fetch_attempt_seconds,
+                prune_only_big_roads_seconds
+            )
         except Exception as e:
             if isinstance(e, RequestProcessingError):
                 raise
@@ -1010,6 +1013,7 @@ def init_main_context():
         'progress_logger': None,
         'main_start_time': None,
         'timing_get_osm_seconds': None,
+        'timing_prune_only_big_roads_seconds': None,
         'timing_map_desc_seconds': None,
         'timing_upload_primary_seconds': None,
         'timing_svg_to_pdf_seconds': None,
@@ -1131,6 +1135,7 @@ def build_stats_record(ctx):
         'multipart_ypc': request_body.get('multipartYpc'),
         'advanced_mode': interpreted_request_bool(request_body, 'advancedMode', False),
         'timing_get_osm_seconds': ctx['timing_get_osm_seconds'],
+        'timing_prune_only_big_roads_seconds': ctx['timing_prune_only_big_roads_seconds'],
         'timing_map_desc_seconds': ctx['timing_map_desc_seconds'],
         'timing_upload_primary_seconds': ctx['timing_upload_primary_seconds'],
         'timing_svg_to_pdf_seconds': ctx['timing_svg_to_pdf_seconds'],
@@ -1214,7 +1219,6 @@ def main():
 
         # Get OSM data
         ctx['current_stage'] = 'get-osm'
-        get_osm_start_time = time_clock()
         log_progress('get-osm-start')
         ctx['s3'] = ctx['stats_s3'] if ctx['stats_s3'] is not None else boto3.resource('s3')
         ctx['map_object_name'] = 'map/data/' + ctx['request_body']['requestId'] + '.stl'
@@ -1225,11 +1229,19 @@ def main():
         osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir)
         if osm_result is None:
             raise Exception("OSM path not available")
-        osm_path, fetched_osm_bytes, pruned_osm_bytes, prune_rss_kib = osm_result
+        (
+            osm_path,
+            fetched_osm_bytes,
+            pruned_osm_bytes,
+            prune_rss_kib,
+            fetch_attempt_seconds,
+            prune_only_big_roads_seconds
+        ) = osm_result
         ctx['osm_fetched_bytes'] = fetched_osm_bytes
         ctx['osm_pruned_bytes'] = pruned_osm_bytes
         ctx['rss_prune_only_big_roads_kib'] = prune_rss_kib
-        ctx['timing_get_osm_seconds'] = duration_since(get_osm_start_time)
+        ctx['timing_get_osm_seconds'] = fetch_attempt_seconds
+        ctx['timing_prune_only_big_roads_seconds'] = prune_only_big_roads_seconds
         log_progress('get-osm-done')
         track_process_rss_kib(ctx)
 

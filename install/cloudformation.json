@@ -511,7 +511,12 @@
               {
                 "Name": "timing_get_osm_seconds",
                 "Type": "double",
-                "Comment": "Elapsed seconds spent downloading OSM data."
+                "Comment": "Elapsed seconds for the successful OSM fetch attempt (excludes prior timed-out attempts and excludes only-big-roads pruning)."
+              },
+              {
+                "Name": "timing_prune_only_big_roads_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent running prune-only-big-roads.js in content_mode=only-big-roads; null otherwise."
               },
               {
                 "Name": "timing_map_desc_seconds",

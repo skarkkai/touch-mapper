@@ -35,7 +35,8 @@ If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and t
 
 Converter telemetry includes per-stage timing fields (seconds), including:
 
-- `timing_get_osm_seconds`
+- `timing_get_osm_seconds` (successful OSM fetch attempt only; excludes prior timed-out attempts and excludes only-big-roads pruning)
+- `timing_prune_only_big_roads_seconds` (runtime of `prune-only-big-roads.js` when `content_mode=only-big-roads`, otherwise null)
 - `timing_map_desc_seconds`
 - `timing_upload_primary_seconds` (total for primary uploads: info JSON, map-content JSON, main STL)
 - `timing_svg_to_pdf_seconds`
