@@ -288,6 +288,10 @@
     return null;
   }
 
+  function isRailSubClass(subClassKey) {
+    return !!(subClassKey && typeof subClassKey === "string" && subClassKey.indexOf("A3_") === 0);
+  }
+
   function collectWayGroups(mapContent, options) {
     const resolved = normalizeOptions(options);
     const ways = [];
@@ -822,6 +826,10 @@
           const connectionId = connection.osmId !== undefined && connection.osmId !== null
             ? String(connection.osmId)
             : null;
+          const connectionSubClass = typeof connection.subClass === "string" ? connection.subClass : "";
+          if (isRailSubClass(connectionSubClass)) {
+            return;
+          }
           if (connectionId && ownIds[connectionId]) {
             return;
           }
@@ -847,8 +855,8 @@
             return;
           }
 
-          const subClass = typeof connection.subClass === 'string' && connection.subClass
-            ? connection.subClass
+          const subClass = connectionSubClass
+            ? connectionSubClass
             : "A_other_ways";
           if (!bucket.typeBuckets[subClass]) {
             bucket.typeBuckets[subClass] = {};

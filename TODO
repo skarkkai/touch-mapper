@@ -1,7 +1,11 @@
-Use connectivity graph based pruning of roads in only-big-roads mode. Combined with osm tag approach.
+Use base rank only for pruning roads, to hopefully get fewer gaps. not much else we can do.
 
 Show also train tracks in big-roads mode
 
 Alerting of increased error rates over a day, or usage drops over a week
 
-See if resvg uses less memory than current svg2pdf
+Don't fetch buildings in no-buildings mode
+
+Store timestamps as timestamp type in Athena (there is some planning conversation about this in codex)
+
+"My maps" as designed in https://chatgpt.com/g/g-p-6993614b5cdc8191b9fa78956051dceb-touch-mapper-coding/c/69938610-6a8c-838b-9de2-3db7048a9273

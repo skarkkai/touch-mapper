@@ -6,6 +6,7 @@ const fs = require('fs');
 const FLAG_ROAD = 1;
 const FLAG_WATER_AREA = 2;
 const FLAG_LINEAR_WATERWAY = 4;
+const FLAG_RAIL_TRACK = 8;
 
 const MEMBER_TYPE_NODE = 0;
 const MEMBER_TYPE_WAY = 1;
@@ -49,6 +50,20 @@ const PEDESTRIAN_NAV_HIGHWAYS = {
   path: 2,
   footway: 3,
   cycleway: 3,
+};
+
+const NON_TRACK_RAILWAY_VALUES = {
+  platform: true,
+  platform_edge: true,
+  station: true,
+  halt: true,
+  tram_stop: true,
+  subway_entrance: true,
+  crossing: true,
+  level_crossing: true,
+  signal: true,
+  switch: true,
+  buffer_stop: true,
 };
 
 function usage() {
@@ -543,6 +558,7 @@ function createState() {
 
     keepWay: null,
     keptRoadWay: null,
+    keptRailWay: null,
     keepNode: null,
     keepRelation: null,
   };
@@ -554,6 +570,7 @@ function finalizeWayIntoState(state, wayData) {
   let rank = 0;
   const highway = wayTagsMap.highway;
   const linearWaterway = hasLinearWaterwayTags(wayTagsMap);
+  const railTrack = hasRailTrackWayTags(wayTagsMap);
 
   if (linearWaterway) {
     flags |= FLAG_LINEAR_WATERWAY;
@@ -564,6 +581,9 @@ function finalizeWayIntoState(state, wayData) {
   }
   if (hasWaterAreaTags(wayTagsMap)) {
     flags |= FLAG_WATER_AREA;
+  }
+  if (railTrack) {
+    flags |= FLAG_RAIL_TRACK;
   }
 
   const wayIx = state.wayIds.length;
@@ -604,6 +624,18 @@ function hasLinearWaterwayTags(tags) {
   }
   const normalized = String(raw).trim().toLowerCase();
   return normalized !== '' && normalized !== 'riverbank';
+}
+
+function hasRailTrackWayTags(tags) {
+  const raw = tags.railway;
+  if (raw === null || raw === undefined) {
+    return false;
+  }
+  const normalized = String(raw).trim().toLowerCase();
+  if (normalized === '') {
+    return false;
+  }
+  return !Object.prototype.hasOwnProperty.call(NON_TRACK_RAILWAY_VALUES, normalized);
 }
 
 function parseLanes(tags) {
@@ -1188,6 +1220,7 @@ function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, t
 
   state.keepWay = new Uint8Array(wayCount);
   state.keptRoadWay = new Uint8Array(wayCount);
+  state.keptRailWay = new Uint8Array(wayCount);
 
   for (let wayIx = 0; wayIx < wayCount; wayIx += 1) {
     if ((state.wayFlags[wayIx] & FLAG_ROAD) !== 0) {
@@ -1200,6 +1233,10 @@ function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, t
     }
     if ((state.wayFlags[wayIx] & FLAG_WATER_AREA) !== 0) {
       state.keepWay[wayIx] = 1;
+    }
+    if ((state.wayFlags[wayIx] & FLAG_RAIL_TRACK) !== 0) {
+      state.keepWay[wayIx] = 1;
+      state.keptRailWay[wayIx] = 1;
     }
   }
 }
@@ -1229,7 +1266,7 @@ function fourthStepApplyRelationKeepLogic(state) {
       if (wayIx === undefined) {
         continue;
       }
-      if (state.keptRoadWay[wayIx] === 1) {
+      if (state.keptRoadWay[wayIx] === 1 || (state.keptRailWay && state.keptRailWay[wayIx] === 1)) {
         keepRelation.add(relId);
         break;
       }
@@ -1778,6 +1815,11 @@ function runRoadGroupingSelfTest() {
   const platformFootwayRank = adjustedRoadRank({ highway: 'footway', public_transport: 'platform' });
   assertTrue('platform footway should be promoted to secondary threshold or above', platformFootwayRank >= 10);
 
+  assertTrue('rail track should be detected', hasRailTrackWayTags({ railway: 'rail' }) === true);
+  assertTrue('tram/light rail should be detected', hasRailTrackWayTags({ railway: 'light_rail' }) === true);
+  assertTrue('railway platform should not be treated as track', hasRailTrackWayTags({ railway: 'platform' }) === false);
+  assertTrue('railway station should not be treated as track', hasRailTrackWayTags({ railway: 'station' }) === false);
+
   console.log('road-grouping self-test passed');
 }
 
@@ -1846,6 +1888,22 @@ function runBboxLengthSelfTest() {
   assertTrue('kept relation member should be kept', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_RELATION, ref: 100 }) === true);
   assertTrue('removed relation member should be dropped', isRelationMemberKept(relationFilterState, { type: MEMBER_TYPE_RELATION, ref: 101 }) === false);
 
+  const railRelationState = {
+    relationIds: [200],
+    relationIdToIx: new Map([[200, 0]]),
+    relationIsWaterTag: [false],
+    relationMembers: [[{ type: MEMBER_TYPE_WAY, ref: 20, role: '' }]],
+    wayIdToIx: new Map([[20, 0]]),
+    keptRoadWay: new Uint8Array([0]),
+    keptRailWay: new Uint8Array([1]),
+    wayFlags: [FLAG_RAIL_TRACK],
+    keepWay: new Uint8Array([1]),
+    nodeIdByIx: [],
+    nodeIdToIx: new Map(),
+  };
+  fourthStepApplyRelationKeepLogic(railRelationState);
+  assertTrue('relation with kept rail way should be kept', railRelationState.keepRelation.has(200) === true);
+
   console.log('bbox-length self-test passed');
 }
 
@@ -1858,6 +1916,7 @@ module.exports = {
   runBboxLengthSelfTest,
   normalizeRoadNameForGrouping,
   hashRoadName32,
+  hasRailTrackWayTags,
   segmentLengthWithinBoundsMeters,
   clipSegmentToLonLatBounds,
 };

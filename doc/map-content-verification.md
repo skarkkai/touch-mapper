@@ -20,6 +20,10 @@ Run with `--with-blender` to generate geometry regression snapshots in `test/map
 ## Content and language checks
 - Current UI grouping for linear features is roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
 - If map content UI strings changed, inspect `simulated.txt` in each locale output for natural language quality.
+- For railway-related changes, verify rail-rich fixtures produce railway entries in both `normal` and `only-big-roads` modes.
+- For railway connectivity changes, verify railway junction/intersection narration is absent in simulated text output.
+- For an explicit mode check on one rail-rich OSM source, run:
+  - `node test/map-content/check-railway-modes.js --osm test/map-content/out/complex/source/map.osm --locale en`
 
 Required for POI/type-label/i18n changes:
 - Run `inspect-map-description` against `test/map-content/out/complex/pipeline/map-content.json` for `en`, `de`, `fi`, and `nl`.

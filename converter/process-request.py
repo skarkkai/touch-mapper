@@ -344,6 +344,7 @@ def build_overpass_interpreter_query(request_body, content_mode):
         return (
             '[out:xml][timeout:25];'
             'way({bbox})["highway"]->.all_roads;'
+            'way({bbox})["railway"]["railway"!~"^(platform|platform_edge|station|halt|tram_stop|subway_entrance|crossing|level_crossing|signal|switch|buffer_stop)$"]->.all_railways;'
             'way({bbox})["natural"="water"]->.water_areas_a;'
             'way({bbox})["water"]->.water_areas_b;'
             'way({bbox})["landuse"="reservoir"]->.water_areas_c;'
@@ -355,6 +356,8 @@ def build_overpass_interpreter_query(request_body, content_mode):
             '('
             '.all_roads;'
             'relation(bw.all_roads);'
+            '.all_railways;'
+            'relation(bw.all_railways);'
             '.water_areas_a;'
             '.water_areas_b;'
             '.water_areas_c;'
