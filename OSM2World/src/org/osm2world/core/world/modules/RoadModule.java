@@ -120,7 +120,9 @@ public class RoadModule extends ConfigurableWorldModule {
 
 	public static final boolean isTunnelOrSimilar(TagGroup tags) {
 		if (tags.containsKey("tunnel")
-				&& !"no".equals(tags.getValue("tunnel"))) {
+				&& !"no".equals(tags.getValue("tunnel"))
+				/* Touch Mapper: keep building passages as tactilely continuous roads. */
+				&& !"building_passage".equals(tags.getValue("tunnel"))) {
 			return true;
 		};
 		if (tags.containsKey("indoor")
