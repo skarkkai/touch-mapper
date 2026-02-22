@@ -255,7 +255,9 @@ window.storeMapSettingsFromInfo = function(info) {
     "10000": true,
     "13000": true,
     "17000": true,
-    "23000": true
+    "23000": true,
+    "30000": true,
+    "40000": true
   };
 
   function withDefault(value, defaultValue) {

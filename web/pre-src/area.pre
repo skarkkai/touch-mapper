@@ -86,6 +86,8 @@
         <option value="13000">1:13000</option>
         <option value="17000">1:17000</option>
         <option value="23000">1:23000</option>
+        <option value="30000">1:30000</option>
+        <option value="40000">1:40000</option>
       </select>
       <div class="map-scale-coverage" aria-live="polite"></div>
     </div>
