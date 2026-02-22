@@ -10,7 +10,7 @@ import boto3  # type: ignore[import-not-found]
 import json
 import argparse
 import urllib.request
-import urllib.parse
+import random
 import subprocess
 import functools
 import time
@@ -326,40 +326,6 @@ def ensure_request_content_mode(request_body):
     request_body['contentMode'] = mode
     return mode
 
-def build_overpass_interpreter_query(request_body, content_mode):
-    eff_area = request_body['effectiveArea']
-    bbox = "{},{},{},{}".format(eff_area['latMin'], eff_area['lonMin'], eff_area['latMax'], eff_area['lonMax'])
-    if content_mode == 'only-big-roads':
-        return (
-            '[out:xml][timeout:25];'
-            'way({bbox})["highway"]->.all_roads;'
-            'way({bbox})["railway"]["railway"!~"^(platform|platform_edge|station|halt|tram_stop|subway_entrance|crossing|level_crossing|signal|switch|buffer_stop)$"]->.all_railways;'
-            'way({bbox})["natural"="water"]->.water_areas_a;'
-            'way({bbox})["water"]->.water_areas_b;'
-            'way({bbox})["landuse"="reservoir"]->.water_areas_c;'
-            'way({bbox})["waterway"="riverbank"]->.water_areas_d;'
-            'relation({bbox})["natural"="water"]->.water_relations_a;'
-            'relation({bbox})["water"]->.water_relations_b;'
-            'relation({bbox})["landuse"="reservoir"]->.water_relations_c;'
-            'relation({bbox})["waterway"="riverbank"]->.water_relations_d;'
-            '('
-            '.all_roads;'
-            'relation(bw.all_roads);'
-            '.all_railways;'
-            '.water_areas_a;'
-            '.water_areas_b;'
-            '.water_areas_c;'
-            '.water_areas_d;'
-            '.water_relations_a;'
-            '.water_relations_b;'
-            '.water_relations_c;'
-            '.water_relations_d;'
-            ');'
-            '(._;>;);'
-            'out meta;'
-        ).format(bbox=bbox)
-    raise Exception("Unsupported content mode for interpreter query: " + str(content_mode))
-
 def add_or_replace_bounds(osm_data, request_body):
     if isinstance(osm_data, bytes):
         osm_text = osm_data.decode('utf8')
@@ -603,56 +569,30 @@ def get_osm(request_body, work_dir):
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
-    # Keep no-buildings fetch behavior aligned with normal mode to avoid
-    # relation-recursion payload blowups from interpreter queries.
-    if content_mode == 'normal' or content_mode == 'no-buildings':
-        attempts = [
-            { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-              'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
-            },
-            { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
-              'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-            },
-            { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-              'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-            },
-            { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
-              'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
-            },
-        ]
-    else:
-        attempts = [
-            { 'url': "https://overpass.private.coffee/api/interpreter",
-              'method': lambda url: get_osm_overpass_interpreter_api(
-                  url=url,
-                  timeout=20,
-                  request_body=request_body,
-                  content_mode=content_mode,
-                  osm_path=osm_path
-              ),
-            },
-            { 'url': "https://overpass-api.de/api/interpreter",
-              'method': lambda url: get_osm_overpass_interpreter_api(
-                  url=url,
-                  timeout=40,
-                  request_body=request_body,
-                  content_mode=content_mode,
-                  osm_path=osm_path
-              ),
-            },
-            { 'url': "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-              'method': lambda url: get_osm_overpass_interpreter_api(
-                  url=url,
-                  timeout=60,
-                  request_body=request_body,
-                  content_mode=content_mode,
-                  osm_path=osm_path
-              ),
-            },
-            { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
-              'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
-            },
-        ]
+    overpass_map_attempts = [
+        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
+          'provider': 'overpass',
+          'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
+        },
+        { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
+          'provider': 'overpass',
+          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
+        },
+        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
+          'provider': 'overpass',
+          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
+        },
+    ]
+    # All content modes share the same fetch strategy:
+    # randomized Overpass endpoint order first, then OSM main API fallback.
+    attempts = list(overpass_map_attempts)
+    random.shuffle(attempts)
+    attempts.append(
+        { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
+          'provider': 'main_api',
+          'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
+        }
+    )
     for i, attempt in enumerate(attempts):
         try:
             fetch_start_time = time_clock()
@@ -697,7 +637,9 @@ def get_osm(request_body, work_dir):
                 pruned_osm_bytes,
                 prune_rss_kib,
                 fetch_attempt_seconds,
-                prune_only_big_roads_seconds
+                prune_only_big_roads_seconds,
+                attempt.get('provider'),
+                attempt['url']
             )
         except Exception as e:
             if isinstance(e, RequestProcessingError):
@@ -711,18 +653,6 @@ def get_osm(request_body, work_dir):
 def get_osm_overpass_api(url, timeout, request_body, osm_path):
     print("getting " + url)
     osm_data = urllib.request.urlopen(url, timeout=timeout).read()
-    write_osm_with_bounds(osm_data, request_body, osm_path)
-
-def get_osm_overpass_interpreter_api(url, timeout, request_body, content_mode, osm_path):
-    print("getting " + url + " (mode=" + content_mode + ")")
-    query = build_overpass_interpreter_query(request_body, content_mode)
-    payload = urllib.parse.urlencode({ 'data': query }).encode('utf8')
-    request = urllib.request.Request(
-        url,
-        data=payload,
-        headers={ 'Content-Type': 'application/x-www-form-urlencoded' }
-    )
-    osm_data = urllib.request.urlopen(request, timeout=timeout).read()
     write_osm_with_bounds(osm_data, request_body, osm_path)
 
 def get_osm_main_api(url, timeout, osm_path):
@@ -1017,6 +947,8 @@ def init_main_context():
         'timing_map_desc_seconds': None,
         'timing_upload_primary_seconds': None,
         'timing_svg_to_pdf_seconds': None,
+        'osm_fetch_provider': None,
+        'osm_fetch_endpoint': None,
         'stl_bytes': None,
         'stl_gzip_bytes': None,
         'map_content_gzip_bytes': None,
@@ -1134,6 +1066,8 @@ def build_stats_record(ctx):
         'multipart_xpc': request_body.get('multipartXpc'),
         'multipart_ypc': request_body.get('multipartYpc'),
         'advanced_mode': interpreted_request_bool(request_body, 'advancedMode', False),
+        'osm_fetch_provider': ctx['osm_fetch_provider'],
+        'osm_fetch_endpoint': ctx['osm_fetch_endpoint'],
         'timing_get_osm_seconds': ctx['timing_get_osm_seconds'],
         'timing_prune_only_big_roads_seconds': ctx['timing_prune_only_big_roads_seconds'],
         'timing_map_desc_seconds': ctx['timing_map_desc_seconds'],
@@ -1235,13 +1169,17 @@ def main():
             pruned_osm_bytes,
             prune_rss_kib,
             fetch_attempt_seconds,
-            prune_only_big_roads_seconds
+            prune_only_big_roads_seconds,
+            osm_fetch_provider,
+            osm_fetch_endpoint
         ) = osm_result
         ctx['osm_fetched_bytes'] = fetched_osm_bytes
         ctx['osm_pruned_bytes'] = pruned_osm_bytes
         ctx['rss_prune_only_big_roads_kib'] = prune_rss_kib
         ctx['timing_get_osm_seconds'] = fetch_attempt_seconds
         ctx['timing_prune_only_big_roads_seconds'] = prune_only_big_roads_seconds
+        ctx['osm_fetch_provider'] = osm_fetch_provider
+        ctx['osm_fetch_endpoint'] = osm_fetch_endpoint
         log_progress('get-osm-done')
         track_process_rss_kib(ctx)
 

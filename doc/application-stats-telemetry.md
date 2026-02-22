@@ -42,6 +42,15 @@ Converter telemetry includes per-stage timing fields (seconds), including:
 - `timing_svg_to_pdf_seconds`
 - `timing_total_seconds`
 
+OSM fetch source fields:
+
+- `osm_fetch_provider`: provider category for the successful fetch attempt (`overpass` or `main_api`)
+- `osm_fetch_endpoint`: endpoint URL for the successful fetch attempt
+
+Fetch policy notes:
+
+- All content modes (`normal`, `no-buildings`, `only-big-roads`) use randomized Overpass `map?bbox` endpoint attempts first, then OSM main API fallback.
+
 ## Status polling and structured errors
 
 Map creation progress is now published to `map/info/<id>.json` via top-level `status`:

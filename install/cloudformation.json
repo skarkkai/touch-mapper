@@ -509,6 +509,16 @@
                 "Comment": "Whether advanced UI options were enabled for this request."
               },
               {
+                "Name": "osm_fetch_provider",
+                "Type": "string",
+                "Comment": "Provider category of the successful OSM fetch attempt: overpass or main_api."
+              },
+              {
+                "Name": "osm_fetch_endpoint",
+                "Type": "string",
+                "Comment": "URL endpoint used by the successful OSM fetch attempt."
+              },
+              {
                 "Name": "timing_get_osm_seconds",
                 "Type": "double",
                 "Comment": "Elapsed seconds for the successful OSM fetch attempt (excludes prior timed-out attempts and excludes only-big-roads pruning)."
