@@ -57,6 +57,7 @@ OSM
 
 Rules:
 
+- Always merge bugs upstream (as early in the pipeline as possible), instead of being defensive downstream.
 - Do not merge pipeline stages.
 - Do not bypass stages.
 - Do not change stage responsibilities without updating `doc/converter-pipeline-stages.md`.
@@ -104,28 +105,7 @@ Map content is controlled only by UI modes:
 
 1. Normal
 2. No buildings
-3. Only big roads
-
-Agents must not introduce additional hidden filtering modes.
-
----
-
-## "Only big roads" pruning rules (strict)
-
-Goal: maintain tactile readability at scale.
-
-Primary requirement:
-
-- biggest roads are present
-- continuity is preserved
-
-Never allow:
-
-- chopped roads
-- unnatural gaps
-- density-correct but structure-broken output
-
-Density target alone is insufficient. Continuity perception is primary.
+3. Only big roads (includes water areas and railways)
 
 ---
 
@@ -140,6 +120,7 @@ Always:
 Never:
 
 - Compromise tactile clarity.
+- Work around map content problems downstream because earlier pipeline stages have created poor output.
 - Introduce hidden pipeline coupling.
 - Assume geometric correctness is more important than tactile clarity.
 - Use Python newer than 3.5 where Blender/runtime constraints apply.

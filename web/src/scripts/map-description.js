@@ -355,17 +355,162 @@
   }
 
   function parseMapContent(payload) {
+    function currentUiLanguage() {
+      const fromPath = (typeof window !== "undefined" && window.location && typeof window.location.pathname === "string")
+        ? window.location.pathname.match(/^\/([a-z]{2})(?:[\/?#]|$)/i)
+        : null;
+      if (fromPath && fromPath[1]) {
+        return fromPath[1].toLowerCase();
+      }
+      const docLang = (typeof document !== "undefined" && document.documentElement && typeof document.documentElement.lang === "string")
+        ? document.documentElement.lang.trim().toLowerCase()
+        : "";
+      if (docLang) {
+        return docLang.split("-")[0];
+      }
+      return null;
+    }
+
+    function localeCandidates(lang) {
+      if (!lang || typeof lang !== "string") {
+        return [];
+      }
+      const normalized = lang.trim().toLowerCase();
+      if (!normalized) {
+        return [];
+      }
+      const parts = normalized.split("-").filter(Boolean);
+      const candidates = [];
+      if (parts.length > 1) {
+        candidates.push(parts.join("-"));
+      }
+      if (parts.length) {
+        candidates.push(parts[0]);
+      }
+      return candidates.filter(function(value, index, arr){
+        return arr.indexOf(value) === index;
+      });
+    }
+
+    function pickLocalizedName(extraNames, candidates) {
+      if (!extraNames || typeof extraNames !== "object" || !Array.isArray(candidates) || !candidates.length) {
+        return null;
+      }
+      for (let i = 0; i < candidates.length; i += 1) {
+        const key = "name:" + candidates[i];
+        if (typeof extraNames[key] === "string" && extraNames[key].trim()) {
+          return extraNames[key].trim();
+        }
+      }
+      for (let i = 0; i < candidates.length; i += 1) {
+        const prefix = "name:" + candidates[i] + "-";
+        const keys = Object.keys(extraNames);
+        for (let j = 0; j < keys.length; j += 1) {
+          const key = keys[j];
+          if (typeof key === "string" && key.indexOf(prefix) === 0 &&
+              typeof extraNames[key] === "string" && extraNames[key].trim()) {
+            return extraNames[key].trim();
+          }
+        }
+      }
+      return null;
+    }
+
+    function replaceLabelInDisplayLabel(displayLabel, currentLabel, localizedLabel) {
+      if (typeof displayLabel !== "string" || !displayLabel.trim() ||
+          typeof currentLabel !== "string" || !currentLabel.trim() ||
+          typeof localizedLabel !== "string" || !localizedLabel.trim()) {
+        return displayLabel;
+      }
+      if (displayLabel === currentLabel) {
+        return localizedLabel;
+      }
+      return displayLabel.indexOf(currentLabel) >= 0
+        ? displayLabel.replace(currentLabel, localizedLabel)
+        : displayLabel;
+    }
+
+    function localizedNameFromChildren(entity, candidates) {
+      if (!entity || typeof entity !== "object") {
+        return null;
+      }
+      const childLists = [
+        Array.isArray(entity.ways) ? entity.ways : [],
+        Array.isArray(entity.items) ? entity.items : []
+      ];
+      const labels = [];
+      childLists.forEach(function(list){
+        list.forEach(function(child){
+          if (!child || typeof child !== "object") {
+            return;
+          }
+          const extraNames = child.importanceTags && child.importanceTags.extraNames;
+          const localized = pickLocalizedName(extraNames, candidates);
+          if (localized) {
+            labels.push(localized);
+          }
+        });
+      });
+      if (!labels.length) {
+        return null;
+      }
+      const first = labels[0];
+      const uniform = labels.every(function(label){ return label === first; });
+      return uniform ? first : null;
+    }
+
+    function localizeEntityName(entity, candidates) {
+      if (!entity || typeof entity !== "object" || Array.isArray(entity)) {
+        return;
+      }
+      const currentLabel = typeof entity.label === "string" ? entity.label.trim() : "";
+      if (!currentLabel) {
+        return;
+      }
+      const selfExtraNames = entity.importanceTags && entity.importanceTags.extraNames;
+      const localized = pickLocalizedName(selfExtraNames, candidates) || localizedNameFromChildren(entity, candidates);
+      if (!localized || localized === currentLabel) {
+        return;
+      }
+      entity.label = localized;
+      if (typeof entity.displayLabel === "string") {
+        entity.displayLabel = replaceLabelInDisplayLabel(entity.displayLabel, currentLabel, localized);
+      }
+    }
+
+    function localizePayloadNames(root, lang) {
+      const candidates = localeCandidates(lang);
+      if (!root || !candidates.length) {
+        return root;
+      }
+      function walk(value) {
+        if (!value || typeof value !== "object") {
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach(walk);
+          return;
+        }
+        localizeEntityName(value, candidates);
+        Object.keys(value).forEach(function(key){
+          walk(value[key]);
+        });
+      }
+      walk(root);
+      return root;
+    }
+
     if (!payload) {
       return null;
     }
     if (typeof payload === 'string') {
       try {
-        return JSON.parse(payload);
+        return localizePayloadNames(JSON.parse(payload), currentUiLanguage());
       } catch (err) {
         return null;
       }
     }
-    return payload;
+    return localizePayloadNames(payload, currentUiLanguage());
   }
 
   function loadMapContent(requestId) {

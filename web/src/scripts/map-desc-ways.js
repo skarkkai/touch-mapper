@@ -323,7 +323,87 @@
       });
     });
 
-    ways.sort(function(a, b){
+    function mergeGroupWays(targetGroup, sourceGroup) {
+      if (!targetGroup || typeof targetGroup !== "object" || !sourceGroup || typeof sourceGroup !== "object") {
+        return;
+      }
+      const targetWays = Array.isArray(targetGroup.ways) ? targetGroup.ways.slice() : [];
+      const sourceWays = Array.isArray(sourceGroup.ways) ? sourceGroup.ways : [];
+      const seenWayIds = {};
+      targetWays.forEach(function(way){
+        const id = way && way.osmId !== undefined && way.osmId !== null ? String(way.osmId) : null;
+        if (id) {
+          seenWayIds[id] = true;
+        }
+      });
+      sourceWays.forEach(function(way){
+        const id = way && way.osmId !== undefined && way.osmId !== null ? String(way.osmId) : null;
+        if (id && seenWayIds[id]) {
+          return;
+        }
+        if (id) {
+          seenWayIds[id] = true;
+        }
+        targetWays.push(way);
+      });
+      targetGroup.ways = targetWays;
+
+      const targetVisible = Array.isArray(targetGroup.visibleGeometry) ? targetGroup.visibleGeometry.slice() : [];
+      const sourceVisible = Array.isArray(sourceGroup.visibleGeometry) ? sourceGroup.visibleGeometry : [];
+      const visibleSeen = {};
+      targetVisible.forEach(function(bucket){
+        const id = bucket && bucket.osmId !== undefined && bucket.osmId !== null ? String(bucket.osmId) : null;
+        if (id) {
+          visibleSeen[id] = true;
+        }
+      });
+      sourceVisible.forEach(function(bucket){
+        const id = bucket && bucket.osmId !== undefined && bucket.osmId !== null ? String(bucket.osmId) : null;
+        if (id && visibleSeen[id]) {
+          return;
+        }
+        if (id) {
+          visibleSeen[id] = true;
+        }
+        targetVisible.push(bucket);
+      });
+      targetGroup.visibleGeometry = targetVisible;
+
+      const targetLength = wayLengthValue(targetGroup);
+      const sourceLength = wayLengthValue(sourceGroup);
+      targetGroup.totalLength = targetLength + sourceLength;
+    }
+
+    function mergeNamedWays(entries) {
+      const merged = [];
+      const byKey = {};
+      entries.forEach(function(entry){
+        const name = wayName(entry && entry.group ? entry.group : null);
+        const normName = normalizedWayName(name);
+        if (!normName) {
+          merged.push(entry);
+          return;
+        }
+        const key = (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normName;
+        if (!byKey[key]) {
+          byKey[key] = {
+            group: Object.assign({}, entry.group || {}),
+            subclassOrder: entry.subclassOrder,
+            subclassType: entry.subclassType,
+            subClass: entry.subClass,
+            sectionKey: entry.sectionKey
+          };
+          merged.push(byKey[key]);
+          return;
+        }
+        mergeGroupWays(byKey[key].group, entry.group || {});
+      });
+      return merged;
+    }
+
+    const mergedWays = mergeNamedWays(ways);
+
+    mergedWays.sort(function(a, b){
       const aNamed = !!wayName(a.group);
       const bNamed = !!wayName(b.group);
       if (aNamed !== bNamed) {
@@ -342,7 +422,7 @@
       }
       return wayTitle(a.group).localeCompare(wayTitle(b.group));
     });
-    return ways;
+    return mergedWays;
   }
 
   function wayImportanceScore(group) {
