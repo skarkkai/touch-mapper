@@ -22,6 +22,11 @@ This document describes converter data flow and stage names used by code comment
 6. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including real `requestId`).
 7. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions.
 
+### OSM fetch mode note (`only-big-roads`)
+- Roads still include `relation(bw.all_roads)` expansion.
+- Railways are fetched as ways within bbox and are not relation-expanded via `relation(bw.all_railways)`.
+- This keeps railway content geographically bounded and avoids route-relation spillover far outside requested map bounds.
+
 ## Metadata stage names (must stay in sync)
 Any time you change these stages, keep this document and in-code stage comments synchronized.
 

@@ -357,7 +357,6 @@ def build_overpass_interpreter_query(request_body, content_mode):
             '.all_roads;'
             'relation(bw.all_roads);'
             '.all_railways;'
-            'relation(bw.all_railways);'
             '.water_areas_a;'
             '.water_areas_b;'
             '.water_areas_c;'
