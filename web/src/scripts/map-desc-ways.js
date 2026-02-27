@@ -375,6 +375,17 @@
     }
 
     function unnamedMergeSignature(entry) {
+      function normalizeMergeText(value) {
+        if (!value || typeof value !== "string") {
+          return "";
+        }
+        return value
+          .replace(/[‐‑‒–—]/g, "-")
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase();
+      }
+
       if (!entry) {
         return null;
       }
@@ -392,8 +403,20 @@
         return null;
       }
       const lengthSig = formatLength(entry.group) || "";
+      const normalizedRouteSig = normalizeMergeText(routeSig);
+      const normalizedEdgeSig = normalizeMergeText(edgeSig);
+      const normalizedLocationParts = [];
+      if (normalizedRouteSig) {
+        normalizedLocationParts.push(normalizedRouteSig);
+      }
+      if (normalizedEdgeSig && normalizedLocationParts.indexOf(normalizedEdgeSig) === -1) {
+        normalizedLocationParts.push(normalizedEdgeSig);
+      }
+      normalizedLocationParts.sort();
+      const normalizedLocationSig = normalizedLocationParts.join("||");
+      const normalizedLengthSig = normalizeMergeText(lengthSig);
       return {
-        key: "unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + routeSig + "|" + edgeSig + "|" + lengthSig,
+        key: "unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig + "|" + normalizedLengthSig,
         routeSig: routeSig,
         edgeSig: edgeSig
       };
