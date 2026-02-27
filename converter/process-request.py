@@ -18,6 +18,7 @@ import datetime
 import gzip
 import copy
 import io
+import math
 import signal
 import atexit
 import xml.etree.ElementTree as ET
@@ -63,8 +64,10 @@ INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
 VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
-# Target kept-road density relative to printout area (printed road cm per printout cm^2).
-TARGET_ROAD_DENSITY = 1.2
+TARGET_ROAD_DENSITY_UI_MIN = 1.0
+TARGET_ROAD_DENSITY_UI_MAX = 100.0
+TARGET_ROAD_DENSITY_UI_DEFAULT = 10.0
+TARGET_ROAD_DENSITY_DIVISOR = 10.0
 VERSION_TAG_PACKAGE_RE = re.compile(r'^package-(.+)$')
 CODE_VERSION_WARNING_EMITTED = False
 progress_state = {
@@ -340,6 +343,24 @@ def ensure_request_content_mode(request_body):
     request_body['contentMode'] = mode
     return mode
 
+def normalize_target_road_density_ui(value):
+    try:
+        density = float(value)
+    except Exception:
+        return TARGET_ROAD_DENSITY_UI_DEFAULT
+    if not math.isfinite(density):
+        return TARGET_ROAD_DENSITY_UI_DEFAULT
+    if density < TARGET_ROAD_DENSITY_UI_MIN:
+        return TARGET_ROAD_DENSITY_UI_MIN
+    if density > TARGET_ROAD_DENSITY_UI_MAX:
+        return TARGET_ROAD_DENSITY_UI_MAX
+    return density
+
+def ensure_request_target_road_density(request_body):
+    density = normalize_target_road_density_ui((request_body or {}).get('targetRoadDensity'))
+    request_body['targetRoadDensity'] = density
+    return density
+
 def add_or_replace_bounds(osm_data, request_body):
     if isinstance(osm_data, bytes):
         osm_text = osm_data.decode('utf8')
@@ -562,6 +583,7 @@ def run_subprocess_with_max_rss_kib(cmd):
 
 def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
     eff_area = request_body['effectiveArea']
+    target_road_density_for_pruner = ensure_request_target_road_density(request_body) / TARGET_ROAD_DENSITY_DIVISOR
     cmd = [
         'node',
         os.path.join(script_dir, 'prune-only-big-roads.js'),
@@ -572,7 +594,7 @@ def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
         '--lat-max', str(eff_area['latMax']),
         '--print-size-cm', str(request_body['size']),
         '--map-scale', str(request_body['scale']),
-        '--target-road-density', str(TARGET_ROAD_DENSITY),
+        '--target-road-density', str(target_road_density_for_pruner),
     ]
     print("running: " + " ".join(cmd))
     return run_subprocess_with_max_rss_kib(cmd)
@@ -580,6 +602,7 @@ def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
 def get_osm(request_body, work_dir):
     # TODO: verify the requested region isn't too large
     content_mode = ensure_request_content_mode(request_body)
+    ensure_request_target_road_density(request_body)
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
@@ -1159,6 +1182,9 @@ def main():
             ctx['status'] = 'idle'
             return
         ctx['request_body']['contentMode'] = normalize_content_mode(ctx['request_body'].get('contentMode'))
+        ctx['request_body']['targetRoadDensity'] = normalize_target_road_density_ui(
+            ctx['request_body'].get('targetRoadDensity')
+        )
         ctx['request_id'] = ctx['request_body'].get('requestId')
         ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
         ctx['processing_start_time'] = time_clock()

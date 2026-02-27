@@ -109,6 +109,8 @@
     "content_mode_normal": "Normal",
     "content_mode_no_buildings": "Keine Gebäude",
     "content_mode_only_big_roads": "Nur große Straßen, Bahnstrecken und Wasserflächen",
+    "target_road_density_ui": "Straßenanteil",
+    "target_road_density_ui_hint": "Höhere Zahl bedeutet mehr Straßen, Standard ist 10",
     "location_marker": "Standortmarkierung",
     "hide_location_marker": "Standortmarkierung ausblenden",
     "advanced_settings": "Erweitert",

@@ -106,6 +106,16 @@
     </div>
   </div>
 
+  <div class="row main-row target-road-density-row" style="display: none">
+    <div class="col col1">
+      <label for="target-road-density-ui">{{ target_road_density_ui }}:</label>
+    </div>
+    <div class="col col2 content-selection-container">
+      <input id="target-road-density-ui" type="number" min="1" max="100" step="1" value="10" />
+      <span class="target-road-density-ui-hint">{{ target_road_density_ui_hint }}</span>
+    </div>
+  </div>
+
   <div class="row main-row">
     <div class="col col1">
       <label>{{ location_marker }}:</label>

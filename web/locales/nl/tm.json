@@ -109,6 +109,8 @@
     "content_mode_normal": "Normaal",
     "content_mode_no_buildings": "Geen gebouwen",
     "content_mode_only_big_roads": "Alleen grote wegen, spoorwegen en watergebieden",
+    "target_road_density_ui": "Wegbehoud",
+    "target_road_density_ui_hint": "Hoger getal betekent meer wegen, standaard is 10",
     "location_marker": "Locatiemarkering",
     "hide_location_marker": "Locatiemarkering verbergen",
     "advanced_settings": "Geavanceerd",

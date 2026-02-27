@@ -296,12 +296,29 @@ window.storeMapSettingsFromInfo = function(info) {
     return "normal";
   }
 
+  function normalizeTargetRoadDensityUi(value) {
+    var number = parseInt(value, 10);
+    if (isNaN(number)) {
+      return 10;
+    }
+    if (number < 1) {
+      return 1;
+    }
+    if (number > 100) {
+      return 100;
+    }
+    return number;
+  }
+
   var addrShort = getInfoValue(["addrShort", "addr_short"], "");
   var addrLong = getInfoValue(["addrLong", "addr_long"], "");
   var lat = getInfoValue(["lat"], undefined);
   var lon = getInfoValue(["lon"], undefined);
   var printingTech = getInfoValue(["printingTech", "printing_tech"], "3d");
   var contentMode = normalizeContentMode(getInfoValue(["contentMode"], "normal"));
+  var targetRoadDensityUi = normalizeTargetRoadDensityUi(
+    getInfoValue(["targetRoadDensity", "target_road_density"], 10)
+  );
   var hideLocationMarker = getInfoValue(["hideLocationMarker", "hide_location_marker"], false);
   var size = getInfoValue(["size"], undefined);
   var scale = getInfoValue(["scale"], undefined);
@@ -320,6 +337,7 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage("offsetY", getInfoValue(["offsetY", "offset_y"], 0));
   setLocalStorage("printing-tech", printingTech);
   setLocalStorage("content-mode", contentMode);
+  setLocalStorage("target-road-density-ui", targetRoadDensityUi);
   localStorage.removeItem("exclude-buildings");
   setLocalStorage("hide-location-marker", hideLocationMarker);
   setLocalStorage("map-size-preset", toPresetOrEmpty(size, MAP_SIZE_PRESET_VALUES));

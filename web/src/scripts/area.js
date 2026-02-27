@@ -2,6 +2,24 @@
 /* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next show3dPreview */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
+var TARGET_ROAD_DENSITY_UI_MIN = 1;
+var TARGET_ROAD_DENSITY_UI_MAX = 100;
+var TARGET_ROAD_DENSITY_UI_DEFAULT = 10;
+
+function normalizeTargetRoadDensityUiValue(value) {
+  var number = parseInt(value, 10);
+  if (isNaN(number)) {
+    return TARGET_ROAD_DENSITY_UI_DEFAULT;
+  }
+  if (number < TARGET_ROAD_DENSITY_UI_MIN) {
+    return TARGET_ROAD_DENSITY_UI_MIN;
+  }
+  if (number > TARGET_ROAD_DENSITY_UI_MAX) {
+    return TARGET_ROAD_DENSITY_UI_MAX;
+  }
+  return number;
+}
+
 function resetParameters(addr) {
   $("#lat-input").val(addr.lat).trigger('change');
   $("#lon-input").val(addr.lon).trigger('change');
@@ -52,6 +70,8 @@ function initInputs(outputs, osmDragPanInteraction) {
   var DEFAULT_PRINT_SIZE_2D = "27.9";
   var DEFAULT_PRINT_SIZE_3D = "17";
   var mapScaleCoverage = $(".map-scale-coverage");
+  var targetRoadDensityInput = $("#target-road-density-ui");
+  var targetRoadDensityRow = $(".target-road-density-row");
   var VALID_CONTENT_MODES = {
     "normal": true,
     "no-buildings": true,
@@ -118,6 +138,11 @@ function initInputs(outputs, osmDragPanInteraction) {
     mapScaleCoverage.text(text);
   }
 
+  function updateTargetRoadDensityVisibility() {
+    var contentMode = normalizeContentMode(data.get("content-mode"));
+    targetRoadDensityRow.toggle(contentMode === "only-big-roads");
+  }
+
   data.on("change:scale change:size change:printing-tech", updateMapScaleCoverage);
 
   var initDone = false;
@@ -145,8 +170,25 @@ function initInputs(outputs, osmDragPanInteraction) {
   // Map content selection
   localStorage.removeItem("exclude-buildings");
   setLocalStorage("content-mode", normalizeContentMode(getLocalStorageStr("content-mode", "normal")));
+  setLocalStorage(
+    "target-road-density-ui",
+    normalizeTargetRoadDensityUiValue(getLocalStorageInt("target-road-density-ui", TARGET_ROAD_DENSITY_UI_DEFAULT))
+  );
   initSimpleInput("content-mode", $("#content-mode"), "str", "normal");
+  initSimpleInput("target-road-density-ui", targetRoadDensityInput, "int", TARGET_ROAD_DENSITY_UI_DEFAULT);
   initSimpleInput("hide-location-marker", $("#hide-location-marker"), "checkbox", false);
+  data.on("change:content-mode", updateTargetRoadDensityVisibility);
+  data.on("change:target-road-density-ui", function() {
+    var normalized = normalizeTargetRoadDensityUiValue(data.get("target-road-density-ui"));
+    if (normalized !== data.get("target-road-density-ui")) {
+      setData("target-road-density-ui", normalized);
+      return;
+    }
+    if (String(targetRoadDensityInput.val()) !== String(normalized)) {
+      targetRoadDensityInput.val(normalized);
+    }
+  });
+  updateTargetRoadDensityVisibility();
 
   // Print size preset
   $("#map-size-preset").change(function(){
@@ -281,6 +323,17 @@ function setParametersFromBlindSquare() {
     return null;
   }
 
+  function parseTargetRoadDensityUi(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var number = parseFloat(value);
+    if (isNaN(number)) {
+      return null;
+    }
+    return normalizeTargetRoadDensityUiValue(Math.round(number));
+  }
+
   function getUrlParamFromNames(paramNames) {
     var names = Array.isArray(paramNames) ? paramNames : [paramNames];
     var i;
@@ -355,6 +408,11 @@ function setParametersFromBlindSquare() {
   setLocalStorageIfPresent("offsetY", ["offsetY", "offset_y", "y-offset", "yOffset"], parseIntParam);
   setLocalStorageIfPresent("advancedMode", ["advancedMode", "advanced_mode", "advanced-mode"], parseBoolean);
   setLocalStorageIfPresent("content-mode", ["contentMode"], parseContentMode);
+  setLocalStorageIfPresent(
+    "target-road-density-ui",
+    ["targetRoadDensityUi", "targetRoadDensity", "target_road_density"],
+    parseTargetRoadDensityUi
+  );
   setLocalStorageIfPresent("hide-location-marker", ["hideLocationMarker", "hide_location_marker", "hide-location-marker"], parseBoolean);
   setLocalStorageIfPresent("multipartMode", ["multipartMode", "multipart_mode", "multipart-mode"], parseBoolean);
   setLocalStorageIfPresent("multipartXpc", ["multipartXpc", "multipart_xpc", "multipart-xpc"], parseIntParam);

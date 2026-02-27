@@ -33,3 +33,4 @@ Required for POI/type-label/i18n changes:
 ## Browser level testing
 
 Playwright UI validation can be run with `bash test/e2e/run-touch-mapper-settings-regression.sh`.
+The settings regression also verifies big-roads density visibility (shown only for `only-big-roads`) and value persistence across area -> map -> area navigation.

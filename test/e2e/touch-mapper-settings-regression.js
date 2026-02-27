@@ -109,6 +109,14 @@ async function readAreaSettings(page) {
       mapSizePreset: getValue("#map-size-preset"),
       mapScalePreset: getValue("#map-scale-preset"),
       contentMode: getValue("#content-mode"),
+      targetRoadDensityUi: getValue("#target-road-density-ui"),
+      targetRoadDensityVisible: (function() {
+        const el = q(".target-road-density-row");
+        if (!el) {
+          return null;
+        }
+        return window.getComputedStyle(el).display !== "none";
+      })(),
       hideLocationMarker: isChecked("#hide-location-marker"),
       advanced: isChecked("#advanced-input"),
       lon: getValue("#lon-input"),
@@ -153,6 +161,7 @@ async function setSelectValueByDom(page, selector, value) {
     mapSizePreset: "20",
     mapScalePreset: "5600",
     contentMode: "only-big-roads",
+    targetRoadDensityUi: "37",
     hideLocationMarker: true,
     advanced: true,
     xOffset: "120",
@@ -204,9 +213,27 @@ async function setSelectValueByDom(page, selector, value) {
 
     await page.screenshot({ path: path.join(outDir, "01-area-initial.png"), fullPage: true });
 
+    await setSelectValueByDom(page, "#content-mode", "normal");
+    const targetRoadDensityHiddenInNormal = await page.$eval(
+      ".target-road-density-row",
+      (el) => window.getComputedStyle(el).display === "none"
+    );
+
     await setSelectValueByDom(page, "#map-size-preset", expectedSettings.mapSizePreset);
     await setSelectValueByDom(page, "#map-scale-preset", expectedSettings.mapScalePreset);
     await setSelectValueByDom(page, "#content-mode", expectedSettings.contentMode);
+    await page.waitForFunction(() => {
+      const row = document.querySelector(".target-road-density-row");
+      return Boolean(row && window.getComputedStyle(row).display !== "none");
+    }, { timeout: 120000 });
+    await page.$eval(
+      "#target-road-density-ui",
+      (el, value) => {
+        el.value = value;
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      expectedSettings.targetRoadDensityUi
+    );
 
     await page.check("#printing-tech-2d");
     await page.check("#hide-location-marker");
@@ -280,11 +307,16 @@ async function setSelectValueByDom(page, selector, value) {
     if (mapChecks.summaryItems < 1) {
       failures.push({ label: "map-page.summary-items", expected: ">= 1", actual: String(mapChecks.summaryItems) });
     }
+    if (!targetRoadDensityHiddenInNormal) {
+      failures.push({ label: "settings.targetRoadDensityHiddenInNormal", expected: "true", actual: "false" });
+    }
 
     expectEqual("settings.printingTech", afterReturn.printingTech, expectedSettings.printingTech, failures);
     expectEqual("settings.mapSizePreset", afterReturn.mapSizePreset, expectedSettings.mapSizePreset, failures);
     expectEqual("settings.mapScalePreset", afterReturn.mapScalePreset, expectedSettings.mapScalePreset, failures);
     expectEqual("settings.contentMode", afterReturn.contentMode, expectedSettings.contentMode, failures);
+    expectEqual("settings.targetRoadDensityUi", afterReturn.targetRoadDensityUi, expectedSettings.targetRoadDensityUi, failures);
+    expectEqual("settings.targetRoadDensityVisible", afterReturn.targetRoadDensityVisible, true, failures);
     expectEqual("settings.hideLocationMarker", afterReturn.hideLocationMarker, expectedSettings.hideLocationMarker, failures);
     expectEqual("settings.advanced", afterReturn.advanced, expectedSettings.advanced, failures);
     expectEqual("settings.xOffset", afterReturn.xOffset, expectedSettings.xOffset, failures);

@@ -3,6 +3,23 @@
 
 (function(){
   var MAX_WAIT = 10 * 60; // time out after this many seconds
+  var TARGET_ROAD_DENSITY_UI_MIN = 1;
+  var TARGET_ROAD_DENSITY_UI_MAX = 100;
+  var TARGET_ROAD_DENSITY_UI_DEFAULT = 10;
+
+  function normalizeTargetRoadDensityUiValue(value) {
+    var number = parseInt(value, 10);
+    if (isNaN(number)) {
+      return TARGET_ROAD_DENSITY_UI_DEFAULT;
+    }
+    if (number < TARGET_ROAD_DENSITY_UI_MIN) {
+      return TARGET_ROAD_DENSITY_UI_MIN;
+    }
+    if (number > TARGET_ROAD_DENSITY_UI_MAX) {
+      return TARGET_ROAD_DENSITY_UI_MAX;
+    }
+    return number;
+  }
 
   function pollProgress(startTime, requestId) {
       function showPollingError(message, consoleMessage) {
@@ -213,6 +230,9 @@
           return id;
       })()
     };
+    if (msg.contentMode === "only-big-roads") {
+      msg.targetRoadDensity = normalizeTargetRoadDensityUiValue(data.get("target-road-density-ui"));
+    }
     if (! msg.hideLocationMarker) {
       msg.marker1 = {
         lat: parseFloat(data.get("lat")),
