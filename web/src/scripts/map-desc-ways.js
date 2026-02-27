@@ -374,18 +374,36 @@
       targetGroup.totalLength = targetLength + sourceLength;
     }
 
-    function unnamedMergeSignature(entry) {
-      function normalizeMergeText(value) {
-        if (!value || typeof value !== "string") {
-          return "";
-        }
-        return value
-          .replace(/[‐‑‒–—]/g, "-")
-          .replace(/\s+/g, " ")
-          .trim()
-          .toLowerCase();
+    function normalizeMergeText(value) {
+      if (!value || typeof value !== "string") {
+        return "";
       }
+      return value
+        .replace(/[‐‑‒–—]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
 
+    function appendUniqueMergedText(list, value) {
+      if (!Array.isArray(list) || !value || typeof value !== "string") {
+        return list;
+      }
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return list;
+      }
+      const normalized = normalizeMergeText(trimmed);
+      for (let i = 0; i < list.length; i += 1) {
+        if (normalizeMergeText(list[i]) === normalized) {
+          return list;
+        }
+      }
+      list.push(trimmed);
+      return list;
+    }
+
+    function unnamedMergeSignature(entry) {
       if (!entry) {
         return null;
       }
@@ -415,8 +433,15 @@
       normalizedLocationParts.sort();
       const normalizedLocationSig = normalizedLocationParts.join("||");
       const normalizedLengthSig = normalizeMergeText(lengthSig);
+      // Unnamed railways should merge like roads in length aggregation:
+      // equivalent entries merge and lengths sum, so length does not belong in railway merge key.
+      // Keep route/edge distinctions in the key to avoid collapsing unrelated rail segments
+      // that happen to share a coarse location phrase.
+      const unnamedKey = entry.sectionKey === "railways"
+        ? ("unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig)
+        : ("unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig + "|" + normalizedLengthSig);
       return {
-        key: "unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig + "|" + normalizedLengthSig,
+        key: unnamedKey,
         routeSig: routeSig,
         edgeSig: edgeSig
       };
@@ -441,6 +466,7 @@
           if (unnamedSig) {
             groupClone._mergedRouteText = unnamedSig.routeSig || null;
             groupClone._mergedEdgeText = unnamedSig.edgeSig || null;
+            groupClone._mergedEdgeTexts = appendUniqueMergedText([], unnamedSig.edgeSig || "");
           }
           byKey[key] = {
             group: groupClone,
@@ -453,6 +479,18 @@
           return;
         }
         mergeGroupWays(byKey[key].group, entry.group || {});
+        if (unnamedSig) {
+          const existingEdgeTexts = Array.isArray(byKey[key].group._mergedEdgeTexts)
+            ? byKey[key].group._mergedEdgeTexts.slice()
+            : [];
+          appendUniqueMergedText(existingEdgeTexts, unnamedSig.edgeSig || "");
+          byKey[key].group._mergedEdgeTexts = existingEdgeTexts;
+          if (existingEdgeTexts.length > 1) {
+            byKey[key].group._mergedEdgeText = joinWithAnd(existingEdgeTexts);
+          } else if (existingEdgeTexts.length === 1) {
+            byKey[key].group._mergedEdgeText = existingEdgeTexts[0];
+          }
+        }
       });
       return merged;
     }
@@ -1133,6 +1171,17 @@
   }
 
   function edgesText(target) {
+    if (target && Array.isArray(target._mergedEdgeTexts)) {
+      const mergedTexts = target._mergedEdgeTexts
+        .map(function(text){ return typeof text === "string" ? text.trim() : ""; })
+        .filter(function(text){ return !!text; });
+      if (mergedTexts.length > 1) {
+        return joinWithAnd(mergedTexts);
+      }
+      if (mergedTexts.length === 1) {
+        return mergedTexts[0];
+      }
+    }
     if (target && typeof target._mergedEdgeText === "string" && target._mergedEdgeText.trim()) {
       return target._mergedEdgeText.trim();
     }
