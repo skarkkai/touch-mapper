@@ -29,3 +29,7 @@ Required for POI/type-label/i18n changes:
 - Run `inspect-map-description` against `test/map-content/out/complex/pipeline/map-content.json` for `en`, `de`, `fi`, and `nl`.
 - Render simulation text from resulting `mapDescriptionModel` and review POI lines in each locale.
 - Treat leftover English suffixes in non-English outputs as validation failures unless the borrowed word is intentionally identical in that locale.
+
+## Browser level testing
+
+Playwright UI validation can be run with `bash test/e2e/run-touch-mapper-settings-regression.sh`.
