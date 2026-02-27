@@ -2,6 +2,24 @@
 /* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next show3dPreview */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
+var TARGET_ROAD_DENSITY_UI_MIN = 1;
+var TARGET_ROAD_DENSITY_UI_MAX = 100;
+var TARGET_ROAD_DENSITY_UI_DEFAULT = 10;
+
+function normalizeTargetRoadDensityUiValue(value) {
+  var number = parseInt(value, 10);
+  if (isNaN(number)) {
+    return TARGET_ROAD_DENSITY_UI_DEFAULT;
+  }
+  if (number < TARGET_ROAD_DENSITY_UI_MIN) {
+    return TARGET_ROAD_DENSITY_UI_MIN;
+  }
+  if (number > TARGET_ROAD_DENSITY_UI_MAX) {
+    return TARGET_ROAD_DENSITY_UI_MAX;
+  }
+  return number;
+}
+
 function resetParameters(addr) {
   $("#lat-input").val(addr.lat).trigger('change');
   $("#lon-input").val(addr.lon).trigger('change');
@@ -52,6 +70,24 @@ function initInputs(outputs, osmDragPanInteraction) {
   var DEFAULT_PRINT_SIZE_2D = "27.9";
   var DEFAULT_PRINT_SIZE_3D = "17";
   var mapScaleCoverage = $(".map-scale-coverage");
+  var targetRoadDensityInput = $("#target-road-density-ui");
+  var targetRoadDensityRow = $(".target-road-density-row");
+  var VALID_CONTENT_MODES = {
+    "normal": true,
+    "no-buildings": true,
+    "only-big-roads": true
+  };
+
+  function normalizeContentMode(value) {
+    if (value === undefined || value === null) {
+      return "normal";
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(VALID_CONTENT_MODES, normalized)) {
+      return normalized;
+    }
+    return "normal";
+  }
 
   function interpolateTranslation(key, replacements) {
     var text = window.TM && window.TM.translations ? window.TM.translations[key] : "";
@@ -102,6 +138,11 @@ function initInputs(outputs, osmDragPanInteraction) {
     mapScaleCoverage.text(text);
   }
 
+  function updateTargetRoadDensityVisibility() {
+    var contentMode = normalizeContentMode(data.get("content-mode"));
+    targetRoadDensityRow.toggle(contentMode === "only-big-roads");
+  }
+
   data.on("change:scale change:size change:printing-tech", updateMapScaleCoverage);
 
   var initDone = false;
@@ -127,8 +168,27 @@ function initInputs(outputs, osmDragPanInteraction) {
   }
 
   // Map content selection
-  initSimpleInput("exclude-buildings", $("#exclude-buildings"), "checkbox", true);
+  localStorage.removeItem("exclude-buildings");
+  setLocalStorage("content-mode", normalizeContentMode(getLocalStorageStr("content-mode", "normal")));
+  setLocalStorage(
+    "target-road-density-ui",
+    normalizeTargetRoadDensityUiValue(getLocalStorageInt("target-road-density-ui", TARGET_ROAD_DENSITY_UI_DEFAULT))
+  );
+  initSimpleInput("content-mode", $("#content-mode"), "str", "normal");
+  initSimpleInput("target-road-density-ui", targetRoadDensityInput, "int", TARGET_ROAD_DENSITY_UI_DEFAULT);
   initSimpleInput("hide-location-marker", $("#hide-location-marker"), "checkbox", false);
+  data.on("change:content-mode", updateTargetRoadDensityVisibility);
+  data.on("change:target-road-density-ui", function() {
+    var normalized = normalizeTargetRoadDensityUiValue(data.get("target-road-density-ui"));
+    if (normalized !== data.get("target-road-density-ui")) {
+      setData("target-road-density-ui", normalized);
+      return;
+    }
+    if (String(targetRoadDensityInput.val()) !== String(normalized)) {
+      targetRoadDensityInput.val(normalized);
+    }
+  });
+  updateTargetRoadDensityVisibility();
 
   // Print size preset
   $("#map-size-preset").change(function(){
@@ -139,10 +199,19 @@ function initInputs(outputs, osmDragPanInteraction) {
     .change();
 
   // Scale preset
+  var mapScalePresetElem = $("#map-scale-preset");
+  var storedScalePreset = getLocalStorageStr("map-scale-preset", "2400");
+  if (! optionExistsInSelect(mapScalePresetElem, storedScalePreset)) {
+    storedScalePreset = "";
+    setLocalStorage("map-scale-preset", storedScalePreset);
+  }
   $("#map-scale-preset").change(function(){
-    $("#scale-input").val($(this).val()).change();
-    setLocalStorage("map-scale-preset", $(this).val());
-  }).val(getLocalStorageStr("map-scale-preset", "2400"))
+    var preset = $(this).val() || "";
+    if (preset !== "") {
+      $("#scale-input").val(preset).change();
+    }
+    setLocalStorage("map-scale-preset", preset);
+  }).val(storedScalePreset)
     .change();
 
   // Advanced mode
@@ -195,37 +264,7 @@ function initInputs(outputs, osmDragPanInteraction) {
 
 function setParametersByMapId(id) {
   return loadInfoJson(id).done(function(data, textStatus, jqXHR){
-
-      // Set address as when searching
-      setLocalStorage("addresses", JSON.stringify([{
-        addrShort: data.addrShort,
-        addrLong: data.addrLong,
-        lat: data.lat,
-        lon: data.lon
-      }]));
-      setLocalStorage("addressesSelectedIndex", 0);
-
-      // Set area view parameters
-      setLocalStorage("offsetX", data.offsetX);
-      setLocalStorage("offsetY", data.offsetY);
-      setLocalStorage("printing-tech", data.printingTech || "3d");
-      setLocalStorage("exclude-buildings", data.excludeBuildings || false);
-      setLocalStorage("hide-location-marker", data.hideLocationMarker || false);
-      setLocalStorage("map-size-preset",
-        optionExistsInSelect($("#map-size-preset"), data.size) ? data.size
-          : ""); // empty value makes initInputs() use global default
-      setLocalStorage("map-scale-preset",
-        optionExistsInSelect($("#map-scale-preset"), data.scale) ? data.scale
-          : ""); // empty value makes initInputs() use global default
-      setLocalStorage("advancedMode", data.advancedMode);
-      setLocalStorage("lat", data.lat);
-      setLocalStorage("lon", data.lon);
-      setLocalStorage("size", data.size);
-      setLocalStorage("scale", data.scale);
-      setLocalStorage("multipartMode", data.multipartMode);
-      setLocalStorage("multipartXpc", data.multipartXpc);
-      setLocalStorage("multipartYpc", data.multipartYpc);
-
+      storeMapSettingsFromInfo(data);
       return true;
     });
 }
@@ -265,8 +304,50 @@ function setParametersFromBlindSquare() {
     return isNaN(number) ? null : number;
   }
 
-  function setLocalStorageIfPresent(localStorageKey, paramName, parser) {
-    var raw = getUrlParam(paramName);
+  function parseMapSizeParam(value) {
+    var number = parseFloatParam(value);
+    if (number === null || number >= 100) {
+      return null;
+    }
+    return number;
+  }
+
+  function parseContentMode(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads") {
+      return normalized;
+    }
+    return null;
+  }
+
+  function parseTargetRoadDensityUi(value) {
+    if (!hasNonEmpty(value)) {
+      return null;
+    }
+    var number = parseFloat(value);
+    if (isNaN(number)) {
+      return null;
+    }
+    return normalizeTargetRoadDensityUiValue(Math.round(number));
+  }
+
+  function getUrlParamFromNames(paramNames) {
+    var names = Array.isArray(paramNames) ? paramNames : [paramNames];
+    var i;
+    for (i = 0; i < names.length; i++) {
+      var raw = getUrlParam(names[i]);
+      if (hasNonEmpty(raw)) {
+        return raw;
+      }
+    }
+    return null;
+  }
+
+  function setLocalStorageIfPresent(localStorageKey, paramNames, parser) {
+    var raw = getUrlParamFromNames(paramNames);
     if (!hasNonEmpty(raw)) {
       return null;
     }
@@ -298,9 +379,9 @@ function setParametersFromBlindSquare() {
   }
 
   var currentAddress = selectedAddressFromStorage() || {};
-  var urlAddrName = getUrlParam("addrName");
-  var urlLat = getUrlParam("lat");
-  var urlLon = getUrlParam("lon");
+  var urlAddrName = getUrlParamFromNames(["addrName", "addr_name"]);
+  var urlLat = getUrlParamFromNames(["lat", "latitude"]);
+  var urlLon = getUrlParamFromNames(["lon", "lng", "longitude"]);
   if (hasNonEmpty(urlAddrName) || hasNonEmpty(urlLat) || hasNonEmpty(urlLon)) {
     var addrShort = hasNonEmpty(urlAddrName) ? urlAddrName : currentAddress.addrShort;
     var addrLong = hasNonEmpty(urlAddrName) ? urlAddrName : currentAddress.addrLong;
@@ -317,28 +398,34 @@ function setParametersFromBlindSquare() {
     }
   }
 
-  setLocalStorageIfPresent("lat", "lat", parseFloatParam);
-  setLocalStorageIfPresent("lon", "lon", parseFloatParam);
-  setLocalStorageIfPresent("printing-tech", "printingTech", function(value) {
-    return value === "2d" || value === "3d" ? value : null;
+  setLocalStorageIfPresent("lat", ["lat", "latitude"], parseFloatParam);
+  setLocalStorageIfPresent("lon", ["lon", "lng", "longitude"], parseFloatParam);
+  setLocalStorageIfPresent("printing-tech", ["printingTech", "printing-tech", "printing_tech"], function(value) {
+    var normalized = ("" + value).toLowerCase();
+    return normalized === "2d" || normalized === "3d" ? normalized : null;
   });
-  setLocalStorageIfPresent("offsetX", "offsetX", parseIntParam);
-  setLocalStorageIfPresent("offsetY", "offsetY", parseIntParam);
-  setLocalStorageIfPresent("advancedMode", "advancedMode", parseBoolean);
-  setLocalStorageIfPresent("exclude-buildings", "excludeBuildings", parseBoolean);
-  setLocalStorageIfPresent("hide-location-marker", "hideLocationMarker", parseBoolean);
-  setLocalStorageIfPresent("multipartMode", "multipartMode", parseBoolean);
-  setLocalStorageIfPresent("multipartXpc", "multipartXpc", parseIntParam);
-  setLocalStorageIfPresent("multipartYpc", "multipartYpc", parseIntParam);
+  setLocalStorageIfPresent("offsetX", ["offsetX", "offset_x", "x-offset", "xOffset"], parseIntParam);
+  setLocalStorageIfPresent("offsetY", ["offsetY", "offset_y", "y-offset", "yOffset"], parseIntParam);
+  setLocalStorageIfPresent("advancedMode", ["advancedMode", "advanced_mode", "advanced-mode"], parseBoolean);
+  setLocalStorageIfPresent("content-mode", ["contentMode"], parseContentMode);
+  setLocalStorageIfPresent(
+    "target-road-density-ui",
+    ["targetRoadDensityUi", "targetRoadDensity", "target_road_density"],
+    parseTargetRoadDensityUi
+  );
+  setLocalStorageIfPresent("hide-location-marker", ["hideLocationMarker", "hide_location_marker", "hide-location-marker"], parseBoolean);
+  setLocalStorageIfPresent("multipartMode", ["multipartMode", "multipart_mode", "multipart-mode"], parseBoolean);
+  setLocalStorageIfPresent("multipartXpc", ["multipartXpc", "multipart_xpc", "multipart-xpc"], parseIntParam);
+  setLocalStorageIfPresent("multipartYpc", ["multipartYpc", "multipart_ypc", "multipart-ypc"], parseIntParam);
 
-  var sizeValue = setLocalStorageIfPresent("size", "size", parseFloatParam);
+  var sizeValue = setLocalStorageIfPresent("size", ["size", "mapSize", "map_size"], parseMapSizeParam);
   if (sizeValue !== null) {
     setLocalStorage(
       "map-size-preset",
       optionExistsInSelect($("#map-size-preset"), sizeValue) ? sizeValue : ""
     );
   }
-  var scaleValue = setLocalStorageIfPresent("scale", "scale", parseIntParam);
+  var scaleValue = setLocalStorageIfPresent("scale", ["scale", "mapScale", "map_scale"], parseIntParam);
   if (scaleValue !== null) {
     setLocalStorage(
       "map-scale-preset",

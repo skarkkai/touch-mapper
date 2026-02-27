@@ -3,47 +3,100 @@
 
 (function(){
   var MAX_WAIT = 10 * 60; // time out after this many seconds
+  var TARGET_ROAD_DENSITY_UI_MIN = 1;
+  var TARGET_ROAD_DENSITY_UI_MAX = 100;
+  var TARGET_ROAD_DENSITY_UI_DEFAULT = 10;
+
+  function normalizeTargetRoadDensityUiValue(value) {
+    var number = parseInt(value, 10);
+    if (isNaN(number)) {
+      return TARGET_ROAD_DENSITY_UI_DEFAULT;
+    }
+    if (number < TARGET_ROAD_DENSITY_UI_MIN) {
+      return TARGET_ROAD_DENSITY_UI_MIN;
+    }
+    if (number > TARGET_ROAD_DENSITY_UI_MAX) {
+      return TARGET_ROAD_DENSITY_UI_MAX;
+    }
+    return number;
+  }
 
   function pollProgress(startTime, requestId) {
+      function showPollingError(message, consoleMessage) {
+        $("#submit-button").prop("disabled", false);
+        $("#submit-button").val(message);
+        showError(message);
+        if (consoleMessage && window.console && window.console.error) {
+          window.console.error(consoleMessage);
+        }
+      }
       var pollAgain = function(){
         setTimeout(function(){
           pollProgress(startTime, requestId);
         }, 1000);
       };
+      var progressLabelKeyByValue = {
+        20: "progress__reading_osm",
+        60: "progress__converting",
+        80: "progress__uploading"
+      };
 
       // Timeout
       if (new Date().getTime() / 1000 - startTime > MAX_WAIT) {
-        showError("Processing took too long");
+        showPollingError("Processing took too long", "Map conversion polling timed out.");
         return;
       }
 
-      // Check for processing stage
+      // Check for processing status
       $.ajax({
-          type: "HEAD",
-          url: makeS3url(requestId) // CloudFront caches 404 responses, so can't poll through it
+          type: "GET",
+          url: makeS3InfoUrl(requestId), // CloudFront caches 404 responses, so can't poll through it
+          cache: false
       }).fail(function(jqXHR, textStatus, errorThrown){
         if (jqXHR.status === 404) {
             pollAgain();
         } else {
-            showError("Error: " + textStatus);
+            showPollingError("Error: " + textStatus, "Map conversion polling request failed: " + textStatus + ": " + errorThrown);
         }
       }).done(function(d, textStatus, jqXHR){
-        // Error
-        var errorMsg = jqXHR.getResponseHeader('x-amz-meta-error-msg');
-        if (errorMsg) {
-          showError("Error: " + errorMsg);
+        var payload = d;
+        if (typeof payload === "string") {
+          try {
+            payload = JSON.parse(payload);
+          } catch (e) {
+            pollAgain();
+            return;
+          }
+        }
+        var status = payload && payload.status ? payload.status : null;
+        if (!status) {
+          pollAgain();
           return;
         }
 
-        var stage = jqXHR.getResponseHeader('x-amz-meta-processing-stage');
-        if (stage) {
-          // Progress update
-          var desc = window.TM.translations["progress__" + stage] || stage;
+        if (status.errorCode) {
+          var translationKey = "conversion_error_" + status.errorCode;
+          var genericError = window.TM.translations.conversion_error_unknown || "Map conversion failed.";
+          var localized = window.TM.translations[translationKey] || genericError;
+          showPollingError(localized);
+          if (status.errorDescription && window.console && window.console.error) {
+            window.console.error("Map conversion failed (" + status.errorCode + "): " + status.errorDescription);
+          }
+          return;
+        }
+
+        var progress = parseInt(status.progress, 10);
+        if (isNaN(progress)) {
+          pollAgain();
+          return;
+        }
+        if (progress >= 100) {
+          location.href = makeMapPageUrlRelative(requestId);
+        } else {
+          var progressKey = progressLabelKeyByValue[progress];
+          var desc = progressKey ? (window.TM.translations[progressKey] || progressKey) : (progress + "%");
           $("#submit-button").val(desc);
           pollAgain();
-        } else {
-          // Completed
-          location.href = makeMapPageUrlRelative(requestId);
         }
       });
   }
@@ -113,6 +166,18 @@
     return "fp1-" + hashStringFNV1a(parts.join("|"));
   }
 
+  function browserReferrer() {
+    if (typeof document === "undefined" || typeof document.referrer !== "string") {
+      return null;
+    }
+    var referrer = document.referrer.trim();
+    if (!referrer) {
+      return null;
+    }
+    // Keep payload size bounded; browser referrer headers are typically much shorter.
+    return referrer.slice(0, 2048);
+  }
+
   window.submitMapCreation = function() {
     var radius = mapDiameter() / 2;
     if (Math.abs(data.get("offsetX")) >= radius || Math.abs(data.get("offsetY")) >= radius) {
@@ -129,7 +194,7 @@
       offsetX: data.get("offsetX"),
       offsetY: data.get("offsetY"),
       size: data.get("size"),
-      excludeBuildings: data.get("exclude-buildings"),
+      contentMode: data.get("content-mode") || "normal",
       hideLocationMarker: data.get("hide-location-marker") || false,
       lon: data.get("lon"),
       lat: data.get("lat"),
@@ -153,6 +218,7 @@
       multipartYpc: data.get("multipartYpc"),
       advancedMode: data.get("advancedMode") || false,
       browserFingerprint: buildBrowserFingerprint(),
+      browserReferrer: browserReferrer(),
       requestId: (function(){
           var id = newMapId() + "/" + data.get("selected_addr_short").replace(/[\x00-\x1F\x80-\x9F/]/g, '_');
           var xpc = data.get("multipartXpc");
@@ -164,6 +230,9 @@
           return id;
       })()
     };
+    if (msg.contentMode === "only-big-roads") {
+      msg.targetRoadDensity = normalizeTargetRoadDensityUiValue(data.get("target-road-density-ui"));
+    }
     if (! msg.hideLocationMarker) {
       msg.marker1 = {
         lat: parseFloat(data.get("lat")),

@@ -12,12 +12,95 @@ This document describes the map-attempt telemetry pipeline and the quicktime sim
 - If the same map id is written again on the same day, the existing file is overwritten.
 - Telemetry write runs in the final step so telemetry failures never affect user-visible processing.
 
+## Deploy code version metadata
+
+Converter telemetry reads deployed `dist/VERSION.txt` (same directory as `process-request.py`) once at process startup.
+Expected line format:
+
+`<timestamp> <branch> <tag> <commit>`
+
+Example:
+
+`2026-02-15T08:25:31 touch-mapper.larger-sizes package-20260215-082120 4714eb471656fc2737543657ef5be6e4056bdb11`
+
+Stored telemetry fields:
+
+- `code_branch`: branch value from `VERSION.txt` (example: `touch-mapper.larger-sizes`)
+- `code_deployed`: value extracted from `package-*` tag (example: `20260215-082120`)
+- `code_commit`: commit hash value from `VERSION.txt`
+
+If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and these fields are stored as `null`.
+
+## Timing telemetry fields
+
+Converter telemetry includes per-stage timing fields (seconds), including:
+
+- `timing_get_osm_seconds` (successful OSM fetch attempt only; excludes prior timed-out attempts and excludes only-big-roads pruning)
+- `timing_prune_only_big_roads_seconds` (runtime of `prune-only-big-roads.js` when `content_mode=only-big-roads`, otherwise null)
+- `timing_map_desc_seconds`
+- `timing_upload_primary_seconds` (total for primary uploads: info JSON, map-content JSON, main STL)
+- `timing_svg_to_pdf_seconds`
+- `timing_total_seconds`
+
+OSM fetch source fields:
+
+- `osm_fetch_provider`: provider category for the successful fetch attempt (`overpass` or `main_api`)
+- `osm_fetch_endpoint`: endpoint URL for the successful fetch attempt
+
+Fetch policy notes:
+
+- All content modes (`normal`, `no-buildings`, `only-big-roads`) use randomized Overpass `map?bbox` endpoint attempts first, then OSM main API fallback.
+
+## Status polling and structured errors
+
+Map creation progress is now published to `map/info/<id>.json` via top-level `status`:
+
+- `status.progress` (`20`, `60`, `80`, `100`)
+- `status.errorCode` (`unknown` or `too_large`) on failures
+- `status.errorDescription` diagnostic text on failures
+
+For `too_large`, converter includes size/threshold details in `errorDescription`, for example:
+
+- `OSM data is 73400321 > 73400320 bytes before pruning`
+- `OSM data is 26220000 > 26214400 bytes after pruning`
+
+## RAM telemetry fields
+
+RAM telemetry combines:
+- Subprocess stage RSS from `/usr/bin/time -v` via `converter/telemetry.py` (`maxRssKiB`)
+- In-process peak RSS sampled from `/proc/self/status` inside `process-request.py` (VmRSS)
+
+`process-request.py` stores these fixed fields:
+
+- `rss_osm2world_kib`
+- `rss_blender_kib`
+- `rss_clip_2d_kib`
+- `rss_prune_only_big_roads_kib` (from `prune-only-big-roads.js` subprocess in `content_mode=only-big-roads`)
+- `rss_svg_to_pdf_kib` (from the CairoSVG subprocess used for SVG -> PDF conversion)
+- `rss_process_request_peak_kib` (peak VmRSS observed in `process-request.py` itself)
+
+These represent top memory consumers for the converter pipeline and are written as KiB integers.
+If timings JSON is missing/malformed or RSS is unavailable, fields are stored as `null` and request processing continues.
+
+## OSM size telemetry fields
+
+Converter telemetry also stores two OSM file size fields (bytes):
+
+- `osm_fetched_bytes`: file size immediately after OSM fetch and before content filtering.
+- `osm_pruned_bytes`: file size after content-mode pruning/filtering (`no-buildings`, `only-big-roads`), or same as fetched size when no pruning is applied.
+
+Structured error telemetry fields:
+
+- `error_code`: converter error code (`unknown`, `too_large`, ...)
+- `error_description`: diagnostic text linked to `error_code`
+
 ## Browser IP and geolocation
 
 - Browser code also computes a stable hashed fingerprint (`browserFingerprint`) from browser/device properties.
 - Converter telemetry stores it as `browser_fingerprint` for approximate unique-visitor counting.
 - Browser code (`web/src/scripts/map-creation.js`) performs a best-effort public IP lookup before enqueueing the SQS request and includes `browserIp` in the message body.
 - Converter telemetry stores that value as `browser_ip`.
+- Browser code also includes `browserReferrer` (`document.referrer`) and converter telemetry stores it as `browser_referrer`.
 - During per-request stats write, converter performs a best-effort IP geolocation lookup and stores:
   - `browser_ip_country`
   - `browser_ip_country_code`
@@ -97,9 +180,34 @@ WHERE year = '2026' AND month = '02'
 GROUP BY status;
 ```
 
+Query example grouped by deployed code commit:
+
+```sql
+SELECT code_commit, count(*) AS attempts
+FROM application_stats_json
+WHERE year = '2026' AND month = '02'
+GROUP BY code_commit
+ORDER BY attempts DESC;
+```
+
+Query example for monthly RAM percentiles:
+
+```sql
+SELECT
+  format('%s-%02d', year, CAST(month AS INTEGER)) AS year_month,
+  approx_percentile(rss_osm2world_kib, 0.5) AS p50_osm2world_kib,
+  approx_percentile(rss_osm2world_kib, 0.95) AS p95_osm2world_kib
+FROM application_stats_json
+WHERE rss_osm2world_kib IS NOT NULL
+GROUP BY 1
+ORDER BY 1;
+```
+
 ## Manual pending-stats upload (EC2)
 
 To force-upload all pending local stats JSON files for one environment:
+
+The script is deployed on EC2 at `~/touch-mapper/<environment>/dist/upload-pending-stats.py` for both `test` and `prod`.
 
 ```bash
 # On EC2 host
@@ -111,9 +219,13 @@ Examples:
 
 ```bash
 cd ~/touch-mapper/test/dist
+./upload-pending-stats.py
+# or explicitly:
 ./upload-pending-stats.py test
 
 cd ~/touch-mapper/prod/dist
+./upload-pending-stats.py
+# or explicitly:
 ./upload-pending-stats.py prod
 ```
 

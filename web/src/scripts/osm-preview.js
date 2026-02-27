@@ -82,6 +82,8 @@ window.initOsmPreview = function(outputs) {
     $("#y-offset-input").val(offsetY);
     data.set("offsetX", offsetX, { silent: true });
     data.set("offsetY", offsetY, { silent: true });
+    setLocalStorage("offsetX", offsetX);
+    setLocalStorage("offsetY", offsetY);
     if (fixPreview) {
       updatePreview();
     }

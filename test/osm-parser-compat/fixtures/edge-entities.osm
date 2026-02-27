@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="fixture">
+  <!-- comment -->
+  <node id="3" lat="61" lon="25">
+    <tag k="note" v="Tom &apos;N&apos; Jerry &quot;Q&quot;"/>
+  </node>
+  <relation id="30">
+    <member type="node" ref="3" role=""/>
+    <member type="relation" ref="20" role="sub"/>
+  </relation>
+</osm>

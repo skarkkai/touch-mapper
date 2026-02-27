@@ -49,7 +49,7 @@ var metalsmith = Metalsmith(__dirname)
     }))
     .use(i18next({
         pattern: '*.ect',
-        locales: ['de', 'en', 'fi', 'nl'],
+        locales: ['de', 'en', 'es', 'fi', 'nl'],
         namespaces: ['tm'],
         fallbackLng: 'en',
     }))

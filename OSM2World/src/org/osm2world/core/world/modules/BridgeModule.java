@@ -35,7 +35,8 @@ public class BridgeModule extends AbstractModule {
 
 	public static final boolean isBridge(TagGroup tags) {
 		return tags.containsKey("bridge")
-			&& !"no".equals(tags.getValue("bridge"));
+			&& !"no".equals(tags.getValue("bridge"))
+			&& !"proposed".equals(tags.getValue("bridge"));
 	}
 	
 	public static final boolean isBridge(MapWaySegment segment) {

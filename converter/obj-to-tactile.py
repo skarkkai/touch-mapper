@@ -20,56 +20,6 @@ perf_clock = getattr(time, 'perf_counter', time.time)
 sys.path.insert(1, "%s/blender/2.78/python/lib/python3.5/svgwrite" % (script_dir,))
 # These modules imported at the site of use
 
-def parse_env_bool(name):
-    raw = os.environ.get(name)
-    if raw is None:
-        return None
-    normalized = raw.strip().lower()
-    if normalized in ('1', 'true', 'yes', 'on'):
-        return True
-    if normalized in ('0', 'false', 'no', 'off'):
-        return False
-    return None
-
-
-INSTRUMENTATION_ENABLED = (parse_env_bool('TOUCH_MAPPER_INSTRUMENTATION') is True)
-
-
-def read_proc_status_kib(field_name):
-    try:
-        with open('/proc/self/status', 'r') as handle:
-            for line in handle:
-                if not line.startswith(field_name + ':'):
-                    continue
-                parts = line.split()
-                if len(parts) < 2:
-                    return None
-                return int(parts[1])
-    except Exception:
-        return None
-    return None
-
-
-def log_memory_checkpoint(label):
-    if not INSTRUMENTATION_ENABLED:
-        return
-    vm_rss_kib = read_proc_status_kib('VmRSS')
-    vm_hwm_kib = read_proc_status_kib('VmHWM')
-    if vm_rss_kib is None and vm_hwm_kib is None:
-        print('MEMORY:obj-to-tactile:{label} unavailable'.format(label=label))
-        return
-    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
-    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
-    print(
-        'MEMORY:obj-to-tactile:{label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
-            label=label,
-            rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
-            rss_mib=vm_rss_mib,
-            hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
-            hwm_mib=vm_hwm_mib
-        )
-    )
-
 
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Read OSM map meshes, modify to tactile map, and export as .stl''')
@@ -762,7 +712,6 @@ def do_road_areas(roads, height):
 
 def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     t = perf_clock()
-    log_memory_checkpoint('process-objects-start')
     mm_to_units = scale / 1000
     if not no_borders:
         space = (tc.BORDER_WIDTH_MM - tc.BORDER_HORIZONTAL_OVERLAP_MM) * mm_to_units 
@@ -807,7 +756,6 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
         else:
             print("UNHANDLED OBJECT TYPE: " + ob.name)
     print("initial steps took %.2f" % (perf_clock() - t))
-    log_memory_checkpoint('after-process-objects-initial-classify')
 
     # Delete
     t = perf_clock()
@@ -825,7 +773,6 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     joined_road_areas_ped = join_objects(road_areas_ped, 'PedestrianRoadAreas')
     joined_rails = join_objects(rails, 'Rails')
     joined_buildings = join_objects(buildings, 'Buildings')
-    log_memory_checkpoint('after-pre-join-and-clip')
     
     # Buildings
     if joined_buildings:
@@ -833,7 +780,6 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
         extrude_building(joined_buildings, tc.BUILDING_HEIGHT_MM * mm_to_units)
         fatten(joined_buildings)
         print("processing %d buildings took %.2f" % (len(buildings), perf_clock() - t))
-    log_memory_checkpoint('after-buildings')
 
     # Waters
     t = perf_clock()
@@ -845,7 +791,6 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
             water_wave_pattern(water, tc.WATER_AREA_DEPTH_MM * mm_to_units, scale)
         join_objects(water_areas, 'WaterAreas')
     print("processing waters took %.2f" % (perf_clock() - t))
-    log_memory_checkpoint('after-waters')
 
     # Rails
     if joined_rails != None:
@@ -856,7 +801,6 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     do_road_areas(joined_road_areas_ped, tc.ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units)
     do_ways(joined_roads_car, tc.ROAD_HEIGHT_CAR_MM * mm_to_units, min_x, min_y, max_x, max_y)
     do_ways(joined_roads_ped, tc.ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units, min_x, min_y, max_x, max_y)
-    log_memory_checkpoint('after-roads-and-rails')
 
 def make_tactile_map(args):
     t = perf_clock()
@@ -876,13 +820,10 @@ def make_tactile_map(args):
 
 def main():
     args = do_cmdline()
-    log_memory_checkpoint('main-start')
     remove_everything()
-    log_memory_checkpoint('after-remove-everything')
 
     for mesh_path in args.mesh_paths:
         import_mesh_file(mesh_path)
-    log_memory_checkpoint('after-import-meshes')
 
     if args.base_path:
         base_path = args.base_path
@@ -890,26 +831,17 @@ def main():
         base_path = os.path.splitext(args.mesh_paths[0])[0]
     if args.export_wireframe_png:
         export_wireframe_png(base_path, 'wireframe-flat', args.min_x, args.min_y, args.max_x, args.max_y)
-        log_memory_checkpoint('after-export-wireframe-png-flat')
     export_svg(base_path, args)
-    log_memory_checkpoint('after-export-svg')
     base_cube = make_tactile_map(args)
-    log_memory_checkpoint('after-make-tactile-map')
     move_everything([-c for c in get_minimum_coordinate(base_cube)])
-    log_memory_checkpoint('after-move-everything')
     if not args.no_stl_export:
         export_stl(base_path, args.scale)
-        log_memory_checkpoint('after-export-stl')
         export_stl_separate(base_path, args.scale)
-        log_memory_checkpoint('after-export-stl-separate')
         export_blend_file(base_path)
-        log_memory_checkpoint('after-export-blend')
     if args.export_wireframe_png:
         final_min_x, final_min_y, _final_min_z, final_max_x, final_max_y, _final_max_z = get_object_world_bounds(base_cube)
         export_wireframe_png(base_path, 'wireframe', final_min_x, final_min_y, final_max_x, final_max_y)
-        log_memory_checkpoint('after-export-wireframe-png-final')
     bpy.ops.object.select_all(action='SELECT') # it's handy to have everything selected when getting into UI
-    log_memory_checkpoint('main-end')
 
 if __name__ == "__main__":
     main()

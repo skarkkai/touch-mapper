@@ -8,6 +8,9 @@
         "progress__connecting": "{{ progress__connecting }}",
         "progress__reading_osm": "{{ progress__reading_osm }}",
         "progress__converting": "{{ progress__converting }}",
+        "progress__uploading": "{{ progress__uploading }}",
+        "conversion_error_unknown": "{{ conversion_error_unknown }}",
+        "conversion_error_too_large": "{{ conversion_error_too_large }}",
         "map_scale_coverage": "{{ map_scale_coverage }}",
         "unit_cm": "{{ unit_cm }}",
         "meters": "{{ meters }}",
@@ -79,7 +82,12 @@
         <option value="4200">1:4200</option>
         <option value="5600">1:5600 &ndash; {{ map_scale__5600 }}</option>
         <option value="7500">1:7500</option>
-        <option value="9999">1:9999 &ndash; {{ map_scale__9999 }}</option>
+        <option value="10000">1:10000</option>
+        <option value="13000">1:13000</option>
+        <option value="17000">1:17000</option>
+        <option value="23000">1:23000</option>
+        <option value="30000">1:30000</option>
+        <option value="40000">1:40000</option>
       </select>
       <div class="map-scale-coverage" aria-live="polite"></div>
     </div>
@@ -87,11 +95,24 @@
 
   <div class="row main-row">
     <div class="col col1">
-      <label>{{ map_content }}:</label>
+      <label for="content-mode">{{ map_content }}:</label>
     </div>
     <div class="col col2 content-selection-container">
-      <input id="exclude-buildings" type="checkbox" />
-      <label for="exclude-buildings">{{ exclude_buildings }}</label>
+      <select id="content-mode">
+        <option value="normal">{{ content_mode_normal }}</option>
+        <option value="no-buildings">{{ content_mode_no_buildings }}</option>
+        <option value="only-big-roads">{{ content_mode_only_big_roads }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row main-row target-road-density-row" style="display: none">
+    <div class="col col1">
+      <label for="target-road-density-ui">{{ target_road_density_ui }}:</label>
+    </div>
+    <div class="col col2 content-selection-container">
+      <input id="target-road-density-ui" type="number" min="1" max="100" step="1" value="10" />
+      <span class="target-road-density-ui-hint">{{ target_road_density_ui_hint }}</span>
     </div>
   </div>
 
@@ -156,7 +177,7 @@
         <label for="map-size">{{ custom_map_size }}:</label>
       </div>
       <div class="col col2">
-        <input id="map-size-input" pattern="[0-9]+(\.[0-9]+)?" required />
+        <input id="map-size-input" type="number" max="99.9" step="0.1" pattern="[0-9]+(\.[0-9]+)?" required />
         <span class="map-size-unit">{{ unit_cm }}</span>
       </div>
     </div>
@@ -167,7 +188,7 @@
       </div>
       <div class="col col2">
         <span class="one-to">1 :</span>
-        <input id="scale-input" type="number" value="2400" min="500" max="9999" required />
+        <input id="scale-input" type="number" value="2400" min="500" max="99999" required />
       </div>
     </div>
 

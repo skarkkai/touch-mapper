@@ -288,6 +288,10 @@
     return null;
   }
 
+  function isRailSubClass(subClassKey) {
+    return !!(subClassKey && typeof subClassKey === "string" && subClassKey.indexOf("A3_") === 0);
+  }
+
   function collectWayGroups(mapContent, options) {
     const resolved = normalizeOptions(options);
     const ways = [];
@@ -319,7 +323,181 @@
       });
     });
 
-    ways.sort(function(a, b){
+    function mergeGroupWays(targetGroup, sourceGroup) {
+      if (!targetGroup || typeof targetGroup !== "object" || !sourceGroup || typeof sourceGroup !== "object") {
+        return;
+      }
+      const targetWays = Array.isArray(targetGroup.ways) ? targetGroup.ways.slice() : [];
+      const sourceWays = Array.isArray(sourceGroup.ways) ? sourceGroup.ways : [];
+      const seenWayIds = {};
+      targetWays.forEach(function(way){
+        const id = way && way.osmId !== undefined && way.osmId !== null ? String(way.osmId) : null;
+        if (id) {
+          seenWayIds[id] = true;
+        }
+      });
+      sourceWays.forEach(function(way){
+        const id = way && way.osmId !== undefined && way.osmId !== null ? String(way.osmId) : null;
+        if (id && seenWayIds[id]) {
+          return;
+        }
+        if (id) {
+          seenWayIds[id] = true;
+        }
+        targetWays.push(way);
+      });
+      targetGroup.ways = targetWays;
+
+      const targetVisible = Array.isArray(targetGroup.visibleGeometry) ? targetGroup.visibleGeometry.slice() : [];
+      const sourceVisible = Array.isArray(sourceGroup.visibleGeometry) ? sourceGroup.visibleGeometry : [];
+      const visibleSeen = {};
+      targetVisible.forEach(function(bucket){
+        const id = bucket && bucket.osmId !== undefined && bucket.osmId !== null ? String(bucket.osmId) : null;
+        if (id) {
+          visibleSeen[id] = true;
+        }
+      });
+      sourceVisible.forEach(function(bucket){
+        const id = bucket && bucket.osmId !== undefined && bucket.osmId !== null ? String(bucket.osmId) : null;
+        if (id && visibleSeen[id]) {
+          return;
+        }
+        if (id) {
+          visibleSeen[id] = true;
+        }
+        targetVisible.push(bucket);
+      });
+      targetGroup.visibleGeometry = targetVisible;
+
+      const targetLength = wayLengthValue(targetGroup);
+      const sourceLength = wayLengthValue(sourceGroup);
+      targetGroup.totalLength = targetLength + sourceLength;
+    }
+
+    function normalizeMergeText(value) {
+      if (!value || typeof value !== "string") {
+        return "";
+      }
+      return value
+        .replace(/[‐‑‒–—]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    function appendUniqueMergedText(list, value) {
+      if (!Array.isArray(list) || !value || typeof value !== "string") {
+        return list;
+      }
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return list;
+      }
+      const normalized = normalizeMergeText(trimmed);
+      for (let i = 0; i < list.length; i += 1) {
+        if (normalizeMergeText(list[i]) === normalized) {
+          return list;
+        }
+      }
+      list.push(trimmed);
+      return list;
+    }
+
+    function unnamedMergeSignature(entry) {
+      if (!entry) {
+        return null;
+      }
+      if (wayName(entry && entry.group ? entry.group : null)) {
+        return null;
+      }
+      if (entry.sectionKey !== "railways" &&
+          entry.sectionKey !== "waterways" &&
+          entry.sectionKey !== "otherLinear") {
+        return null;
+      }
+      const routeSig = routeText(entry.group) || "";
+      const edgeSig = edgesText(entry.group) || "";
+      if (!routeSig && !edgeSig) {
+        return null;
+      }
+      const lengthSig = formatLength(entry.group) || "";
+      const normalizedRouteSig = normalizeMergeText(routeSig);
+      const normalizedEdgeSig = normalizeMergeText(edgeSig);
+      const normalizedLocationParts = [];
+      if (normalizedRouteSig) {
+        normalizedLocationParts.push(normalizedRouteSig);
+      }
+      if (normalizedEdgeSig && normalizedLocationParts.indexOf(normalizedEdgeSig) === -1) {
+        normalizedLocationParts.push(normalizedEdgeSig);
+      }
+      normalizedLocationParts.sort();
+      const normalizedLocationSig = normalizedLocationParts.join("||");
+      const normalizedLengthSig = normalizeMergeText(lengthSig);
+      // Unnamed railways should merge like roads in length aggregation:
+      // equivalent entries merge and lengths sum, so length does not belong in railway merge key.
+      // Keep route/edge distinctions in the key to avoid collapsing unrelated rail segments
+      // that happen to share a coarse location phrase.
+      const unnamedKey = entry.sectionKey === "railways"
+        ? ("unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig)
+        : ("unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig + "|" + normalizedLengthSig);
+      return {
+        key: unnamedKey,
+        routeSig: routeSig,
+        edgeSig: edgeSig
+      };
+    }
+
+    function mergeEquivalentWays(entries) {
+      const merged = [];
+      const byKey = {};
+      entries.forEach(function(entry){
+        const name = wayName(entry && entry.group ? entry.group : null);
+        const normName = normalizedWayName(name);
+        const unnamedSig = normName ? null : unnamedMergeSignature(entry);
+        const key = normName
+          ? ((entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normName)
+          : (unnamedSig ? unnamedSig.key : null);
+        if (!key) {
+          merged.push(entry);
+          return;
+        }
+        if (!byKey[key]) {
+          const groupClone = Object.assign({}, entry.group || {});
+          if (unnamedSig) {
+            groupClone._mergedRouteText = unnamedSig.routeSig || null;
+            groupClone._mergedEdgeText = unnamedSig.edgeSig || null;
+            groupClone._mergedEdgeTexts = appendUniqueMergedText([], unnamedSig.edgeSig || "");
+          }
+          byKey[key] = {
+            group: groupClone,
+            subclassOrder: entry.subclassOrder,
+            subclassType: entry.subclassType,
+            subClass: entry.subClass,
+            sectionKey: entry.sectionKey
+          };
+          merged.push(byKey[key]);
+          return;
+        }
+        mergeGroupWays(byKey[key].group, entry.group || {});
+        if (unnamedSig) {
+          const existingEdgeTexts = Array.isArray(byKey[key].group._mergedEdgeTexts)
+            ? byKey[key].group._mergedEdgeTexts.slice()
+            : [];
+          appendUniqueMergedText(existingEdgeTexts, unnamedSig.edgeSig || "");
+          byKey[key].group._mergedEdgeTexts = existingEdgeTexts;
+          if (existingEdgeTexts.length > 1) {
+            byKey[key].group._mergedEdgeText = joinWithAnd(existingEdgeTexts);
+          } else if (existingEdgeTexts.length === 1) {
+            byKey[key].group._mergedEdgeText = existingEdgeTexts[0];
+          }
+        }
+      });
+      return merged;
+    }
+
+    const mergedWays = mergeEquivalentWays(ways);
+
+    mergedWays.sort(function(a, b){
       const aNamed = !!wayName(a.group);
       const bNamed = !!wayName(b.group);
       if (aNamed !== bNamed) {
@@ -338,7 +516,7 @@
       }
       return wayTitle(a.group).localeCompare(wayTitle(b.group));
     });
-    return ways;
+    return mergedWays;
   }
 
   function wayImportanceScore(group) {
@@ -631,11 +809,14 @@
    * This avoids "Near near ..." and "From in ...".
    */
   function routeText(target) {
-    const segmentInfo = primarySegmentInfo(target);
-    if (!segmentInfo) {
+    if (target && typeof target._mergedRouteText === "string" && target._mergedRouteText.trim()) {
+      return target._mergedRouteText.trim();
+    }
+    const segments = segmentList(target);
+    if (segments.length !== 1) {
       return null;
     }
-    const points = collectSegmentPoints(segmentInfo.segment);
+    const points = collectSegmentPoints(segments[0]);
     if (!points.length) {
       return null;
     }
@@ -822,6 +1003,10 @@
           const connectionId = connection.osmId !== undefined && connection.osmId !== null
             ? String(connection.osmId)
             : null;
+          const connectionSubClass = typeof connection.subClass === "string" ? connection.subClass : "";
+          if (isRailSubClass(connectionSubClass)) {
+            return;
+          }
           if (connectionId && ownIds[connectionId]) {
             return;
           }
@@ -847,8 +1032,8 @@
             return;
           }
 
-          const subClass = typeof connection.subClass === 'string' && connection.subClass
-            ? connection.subClass
+          const subClass = connectionSubClass
+            ? connectionSubClass
             : "A_other_ways";
           if (!bucket.typeBuckets[subClass]) {
             bucket.typeBuckets[subClass] = {};
@@ -932,7 +1117,10 @@
   }
 
   function collectEdgeDetails(target) {
-    const segments = segmentList(target);
+    // Keep edge narration consistent with route narration: both should describe
+    // the same representative segment instead of mixing all grouped segments.
+    const primaryInfo = primarySegmentInfo(target);
+    const segments = primaryInfo && primaryInfo.segment ? [primaryInfo.segment] : [];
     const found = {};
     segments.forEach(function(segment){
       const events = segment && Array.isArray(segment.events) ? segment.events : [];
@@ -983,6 +1171,20 @@
   }
 
   function edgesText(target) {
+    if (target && Array.isArray(target._mergedEdgeTexts)) {
+      const mergedTexts = target._mergedEdgeTexts
+        .map(function(text){ return typeof text === "string" ? text.trim() : ""; })
+        .filter(function(text){ return !!text; });
+      if (mergedTexts.length > 1) {
+        return joinWithAnd(mergedTexts);
+      }
+      if (mergedTexts.length === 1) {
+        return mergedTexts[0];
+      }
+    }
+    if (target && typeof target._mergedEdgeText === "string" && target._mergedEdgeText.trim()) {
+      return target._mergedEdgeText.trim();
+    }
     const details = collectEdgeDetails(target);
     if (!details.length) {
       return null;
@@ -1229,9 +1431,13 @@
     let lineText = "";
 
     if (!nameText) {
-      lineText = entry && entry.sectionKey === "waterways"
-        ? t("map_content_way_unnamed_waterway", "Unnamed waterway")
-        : t("map_content_way_unnamed", "Unnamed way");
+      if (entry && entry.sectionKey === "waterways") {
+        lineText = t("map_content_way_unnamed_waterway", "Unnamed waterway");
+      } else if (entry && entry.sectionKey === "railways") {
+        lineText = t("map_content_way_unnamed_railway", "Unnamed railway");
+      } else {
+        lineText = t("map_content_way_unnamed", "Unnamed way");
+      }
       item.attrs.dataIsNamed = false;
     } else if (typeText) {
       lineText = typeText + " " + nameText;

@@ -1,5 +1,7 @@
 # Development Conventions
 
+This is the authoritative source for coding, web/i18n, and Python development conventions.
+
 This document collects day-to-day coding conventions for Touch Mapper.
 
 ## Repo layout (high level)
@@ -42,6 +44,7 @@ This document collects day-to-day coding conventions for Touch Mapper.
 - In `converter/`, do not preserve backward compatibility by default. If data production changes, matching consumer changes are expected.
 - For UI-only changes, confirm whether backward compatibility is required.
 - Prioritize accessibility in UI and content; Touch Mapper is used by visually impaired users.
+- Above non-trivial functions always write a comment that describes the function's purpose (not how it works)
 
 ## Python conventions
 - Write modern Python; avoid Python 2 compatibility patterns.

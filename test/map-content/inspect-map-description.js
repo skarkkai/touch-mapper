@@ -14,6 +14,7 @@ function parseArgs(argv) {
     out: null,
     osm: null,
     mapContent: null,
+    contentMode: "normal",
     workDir: null
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -38,6 +39,11 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (arg === "--content-mode") {
+      args.contentMode = argv[i + 1] || "normal";
+      i += 1;
+      continue;
+    }
     if (arg === "--work-dir") {
       args.workDir = argv[i + 1] || null;
       i += 1;
@@ -53,6 +59,9 @@ function parseArgs(argv) {
   }
   if (!args.out) {
     throw new Error("Missing required argument: --out <path-to-output.json>");
+  }
+  if (["normal", "no-buildings", "only-big-roads"].indexOf(args.contentMode) === -1) {
+    throw new Error("Invalid --content-mode value: " + args.contentMode);
   }
   return args;
 }
@@ -105,8 +114,8 @@ function runPythonGenerator(repoRoot, osmPath, workDir, options) {
   if (options && Number.isFinite(Number(options.scale))) {
     cmdArgs.push("--scale", String(Number(options.scale)));
   }
-  if (options && options.excludeBuildings) {
-    cmdArgs.push("--exclude-buildings");
+  if (options && typeof options.contentMode === "string" && options.contentMode.length > 0) {
+    cmdArgs.push("--content-mode", String(options.contentMode));
   }
   if (options && options.logPrefix) {
     cmdArgs.push("--log-prefix", String(options.logPrefix));
@@ -208,7 +217,7 @@ function inspectMapDescription(options) {
       options.workDir ? path.resolve(options.workDir) : null,
       {
         scale: options.scale,
-        excludeBuildings: !!options.excludeBuildings,
+        contentMode: options.contentMode || "normal",
         logPrefix: options.logPrefix || ""
       }
     );
@@ -243,6 +252,7 @@ function main() {
     locale: args.locale,
     osmPath: args.osm ? path.resolve(args.osm) : null,
     mapContentPath: args.mapContent ? path.resolve(args.mapContent) : null,
+    contentMode: args.contentMode,
     workDir: args.workDir ? path.resolve(args.workDir) : null
   });
 

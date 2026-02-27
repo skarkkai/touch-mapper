@@ -38,10 +38,22 @@ function eraseCookie(name) {
 }
 
 function computeLonLat(data) {
-  var metersPerDeg = mapCalc.metersPerDegree(data.get("lat"));
+  function toNumberOrDefault(value, defaultValue) {
+    var parsed = parseFloat(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  var lat = toNumberOrDefault(data.get("lat"), 0);
+  var lon = toNumberOrDefault(data.get("lon"), 0);
+  var offsetX = toNumberOrDefault(data.get("offsetX"), 0);
+  var offsetY = toNumberOrDefault(data.get("offsetY"), 0);
+  var multipartXpc = toNumberOrDefault(data.get("multipartXpc"), 0);
+  var multipartYpc = toNumberOrDefault(data.get("multipartYpc"), 0);
+  var diameter = toNumberOrDefault(mapDiameter(), 0);
+  var metersPerDeg = mapCalc.metersPerDegree(lat);
   return [
-      data.get("lon") + (data.get("offsetX") + data.get("multipartXpc") / 100 * mapDiameter()) / metersPerDeg.lon,
-      data.get("lat") + (data.get("offsetY") + data.get("multipartYpc") / 100 * mapDiameter()) / metersPerDeg.lat ];
+      lon + (offsetX + multipartXpc / 100 * diameter) / metersPerDeg.lon,
+      lat + (offsetY + multipartYpc / 100 * diameter) / metersPerDeg.lat ];
 }
 
 function getUrlParam(name, url) {
@@ -91,6 +103,14 @@ function uriEncodeRequestId(rid) {
       return TM_HOST + "/map/info/" + idStart(id) + '.json';
     } else {
       return TM_HOST + "/map/" + idStart(id) + '/info.json';
+    }
+  };
+
+  window.makeS3InfoUrl = function(id) {
+    if (idVersion(id) === 2) {
+      return MAPS_S3_HOST + "/map/info/" + idStart(id) + '.json';
+    } else {
+      return MAPS_S3_HOST + "/map/" + idStart(id) + '/info.json';
     }
   };
 
@@ -181,7 +201,8 @@ function getLocalStorageStr(key, defaultValue) {
 }
 function getLocalStorageInt(key, defaultValue) {
   var str = getLocalStorageStr(key);
-  return str ? parseInt(str, 10) : defaultValue;
+  var value = str ? parseInt(str, 10) : defaultValue;
+  return isNaN(value) ? defaultValue : value;
 }
 
 function newMapId() {
@@ -212,3 +233,122 @@ function loadInfoJson(id) {
     return data;
   });
 }
+
+window.storeMapSettingsFromInfo = function(info) {
+  if (!info || typeof info !== "object") {
+    return;
+  }
+
+  var MAP_SIZE_PRESET_VALUES = {
+    "17": true,
+    "20": true
+  };
+  var MAP_SCALE_PRESET_VALUES = {
+    "1000": true,
+    "1400": true,
+    "1800": true,
+    "2400": true,
+    "3200": true,
+    "4200": true,
+    "5600": true,
+    "7500": true,
+    "10000": true,
+    "13000": true,
+    "17000": true,
+    "23000": true,
+    "30000": true,
+    "40000": true
+  };
+
+  function withDefault(value, defaultValue) {
+    if (value === undefined || value === null) {
+      return defaultValue;
+    }
+    return value;
+  }
+
+  function toPresetOrEmpty(value, allowedValues) {
+    var key = "" + value;
+    if (Object.prototype.hasOwnProperty.call(allowedValues, key)) {
+      return value;
+    }
+    return "";
+  }
+
+  function getInfoValue(keys, defaultValue) {
+    var i;
+    for (i = 0; i < keys.length; i++) {
+      if (info[keys[i]] !== undefined && info[keys[i]] !== null) {
+        return info[keys[i]];
+      }
+    }
+    return defaultValue;
+  }
+
+  function normalizeContentMode(value) {
+    if (value === undefined || value === null) {
+      return "normal";
+    }
+    var normalized = ("" + value).toLowerCase();
+    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads") {
+      return normalized;
+    }
+    return "normal";
+  }
+
+  function normalizeTargetRoadDensityUi(value) {
+    var number = parseInt(value, 10);
+    if (isNaN(number)) {
+      return 10;
+    }
+    if (number < 1) {
+      return 1;
+    }
+    if (number > 100) {
+      return 100;
+    }
+    return number;
+  }
+
+  var addrShort = getInfoValue(["addrShort", "addr_short"], "");
+  var addrLong = getInfoValue(["addrLong", "addr_long"], "");
+  var lat = getInfoValue(["lat"], undefined);
+  var lon = getInfoValue(["lon"], undefined);
+  var printingTech = getInfoValue(["printingTech", "printing_tech"], "3d");
+  var contentMode = normalizeContentMode(getInfoValue(["contentMode"], "normal"));
+  var targetRoadDensityUi = normalizeTargetRoadDensityUi(
+    getInfoValue(["targetRoadDensity", "target_road_density"], 10)
+  );
+  var hideLocationMarker = getInfoValue(["hideLocationMarker", "hide_location_marker"], false);
+  var size = getInfoValue(["size"], undefined);
+  var scale = getInfoValue(["scale"], undefined);
+  var advancedMode = getInfoValue(["advancedMode", "advanced_mode"], false);
+  var multipartMode = getInfoValue(["multipartMode", "multipart_mode"], false);
+
+  setLocalStorage("addresses", JSON.stringify([{
+    addrShort: withDefault(addrShort, ""),
+    addrLong: withDefault(addrLong, ""),
+    lat: lat,
+    lon: lon
+  }]));
+  setLocalStorage("addressesSelectedIndex", 0);
+
+  setLocalStorage("offsetX", getInfoValue(["offsetX", "offset_x"], 0));
+  setLocalStorage("offsetY", getInfoValue(["offsetY", "offset_y"], 0));
+  setLocalStorage("printing-tech", printingTech);
+  setLocalStorage("content-mode", contentMode);
+  setLocalStorage("target-road-density-ui", targetRoadDensityUi);
+  localStorage.removeItem("exclude-buildings");
+  setLocalStorage("hide-location-marker", hideLocationMarker);
+  setLocalStorage("map-size-preset", toPresetOrEmpty(size, MAP_SIZE_PRESET_VALUES));
+  setLocalStorage("map-scale-preset", toPresetOrEmpty(scale, MAP_SCALE_PRESET_VALUES));
+  setLocalStorage("advancedMode", advancedMode);
+  setLocalStorage("lat", lat);
+  setLocalStorage("lon", lon);
+  setLocalStorage("size", size);
+  setLocalStorage("scale", scale);
+  setLocalStorage("multipartMode", multipartMode);
+  setLocalStorage("multipartXpc", getInfoValue(["multipartXpc", "multipart_xpc"], 0));
+  setLocalStorage("multipartYpc", getInfoValue(["multipartYpc", "multipart_ypc"], 0));
+  setLocalStorage("previousAddress", withDefault(addrLong, ""));
+};

@@ -437,10 +437,6 @@
         {
           "key": "public_transport",
           "anyValue": true
-        },
-        {
-          "key": "railway",
-          "anyValue": true
         }
       ],
       "actions": {

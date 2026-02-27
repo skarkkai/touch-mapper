@@ -1,5 +1,7 @@
 # Converter Pipeline Stages
 
+This is the authoritative source for converter stage names and metadata lifecycle definitions.
+
 This document describes converter data flow and stage names used by code comments and artifacts.
 
 ## OSM2World notes
@@ -19,6 +21,15 @@ This document describes converter data flow and stage names used by code comment
 5. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
 6. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including real `requestId`).
 7. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions.
+
+### OSM fetch mode notes
+- All content modes (`normal`, `no-buildings`, `only-big-roads`) use the same network fetch strategy:
+  - randomized Overpass `xapi?map?bbox=` endpoint attempts first
+  - OSM main API `api/0.6/map?bbox=` fallback last
+- Mode-specific behavior is applied after fetch:
+  - `normal`: no local OSM content pruning.
+  - `no-buildings`: local OSM filtering removes building features.
+  - `only-big-roads`: local OSM pruning keeps major-road-focused content for tactile density/continuity.
 
 ## Metadata stage names (must stay in sync)
 Any time you change these stages, keep this document and in-code stage comments synchronized.

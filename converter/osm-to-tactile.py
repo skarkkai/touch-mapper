@@ -11,48 +11,6 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 from tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
 from telemetry import TelemetryLogger
-LIVE_TELEMETRY = None
-
-def read_proc_status_kib(field_name):
-    try:
-        with open('/proc/self/status', 'r') as handle:
-            for line in handle:
-                if not line.startswith(field_name + ':'):
-                    continue
-                parts = line.split()
-                if len(parts) < 2:
-                    return None
-                return int(parts[1])
-    except Exception:
-        return None
-    return None
-
-
-def log_memory_checkpoint(label):
-    if not INSTRUMENTATION_ENABLED:
-        return
-    vm_rss_kib = read_proc_status_kib('VmRSS')
-    vm_hwm_kib = read_proc_status_kib('VmHWM')
-    if vm_rss_kib is None and vm_hwm_kib is None:
-        message = 'MEMORY {label} unavailable'.format(label=label)
-        if LIVE_TELEMETRY is not None:
-            LIVE_TELEMETRY.log(message)
-        else:
-            print(message)
-        return
-    vm_rss_mib = (vm_rss_kib / 1024.0) if vm_rss_kib is not None else -1.0
-    vm_hwm_mib = (vm_hwm_kib / 1024.0) if vm_hwm_kib is not None else -1.0
-    message = 'MEMORY {label} VmRSS={rss_kib}kB ({rss_mib:.1f} MiB) VmHWM={hwm_kib}kB ({hwm_mib:.1f} MiB)'.format(
-        label=label,
-        rss_kib=('?' if vm_rss_kib is None else vm_rss_kib),
-        rss_mib=vm_rss_mib,
-        hwm_kib=('?' if vm_hwm_kib is None else vm_hwm_kib),
-        hwm_mib=vm_hwm_mib
-    )
-    if LIVE_TELEMETRY is not None:
-        LIVE_TELEMETRY.log(message)
-    else:
-        print(message)
 
 
 def parse_env_bool(name):
@@ -66,8 +24,6 @@ def parse_env_bool(name):
         return False
     return None
 
-
-INSTRUMENTATION_ENABLED = (parse_env_bool('TOUCH_MAPPER_INSTRUMENTATION') is True)
 
 def pretty_json_enabled():
     forced = parse_env_bool('TOUCH_MAPPER_PRETTY_JSON')
@@ -130,7 +86,6 @@ def _parse_int_env(name, fallback):
 
 
 def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry):
-    log_memory_checkpoint('before-osm2world')
     # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     #print(osm2world_path + " " + input_path + " " + output_path)
@@ -161,12 +116,10 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry):
     with open(meta_path, 'r') as f:
         meta = json.load(f)
     write_json_file(meta_path, meta, pretty_json_enabled())
-    log_memory_checkpoint('after-osm2world')
 
     return meta, run_result.get('maxRssKiB')
 
 def run_clip_2d(obj_path, clip_bounds, telemetry):
-    log_memory_checkpoint('before-clip-2d')
     out_dir = os.path.dirname(obj_path)
     clip_report_path = os.path.join(out_dir, 'map-clip-report.json')
     clip_cmd = [
@@ -203,12 +156,10 @@ def run_clip_2d(obj_path, clip_bounds, telemetry):
         raise Exception("clip-2d produced no meshes")
 
     telemetry.log("clip-2d outputs: {} files report={}".format(len(mesh_paths), clip_report_path))
-    log_memory_checkpoint('after-clip-2d')
     return mesh_paths, report, run_result.get('maxRssKiB')
 
 
 def run_blender(mesh_paths, boundary, args, output_base_path, telemetry):
-    log_memory_checkpoint('before-blender')
     blender_dir = os.path.join(script_dir, 'blender')
     blender_env = {
         'LD_LIBRARY_PATH': os.path.join(blender_dir, 'lib') + ":" + os.environ.get('LD_LIBRARY_PATH', '')
@@ -244,7 +195,6 @@ def run_blender(mesh_paths, boundary, args, output_base_path, telemetry):
         env=blender_env,
         depth_offset=0
     )
-    log_memory_checkpoint('after-blender')
 
     return run_result.get('maxRssKiB')
 
@@ -262,11 +212,8 @@ def print_size(scale, boundary, telemetry):
     )
 
 def main():
-    global LIVE_TELEMETRY
     log_depth_base = _parse_int_env('TOUCH_MAPPER_LOG_DEPTH_BASE', 0)
     telemetry = TelemetryLogger(component='osm-to-tactile', base_depth=log_depth_base)
-    LIVE_TELEMETRY = telemetry
-    log_memory_checkpoint('main-start')
     # Handle command line
     args = do_cmdline()
     osm_path = args.input
@@ -317,7 +264,6 @@ def main():
     write_meta_stage = telemetry.start_stage('write-map-meta', component='write-map-meta')
     write_json_file(meta_path, meta, pretty_json_enabled())
     telemetry.end_stage(write_meta_stage, own_max_rss_kib=None)
-    log_memory_checkpoint('main-end')
 
     timings_path = os.path.join(os.path.dirname(osm_path), 'osm-to-tactile-timings.json')
     telemetry.write_json(timings_path, extra={'metaPath': meta_path})

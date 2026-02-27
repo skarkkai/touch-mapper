@@ -3,6 +3,9 @@
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 const MAX_ADDRESSES = 5;
+const SEARCH_MAX_ATTEMPTS = 2;
+const SEARCH_RETRY_DELAY_MS = 500;
+const SEARCH_TIMEOUT_MS = 8000;
 
 const getAddress = (g) => {
   let streetAddr = g.street;
@@ -26,6 +29,8 @@ $(window).load(function(){
     $("#address-input").val(localStorage.searchString).change();
   }
   var prevAddr;
+  var currentSearchRequestId = 0;
+  var activeSearchXhr = null;
   $("#address-search-form").submit(function(ev){
     ev.preventDefault();
 
@@ -36,7 +41,7 @@ $(window).load(function(){
     }
     prevAddr = addr;
 
-    //$("#searching").slideDown();
+    $("#searching").show();
     $("#no-search-results").hide();
 
     function handleSearchResults(response) {
@@ -71,29 +76,80 @@ $(window).load(function(){
       location.href = "area";
     }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
-      q: addr,
-      addressdetails: 1,
-      format: 'geocodejson',
-      limit: MAX_ADDRESSES * 3, // *3 to have room for duplicate removal
-      email: 'sofia.pahaoja@gmail.com',
-    }).toString(), true);
-    xhr.onload = () => {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          handleSearchResults(JSON.parse(xhr.responseText));
-        } else {
-          alert("search failed: " + xhr.statusText);
-          prevAddr = undefined;
-        }
+    const requestId = ++currentSearchRequestId;
+
+    function isCurrentRequest() {
+      return requestId === currentSearchRequestId;
+    }
+
+    function failSearch(statusText, statusCode, attemptNumber) {
+      if (!isCurrentRequest()) {
+        return;
       }
-    };
-    xhr.onerror = () => {
-      alert("search failed: " + xhr.statusText);
+      if (attemptNumber < SEARCH_MAX_ATTEMPTS) {
+        setTimeout(function() {
+          sendSearchRequest(attemptNumber + 1);
+        }, SEARCH_RETRY_DELAY_MS);
+        return;
+      }
+
+      activeSearchXhr = null;
+      $("#searching").hide();
+      alert("search failed: " + (statusText || ("HTTP " + statusCode)));
       prevAddr = undefined;
-    };
-    xhr.send(null);
+    }
+
+    function sendSearchRequest(attemptNumber) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      if (activeSearchXhr) {
+        activeSearchXhr.abort();
+      }
+
+      var xhr = new XMLHttpRequest();
+      activeSearchXhr = xhr;
+      xhr.open("GET", "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+        q: addr,
+        addressdetails: 1,
+        format: 'geocodejson',
+        limit: MAX_ADDRESSES * 3, // *3 to have room for duplicate removal
+        email: 'sofia.pahaoja@gmail.com',
+      }).toString(), true);
+      xhr.timeout = SEARCH_TIMEOUT_MS;
+      xhr.onload = () => {
+        if (!isCurrentRequest() || xhr !== activeSearchXhr || xhr.readyState !== 4) {
+          return;
+        }
+        if (xhr.status === 200) {
+          try {
+            activeSearchXhr = null;
+            $("#searching").hide();
+            handleSearchResults(JSON.parse(xhr.responseText));
+          } catch (e) {
+            failSearch("invalid response", xhr.status, attemptNumber);
+          }
+        } else {
+          failSearch(xhr.statusText, xhr.status, attemptNumber);
+        }
+      };
+      xhr.onerror = () => {
+        if (xhr !== activeSearchXhr) {
+          return;
+        }
+        failSearch(xhr.statusText, xhr.status, attemptNumber);
+      };
+      xhr.ontimeout = () => {
+        if (xhr !== activeSearchXhr) {
+          return;
+        }
+        failSearch("timeout", xhr.status, attemptNumber);
+      };
+      xhr.send(null);
+    }
+
+    sendSearchRequest(1);
   });
 
   data.trigger("init");

@@ -1673,6 +1673,10 @@ def _feature_info(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     }
 
 
+def _is_railway_subclass(sub_class: Any) -> bool:
+    return isinstance(sub_class, str) and sub_class.startswith("A3_")
+
+
 def _build_connections_index(grouped: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
     index = {}
     for item in _iter_grouped_items(grouped):
@@ -1681,6 +1685,9 @@ def _build_connections_index(grouped: Dict[str, Any]) -> Dict[str, List[Dict[str
             continue
         info = _feature_info(item)
         if not info:
+            continue
+        # Railway intersections are intentionally omitted from connectivity narration.
+        if _is_railway_subclass(info.get("subClass")):
             continue
         for coords in _iter_line_segments(item):
             for coord in coords:
@@ -1717,6 +1724,9 @@ def _build_road_names_by_coord(map_data: Dict[str, Any]) -> Dict[str, List[str]]
             if item.get("elementType") == "way":
                 ways.append(item)
     for way in ways:
+        sub_class = way.get("_classification", {}).get("subClass")
+        if _is_railway_subclass(sub_class):
+            continue
         name = _get_name(way.get("tags"))
         if not name:
             continue
