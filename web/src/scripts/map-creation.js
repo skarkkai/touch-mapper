@@ -149,6 +149,18 @@
     return "fp1-" + hashStringFNV1a(parts.join("|"));
   }
 
+  function browserReferrer() {
+    if (typeof document === "undefined" || typeof document.referrer !== "string") {
+      return null;
+    }
+    var referrer = document.referrer.trim();
+    if (!referrer) {
+      return null;
+    }
+    // Keep payload size bounded; browser referrer headers are typically much shorter.
+    return referrer.slice(0, 2048);
+  }
+
   window.submitMapCreation = function() {
     var radius = mapDiameter() / 2;
     if (Math.abs(data.get("offsetX")) >= radius || Math.abs(data.get("offsetY")) >= radius) {
@@ -189,6 +201,7 @@
       multipartYpc: data.get("multipartYpc"),
       advancedMode: data.get("advancedMode") || false,
       browserFingerprint: buildBrowserFingerprint(),
+      browserReferrer: browserReferrer(),
       requestId: (function(){
           var id = newMapId() + "/" + data.get("selected_addr_short").replace(/[\x00-\x1F\x80-\x9F/]/g, '_');
           var xpc = data.get("multipartXpc");

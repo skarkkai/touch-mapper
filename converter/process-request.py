@@ -247,6 +247,20 @@ def interpreted_request_bool(request_body, key, default=False):
     return bool(request_body.get(key, default))
 
 
+def interpreted_request_text(request_body, key, max_length=2048):
+    if not isinstance(request_body, dict):
+        return None
+    raw_value = request_body.get(key)
+    if not isinstance(raw_value, str):
+        return None
+    text = raw_value.strip()
+    if text == '':
+        return None
+    if len(text) > max_length:
+        return text[:max_length]
+    return text
+
+
 def do_cmdline():
     parser = argparse.ArgumentParser(description='''Create STL and put into S3 based on a SQS request''')
     parser.add_argument('--poll-time', metavar='SECONDS', type=int, help="poll for a request at most this long")
@@ -1045,6 +1059,7 @@ def build_stats_record(ctx):
         'termination_signal': progress_state.get('termination_signal'),
         'browser_fingerprint': request_body.get('browserFingerprint'),
         'browser_ip': request_body.get('browserIp'),
+        'browser_referrer': interpreted_request_text(request_body, 'browserReferrer'),
         'browser_ip_country': None,
         'browser_ip_country_code': None,
         'browser_ip_region': None,

@@ -100,6 +100,7 @@ Structured error telemetry fields:
 - Converter telemetry stores it as `browser_fingerprint` for approximate unique-visitor counting.
 - Browser code (`web/src/scripts/map-creation.js`) performs a best-effort public IP lookup before enqueueing the SQS request and includes `browserIp` in the message body.
 - Converter telemetry stores that value as `browser_ip`.
+- Browser code also includes `browserReferrer` (`document.referrer`) and converter telemetry stores it as `browser_referrer`.
 - During per-request stats write, converter performs a best-effort IP geolocation lookup and stores:
   - `browser_ip_country`
   - `browser_ip_country_code`
