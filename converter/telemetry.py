@@ -5,7 +5,7 @@ import json
 import os
 import re
 import shlex
-import subprocess
+import subprocess  # nosec B404 - only invoked with list args and shell=False below
 import time
 from typing import Any, Dict, List, Optional
 
@@ -214,6 +214,9 @@ class TelemetryLogger(object):
                     "note: /usr/bin/time not available, subprocess maxRSS unavailable",
                 )
 
+        if not isinstance(timed_cmd, list) or not all(isinstance(part, str) for part in timed_cmd):
+            raise ValueError("subprocess command must be a list of strings")
+
         started = time.perf_counter()
         process = subprocess.Popen(
             timed_cmd,
@@ -221,6 +224,7 @@ class TelemetryLogger(object):
             env=run_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            shell=False,
         )
         stdout_data, stderr_data = process.communicate()
         elapsed_sec = time.perf_counter() - started
