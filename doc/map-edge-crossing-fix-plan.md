@@ -29,7 +29,7 @@ This is a UI aggregation fix; no new crossings should be inferred from geometry.
 - Remove `primarySegmentInfo()` if it has no remaining callers after the change.
 - Preserve route narration: `routeText()` currently describes a route only when
   there is exactly one visible segment. Edge summaries describe the whole group.
-- Check the public model-building path, including grouping and `_mergedEdgeTexts`
+- Check the public model-building path, including grouping and `mergedEdgeTexts`
   handling, so merged summaries retain the complete edge information. Preserve
   intentional grouping rules and existing single-segment behavior.
 - Update the relevant description behavior documentation. No map-content JSON

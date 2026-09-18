@@ -464,9 +464,9 @@
         if (!byKey[key]) {
           const groupClone = Object.assign({}, entry.group || {});
           if (unnamedSig) {
-            groupClone._mergedRouteText = unnamedSig.routeSig || null;
-            groupClone._mergedEdgeText = unnamedSig.edgeSig || null;
-            groupClone._mergedEdgeTexts = appendUniqueMergedText([], unnamedSig.edgeSig || "");
+            groupClone.mergedRouteText = unnamedSig.routeSig || null;
+            groupClone.mergedEdgeText = unnamedSig.edgeSig || null;
+            groupClone.mergedEdgeTexts = appendUniqueMergedText([], unnamedSig.edgeSig || "");
           }
           byKey[key] = {
             group: groupClone,
@@ -480,15 +480,15 @@
         }
         mergeGroupWays(byKey[key].group, entry.group || {});
         if (unnamedSig) {
-          const existingEdgeTexts = Array.isArray(byKey[key].group._mergedEdgeTexts)
-            ? byKey[key].group._mergedEdgeTexts.slice()
+          const existingEdgeTexts = Array.isArray(byKey[key].group.mergedEdgeTexts)
+            ? byKey[key].group.mergedEdgeTexts.slice()
             : [];
           appendUniqueMergedText(existingEdgeTexts, unnamedSig.edgeSig || "");
-          byKey[key].group._mergedEdgeTexts = existingEdgeTexts;
+          byKey[key].group.mergedEdgeTexts = existingEdgeTexts;
           if (existingEdgeTexts.length > 1) {
-            byKey[key].group._mergedEdgeText = joinWithAnd(existingEdgeTexts);
+            byKey[key].group.mergedEdgeText = joinWithAnd(existingEdgeTexts);
           } else if (existingEdgeTexts.length === 1) {
-            byKey[key].group._mergedEdgeText = existingEdgeTexts[0];
+            byKey[key].group.mergedEdgeText = existingEdgeTexts[0];
           }
         }
       });
@@ -754,8 +754,8 @@
    * This avoids "Near near ..." and "From in ...".
    */
   function routeText(target) {
-    if (target && typeof target._mergedRouteText === "string" && target._mergedRouteText.trim()) {
-      return target._mergedRouteText.trim();
+    if (target && typeof target.mergedRouteText === "string" && target.mergedRouteText.trim()) {
+      return target.mergedRouteText.trim();
     }
     const segments = segmentList(target);
     if (segments.length !== 1) {
@@ -1116,8 +1116,8 @@
   }
 
   function edgesText(target) {
-    if (target && Array.isArray(target._mergedEdgeTexts)) {
-      const mergedTexts = target._mergedEdgeTexts
+    if (target && Array.isArray(target.mergedEdgeTexts)) {
+      const mergedTexts = target.mergedEdgeTexts
         .map(function(text){ return typeof text === "string" ? text.trim() : ""; })
         .filter(function(text){ return !!text; });
       if (mergedTexts.length > 1) {
@@ -1127,8 +1127,8 @@
         return mergedTexts[0];
       }
     }
-    if (target && typeof target._mergedEdgeText === "string" && target._mergedEdgeText.trim()) {
-      return target._mergedEdgeText.trim();
+    if (target && typeof target.mergedEdgeText === "string" && target.mergedEdgeText.trim()) {
+      return target.mergedEdgeText.trim();
     }
     const details = collectEdgeDetails(target);
     if (!details.length) {
