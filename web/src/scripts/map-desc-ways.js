@@ -1274,6 +1274,9 @@
     if (attrs.dataOsmId !== undefined && attrs.dataOsmId !== null) {
       listItem.attr("data-osm-id", String(attrs.dataOsmId));
     }
+    if (attrs.filterRefs && attrs.filterRefs.length) {
+      listItem.attr("data-filter-refs", JSON.stringify(attrs.filterRefs));
+    }
     if (attrs.dataUnnamedSurface) {
       listItem.attr("data-unnamed-surface", String(attrs.dataUnnamedSurface));
     }
@@ -1360,7 +1363,7 @@
     }
     const item = {
       type: "way",
-      attrs: {},
+      attrs: { filterRefs: groupFilterRefs(group) },
       lines: []
     };
     const mainWay = primaryWay(group);
@@ -1438,6 +1441,14 @@
     return item;
   }
 
+  function groupFilterRefs(group) {
+    return (group && Array.isArray(group.ways) ? group.ways : []).filter(function(way){
+      return way && way.osmId !== undefined && way.osmId !== null;
+    }).map(function(way){
+      return (way.osmType || "way") + ":" + way.osmId;
+    });
+  }
+
   function unnamedSurfaceClass(entry) {
     const item = primaryWay(entry && entry.group ? entry.group : null);
     return surfaceClass(item);
@@ -1445,9 +1456,9 @@
 
   function summarizeUnnamedWays(entries) {
     const buckets = {
-      paved: { surfaceClass: "paved", count: 0, totalLength: 0 },
-      unpaved: { surfaceClass: "unpaved", count: 0, totalLength: 0 },
-      unknown: { surfaceClass: "unknown", count: 0, totalLength: 0 }
+      paved: { surfaceClass: "paved", count: 0, totalLength: 0, filterRefs: [] },
+      unpaved: { surfaceClass: "unpaved", count: 0, totalLength: 0, filterRefs: [] },
+      unknown: { surfaceClass: "unknown", count: 0, totalLength: 0, filterRefs: [] }
     };
     const orderedClasses = ["paved", "unpaved", "unknown"];
 
@@ -1456,6 +1467,7 @@
       const bucket = buckets[klass] || buckets.unknown;
       bucket.count += 1;
       bucket.totalLength += wayLengthValue(entry.group);
+      bucket.filterRefs = bucket.filterRefs.concat(groupFilterRefs(entry.group));
     });
 
     return orderedClasses
@@ -1473,11 +1485,13 @@
         buckets[entry.subClass] = {
           subClass: entry.subClass,
           count: 0,
-          totalLength: 0
+          totalLength: 0,
+          filterRefs: []
         };
       }
       buckets[entry.subClass].count += 1;
       buckets[entry.subClass].totalLength += wayLengthValue(entry.group);
+      buckets[entry.subClass].filterRefs = buckets[entry.subClass].filterRefs.concat(groupFilterRefs(entry.group));
     });
 
     return Object.keys(buckets).map(function(subClass){
@@ -1500,7 +1514,8 @@
       type: "summary",
       attrs: {
         dataUnnamedSurface: summary.surfaceClass,
-        dataIsNamed: false
+        dataIsNamed: false,
+        filterRefs: summary.filterRefs
       },
       lines: []
     };
@@ -1531,7 +1546,8 @@
     const item = {
       type: "summary",
       attrs: {
-        dataIsNamed: false
+        dataIsNamed: false,
+        filterRefs: summary.filterRefs
       },
       lines: []
     };
@@ -1593,7 +1609,8 @@
     const item = {
       type: "summary",
       attrs: {
-        dataIsNamed: false
+        dataIsNamed: false,
+        filterRefs: summary.filterRefs
       },
       lines: []
     };
@@ -1660,12 +1677,14 @@
           count: 0,
           totalLength: 0,
           locationText: locationText,
-          firstIndex: index
+          firstIndex: index,
+          filterRefs: []
         };
       }
       const bucket = unnamedWaterwayBucketsByKey[locationKey];
       bucket.count += 1;
       bucket.totalLength += wayLengthValue(entry.group);
+      bucket.filterRefs = bucket.filterRefs.concat(groupFilterRefs(entry.group));
       if (index < bucket.firstIndex) {
         bucket.firstIndex = index;
       }

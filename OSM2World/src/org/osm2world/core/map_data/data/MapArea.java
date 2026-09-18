@@ -18,6 +18,11 @@ import org.osm2world.core.world.data.AreaWorldObject;
 public class MapArea implements MapElement {
 
 	private final OSMElement objectWithTags;
+	private String contentFilterRef;
+
+	/** Stable filter identity for generated areas without an OSM source object. */
+	public String getContentFilterRef() { return contentFilterRef; }
+	public void setContentFilterRef(String ref) { contentFilterRef = ref; }
 	
 	private final List<MapNode> nodes;
 	private final List<List<MapNode>> holes;

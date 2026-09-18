@@ -73,6 +73,7 @@
     };
 
     try {
+      window.initMapContentFilter(info);
       insertMapDescription(info, $(".map-content")); // from map-description.js
     } catch (error) {
       if (window.console && window.console.error) {

@@ -239,6 +239,9 @@ public final class MapMetaWriter {
 		OSMElement element = area.getOsmObject();
 
 		addCommonFields(entry, "area", element, area.getTags());
+		if (area.getContentFilterRef() != null) {
+			entry.put("filterRefs", java.util.Collections.singletonList(area.getContentFilterRef()));
+		}
 		Set<String> repNames = addRepresentationFields(entry, area.getRepresentations());
 		addTouchMapperFields(entry, repNames, area.getTags(), null);
 

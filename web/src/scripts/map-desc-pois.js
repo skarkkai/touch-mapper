@@ -490,6 +490,9 @@
           name: name,
           hasName: !!name,
           itemCount: items.length,
+          filterRefs: items.filter(function(poi){ return poi && poi.osmId !== undefined && poi.osmId !== null; }).map(function(poi){
+            return "poi:" + (poi.osmType || "node") + ":" + poi.osmId;
+          }),
           importanceScore: groupImportanceScore(group)
         };
         entry.section = sectionForEntry(entry);
@@ -507,12 +510,14 @@
         deduped[key] = entry;
         return;
       }
+      const combinedFilterRefs = deduped[key].filterRefs.concat(entry.filterRefs);
       deduped[key].itemCount += entry.itemCount;
       if (entry.importanceScore > deduped[key].importanceScore) {
         deduped[key] = entry;
       } else if (entry.importanceScore === deduped[key].importanceScore && entry.score > deduped[key].score) {
         deduped[key] = entry;
       }
+      deduped[key].filterRefs = combinedFilterRefs;
     });
 
     return Object.keys(deduped).map(function(key){ return deduped[key]; });
@@ -658,10 +663,12 @@
           count: 0,
           firstIndex: index,
           representative: entry,
+          filterRefs: [],
           locationBucketsByKey: {}
         };
       }
       const bucket = bucketsByTypeKey[typeKey];
+      bucket.filterRefs = bucket.filterRefs.concat(entry.filterRefs || entryFilterRefs(entry));
       const entryCount = unnamedPoiEntryCount(entry);
       bucket.count += entryCount;
       if (index < bucket.firstIndex) {
@@ -703,6 +710,7 @@
             const mergedEntry = Object.assign({}, bucket.representative, {
               hasName: false,
               itemCount: bucket.count,
+              filterRefs: bucket.filterRefs,
               mergedLocationSummary: locationSummary
             });
             merged.push(mergedEntry);
@@ -723,6 +731,13 @@
       title: titleText || null,
       link: link || null
     };
+  }
+
+  function entryFilterRefs(entry) {
+    const item = entry && entry.item;
+    return item && item.osmId !== undefined && item.osmId !== null
+      ? ["poi:" + (item.osmType || "node") + ":" + item.osmId]
+      : [];
   }
 
   function entryToModelItem(entry) {
@@ -758,6 +773,7 @@
     return {
       type: "poi",
       attrs: {
+        filterRefs: entry.filterRefs || entryFilterRefs(entry),
         dataOsmId: entry.item && entry.item.osmId !== undefined && entry.item.osmId !== null
           ? String(entry.item.osmId)
           : null,
@@ -1003,6 +1019,9 @@
     }
     if (attrs.dataOsmId !== undefined && attrs.dataOsmId !== null) {
       listItem.attr("data-osm-id", String(attrs.dataOsmId));
+    }
+    if (attrs.filterRefs && attrs.filterRefs.length) {
+      listItem.attr("data-filter-refs", JSON.stringify(attrs.filterRefs));
     }
     if (attrs.initiallyHidden) {
       listItem.attr("data-initially-hidden", "true");

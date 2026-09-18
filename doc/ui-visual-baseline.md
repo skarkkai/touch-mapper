@@ -47,6 +47,7 @@ Use this as a default guide for UI and styling changes unless a task explicitly 
 - 3D preview is displayed in a large light-gray rounded container with soft shadow and clearer neutral contrast between layers for readability.
 - 3D preview controls hint text below the preview uses black text for stronger readability.
 - Map content description follows below as structured text sections.
+- When available, a "Filter map content" button sits directly below the Map content heading, aligned to its left edge and styled like "Show more". Filtering keeps the single-column description and adds checkboxes before its existing sections and entries, with action buttons below. The summary is hidden while filtering so it does not duplicate the editable list. After applying a filter, the editor remains open with the original list and saved selections, including removed entries.
 
 ## Accessibility and UX guardrails
 

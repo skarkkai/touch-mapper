@@ -2025,6 +2025,8 @@ def _summarize_area_base(item: Dict[str, Any]) -> Dict[str, Any]:
     }
     if "visibleGeometry" in item:
         summary["visibleGeometry"] = item.get("visibleGeometry")
+    if "filterRefs" in item:
+        summary["filterRefs"] = item["filterRefs"]
     _attach_semantics(summary, item)
     return summary
 

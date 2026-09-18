@@ -471,7 +471,8 @@ def _attach_visible_geometry(entry: Dict[str, Any], item: Dict[str, Any],
 
 def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
                    options_override: Optional[Dict[str, Any]] = None,
-                   profile: Optional[Dict[str, float]] = None) -> OrderedDict:
+                   profile: Optional[Dict[str, float]] = None,
+                   excluded_poi_refs: Optional[List[str]] = None) -> OrderedDict:
     # Code below creates stage "Grouped + classified meta" data.
     grouped = OrderedDict()
     for main_key in spec.get("classes", OrderedDict()).keys():
@@ -484,12 +485,16 @@ def group_map_data(map_data: Dict[str, Any], spec: Dict[str, Any],
 
     bbox = _get_map_bbox(map_data)
     boundary = (map_data.get("meta") or {}).get("boundary")
+    excluded_pois = set(excluded_poi_refs or [])
 
     def add_item(item):
         classify_start = time.perf_counter()
         classification = classify_item(item, spec, options_override)
         add_timing("group-map-data.classify-item", time.perf_counter() - classify_start)
         if not classification or classification.get("ignore"):
+            return
+        poi_ref = "poi:{}:{}".format(item.get("osmType"), item.get("osmId"))
+        if classification.get("mainClass") == "D" and poi_ref in excluded_pois:
             return
 
         semantics = build_feature_semantics(item)
@@ -599,7 +604,8 @@ def run_standalone(args: List[str]) -> OrderedDict:
 def run_map_desc(input_path: str, output_path: Optional[str] = None,
                  options_override: Optional[Dict[str, Any]] = None,
                  profile: Optional[Dict[str, float]] = None,
-                 pretty_json: Optional[bool] = None) -> OrderedDict:
+                 pretty_json: Optional[bool] = None,
+                 excluded_poi_refs: Optional[List[str]] = None) -> OrderedDict:
     run_start = time.perf_counter()
 
     def add_timing(name: str, elapsed: float) -> None:
@@ -615,7 +621,8 @@ def run_map_desc(input_path: str, output_path: Optional[str] = None,
     map_data = _load_json(input_path)
 
     group_map_data_start = time.perf_counter()
-    grouped = group_map_data(map_data, spec, options_override, profile)
+    grouped = group_map_data(map_data, spec, options_override, profile,
+                             excluded_poi_refs=excluded_poi_refs)
     add_timing("group-map-data", time.perf_counter() - group_map_data_start)
 
     if output_path is None:

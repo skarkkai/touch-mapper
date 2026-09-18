@@ -1347,7 +1347,7 @@
   // Entry point: read map-content.json and populate "Map content" block.
   function insertMapDescription(info, container) {
     if (!container || !container.length) {
-      return;
+      return null;
     }
     const roadsListElem = container.find(".map-content-roads");
     const waterAreasListElem = container.find(WATER_AREA_SECTION_CONFIG.listSelector);
@@ -1356,7 +1356,7 @@
     const summaryListElem = container.find(".map-content-summary");
     const summaryToggleElem = container.find(".map-content-summary-toggle");
     if (!roadsListElem.length && !waterAreasListElem.length && !buildingsListElem.length && !familiarPoisListElem.length && !summaryListElem.length) {
-      return;
+      return null;
     }
     summaryListElem.empty();
     summaryToggleElem
@@ -1434,7 +1434,7 @@
         row.show();
         showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
       });
-      return;
+      return null;
     }
 
     request.done(function(payload){
@@ -1448,6 +1448,7 @@
       setFullContentVisibility(container, false);
       updateSummaryToggleButton(container, model, false);
       bindSummaryToggle(container, model, state);
+      container.trigger("map-content-ready");
     }).fail(function(){
       setFullContentVisibility(container, true);
       if (roadsListElem.length) {
@@ -1470,12 +1471,18 @@
         showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
       });
     });
+    return request;
   }
 
   window.TM = window.TM || {};
   window.TM.mapDescription = {
     buildModel: buildModel,
-    renderFromModel: renderFromModel
+    renderFromModel: renderFromModel,
+    renderFilterCatalog: function(payload, container) {
+      const model = buildModel(payload, { t: t }, { maxVisibleBuildings: MAX_VISIBLE_BUILDINGS });
+      renderFromModel(model, container);
+      setFullContentVisibility(container, true);
+    }
   };
   window.insertMapDescription = insertMapDescription;
 })();

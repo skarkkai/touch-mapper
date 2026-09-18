@@ -17,6 +17,7 @@ import time
 import datetime
 import gzip
 import copy
+import shutil
 import io
 import math
 import signal
@@ -602,7 +603,48 @@ def prune_osm_file_for_simplified_mode_with_node(osm_path, request_body):
     print("running: " + " ".join(cmd))
     return run_subprocess_with_max_rss_kib(cmd)
 
-def get_osm(request_body, work_dir):
+# Suppress selected objects while preserving geometry used by retained relations.
+def filter_osm_file_for_excluded_features(osm_path, excluded_features):
+    if not isinstance(excluded_features, list) or len(excluded_features) > 10000:
+        raise RequestProcessingError(code='unknown', description='Invalid feature filter')
+    excluded = set()
+    for feature in excluded_features:
+        if not isinstance(feature, str) or not re.fullmatch(
+                r'(?:poi:)?(?:node|way|relation):[0-9]+|coastline:[0-9a-f]{64}', feature):
+            raise RequestProcessingError(code='unknown', description='Invalid feature reference')
+        excluded.add(feature)
+    if not excluded:
+        return
+    tree = parse_osm_tree(osm_path)
+    root = tree.getroot()
+    for element in list(root):
+        feature_id = element.get('id')
+        if element.tag not in ('node', 'way', 'relation') or feature_id is None:
+            continue
+        if element.tag + ':' + feature_id in excluded:
+            # Tags create the feature; nodes, ways and memberships also provide
+            # geometry for other features, including retained water polygons.
+            for tag in list(element):
+                if tag.tag == 'tag':
+                    # Coastal water has its own generated filter identity.
+                    # Keep its source even when this way also carries a road.
+                    if tag.get('k') != 'natural' or tag.get('v') != 'coastline':
+                        element.remove(tag)
+    with open(osm_path, 'wb') as filtered_file:
+        tree.write(filtered_file, encoding='UTF-8', xml_declaration=True)
+
+
+def store_filter_source(bucket, request_id, osm_path):
+    compressed_path = osm_path + '.gz'
+    with open(osm_path, 'rb') as source, gzip.GzipFile(compressed_path, 'wb', compresslevel=5) as target:
+        shutil.copyfileobj(source, target)
+    try:
+        bucket.upload_file(compressed_path, 'map/data/' + request_id + '.osm.gz')
+    finally:
+        os.remove(compressed_path)
+
+
+def get_osm(request_body, work_dir, bucket=None):
     # TODO: verify the requested region isn't too large
     content_mode = ensure_request_content_mode(request_body)
     if content_mode == 'only-big-roads':
@@ -610,6 +652,19 @@ def get_osm(request_body, work_dir):
     else:
         request_body.pop('targetRoadDensity', None)
     osm_path = '{}/map.osm'.format(work_dir)
+    source_request_id = request_body.get('filterSourceRequestId')
+    if source_request_id:
+        if not isinstance(source_request_id, str) or not re.match(r'^B[0-9a-fA-F]{15}/[^/]{1,150}$', source_request_id):
+            raise RequestProcessingError(code='unknown', description='Invalid filter source map ID')
+        source_key = 'map/data/' + source_request_id + '.osm.gz'
+        if bucket is None:
+            raise RequestProcessingError(code='unknown', description='Map source storage unavailable')
+        source_data = bucket.Object(source_key).get()['Body'].read()
+        with open(osm_path, 'wb') as source_file:
+            source_file.write(gzip.decompress(source_data))
+        filter_osm_file_for_excluded_features(osm_path, request_body.get('excludedFeatures', []))
+        size = os.path.getsize(osm_path)
+        return (osm_path, size, size, None, 0, 0, 'stored_map', source_key)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
     overpass_map_attempts = [
@@ -763,6 +818,10 @@ def run_osm_to_tactile(osm_path, request_body):
         if os.path.exists(stl_path):
             os.rename(stl_path, stl_path + ".old")
         args = ['--scale', str(request_body['scale']), '--diameter', str(request_body['diameter']), '--size', str(request_body['size']), ]
+        coastline_refs = [ref for ref in request_body.get('excludedFeatures', [])
+                          if ref.startswith('coastline:')]
+        if coastline_refs:
+            args.extend(['--exclude-coastline-areas', ','.join(coastline_refs)])
         if request_body.get('noBorders', False):
             args.append('--no-borders')
         if not request_body.get('hideLocationMarker', False) and not request_body.get('multipartMode', False) and 'marker1' in request_body:
@@ -949,9 +1008,10 @@ def upload_secondary_assets(bucket, name_base, svg_path, pdf_path, stl_ways_path
     for key, path, content_type in uploads:
         upload_blob_from_path(key, path, content_type)
 
-def run_map_desc(raw_meta_path, profile=None):
+def run_map_desc(raw_meta_path, profile=None, excluded_poi_refs=None):
     import map_desc
-    map_desc.run_map_desc(raw_meta_path, profile=profile)
+    map_desc.run_map_desc(raw_meta_path, profile=profile,
+                          excluded_poi_refs=excluded_poi_refs)
 
 
 def init_main_context():
@@ -1192,6 +1252,16 @@ def main():
             ctx['status'] = 'idle'
             return
         ctx['request_body']['contentMode'] = normalize_content_mode(ctx['request_body'].get('contentMode'))
+        new_filter_refs = ctx['request_body'].get('excludedFeatures', [])
+        if not isinstance(new_filter_refs, list):
+            new_filter_refs = []
+        if ctx['request_body'].get('filterSourceRequestId'):
+            ctx['request_body']['contentFilterBaseRequestId'] = ctx['request_body']['filterSourceRequestId']
+            ctx['request_body']['contentFilterExcludedFeatures'] = list(new_filter_refs)
+        ctx['request_body']['excludedPoiFeatures'] = sorted(set(
+            ref for ref in new_filter_refs
+            if isinstance(ref, str) and re.match(r'^poi:(node|way|relation):[0-9]+$', ref)
+        ))
         if ctx['request_body']['contentMode'] == 'only-big-roads':
             ensure_request_target_road_density(ctx['request_body'])
         else:
@@ -1212,7 +1282,7 @@ def main():
         ctx['name_base'] = ctx['map_object_name'][:-4]
         bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
         write_status_info_json(ctx, STATUS_PROGRESS_SEEN)
-        osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir)
+        osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir, bucket)
         if osm_result is None:
             raise Exception("OSM path not available")
         (
@@ -1225,6 +1295,12 @@ def main():
             osm_fetch_provider,
             osm_fetch_endpoint
         ) = osm_result
+        try:
+            store_filter_source(bucket, ctx['request_id'], osm_path)
+            ctx['request_body']['contentFilterAvailable'] = True
+        except Exception as filter_source_error:
+            print('Filter source storage failed: {}'.format(filter_source_error))
+            ctx['request_body']['contentFilterAvailable'] = False
         ctx['osm_fetched_bytes'] = fetched_osm_bytes
         ctx['osm_pruned_bytes'] = pruned_osm_bytes
         prune_mode_key = 'named' if ctx['request_body']['contentMode'] == 'only-named-roads' else 'big'
@@ -1253,7 +1329,8 @@ def main():
         ctx['current_stage'] = 'map-desc'
         map_desc_start_time = time_clock()
         log_progress('map-desc-start')
-        run_map_desc(raw_meta_path, profile={})
+        run_map_desc(raw_meta_path, profile={},
+                     excluded_poi_refs=ctx['request_body']['excludedPoiFeatures'])
         ctx['timing_map_desc_seconds'] = duration_since(map_desc_start_time)
         log_progress('map-desc-done')
         track_process_rss_kib(ctx)

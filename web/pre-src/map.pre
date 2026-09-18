@@ -416,7 +416,11 @@ window.TM = { translations: {
   "map_content_osm_value_roof_building": "{{ map_content_osm_value_roof_building }}",
   "map_content_osm_value_public_building": "{{ map_content_osm_value_public_building }}",
   "map_content_osm_value_garages_building": "{{ map_content_osm_value_garages_building }}",
-  "map_content_osm_value_yes": "{{ map_content_osm_value_yes }}"
+  "map_content_osm_value_yes": "{{ map_content_osm_value_yes }}",
+  "filter_content_include": "{{ filter_content_include }}",
+  "filter_content_error": "{{ filter_content_error }}",
+  "filter_content_progress": "{{ filter_content_progress }}",
+  "filter_content_apply": "{{ filter_content_apply }}"
 } };
 </script>
 
@@ -525,6 +529,12 @@ window.TM = { translations: {
 
   <div class="map-description map-content-row">
     <h3>{{ map_content_heading }}</h3>
+    <button type="button" id="filter-map-content" hidden>{{ filter_content_open }}</button>
+    <div class="map-content-filter-controls" hidden>
+      <p>{{ filter_content_instruction }}</p>
+      <p class="map-content-filter-preview-note">{{ filter_content_preview_note }}</p>
+      <p class="map-content-filter-error" role="alert" hidden></p>
+    </div>
     <div class="map-content">
       <div class="map-content-summary-block">
         <ul class="map-content-summary"></ul>
@@ -589,6 +599,10 @@ window.TM = { translations: {
         </div>
       </div>
     </div>
+    <div class="map-content-filter-actions" hidden>
+      <button type="button" id="apply-map-content-filter" disabled>{{ filter_content_apply }}</button>
+      <button type="button" id="cancel-map-content-filter">{{ filter_content_cancel }}</button>
+    </div>
   </div>
 
   <div class="no-data-available-msg" style="display: none">
@@ -599,3 +613,4 @@ window.TM = { translations: {
     <a class="back-to-previous-page" href="area">{{ back_to_area }}</a>
   </div>
 </div>
+<script src="../scripts/content-filter.js"></script>

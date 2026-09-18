@@ -73,6 +73,7 @@ amounts).
   "attrs": {
     "dataOsmId": "optional string",
     "dataUnnamedSurface": "optional string",
+    "filterRefs": ["way:123", "poi:node:456"],
     "initiallyHidden": "optional boolean"
   },
   "lines": ["LineModel"]
@@ -85,6 +86,8 @@ Notes:
 - `type="message"` is used for section-level fallback text items.
 - `attrs.initiallyHidden=true` marks building items hidden behind the
   show-more toggle in initial state.
+- `attrs.filterRefs` lists the filter identities represented by a selectable result-page entry. Aggregated entries contain every contributing identity. Ordinary features use `node:<id>`, `way:<id>`, or `relation:<id>`. `poi:` references suppress text-only POI entries during metadata grouping while retaining any shared physical object. Empty messages and non-feature notes have no filter references.
+- Generated coastal water areas use `coastline:<sha256>` rather than their synthetic OSM relation ID. OSM2World writes their `filterRefs` into raw area metadata; metadata enrichment and the final `map-content.json` area items preserve it, and the UI uses it in preference to `osmType`/`osmId`. The hash covers sorted, undirected polygon edges with outer/inner roles, so ring ordering and synthetic IDs do not affect identity. These references refer to the retained source geometry and are applied during OSM2World map creation before rendering.
 
 ## `LineModel`
 

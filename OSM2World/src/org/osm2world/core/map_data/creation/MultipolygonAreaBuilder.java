@@ -13,6 +13,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import org.openstreetmap.josm.plugins.graphview.core.data.MapBasedTagGroup;
 import org.openstreetmap.josm.plugins.graphview.core.data.Tag;
@@ -608,7 +611,17 @@ final class MultipolygonAreaBuilder {
 						new Tag("type", "multipolygon"), new Tag("natural", "water")),
 						highestRelationId + 1, 0);
 				
-				return buildPolygonsFromRings(relation, closedRings);
+				Collection<MapArea> areas = buildPolygonsFromRings(relation, closedRings);
+				String exclusions = System.getenv("TOUCH_MAPPER_EXCLUDED_COASTLINE_AREAS");
+				List<String> excluded = exclusions == null ? Collections.<String>emptyList()
+						: asList(exclusions.split(","));
+				List<MapArea> retained = new ArrayList<MapArea>();
+				for (MapArea area : areas) {
+					String ref = coastlineFilterRef(area);
+					area.setContentFilterRef(ref);
+					if (!excluded.contains(ref)) retained.add(area);
+				}
+				return retained;
 				
 			}
 			
@@ -616,6 +629,35 @@ final class MultipolygonAreaBuilder {
 		
 		return emptyList();
 		
+	}
+
+	/** Identify a generated water polygon independently of synthetic IDs or ring order. */
+	private static String coastlineFilterRef(MapArea area) {
+		List<String> edges = new ArrayList<String>();
+		addFilterEdges(edges, "outer", area.getBoundaryNodes());
+		for (List<MapNode> hole : area.getHoles()) addFilterEdges(edges, "inner", hole);
+		Collections.sort(edges);
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			for (String edge : edges) digest.update((edge + "\n").getBytes(StandardCharsets.UTF_8));
+			StringBuilder ref = new StringBuilder("coastline:");
+			for (byte value : digest.digest()) ref.append(String.format("%02x", value & 0xff));
+			return ref.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	/** Canonical undirected edges keep identities stable when a ring is reversed or rotated. */
+	private static void addFilterEdges(List<String> edges, String role, List<MapNode> nodes) {
+		for (int i = 1; i < nodes.size(); i++) {
+			VectorXZ a = nodes.get(i - 1).getPos();
+			VectorXZ b = nodes.get(i).getPos();
+			String first = Double.toString(a.x) + "," + Double.toString(a.z);
+			String second = Double.toString(b.x) + "," + Double.toString(b.z);
+			edges.add(role + ":" + (first.compareTo(second) <= 0
+					? first + ":" + second : second + ":" + first));
+		}
 	}
 
 	private static final List<LineSegmentXZ> getSidesClockwise(

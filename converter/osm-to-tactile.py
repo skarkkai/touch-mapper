@@ -72,6 +72,8 @@ def do_cmdline():
     parser.add_argument('--size', metavar='CM', type=float, required=True, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
     parser.add_argument('--exclude-buildings', action='store_true', help="don't include buildings")
+    parser.add_argument('--exclude-coastline-areas', default='',
+                        help='Comma-separated stable references of generated coastal areas to exclude')
     args = parser.parse_args()
     return args
 
@@ -85,7 +87,8 @@ def _parse_int_env(name, fallback):
         return fallback
 
 
-def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry):
+def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
+                  excluded_coastline_areas=''):
     # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     #print(osm2world_path + " " + input_path + " " + output_path)
@@ -104,7 +107,8 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry):
         env={
             'TOUCH_MAPPER_SCALE': str(scale),
             'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5',
-            'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false')
+            'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false'),
+            'TOUCH_MAPPER_EXCLUDED_COASTLINE_AREAS': excluded_coastline_areas
         },
         output_log_path=osm2world_log_path,
         depth_offset=0
@@ -225,7 +229,8 @@ def main():
     # Run OSM2World
     obj_path = input_basename + '.obj'
     osm2world_stage = telemetry.start_stage('run-osm2world', component='run-osm2world')
-    meta, osm2world_rss_kib = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings, telemetry)
+    meta, osm2world_rss_kib = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings, telemetry,
+                                         args.exclude_coastline_areas)
     telemetry.end_stage(osm2world_stage, own_max_rss_kib=osm2world_rss_kib)
     boundary = meta.get('meta', {}).get('boundary')
     if boundary is None:

@@ -165,6 +165,13 @@ rebuild the local UI and verify the preview responds. Do not stop the preview
 server during cleanup. End completion reports with a clickable link to
 `http://127.0.0.1:9000/en/` when changes have been made available there. Follow `doc/development-setup.md` for local preview commands.
 
+The full offline regression (`make test-regression-full`) and standalone browser
+smoke (`bash test/e2e/run-offline-map-smoke.sh`) use a local HTTP preview on
+`127.0.0.1:9000`. In a socket-restricted agent sandbox, invoke either command
+with `exec_command`'s `sandbox_permissions: "require_escalated"` **on the first
+attempt**. The same applies when starting or checking the preview directly.
+The quick `make test-regression` suite does not need socket access.
+
 ## Docs index
 
 - `doc/development-conventions.md`: coding conventions, web/i18n details, Python guidelines.

@@ -18,6 +18,7 @@ if ! curl -fsS --max-time 2 http://127.0.0.1:9000/en/ >/dev/null 2>&1; then
 fi
 if ! curl -fsS --max-time 2 http://127.0.0.1:9000/en/ >/dev/null; then
   echo "Local preview failed to start; see $repo_root/.tmp/e2e/local-preview.log" >&2
+  echo 'If running in a socket-restricted agent sandbox, invoke this entire command with exec_command sandbox_permissions: "require_escalated" (also required for make test-regression-full).' >&2
   exit 1
 fi
 NODE_PATH="$runtime_dir/node_modules" node "$repo_root/test/e2e/offline-map-smoke.js"

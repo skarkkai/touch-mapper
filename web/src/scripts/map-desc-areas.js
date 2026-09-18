@@ -1307,6 +1307,9 @@
     if (attrs.dataOsmId !== undefined && attrs.dataOsmId !== null) {
       listItem.attr("data-osm-id", String(attrs.dataOsmId));
     }
+    if (attrs.filterRefs && attrs.filterRefs.length) {
+      listItem.attr("data-filter-refs", JSON.stringify(attrs.filterRefs));
+    }
     if (attrs.initiallyHidden) {
       listItem.attr("data-initially-hidden", "true");
     }
@@ -1431,6 +1434,14 @@
     return Number(percent) || 0;
   }
 
+  function groupFilterRefs(group) {
+    return (group && Array.isArray(group.items) ? group.items : []).filter(function(item){
+      return item && item.osmId !== undefined && item.osmId !== null;
+    }).reduce(function(refs, item){
+      return refs.concat(item.filterRefs || [(item.osmType || "way") + ":" + item.osmId]);
+    }, []);
+  }
+
   function buildBuildingModel(group) {
     const primary = pickPrimaryItem(group);
     let labelSource = group && group.displayLabel;
@@ -1455,7 +1466,8 @@
     const item = {
       type: "building",
       attrs: {
-        dataIsNamed: isNamedForSummary
+        dataIsNamed: isNamedForSummary,
+        filterRefs: groupFilterRefs(group)
       },
       lines: []
     };
@@ -1656,7 +1668,8 @@
     const item = {
       type: "water_area",
       attrs: {
-        dataIsNamed: isNamed
+        dataIsNamed: isNamed,
+        filterRefs: groupFilterRefs(group)
       },
       lines: []
     };
@@ -1712,7 +1725,8 @@
     const item = {
       type: "water_area_summary",
       attrs: {
-        dataIsNamed: false
+        dataIsNamed: false,
+        filterRefs: summary.filterRefs
       },
       lines: []
     };
@@ -1787,13 +1801,15 @@
           coveragePercent: 0,
           locationText: locationText,
           firstIndex: index,
-          entries: []
+          entries: [],
+          filterRefs: []
         };
       }
       const bucket = unnamedBucketsByKey[locationKey];
       bucket.count += 1;
       bucket.coveragePercent += waterAreaCoveragePercent(entry);
       bucket.entries.push(entry);
+      bucket.filterRefs = bucket.filterRefs.concat(groupFilterRefs(entry.group));
       if (index < bucket.firstIndex) {
         bucket.firstIndex = index;
       }

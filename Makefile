@@ -16,6 +16,7 @@ test-regression:
 test-regression-full: test-regression
 	bash test/run-osm2world-regression.sh
 	python3 test/map-content/check-regression.py
+	python3 test/map-content/check-content-filter.py
 	$(MAKE) -C web build-offline
 	bash test/e2e/run-offline-map-smoke.sh
 

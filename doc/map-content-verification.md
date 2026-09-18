@@ -11,7 +11,11 @@ Use this workflow when changing converter map-description logic or related UI de
 - Run `make test-regression-full` for the OSM2World output snapshot, fixture
   pipeline, tactile STL/SVG/PDF checks, and one local Chromium browser flow.
   The full command is offline after the one-time Playwright installation
-  described below.
+  described below. In a socket-restricted agent sandbox, run this command with
+  `exec_command`'s `sandbox_permissions: "require_escalated"` from the first
+  invocation: its browser flow starts and connects to the local preview on
+  `127.0.0.1:9000`. Use the same permission for the standalone browser smoke
+  and local preview checks. The quick suite needs no socket access.
 - Cached geographic inspection command (requires previously downloaded OSM):
   - `node test/map-content/run-tests.js --category average --offline --jobs 1`
 - Prefer `simple`/`average` for routine checks.
@@ -24,6 +28,7 @@ Run with `--with-blender` to generate geometry regression snapshots in `test/map
 
 ## Content and language checks
 - Current UI grouping for linear features is roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
+- For result-page filtering, check that section tri-state controls include collapsed entries, aggregate entries carry all contributing OSM references, and a filtered rerun updates tactile output and descriptions from the same post-preset OSM source without another fetch. The editor should remain open after regeneration with removed entries still visible and unticked; checking one and applying again should restore it. The quick regression suite covers stored-source reuse and upstream exclusion; the offline browser smoke covers selection, request submission, and regenerated-result navigation.
 - If map content UI strings changed, inspect `simulated.txt` in each locale output for natural language quality.
 - For railway-related changes, verify rail-rich fixtures produce railway entries in both `normal` and `only-big-roads` modes.
 - For railway connectivity changes, verify railway junction/intersection narration is absent in simulated text output.
@@ -80,6 +85,16 @@ events for search, settings, Create, and description expansion. The application'
 own polling navigates to the result page, which must load the generated STL and
 show the expected description. The preview stays running at
 http://127.0.0.1:9000/en/.
+
+The full suite also runs `python3 test/map-content/check-content-filter.py`.
+It uses the production stored-source and conversion entry points to check road
+removal/restoration, retained lake geometry when a shared road is excluded, and
+independent exclusion/restoration of generated coastal water areas. Assertions
+cover description identities, actual STL surface heights, SVG polygons, and
+PDF generation. Artifacts remain in `.tmp/filter-regression/`; the browser smoke
+serves its original and regenerated road artifacts, and checks that selection
+controls stay disabled during regeneration and become available again on failure.
+Run this converter check before running the browser smoke alone.
 
 The three synthetic OSM inputs live in `test/map-content/fixtures/`:
 

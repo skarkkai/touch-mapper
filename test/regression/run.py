@@ -18,6 +18,7 @@ def main():
     checks = [
         ('Local preview routes', [sys.executable, str(REPO / 'test/regression/local_preview.py'), str(work)]),
         ('Named roads', [sys.executable, str(REPO / 'test/regression/named_roads.py'), str(work)]),
+        ('Content filtering', [sys.executable, str(REPO / 'test/regression/content_filter.py'), str(work)]),
         ('Big roads pruning', [sys.executable, str(REPO / 'test/regression/big_roads.py'), str(work)]),
         ('STL export geometry', [str(REPO / 'blender/blender'), '--background',
                                  '--factory-startup', '--threads', '1', '--python-exit-code', '1',

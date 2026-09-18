@@ -19,7 +19,8 @@ async function tabTo(page, selector) {
 
 async function main() {
   const repo = path.resolve(__dirname, '../..');
-  const pipeline = path.join(repo, 'test/map-content/out/regression-mixed/pipeline');
+  const pipeline = path.join(repo, '.tmp/filter-regression/road-original');
+  const filteredPipeline = path.join(repo, '.tmp/filter-regression/road-excluded');
   const content = JSON.parse(fs.readFileSync(path.join(pipeline, 'map-content.json')));
   const fixture = JSON.parse(fs.readFileSync(path.join(repo,
     'test/map-content/regression-tests.json'))).tests.find(test => test.category === 'regression-mixed').requestBody;
@@ -32,6 +33,10 @@ async function main() {
   page.setDefaultNavigationTimeout(15000);
   const errors = [];
   let request;
+  let filterRequest;
+  let filterAttempts = 0;
+  let releaseFilterRequest;
+  const filterRequestGate = new Promise(resolve => { releaseFilterRequest = resolve; });
   let stlFetched = false;
   let infoPolls = 0;
   page.on('pageerror', error => errors.push(String(error)));
@@ -61,13 +66,38 @@ async function main() {
       if (url.hostname === 'api.ipify.org') return respond({ip: '127.0.0.1'});
       if (url.hostname === 'queue.fixture.invalid') {
         assert.strictEqual(url.searchParams.get('Action'), 'SendMessage');
-        assert.strictEqual(request, undefined, 'Only one creation request is expected');
-        request = JSON.parse(url.searchParams.get('MessageBody'));
+        if (!request) request = JSON.parse(url.searchParams.get('MessageBody'));
+        else {
+          filterRequest = JSON.parse(url.searchParams.get('MessageBody'));
+          filterAttempts += 1;
+          if (filterAttempts === 1) return route.fulfill({status: 503, json: {},
+            headers: {'access-control-allow-origin': '*'}});
+          if (filterAttempts === 2) return filterRequestGate.then(() => respond({}));
+        }
         return respond({});
+      }
+      if (filterRequest && url.pathname.endsWith('/map/info/' + filterRequest.requestId.split('/')[0] + '.json')) {
+        return respond({...filterRequest, contentFilterAvailable: true,
+          contentFilterBaseRequestId: filterRequest.filterSourceRequestId,
+          contentFilterExcludedFeatures: filterRequest.excludedFeatures,
+          status: {progress: 100}});
       }
       if (request && url.pathname.endsWith('/map/info/' + request.requestId.split('/')[0] + '.json')) {
         infoPolls += 1;
-        return respond({...request, status: {progress: 100}});
+        return respond({...request, contentFilterAvailable: true, status: {progress: 100}});
+      }
+      if (filterRequest && url.hostname === 'fixture.invalid' &&
+          decodeURIComponent(url.pathname).startsWith('/map/data/' + filterRequest.requestId)) {
+        const suffix = decodeURIComponent(url.pathname).slice(('/map/data/' + filterRequest.requestId).length);
+        const resultPipeline = filterRequest.excludedFeatures.includes('way:101') ? filteredPipeline : pipeline;
+        if (suffix === '.map-content.json') {
+          return respond(JSON.parse(fs.readFileSync(path.join(resultPipeline, 'map-content.json'))));
+        }
+        const files = {'.stl': ['map.stl', 'application/sla'], '.svg': ['map.svg', 'image/svg+xml'],
+          '.pdf': ['map.pdf', 'application/pdf']};
+        if (files[suffix]) return route.fulfill({contentType: files[suffix][1],
+          body: fs.readFileSync(path.join(resultPipeline, files[suffix][0])),
+          headers: {'access-control-allow-origin': '*'}});
       }
       if (url.hostname === 'fixture.invalid' && request) {
         const prefix = '/map/data/' + request.requestId;
@@ -156,8 +186,92 @@ async function main() {
       const href = await page.locator('#' + id).getAttribute('href');
       assert.strictEqual(decodeURIComponent(new URL(href).pathname), '/map/data/' + request.requestId + extension);
     }
+    await tabTo(page, '#filter-map-content');
+    execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/e2e/offline-smoke']);
+    await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-entry-focus.png'), fullPage: true});
+    await page.keyboard.press('Enter');
+    const roadCheckbox = page.locator('.map-content-roads .map-content-filter-item').first();
+    const roadSection = page.locator('.map-content-roads-row .map-content-filter-section');
+    assert(await roadCheckbox.isChecked());
+    assert(await roadSection.isChecked());
+    assert(await page.locator('#apply-map-content-filter').isDisabled());
+    await roadCheckbox.uncheck();
+    assert(!(await roadSection.isChecked()));
+    assert(await roadSection.evaluate(element => element.indeterminate));
+    assert(await page.locator('#apply-map-content-filter').isEnabled());
+    await roadSection.check();
+    assert.strictEqual(await page.locator('.map-content-roads .map-content-filter-item:checked').count(), 2);
+    assert(await page.locator('#apply-map-content-filter').isDisabled());
+    await roadSection.uncheck();
+    await page.locator('.map-content-roads li').last().evaluate(element => { element.style.display = 'none'; });
+    assert.strictEqual(await page.locator('.map-content-roads .map-content-filter-item:checked').count(), 0);
+    await page.locator('.map-content-roads li').last().evaluate(element => { element.style.display = ''; });
+    await roadSection.check();
+    await roadCheckbox.uncheck();
+    await page.locator('#cancel-map-content-filter').click();
+    await page.locator('#filter-map-content').waitFor({state: 'visible'});
+    assert(await page.locator('#filter-map-content').isVisible());
+    assert.strictEqual(await page.locator('.map-content-filter-item').count(), 0);
+    await page.locator('#filter-map-content').click();
+    await page.locator('.map-content-roads .map-content-filter-item').first().waitFor();
+    assert.strictEqual(await page.locator('.map-content-roads .map-content-filter-item:checked').count(), 2);
+    await page.locator('.map-content-roads .map-content-filter-item').first().uncheck();
+    execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/e2e/offline-smoke']);
+    await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-desktop.png'), fullPage: true});
+    await page.setViewportSize({width: 390, height: 844});
+    await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-mobile.png'), fullPage: true});
+    await page.setViewportSize({width: 1280, height: 720});
+    await page.locator('#apply-map-content-filter').click();
+    await page.locator('.map-content-filter-error').waitFor({state: 'visible'});
+    assert(await page.locator('.map-content-roads .map-content-filter-item').first().isEnabled());
+    assert(await page.locator('.map-content-roads-row .map-content-filter-section').isEnabled());
+    assert(!(await page.locator('.map-content-roads .map-content-filter-item').first().isChecked()));
+    assert.strictEqual(decodeURIComponent(new URL(await page.locator('#download-map').getAttribute('href')).pathname),
+      '/map/data/' + request.requestId + '.stl');
+    await page.locator('#apply-map-content-filter').click();
+    assert(await page.locator('.map-content-roads .map-content-filter-item').last().isDisabled());
+    assert(await page.locator('.map-content-roads-row .map-content-filter-section').isDisabled());
+    assert(await page.locator('#apply-map-content-filter').isDisabled());
+    assert(await page.locator('#cancel-map-content-filter').isDisabled());
+    await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-busy.png'), fullPage: true});
+    releaseFilterRequest();
+    await page.waitForURL(url => new URL(url).searchParams.get('map') === filterRequest.requestId.split('/')[0]);
+    const firstFilteredRequestId = filterRequest.requestId;
+    assert.strictEqual(filterRequest.filterSourceRequestId, request.requestId);
+    assert.deepStrictEqual(filterRequest.excludedFeatures, ['way:101']);
+    assert.strictEqual(filterAttempts, 2);
+    await page.locator('.map-content-summary li').first().waitFor();
+    assert(!(await page.locator('.map-content-summary').innerText()).includes('Main Street'));
+    assert.strictEqual(decodeURIComponent(new URL(await page.locator('#download-map').getAttribute('href')).pathname),
+      '/map/data/' + filterRequest.requestId + '.stl');
+    await page.locator('.map-content-filter-item').first().waitFor();
+    assert((await page.locator('.map-content-roads').innerText()).includes('Main Street'));
+    assert(!(await page.locator('.map-content-roads .map-content-filter-item').first().isChecked()));
+    assert(await page.locator('.map-content-roads .map-content-filter-item').last().isChecked());
+    assert(await page.locator('.map-content-roads-row .map-content-filter-section').evaluate(
+      element => element.indeterminate));
+    assert(await page.locator('#apply-map-content-filter').isDisabled());
+    await page.locator('#cancel-map-content-filter').click();
+    await page.locator('.map-content-summary li').first().waitFor();
+    assert(!(await page.locator('.map-content-summary').innerText()).includes('Main Street'));
+    await page.locator('#filter-map-content').click();
+    await page.locator('.map-content-filter-item').first().waitFor();
+    assert(!(await page.locator('.map-content-roads .map-content-filter-item').first().isChecked()));
+    await page.locator('.map-content-roads .map-content-filter-item').first().check();
+    assert(await page.locator('#apply-map-content-filter').isEnabled());
+    await page.locator('#apply-map-content-filter').click();
+    await page.waitForURL(url => new URL(url).searchParams.get('map') === filterRequest.requestId.split('/')[0] &&
+      filterRequest.requestId !== firstFilteredRequestId);
+    assert.strictEqual(filterRequest.filterSourceRequestId, request.requestId);
+    assert.deepStrictEqual(filterRequest.excludedFeatures, []);
+    await page.locator('.map-content-filter-item').first().waitFor();
+    assert(await page.locator('.map-content-roads .map-content-filter-item').first().isChecked());
+    assert(await page.locator('#apply-map-content-filter').isDisabled());
+    await page.locator('#cancel-map-content-filter').click();
+    await page.locator('.map-content-summary li').first().waitFor();
+    assert((await page.locator('.map-content-summary').innerText()).includes('Main Street'));
     assert.deepStrictEqual(errors, []);
-    console.log('PASS offline keyboard search → settings → Create → polling → 3D result and description');
+    console.log('PASS offline creation and map-content filtering through regenerated result');
   } catch (error) {
     execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/e2e/offline-smoke']);
     await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/failure.png'), fullPage: true});

@@ -17,6 +17,63 @@
   padding: 0;
   font-weight: normal;
 }
+#filter-map-content {
+  display: block;
+  margin-left: 0;
+}
+.map-content-filter-controls,
+.map-content-filter-actions {
+  margin: .7em 0 1em;
+}
+.map-content-filter-preview-note {
+  color: #444;
+}
+.map-content-filter-actions button {
+  margin-right: .8em;
+  padding: 8px 14px;
+  height: auto;
+  line-height: normal;
+  border: 1px solid #4b6a34;
+  border-radius: 5px;
+  background: #84ff00;
+  color: #111;
+  cursor: pointer;
+}
+.map-content-filter-actions #cancel-map-content-filter {
+  background: #fff;
+  border-color: #406271;
+}
+.map-content-row.filtering .map-content-summary-block {
+  display: none;
+}
+.map-content-filter-actions button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+.map-content-filter-section,
+.map-content-filter-item {
+  margin-right: .5em !important;
+  vertical-align: baseline;
+}
+.map-content-filter-section + h4 {
+  display: inline-block;
+}
+.map-content-filter-item + h5 {
+  display: inline;
+}
+#filter-map-content:focus-visible,
+.map-content-filter-actions button:focus-visible,
+.map-content-filter-section:focus-visible,
+.map-content-filter-item:focus-visible {
+  outline: 3px solid #005fcc;
+  outline-offset: 2px;
+}
+.map-content-filter-controls[hidden],
+.map-content-filter-actions[hidden],
+#filter-map-content[hidden],
+.map-content-filter-error[hidden] {
+  display: none;
+}
 .map-description {
   padding-left: 1em;
 }
@@ -61,19 +118,27 @@
 .map-content .map-content-summary-item:last-child {
   margin-bottom: 0;
 }
-.map-content .map-content-summary-toggle {
+.map-content .map-content-summary-toggle,
+#filter-map-content {
   margin: 0 0 1em 1em;
   border: 1px solid #406271;
   border-radius: 6px;
   color: #1f2f36;
   background-color: #fff;
   padding: 4px 12px;
+  height: auto;
+  line-height: normal;
   cursor: pointer;
 }
-.map-content .map-content-summary-toggle:hover {
+#filter-map-content {
+  margin-left: 0;
+}
+.map-content .map-content-summary-toggle:hover,
+#filter-map-content:hover {
   background-color: #f4e9b2;
 }
-.map-content .map-content-summary-toggle:focus-visible {
+.map-content .map-content-summary-toggle:focus-visible,
+#filter-map-content:focus-visible {
   outline: 3px solid #005fcc;
   outline-offset: 2px;
 }
