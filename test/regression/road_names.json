@@ -1,0 +1,124 @@
+[
+  {
+    "tags": {},
+    "name": null
+  },
+  {
+    "tags": {
+      "name": "  "
+    },
+    "name": null
+  },
+  {
+    "tags": {
+      "name": "  Main Street  "
+    },
+    "name": "Main Street"
+  },
+  {
+    "tags": {
+      "name": " ",
+      "name:ja": "桜通り"
+    },
+    "name": "桜通り"
+  },
+  {
+    "tags": {
+      "name:zu": "Zulu",
+      "name:ar": "شارع"
+    },
+    "name": "شارع"
+  },
+  {
+    "tags": {
+      "loc_name": "Local",
+      "short_name": "Short"
+    },
+    "name": "Local"
+  },
+  {
+    "tags": {
+      "short_name": " Short "
+    },
+    "name": "Short"
+  },
+  {
+    "tags": {
+      "ref": "A1",
+      "official_name": "Official",
+      "alt_name": "Alternative"
+    },
+    "name": null
+  },
+  {
+    "tags": {
+      "name": "(unnamed)"
+    },
+    "name": "(unnamed)"
+  },
+  {
+    "tags": {
+      "name": "Main",
+      "name:fi": "Katu",
+      "name:fi-FI": "Regional"
+    },
+    "name": "Main",
+    "locale": "fi",
+    "localized": "Katu"
+  },
+  {
+    "tags": {
+      "name": "Main",
+      "name:pt-br": "Brasil",
+      "name:pt": "Portugal"
+    },
+    "name": "Main",
+    "locale": "pt-br",
+    "localized": "Brasil"
+  },
+  {
+    "tags": {
+      "name:ja": "桜通り"
+    },
+    "name": "桜通り",
+    "locale": "en",
+    "localized": "桜通り"
+  },
+  {
+    "tags": {
+      "name": "A & B <road>"
+    },
+    "name": "A & B <road>"
+  },
+  {
+    "tags": {
+      "name:de-ch": "Schweiz",
+      "name:de-at": "Österreich",
+      "name": "Default"
+    },
+    "name": "Default",
+    "locale": "de",
+    "localized": "Österreich"
+  },
+  {
+    "tags": {
+      "name": " ",
+      "name:ja": " ",
+      "short_name": "Short"
+    },
+    "name": "Short"
+  },
+  {
+    "tags": {
+      "name": "Real name [bridge]"
+    },
+    "name": "Real name [bridge]"
+  },
+  {
+    "tags": {
+      "name": null,
+      "name:zu": "isiZulu"
+    },
+    "name": "isiZulu"
+  }
+]

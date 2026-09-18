@@ -35,7 +35,8 @@ If `VERSION.txt` is missing/malformed, telemetry processing still succeeds and t
 
 Converter telemetry includes per-stage timing fields (seconds), including:
 
-- `timing_get_osm_seconds` (successful OSM fetch attempt only; excludes prior timed-out attempts and excludes only-big-roads pruning)
+- `timing_get_osm_seconds` (successful OSM fetch attempt only; excludes prior timed-out attempts and excludes simplified-mode pruning)
+- `timing_prune_only_named_roads_seconds` (runtime of the shared pruner when `content_mode=only-named-roads`, otherwise null)
 - `timing_prune_only_big_roads_seconds` (runtime of `prune-only-big-roads.js` when `content_mode=only-big-roads`, otherwise null)
 - `timing_map_desc_seconds`
 - `timing_upload_primary_seconds` (total for primary uploads: info JSON, map-content JSON, main STL)
@@ -49,7 +50,7 @@ OSM fetch source fields:
 
 Fetch policy notes:
 
-- All content modes (`normal`, `no-buildings`, `only-big-roads`) use randomized Overpass `map?bbox` endpoint attempts first, then OSM main API fallback.
+- All content modes (`normal`, `no-buildings`, `only-big-roads`, `only-named-roads`) use randomized Overpass `map?bbox` endpoint attempts first, then OSM main API fallback.
 
 ## Status polling and structured errors
 
@@ -75,6 +76,7 @@ RAM telemetry combines:
 - `rss_osm2world_kib`
 - `rss_blender_kib`
 - `rss_clip_2d_kib`
+- `rss_prune_only_named_roads_kib` (maximum subprocess RSS for named-roads pruning, otherwise null)
 - `rss_prune_only_big_roads_kib` (from `prune-only-big-roads.js` subprocess in `content_mode=only-big-roads`)
 - `rss_svg_to_pdf_kib` (from the CairoSVG subprocess used for SVG -> PDF conversion)
 - `rss_process_request_peak_kib` (peak VmRSS observed in `process-request.py` itself)
@@ -87,7 +89,7 @@ If timings JSON is missing/malformed or RSS is unavailable, fields are stored as
 Converter telemetry also stores two OSM file size fields (bytes):
 
 - `osm_fetched_bytes`: file size immediately after OSM fetch and before content filtering.
-- `osm_pruned_bytes`: file size after content-mode pruning/filtering (`no-buildings`, `only-big-roads`), or same as fetched size when no pruning is applied.
+- `osm_pruned_bytes`: file size after content-mode pruning/filtering (`no-buildings`, `only-big-roads`, `only-named-roads`), or same as fetched size when no pruning is applied.
 
 Structured error telemetry fields:
 

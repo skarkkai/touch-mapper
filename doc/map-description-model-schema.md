@@ -104,3 +104,28 @@ Notes:
 - `className` maps to the corresponding line-level CSS class in rendered UI.
 - `parts` preserves text segmentation and style classes for inline spans.
 - `wrap=false` means the text fragment is rendered as raw inline text (no span).
+
+
+## Road naming and content mode
+
+`metadata.requestBody.contentMode` accepts `normal`, `no-buildings`,
+`only-big-roads`, and `only-named-roads`. The named-roads mode is applied to OSM
+before geometry generation; descriptions must not filter features independently.
+
+Linear way records and their groups carry `isNamed` (boolean). Individual way
+records also carry `nameTags`, an object of trimmed, nonblank `name`, `name:*`,
+`loc_name`, and `short_name` values. `label` is the resolved name or null;
+`displayLabel` includes presentation modifiers. Consumers must not infer namedness
+from `displayLabel` or the `(unnamed)` placeholder. A literal name `(unnamed)` is valid.
+
+Default resolution: `name`, then any `name:*` value in ascending tag-key order,
+then `loc_name`, then `short_name`. Browser resolution first tries the UI locale,
+its base language, and a regional variant of that base language (ascending key
+order), then the default resolution. All languages qualify; `ref`, `alt_name`,
+`official_name`, and relation-only names do not. Blank values never prevent fallback.
+A grouped road uses a localized name only when every member resolves to the same
+name; otherwise its default group name is retained.
+
+The Python resolver is `converter/map_desc/road_names.py`; the JavaScript resolver
+is `converter/road-names.js`, included in the browser bundle by `web/build.js` and
+packaged with the converter. Shared regression fixtures verify parity.

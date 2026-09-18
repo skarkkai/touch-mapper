@@ -461,7 +461,7 @@
               {
                 "Name": "content_mode",
                 "Type": "string",
-                "Comment": "Selected content mode: normal, no-buildings, or only-big-roads."
+                "Comment": "Selected content mode: normal, no-buildings, only-big-roads, or only-named-roads."
               },
               {
                 "Name": "hide_location_marker",
@@ -527,6 +527,11 @@
                 "Name": "timing_prune_only_big_roads_seconds",
                 "Type": "double",
                 "Comment": "Elapsed seconds spent running prune-only-big-roads.js in content_mode=only-big-roads; null otherwise."
+              },
+              {
+                "Name": "timing_prune_only_named_roads_seconds",
+                "Type": "double",
+                "Comment": "Elapsed seconds spent running prune-only-big-roads.js in content_mode=only-named-roads; null otherwise."
               },
               {
                 "Name": "timing_map_desc_seconds",
@@ -597,6 +602,11 @@
                 "Name": "rss_prune_only_big_roads_kib",
                 "Type": "bigint",
                 "Comment": "Maximum RSS in KiB for prune-only-big-roads.js subprocess in content_mode=only-big-roads (/usr/bin/time -v)."
+              },
+              {
+                "Name": "rss_prune_only_named_roads_kib",
+                "Type": "bigint",
+                "Comment": "Maximum RSS in KiB for prune-only-big-roads.js subprocess in content_mode=only-named-roads (/usr/bin/time -v)."
               },
               {
                 "Name": "rss_svg_to_pdf_kib",

@@ -102,6 +102,7 @@
         <option value="normal">{{ content_mode_normal }}</option>
         <option value="no-buildings">{{ content_mode_no_buildings }}</option>
         <option value="only-big-roads">{{ content_mode_only_big_roads }}</option>
+        <option value="only-named-roads">{{ content_mode_only_named_roads }}</option>
       </select>
     </div>
   </div>

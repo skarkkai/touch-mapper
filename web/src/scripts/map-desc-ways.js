@@ -628,71 +628,16 @@
     return Math.max(0, number);
   }
 
-  function stripWayModifierSuffix(label) {
-    if (!label || typeof label !== "string") {
-      return label;
-    }
-    const trimmed = label.trim();
-    const match = trimmed.match(/^(.*)\s+\[([^\]]+)\]$/);
-    if (!match) {
-      return trimmed;
-    }
-    const rawBase = match[1] ? match[1].trim() : "";
-    const rawModifiers = match[2] ? match[2].trim() : "";
-    if (!rawBase || !rawModifiers) {
-      return trimmed;
-    }
-
-    const modifiers = rawModifiers.split(",").map(function(part){
-      return part.trim();
-    }).filter(Boolean);
-    if (!modifiers.length) {
-      return trimmed;
-    }
-
-    const allModifierTokens = modifiers.every(function(part){
-      return /^[a-z_]+(?:=-?\d+)?$/i.test(part);
-    });
-    if (!allModifierTokens) {
-      return trimmed;
-    }
-
-    const hasWayModifier = modifiers.some(function(part){
-      const key = part.split("=")[0].toLowerCase();
-      return key === "layer" ||
-        key === "tunnel" ||
-        key === "bridge" ||
-        key === "covered" ||
-        key === "ford" ||
-        key === "embankment" ||
-        key === "cutting";
-    });
-
-    return hasWayModifier ? rawBase : trimmed;
-  }
-
   function wayTitle(group) {
-    const label = stripWayModifierSuffix(group && group.displayLabel);
-    if (isUnnamedWayLabel(label)) {
-      return t("map_content_way_unnamed", "Unnamed way");
-    }
-    return capitalizeFirst(label);
+    const name = wayName(group);
+    return name === null ? t("map_content_way_unnamed", "Unnamed way") : capitalizeFirst(name);
   }
 
-  function isUnnamedWayLabel(label) {
-    if (!label || typeof label !== "string") {
-      return true;
-    }
-    const trimmed = stripWayModifierSuffix(label).trim();
-    return !trimmed || trimmed === "(unnamed)" || trimmed.indexOf("(unnamed)") === 0;
-  }
-
+  // Namedness is semantic metadata, independent of translated display labels.
   function wayName(group) {
-    const label = stripWayModifierSuffix(group && group.displayLabel);
-    if (isUnnamedWayLabel(label)) {
-      return null;
-    }
-    return label;
+    if (!group || group.isNamed === false) return null;
+    const label = typeof group.label === "string" ? group.label.trim() : "";
+    return label || null;
   }
 
   function singularSubclassType(subclassKey, fallbackName) {
@@ -870,7 +815,7 @@
       return null;
     }
     const trimmed = name.trim();
-    if (isUnnamedWayLabel(trimmed)) {
+    if (!trimmed) {
       return null;
     }
     return trimmed.toLowerCase();

@@ -117,7 +117,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--scale", type=int, default=1400, help="TOUCH_MAPPER_SCALE for OSM2World")
     parser.add_argument(
         "--content-mode",
-        choices=["normal", "no-buildings", "only-big-roads"],
+        choices=["normal", "no-buildings", "only-big-roads", "only-named-roads"],
         default="normal",
         help="Content mode for conversion. no-buildings maps to TOUCH_MAPPER_EXCLUDE_BUILDINGS=true.",
     )
@@ -325,6 +325,29 @@ def main() -> int:
     jar_path = ensure_paths(repo_root, osm_path)
     obj_path = out_dir / "map.obj"
     raw_meta_path = out_dir / "map-meta-raw.json"
+
+    # Exercise production upstream filtering without modifying the source fixture.
+    if args.content_mode in ("only-big-roads", "only-named-roads"):
+        import xml.etree.ElementTree as ET
+        import math
+        root = ET.parse(str(osm_path)).getroot()
+        bounds = root.find("bounds")
+        if bounds is None:
+            raise ValueError("Simplified-mode fixture requires OSM bounds")
+        south, north = float(bounds.attrib["minlat"]), float(bounds.attrib["maxlat"])
+        west, east = float(bounds.attrib["minlon"]), float(bounds.attrib["maxlon"])
+        span_m = max((north - south) * 111320, (east - west) * 111320 * math.cos(math.radians((north + south) / 2)))
+        filtered_path = out_dir / "filtered.osm"
+        run_cmd([
+            "node", str(repo_root / "converter/prune-only-big-roads.js"),
+            "--osm", str(osm_path), "--output", str(filtered_path),
+            "--content-mode", args.content_mode,
+            "--lon-min", str(west), "--lon-max", str(east),
+            "--lat-min", str(south), "--lat-max", str(north),
+            "--map-scale", str(args.scale), "--print-size-cm", str(args.size or span_m * 100 / args.scale),
+            "--target-road-density", "1.0",
+        ], cwd=repo_root)
+        osm_path = filtered_path
 
     osm2world_cmd = [
         "java",

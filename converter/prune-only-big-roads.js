@@ -2,6 +2,7 @@
 'use strict';
 
 const fs = require('fs');
+const roadNames = require('./road-names');
 
 const FLAG_ROAD = 1;
 const FLAG_WATER_AREA = 2;
@@ -57,7 +58,7 @@ const NON_TRACK_RAILWAY_VALUES = {
 function usage() {
   return [
     'Usage:',
-    '  prune-only-big-roads.js --osm <path> --lon-min <n> --lat-min <n> --lon-max <n> --lat-max <n> --print-size-cm <n> --map-scale <n> [--target-road-density <n>] [--output <path>]',
+    '  prune-only-big-roads.js --osm <path> --lon-min <n> --lat-min <n> --lon-max <n> --lat-max <n> --print-size-cm <n> --map-scale <n> [--target-road-density <n>] [--content-mode <only-big-roads|only-named-roads>] [--output <path>]',
   ].join('\n');
 }
 
@@ -72,6 +73,7 @@ function parseArgs(argv) {
     printSizeCm: null,
     mapScale: null,
     targetRoadDensity: 1.2,
+    contentMode: 'only-big-roads',
   };
 
   function takeValue(i) {
@@ -85,6 +87,9 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === '--osm') {
       out.osm = takeValue(i);
+      i += 1;
+    } else if (arg === '--content-mode') {
+      out.contentMode = takeValue(i);
       i += 1;
     } else if (arg === '--output') {
       out.output = takeValue(i);
@@ -117,6 +122,9 @@ function parseArgs(argv) {
     }
   }
 
+  if (!['only-big-roads', 'only-named-roads'].includes(out.contentMode)) {
+    throw new Error('Unsupported content mode: ' + out.contentMode);
+  }
   if (!out.osm) {
     throw new Error('--osm is required\n' + usage());
   }
@@ -1107,6 +1115,44 @@ function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, t
   }
 }
 
+// Keep named highways independently of density, with the existing water/rail policy.
+function selectNamedRoads(state, bounds) {
+  const count = state.wayIds.length;
+  state.keepWay = new Uint8Array(count);
+  state.keptRoadWay = new Uint8Array(count);
+  state.keptRailWay = new Uint8Array(count);
+  for (let i = 0; i < count; i += 1) {
+    const flags = state.wayFlags[i];
+    const tags = wayTagPairsToMap(state.wayTags[i]);
+    if ((flags & FLAG_ROAD) && roadNames.resolve(tags) && computeWayLengthMetersWithinBounds(state, i, bounds) > 0) {
+      state.keepWay[i] = state.keptRoadWay[i] = 1;
+    }
+    if (flags & FLAG_RAIL_TRACK) state.keepWay[i] = state.keptRailWay[i] = 1;
+    if (flags & FLAG_WATER_AREA) state.keepWay[i] = 1;
+  }
+}
+
+// Water boundary members can be retained for geometry without restoring excluded semantics.
+function cleanNamedModeTags(state) {
+  for (let i = 0; i < state.wayIds.length; i += 1) {
+    if (!state.keepWay[i]) continue;
+    state.wayTags[i] = state.wayTags[i].filter(function(pair) {
+      return pair[0] !== 'building' && pair[0].indexOf('building:') !== 0 &&
+        (state.keptRoadWay[i] || pair[0] !== 'highway');
+    });
+  }
+  for (let i = 0; i < state.relationIds.length; i += 1) {
+    state.relationTags[i] = state.relationTags[i].filter(function(pair) {
+      return pair[0] !== 'building' && pair[0].indexOf('building:') !== 0 && pair[0] !== 'highway';
+    });
+  }
+  for (let i = 0; i < state.nodeTags.length; i += 1) {
+    state.nodeTags[i] = (state.nodeTags[i] || []).filter(function(pair) {
+      return pair[0] !== 'building' && pair[0].indexOf('building:') !== 0;
+    });
+  }
+}
+
 // Step 4: Apply relation-driven keep logic.
 // Keep road relations that reference kept roads, keep water relations recursively,
 // and include relation-member ways/nodes needed by those kept relations.
@@ -1411,9 +1457,11 @@ async function run() {
 
   await firstPassCollectIndexes(state, args.osm);
   await secondPassLoadNodeCoordinates(state, args.osm);
-  thirdStepComputePruningDecision(state, bounds, args.printSizeCm, args.mapScale, args.targetRoadDensity);
+  if (args.contentMode === 'only-named-roads') selectNamedRoads(state, bounds);
+  else thirdStepComputePruningDecision(state, bounds, args.printSizeCm, args.mapScale, args.targetRoadDensity);
   const keepNodeFromRelations = fourthStepApplyRelationKeepLogic(state);
   fifthStepMarkKeptNodes(state, keepNodeFromRelations);
+  if (args.contentMode === 'only-named-roads') cleanNamedModeTags(state);
 
   const outputPath = args.output;
   const inplace = outputPath === args.osm;

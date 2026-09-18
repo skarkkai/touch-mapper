@@ -23,13 +23,14 @@ This document describes converter data flow and stage names used by code comment
 7. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions.
 
 ### OSM fetch mode notes
-- All content modes (`normal`, `no-buildings`, `only-big-roads`) use the same network fetch strategy:
+- All content modes (`normal`, `no-buildings`, `only-big-roads`, `only-named-roads`) use the same network fetch strategy:
   - randomized Overpass `xapi?map?bbox=` endpoint attempts first
   - OSM main API `api/0.6/map?bbox=` fallback last
 - Mode-specific behavior is applied after fetch:
   - `normal`: no local OSM content pruning.
   - `no-buildings`: local OSM filtering removes building features.
   - `only-big-roads`: local OSM pruning keeps major-road-focused content for tactile density/continuity.
+  - `only-named-roads`: local OSM filtering keeps highways with a nonblank `name`, any `name:*`, `loc_name`, or `short_name`, plus railway tracks and water areas. Named paths/service roads qualify; density is ignored. Buildings and standalone linear waterways are excluded. Water boundary members retain geometry without excluded highway/building tags. Naming is independent of UI language; see `map-description-model-schema.md`.
 
 ## Metadata stage names (must stay in sync)
 Any time you change these stages, keep this document and in-code stage comments synchronized.

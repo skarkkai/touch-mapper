@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""Serve the built UI locally, including extensionless page URLs."""
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+BUILD = REPO / 'web/build'
+
+
+class LocalHandler(SimpleHTTPRequestHandler):
+    # Serve the existing deployed browser configuration when a plain build has a dev stub.
+    def translate_path(self, path):
+        translated = Path(super().translate_path(path))
+        if translated == BUILD / 'scripts/environment.js':
+            deployed = REPO / 'web/dist/scripts/environment.js'
+            if deployed.is_file():
+                return str(deployed)
+        if not translated.exists() and not translated.suffix:
+            page = translated.with_suffix('.html')
+            if page.is_file():
+                return str(page)
+        return str(translated)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(BUILD), **kwargs)
+
+    def end_headers(self):
+        self.send_header('Cache-Control', 'no-store')
+        super().end_headers()
+
+
+if __name__ == '__main__':
+    print('Local UI: http://127.0.0.1:9000/en/ (existing configured backend)', flush=True)
+    ThreadingHTTPServer(('127.0.0.1', 9000), LocalHandler).serve_forever()

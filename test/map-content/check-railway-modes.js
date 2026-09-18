@@ -206,15 +206,19 @@ function main() {
 
   const normal = runScenario(repoRoot, osmPath, args.locale, "normal");
   const onlyBigRoads = runScenario(repoRoot, osmPath, args.locale, "only-big-roads");
+  const onlyNamedRoads = runScenario(repoRoot, osmPath, args.locale, "only-named-roads");
   const osmText = fs.readFileSync(osmPath, "utf8");
   const wayRailwayValueById = readWayRailwayValueById(osmText);
   assertRailwaySectionBackedByRailwayTags("normal", normal.mapContentPath, wayRailwayValueById);
   assertRailwaySectionBackedByRailwayTags("only-big-roads", onlyBigRoads.mapContentPath, wayRailwayValueById);
 
+  assertRailwaySectionBackedByRailwayTags("only-named-roads", onlyNamedRoads.mapContentPath, wayRailwayValueById);
+  const namedRailCount = sectionCount(onlyNamedRoads.mapDescriptionModel, "railways");
   const normalRailCount = sectionCount(normal.mapDescriptionModel, "railways");
   const onlyBigRoadsRailCount = sectionCount(onlyBigRoads.mapDescriptionModel, "railways");
   const trackRailwayWays = countTrackRailwayWaysInOsm(osmText);
   if (trackRailwayWays > 0) {
+    if (namedRailCount <= 0) throw new Error("Expected railways in named-roads mode");
     if (normalRailCount <= 0) {
       throw new Error("Expected railways in normal mode for track-rich OSM, got count=" + normalRailCount);
     }
@@ -224,7 +228,8 @@ function main() {
   }
 
   const normalConnections = collectConnectionSentences(normal.mapDescriptionModel);
-  const onlyBigRoadsConnections = collectConnectionSentences(onlyBigRoads.mapDescriptionModel);
+  const onlyBigRoadsConnections = collectConnectionSentences(onlyBigRoads.mapDescriptionModel)
+    .concat(collectConnectionSentences(onlyNamedRoads.mapDescriptionModel));
   const railwaySectionConnections =
     normalConnections.filter(function(hit) { return hit.section === "railways"; })
       .concat(onlyBigRoadsConnections.filter(function(hit) { return hit.section === "railways"; }));
@@ -240,7 +245,8 @@ function main() {
   process.stdout.write(
     "railway-mode-check OK: trackWays=" + trackRailwayWays +
     ", normal.railways=" + normalRailCount +
-    ", only-big-roads.railways=" + onlyBigRoadsRailCount + "\n"
+    ", only-big-roads.railways=" + onlyBigRoadsRailCount +
+    ", only-named-roads.railways=" + namedRailCount + "\n"
   );
 }
 

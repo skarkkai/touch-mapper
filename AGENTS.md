@@ -106,6 +106,7 @@ Map content is controlled only by UI modes:
 1. Normal
 2. No buildings
 3. Only big roads (includes water areas and railways)
+4. Only named roads (includes named paths, water areas and railways)
 
 ---
 
@@ -116,6 +117,7 @@ Always:
 - Scope changes tightly.
 - Preserve tactile meaning.
 - Update docs if behavior changes.
+- After changes affecting UI appearance, inspect screenshots of the affected views in the local preview. Check layout, spacing, wrapping, clipping, and visible focus; automated DOM assertions alone are insufficient. Follow `doc/map-content-verification.md`.
 - Add a small behavioral regression test for every bug fix or feature addition, and register it in the quick regression suite.
 - Run `make test-regression` before deploying to test or production; keep this suite offline and under 30 seconds.
 
@@ -155,6 +157,13 @@ Web i18n guardrail:
 Authoritative coding conventions: `doc/development-conventions.md`.
 
 ---
+
+## Local preview preference
+
+Keep `http://127.0.0.1:9000/en/` running after every work session. After web edits,
+rebuild the local UI and verify the preview responds. Do not stop the preview
+server during cleanup. End completion reports with a clickable link to
+`http://127.0.0.1:9000/en/` when changes have been made available there. Follow `doc/development-setup.md` for local preview commands.
 
 ## Docs index
 

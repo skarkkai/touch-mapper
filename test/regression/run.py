@@ -16,6 +16,8 @@ def main():
     subprocess.run([str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/regression'], check=True)
     work = Path(tempfile.mkdtemp(prefix='run-', dir=str(REPO / '.tmp/regression')))
     checks = [
+        ('Local preview routes', [sys.executable, str(REPO / 'test/regression/local_preview.py'), str(work)]),
+        ('Named roads', [sys.executable, str(REPO / 'test/regression/named_roads.py'), str(work)]),
         ('STL export geometry', [str(REPO / 'blender/blender'), '--background',
                                  '--factory-startup', '--threads', '1', '--python-exit-code', '1',
                                  '--python', str(REPO / 'test/regression/stl_exports.py'),

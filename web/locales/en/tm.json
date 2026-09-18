@@ -109,6 +109,7 @@
     "content_mode_normal": "Normal",
     "content_mode_no_buildings": "No buildings",
     "content_mode_only_big_roads": "Big roads, railways and water areas only",
+    "content_mode_only_named_roads": "Named roads, railways and water areas only",
     "target_road_density_ui": "Road retention",
     "target_road_density_ui_hint": "Higher number means more roads, default is 10",
     "location_marker": "Location marker",

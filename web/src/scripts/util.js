@@ -290,7 +290,7 @@ window.storeMapSettingsFromInfo = function(info) {
       return "normal";
     }
     var normalized = ("" + value).toLowerCase();
-    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads") {
+    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads" || normalized === "only-named-roads") {
       return normalized;
     }
     return "normal";
@@ -317,7 +317,7 @@ window.storeMapSettingsFromInfo = function(info) {
   var printingTech = getInfoValue(["printingTech", "printing_tech"], "3d");
   var contentMode = normalizeContentMode(getInfoValue(["contentMode"], "normal"));
   var targetRoadDensityUi = normalizeTargetRoadDensityUi(
-    getInfoValue(["targetRoadDensity", "target_road_density"], 10)
+    getInfoValue(["targetRoadDensity", "target_road_density"], getLocalStorageInt("target-road-density-ui", 10))
   );
   var hideLocationMarker = getInfoValue(["hideLocationMarker", "hide_location_marker"], false);
   var size = getInfoValue(["size"], undefined);

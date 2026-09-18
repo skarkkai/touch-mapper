@@ -366,7 +366,7 @@
         ? document.documentElement.lang.trim().toLowerCase()
         : "";
       if (docLang) {
-        return docLang.split("-")[0];
+        return docLang;
       }
       return null;
     }
@@ -404,7 +404,7 @@
       }
       for (let i = 0; i < candidates.length; i += 1) {
         const prefix = "name:" + candidates[i] + "-";
-        const keys = Object.keys(extraNames);
+        const keys = Object.keys(extraNames).sort();
         for (let j = 0; j < keys.length; j += 1) {
           const key = keys[j];
           if (typeof key === "string" && key.indexOf(prefix) === 0 &&
@@ -445,7 +445,9 @@
             return;
           }
           const extraNames = child.importanceTags && child.importanceTags.extraNames;
-          const localized = pickLocalizedName(extraNames, candidates);
+          const localized = child.nameTags
+            ? window.TMRoadNames.resolve(child.nameTags, candidates[0])
+            : pickLocalizedName(extraNames, candidates);
           if (localized) {
             labels.push(localized);
           }
@@ -468,7 +470,9 @@
         return;
       }
       const selfExtraNames = entity.importanceTags && entity.importanceTags.extraNames;
-      const localized = pickLocalizedName(selfExtraNames, candidates) || localizedNameFromChildren(entity, candidates);
+      const localized = entity.nameTags
+        ? window.TMRoadNames.resolve(entity.nameTags, candidates[0])
+        : pickLocalizedName(selfExtraNames, candidates) || localizedNameFromChildren(entity, candidates);
       if (!localized || localized === currentLabel) {
         return;
       }

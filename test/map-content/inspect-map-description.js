@@ -3,7 +3,6 @@
 "use strict";
 
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const vm = require("vm");
 const { spawnSync } = require("child_process");
@@ -60,7 +59,7 @@ function parseArgs(argv) {
   if (!args.out) {
     throw new Error("Missing required argument: --out <path-to-output.json>");
   }
-  if (["normal", "no-buildings", "only-big-roads"].indexOf(args.contentMode) === -1) {
+  if (["normal", "no-buildings", "only-big-roads", "only-named-roads"].indexOf(args.contentMode) === -1) {
     throw new Error("Invalid --content-mode value: " + args.contentMode);
   }
   return args;
@@ -101,7 +100,13 @@ function ensureFileExists(filePath, label) {
 function runPythonGenerator(repoRoot, osmPath, workDir, options) {
   const generatorPath = path.join(repoRoot, "test", "map-content", "generate-map-content-from-osm.py");
   ensureFileExists(generatorPath, "Python generator");
-  const outputDir = workDir || fs.mkdtempSync(path.join(os.tmpdir(), "tm-map-desc-"));
+  let outputDir = workDir;
+  if (!outputDir) {
+    const temporaryRoot = path.join(repoRoot, ".tmp", "map-description");
+    const created = spawnSync(path.join(repoRoot, "bin", "tmpctl"), ["mkdir", temporaryRoot], { encoding: "utf8" });
+    if (created.status !== 0) throw new Error(created.stderr || "Could not create inspection directory");
+    outputDir = fs.mkdtempSync(path.join(temporaryRoot, "inspect-"));
+  }
   fs.mkdirSync(outputDir, { recursive: true });
 
   const cmdArgs = [
@@ -155,6 +160,7 @@ function buildModels(repoRoot, mapContent, locale) {
 
   const sandbox = {
     window: {
+      location: { pathname: "/" + locale + "/map" },
       TM: {
         translations: localeData.localeDict
       }
@@ -169,6 +175,7 @@ function buildModels(repoRoot, mapContent, locale) {
   sandbox.globalThis = sandbox;
   const context = vm.createContext(sandbox);
 
+  loadScriptIntoContext(context, path.join(repoRoot, "converter", "road-names.js"));
   loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-desc-ways.js"));
   loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-desc-areas.js"));
   loadScriptIntoContext(context, path.join(repoRoot, "web", "src", "scripts", "map-desc-pois.js"));

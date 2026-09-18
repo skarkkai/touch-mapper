@@ -20,6 +20,7 @@ else:  # pragma: no cover - blender python may not have typing_extensions
             return dict
 
 from .map_desc_loc_segments import classify_location
+from .road_names import name_candidates, resolve_name
 
 MAX_ITEMS_PER_SUBCLASS = 10
 SAMPLE_TS = (0.0, 0.25, 0.5, 0.75, 1.0)
@@ -1021,18 +1022,7 @@ def _to_fixed(value: float, digits: int) -> str:
 
 
 def _get_name(tags: Optional[Dict[str, Any]]) -> Optional[str]:
-    # Prefer the most human-friendly name available in tags.
-    if not tags:
-        return None
-    return (
-        tags.get("name") or
-        tags.get("name:en") or
-        tags.get("name:fi") or
-        tags.get("name:sv") or
-        tags.get("loc_name") or
-        tags.get("short_name") or
-        None
-    )
+    return resolve_name(tags)
 
 
 def _tag_text(tags: Optional[Dict[str, Any]], key: str) -> Optional[str]:
@@ -1855,7 +1845,9 @@ def _summarize_linear_base(item: Dict[str, Any],
     summary = {
         "osmId": item.get("osmId"),
         "osmType": item.get("osmType"),
-        "label": name if name else None,
+        "label": name,
+        "isNamed": name is not None,
+        "nameTags": name_candidates(item.get("tags")),
         "displayLabel": (name if name else "(unnamed)") + mod_suffix,
         "visibleGeometry": visible_segments,
         "length": length
@@ -2112,7 +2104,7 @@ def _build_way_groups(items: List[Dict[str, Any]],
         add_timing("build-way-groups.summarize-linear-base", time.perf_counter() - summarize_start)
 
         display_label = base.get("displayLabel") or ""
-        is_unnamed = (base.get("label") is None) or display_label.startswith("(unnamed)")
+        is_unnamed = not base["isNamed"]
         if is_unnamed:
             key = display_label + "||" + str(base.get("osmType") or "") + ":" + str(base.get("osmId"))
         else:
@@ -2121,6 +2113,7 @@ def _build_way_groups(items: List[Dict[str, Any]],
         if not group:
             groups[key] = {
                 "label": base.get("label"),
+                "isNamed": base["isNamed"],
                 "displayLabel": display_label,
                 "totalLength": 0.0,
                 "totalArea": 0.0,

@@ -55,7 +55,7 @@ python3 test/map-content/generate-map-content-from-osm.py \
 Optional flags:
 
 - `--scale <int>`: OSM2World `TOUCH_MAPPER_SCALE` value (default `1400`)
-- `--content-mode <normal|no-buildings|only-big-roads>`: set content mode for conversion (`no-buildings` maps to `TOUCH_MAPPER_EXCLUDE_BUILDINGS=true`)
+- `--content-mode <normal|no-buildings|only-big-roads|only-named-roads>`: set content mode for conversion (`no-buildings` maps to `TOUCH_MAPPER_EXCLUDE_BUILDINGS=true`)
 - `TOUCH_MAPPER_TRIANGULATION_COLLINEAR_TOLERANCE_M=<float>` (env): floor-level triangulation simplification tolerance in meters (default `0.01`; set `0` to disable)
 - `--with-blender`: also run Blender tactile export and write `map.stl`, `map-ways.stl`, `map-rest.stl`, `map.svg`, `map.blend`, pre-modification wireframe-overlay render `map-wireframe-flat.png`, and post-modification wireframe-overlay render `map-wireframe.png` into `--out-dir`
   - also writes `map-clip-report.json` from the `clip-2d` stage
@@ -144,3 +144,5 @@ From `test/map-content/`:
 - Use `complex` primarily for performance profiling and hotspot analysis.
 - Typical quick validation command:
   - `node test/map-content/run-tests.js --category average --offline --jobs 1`
+
+Simplified modes run the production streaming filter into `filtered.osm` in the output directory before OSM2World. Input fixtures remain unchanged. OSM bounds are required; print size defaults to the bounds span at the requested scale.

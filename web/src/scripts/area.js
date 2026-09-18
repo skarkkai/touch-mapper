@@ -75,7 +75,8 @@ function initInputs(outputs, osmDragPanInteraction) {
   var VALID_CONTENT_MODES = {
     "normal": true,
     "no-buildings": true,
-    "only-big-roads": true
+    "only-big-roads": true,
+    "only-named-roads": true
   };
 
   function normalizeContentMode(value) {
@@ -317,7 +318,7 @@ function setParametersFromBlindSquare() {
       return null;
     }
     var normalized = ("" + value).toLowerCase();
-    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads") {
+    if (normalized === "normal" || normalized === "no-buildings" || normalized === "only-big-roads" || normalized === "only-named-roads") {
       return normalized;
     }
     return null;

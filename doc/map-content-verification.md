@@ -32,5 +32,17 @@ Required for POI/type-label/i18n changes:
 
 ## Browser level testing
 
+After changes affecting UI appearance, capture and visually inspect screenshots of the affected views in the local preview at `http://127.0.0.1:9000/en/`. Check layout, spacing, text wrapping, clipping, and visible keyboard focus against `doc/ui-visual-baseline.md`. Automated DOM assertions alone are insufficient. Store screenshots under `.tmp/` using `bin/tmpctl` to create artifact directories.
+
 Playwright UI validation can be run with `bash test/e2e/run-touch-mapper-settings-regression.sh`.
 The settings regression also verifies big-roads density visibility (shown only for `only-big-roads`) and value persistence across area -> map -> area navigation.
+
+
+Named-road checks are registered in `make test-regression`: shared Python/JS
+name fixtures, actual OSM filtering, request dispatch, and browser description
+semantics. Names in any input language must qualify, regardless of UI locale.
+Run `NODE_PATH=.tmp/e2e-playwright-runtime/node_modules node test/e2e/named-roads-settings.js http://127.0.0.1:9000` (using the existing Playwright runtime) against a local web build for settings,
+keyboard focus, absence of the removed explanation, retention persistence, request payload, and all-locale checks.
+Full conversion validation can use `generate-map-content-from-osm.py` with
+`--content-mode only-named-roads --with-blender --size 17 --diameter 238 --scale 1400`.
+Keep full conversions and browser tests outside the quick regression suite.

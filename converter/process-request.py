@@ -63,7 +63,7 @@ INSTRUMENTATION_ENABLED = (parse_env_bool(INSTRUMENTATION_ENV_VAR) is True)
 INFO_JSON_META_DENYLIST = {'nodes', 'ways', 'areas'}
 STATS_ENABLED = True
 STATS_QUICKTIME_MODE = False
-VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads'])
+VALID_CONTENT_MODES = set(['normal', 'no-buildings', 'only-big-roads', 'only-named-roads'])
 TARGET_ROAD_DENSITY_UI_MIN = 1.0
 TARGET_ROAD_DENSITY_UI_MAX = 100.0
 TARGET_ROAD_DENSITY_UI_DEFAULT = 10.0
@@ -581,12 +581,13 @@ def run_subprocess_with_max_rss_kib(cmd):
 
     return max_rss_kib
 
-def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
+# Apply simplified content selection before any geometry or description is generated.
+def prune_osm_file_for_simplified_mode_with_node(osm_path, request_body):
     eff_area = request_body['effectiveArea']
-    target_road_density_for_pruner = ensure_request_target_road_density(request_body) / TARGET_ROAD_DENSITY_DIVISOR
     cmd = [
         'node',
         os.path.join(script_dir, 'prune-only-big-roads.js'),
+        '--content-mode', ensure_request_content_mode(request_body),
         '--osm', osm_path,
         '--lon-min', str(eff_area['lonMin']),
         '--lat-min', str(eff_area['latMin']),
@@ -594,15 +595,20 @@ def prune_osm_file_for_only_big_roads_with_node(osm_path, request_body):
         '--lat-max', str(eff_area['latMax']),
         '--print-size-cm', str(request_body['size']),
         '--map-scale', str(request_body['scale']),
-        '--target-road-density', str(target_road_density_for_pruner),
     ]
+    if ensure_request_content_mode(request_body) == 'only-big-roads':
+        density = ensure_request_target_road_density(request_body) / TARGET_ROAD_DENSITY_DIVISOR
+        cmd.extend(['--target-road-density', str(density)])
     print("running: " + " ".join(cmd))
     return run_subprocess_with_max_rss_kib(cmd)
 
 def get_osm(request_body, work_dir):
     # TODO: verify the requested region isn't too large
     content_mode = ensure_request_content_mode(request_body)
-    ensure_request_target_road_density(request_body)
+    if content_mode == 'only-big-roads':
+        ensure_request_target_road_density(request_body)
+    else:
+        request_body.pop('targetRoadDensity', None)
     osm_path = '{}/map.osm'.format(work_dir)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
@@ -637,16 +643,16 @@ def get_osm(request_body, work_dir):
             fetch_attempt_seconds = duration_since(fetch_start_time)
             fetched_osm_bytes = os.path.getsize(osm_path)
             prune_rss_kib = None
-            prune_only_big_roads_seconds = None
-            if content_mode == 'only-big-roads':
+            prune_seconds = None
+            if content_mode in ('only-big-roads', 'only-named-roads'):
                 ensure_osm_size_limit(
                     actual_bytes=fetched_osm_bytes,
                     threshold_bytes=MAX_OSM_BYTES_ONLY_BIG_ROADS_BEFORE_PRUNE,
                     phase_text='before pruning'
                 )
                 prune_start_time = time_clock()
-                prune_rss_kib = prune_osm_file_for_only_big_roads_with_node(osm_path, request_body)
-                prune_only_big_roads_seconds = duration_since(prune_start_time)
+                prune_rss_kib = prune_osm_file_for_simplified_mode_with_node(osm_path, request_body)
+                prune_seconds = duration_since(prune_start_time)
                 pruned_osm_bytes = os.path.getsize(osm_path)
                 ensure_osm_size_limit(
                     actual_bytes=pruned_osm_bytes,
@@ -674,7 +680,7 @@ def get_osm(request_body, work_dir):
                 pruned_osm_bytes,
                 prune_rss_kib,
                 fetch_attempt_seconds,
-                prune_only_big_roads_seconds,
+                prune_seconds,
                 attempt.get('provider'),
                 attempt['url']
             )
@@ -981,6 +987,7 @@ def init_main_context():
         'main_start_time': None,
         'timing_get_osm_seconds': None,
         'timing_prune_only_big_roads_seconds': None,
+        'timing_prune_only_named_roads_seconds': None,
         'timing_map_desc_seconds': None,
         'timing_upload_primary_seconds': None,
         'timing_svg_to_pdf_seconds': None,
@@ -995,6 +1002,7 @@ def init_main_context():
         'rss_blender_kib': None,
         'rss_clip_2d_kib': None,
         'rss_prune_only_big_roads_kib': None,
+        'rss_prune_only_named_roads_kib': None,
         'rss_svg_to_pdf_kib': None,
         'rss_process_request_last_kib': None,
         'rss_process_request_peak_kib': None,
@@ -1108,6 +1116,7 @@ def build_stats_record(ctx):
         'osm_fetch_endpoint': ctx['osm_fetch_endpoint'],
         'timing_get_osm_seconds': ctx['timing_get_osm_seconds'],
         'timing_prune_only_big_roads_seconds': ctx['timing_prune_only_big_roads_seconds'],
+        'timing_prune_only_named_roads_seconds': ctx['timing_prune_only_named_roads_seconds'],
         'timing_map_desc_seconds': ctx['timing_map_desc_seconds'],
         'timing_upload_primary_seconds': ctx['timing_upload_primary_seconds'],
         'timing_svg_to_pdf_seconds': ctx['timing_svg_to_pdf_seconds'],
@@ -1122,6 +1131,7 @@ def build_stats_record(ctx):
         'rss_blender_kib': ctx['rss_blender_kib'],
         'rss_clip_2d_kib': ctx['rss_clip_2d_kib'],
         'rss_prune_only_big_roads_kib': ctx['rss_prune_only_big_roads_kib'],
+        'rss_prune_only_named_roads_kib': ctx['rss_prune_only_named_roads_kib'],
         'rss_svg_to_pdf_kib': ctx['rss_svg_to_pdf_kib'],
         'rss_process_request_peak_kib': ctx['rss_process_request_peak_kib'],
     }
@@ -1182,9 +1192,10 @@ def main():
             ctx['status'] = 'idle'
             return
         ctx['request_body']['contentMode'] = normalize_content_mode(ctx['request_body'].get('contentMode'))
-        ctx['request_body']['targetRoadDensity'] = normalize_target_road_density_ui(
-            ctx['request_body'].get('targetRoadDensity')
-        )
+        if ctx['request_body']['contentMode'] == 'only-big-roads':
+            ensure_request_target_road_density(ctx['request_body'])
+        else:
+            ctx['request_body'].pop('targetRoadDensity', None)
         ctx['request_id'] = ctx['request_body'].get('requestId')
         ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
         ctx['processing_start_time'] = time_clock()
@@ -1210,15 +1221,16 @@ def main():
             pruned_osm_bytes,
             prune_rss_kib,
             fetch_attempt_seconds,
-            prune_only_big_roads_seconds,
+            prune_seconds,
             osm_fetch_provider,
             osm_fetch_endpoint
         ) = osm_result
         ctx['osm_fetched_bytes'] = fetched_osm_bytes
         ctx['osm_pruned_bytes'] = pruned_osm_bytes
-        ctx['rss_prune_only_big_roads_kib'] = prune_rss_kib
+        prune_mode_key = 'named' if ctx['request_body']['contentMode'] == 'only-named-roads' else 'big'
+        ctx['rss_prune_only_{}_roads_kib'.format(prune_mode_key)] = prune_rss_kib
         ctx['timing_get_osm_seconds'] = fetch_attempt_seconds
-        ctx['timing_prune_only_big_roads_seconds'] = prune_only_big_roads_seconds
+        ctx['timing_prune_only_{}_roads_seconds'.format(prune_mode_key)] = prune_seconds
         ctx['osm_fetch_provider'] = osm_fetch_provider
         ctx['osm_fetch_endpoint'] = osm_fetch_endpoint
         log_progress('get-osm-done')

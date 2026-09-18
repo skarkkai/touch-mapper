@@ -109,6 +109,7 @@
     "content_mode_normal": "Normal",
     "content_mode_no_buildings": "Sin edificios",
     "content_mode_only_big_roads": "Solo carreteras grandes, ferrocarriles y áreas de agua",
+    "content_mode_only_named_roads": "Solo vías con nombre, ferrocarriles y áreas de agua",
     "target_road_density_ui": "Retención de carreteras",
     "target_road_density_ui_hint": "Un número mayor significa más carreteras, el valor predeterminado es 10",
     "location_marker": "Marcador de ubicación",

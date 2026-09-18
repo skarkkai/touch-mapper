@@ -22,6 +22,10 @@ function allowPluginErrors(plugin, pluginName) {
 }
 
 var metalsmith = Metalsmith(__dirname)
+    .use(function(files, metalsmith, done) {
+        files['scripts/road-names.js'] = { contents: fs.readFileSync(path.join(__dirname, '../converter/road-names.js')) };
+        done();
+    })
     .use(ignore([
         '**/*~',
         '**/*.js.prod',
@@ -63,7 +67,7 @@ var metalsmith = Metalsmith(__dirname)
         useDynamicSourceMap: true,
     }))
     .use(concat({
-        files: ['**/util.js', '**/map-calc.js', '**/model-preview.js', '**/language.js',
+        files: ['**/road-names.js', '**/util.js', '**/map-calc.js', '**/model-preview.js', '**/language.js',
                 '**/email.js', '**/multipart-mode.js', '**/backbone-helpers.js', '**/map-creation.js',
                 '**/osm-preview.js', '**/map-desc-ways.js', '**/map-desc-areas.js', '**/map-desc-pois.js', '**/map-description.js' ],
         output: 'scripts/app-common.js'
