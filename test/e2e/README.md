@@ -1,4 +1,13 @@
-# UI Regression: Area Settings Persistence
+# Browser regression checks
+
+The normal offline smoke is included in `make test-regression-full`. It exercises
+keyboard search, settings, the real Create button, stubbed queue/polling responses,
+automatic result navigation, generated STL preview, map description and download
+links using Chromium. Setup and fixture coverage are documented in
+`doc/map-content-verification.md`. After generating the fixtures and building the
+web UI, run it alone with `bash test/e2e/run-offline-map-smoke.sh`.
+
+## Live settings persistence regression
 
 This end-to-end regression test automates the Touch Mapper UI flow:
 

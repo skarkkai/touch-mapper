@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='utf-8'?>
+<osm version="0.6" generator="TouchMapperRegression">
+  <bounds minlat="59.999931894901" maxlat="60.00206810509899" minlon="23.99986731834711" maxlon="24.004132681652887" />
+  <!--202 is a residential bridge between main-road segments; 205 is an unrelated residential road.-->
+  <node id="53" lat="60.0017" lon="24.0008" />
+  <node id="52" lat="60.0017" lon="24.0013" />
+  <node id="51" lat="60.00135" lon="24.0013" />
+  <node id="50" lat="60.00135" lon="24.0008" />
+  <node id="43" lat="60.0018" lon="24.0028" />
+  <node id="42" lat="60.0018" lon="24.0034" />
+  <node id="41" lat="60.00135" lon="24.0034" />
+  <node id="40" lat="60.00135" lon="24.0028" />
+  <node id="31" lat="60.00005" lon="24.0037" />
+  <node id="30" lat="60.00005" lon="24.0003" />
+  <node id="1" lat="60.001" lon="24.0001" />
+  <node id="2" lat="60.001" lon="24.0018" />
+  <node id="3" lat="60.001" lon="24.0022" />
+  <node id="4" lat="60.001" lon="24.0039" />
+  <node id="5" lat="59.999931894901" lon="24.002" />
+  <node id="6" lat="60.00206810509899" lon="24.002" />
+  <node id="7" lat="60.0003" lon="24.0005" />
+  <node id="8" lat="60.0017" lon="24.0005" />
+  <node id="9" lat="60.0003" lon="24.0035" />
+  <node id="10" lat="60.0017" lon="24.0035" />
+  <node id="11" lat="60.0002" lon="24.0012" />
+  <node id="12" lat="60.0008" lon="24.0012" />
+  <way id="201">
+    <nd ref="1" />
+    <nd ref="2" />
+    <tag k="highway" v="primary" />
+    <tag k="name" v="Main Axis" />
+  </way>
+  <way id="202">
+    <nd ref="2" />
+    <nd ref="3" />
+    <tag k="highway" v="residential" />
+    <tag k="name" v="Main Axis" />
+  </way>
+  <way id="203">
+    <nd ref="3" />
+    <nd ref="4" />
+    <tag k="highway" v="secondary" />
+    <tag k="name" v="Main Axis" />
+  </way>
+  <way id="204">
+    <nd ref="5" />
+    <nd ref="6" />
+    <tag k="highway" v="secondary" />
+    <tag k="name" v="Cross Road" />
+  </way>
+  <way id="205">
+    <nd ref="7" />
+    <nd ref="8" />
+    <tag k="highway" v="residential" />
+    <tag k="name" v="Local Lane" />
+  </way>
+  <way id="206">
+    <nd ref="9" />
+    <nd ref="10" />
+    <tag k="highway" v="service" />
+    <tag k="name" v="Service Lane" />
+  </way>
+  <way id="207">
+    <nd ref="11" />
+    <nd ref="12" />
+    <tag k="highway" v="footway" />
+    <tag k="name" v="Footway" />
+  </way>
+  <way id="209">
+    <nd ref="30" />
+    <nd ref="31" />
+    <tag k="railway" v="rail" />
+    <tag k="name" v="Harbor Line" />
+  </way>
+  <way id="210">
+    <nd ref="40" />
+    <nd ref="41" />
+    <nd ref="42" />
+    <nd ref="43" />
+    <nd ref="40" />
+    <tag k="natural" v="water" />
+    <tag k="name" v="Pond" />
+  </way>
+  <way id="211">
+    <nd ref="50" />
+    <nd ref="51" />
+    <nd ref="52" />
+    <nd ref="53" />
+    <nd ref="50" />
+    <tag k="building" v="yes" />
+    <tag k="name" v="Depot" />
+  </way>
+</osm>

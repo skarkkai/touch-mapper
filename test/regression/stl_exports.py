@@ -49,6 +49,31 @@ def check_scene(exporter, work, names):
     assert full == expected_ways + expected_rest == ways + rest
 
 
+def check_transformed_measurement(exporter, repo, work):
+    """A local-coordinate inspector would report +/-1 for this translated cube."""
+    spec = importlib.util.spec_from_file_location(
+        'geometry_inspector', os.path.join(repo, 'test/map-content/inspect-geometry.py'))
+    assert spec is not None and spec.loader is not None
+    inspector = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(inspector)
+    bpy.ops.object.select_all(action='SELECT')
+    bpy.ops.object.delete()
+    bpy.ops.mesh.primitive_cube_add()
+    cube = bpy.context.active_object
+    cube.name = 'Base'
+    cube.location = (14, 28, 1.4)
+    cube.scale = (14, 28, 0.42)
+    measured = inspector.measure_scene(1400)['Base']
+    expected = {'min': (0, 0, 0.7), 'max': (20, 40, 1.3)}
+    base = os.path.join(work, 'transformed')
+    exporter.export_stl(base, 1400)
+    vertices = [vertex for triangle in triangles(base + '.stl') for vertex in triangle]
+    for name, func in [('min', min), ('max', max)]:
+        for axis in range(3):
+            assert abs(measured[name][axis] - expected[name][axis]) < 1e-5
+            assert abs(func(v[axis] for v in vertices) - expected[name][axis]) < 1e-5
+
+
 # Flush traceback diagnostics before Blender's immediate error exit.
 def main():
     repo, work = sys.argv[sys.argv.index('--') + 1:]
@@ -59,7 +84,8 @@ def main():
     for names in [('TestRoads', 'TestRoadAreas', 'TestRails', 'Building', 'Base'),
                   ('Building', 'Base'), ('TestRoads', 'TestRoadAreas', 'TestRails')]:
         check_scene(exporter, work, names)
-    print('STL partition and empty-selection checks passed')
+    check_transformed_measurement(exporter, repo, work)
+    print('STL partition, empty selection, and transformed millimetre measurements passed')
 
 
 if __name__ == '__main__':

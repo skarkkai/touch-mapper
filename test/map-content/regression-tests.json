@@ -1,0 +1,65 @@
+{
+  "tests": [
+    {
+      "category": "regression-mixed",
+      "fixtureOsm": "fixtures/mixed.osm",
+      "requestBody": {
+        "contentMode": "normal",
+        "scale": 1400,
+        "size": 17,
+        "diameter": 238,
+        "effectiveArea": {
+          "latMin": 59.999931894901,
+          "latMax": 60.00206810509899,
+          "lonMin": 23.99986731834711,
+          "lonMax": 24.004132681652887
+        },
+        "lat": 60.001,
+        "lon": 24.002,
+        "hideLocationMarker": true,
+        "printingTech": "3d"
+      }
+    },
+    {
+      "category": "regression-no-buildings",
+      "fixtureOsm": "fixtures/no-buildings.osm",
+      "requestBody": {
+        "contentMode": "no-buildings",
+        "scale": 1400,
+        "size": 17,
+        "diameter": 238,
+        "effectiveArea": {
+          "latMin": 59.999931894901,
+          "latMax": 60.00206810509899,
+          "lonMin": 23.99986731834711,
+          "lonMax": 24.004132681652887
+        },
+        "lat": 60.001,
+        "lon": 24.002,
+        "hideLocationMarker": true,
+        "printingTech": "3d"
+      }
+    },
+    {
+      "category": "regression-big-roads",
+      "fixtureOsm": "fixtures/big-roads.osm",
+      "requestBody": {
+        "contentMode": "only-big-roads",
+        "targetRoadDensity": 1,
+        "scale": 1400,
+        "size": 17,
+        "diameter": 238,
+        "effectiveArea": {
+          "latMin": 59.999931894901,
+          "latMax": 60.00206810509899,
+          "lonMin": 23.99986731834711,
+          "lonMax": 24.004132681652887
+        },
+        "lat": 60.001,
+        "lon": 24.002,
+        "hideLocationMarker": true,
+        "printingTech": "3d"
+      }
+    }
+  ]
+}

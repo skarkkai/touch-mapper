@@ -8,6 +8,7 @@ structured map description models from UI code without rendering the page.
 1. `test/map-content/generate-map-content-from-osm.py`
    - runs OSM2World on a `.osm` file
    - runs `clip-2d` (when `--with-blender`) to produce grouped Blender `.ply` inputs
+   - runs Blender tactile conversion (when `--with-blender`) before metadata enrichment
    - runs `python3 -m converter.map_desc` on the generated `map-meta-raw.json`
    - emits generated file paths as JSON
 2. `test/map-content/inspect-map-description.js`
@@ -19,6 +20,7 @@ structured map description models from UI code without rendering the page.
    - runs category tests (`--category`) or the full suite (`--all`) in parallel
    - writes test artifacts to `test/map-content/out/<category>/`
    - prints and stores per-stage timing data
+   - `--suite regression-tests.json` uses checked-in offline OSM fixtures
 4. `test/map-content/tests.json`
    - defines test categories (`simple`, `average`, `complex`) using server-style `requestBody` payload fields
    - includes map bbox (`effectiveArea`) used for OSM fetching/caching
@@ -55,12 +57,13 @@ python3 test/map-content/generate-map-content-from-osm.py \
 Optional flags:
 
 - `--scale <int>`: OSM2World `TOUCH_MAPPER_SCALE` value (default `1400`)
-- `--content-mode <normal|no-buildings|only-big-roads|only-named-roads>`: set content mode for conversion (`no-buildings` maps to `TOUCH_MAPPER_EXCLUDE_BUILDINGS=true`)
+- `--content-mode <normal|no-buildings|only-big-roads|only-named-roads>`: apply the production request's local OSM filtering before conversion (`no-buildings` also sets `TOUCH_MAPPER_EXCLUDE_BUILDINGS=true` as in production)
 - `TOUCH_MAPPER_TRIANGULATION_COLLINEAR_TOLERANCE_M=<float>` (env): floor-level triangulation simplification tolerance in meters (default `0.01`; set `0` to disable)
-- `--with-blender`: also run Blender tactile export and write `map.stl`, `map-ways.stl`, `map-rest.stl`, `map.svg`, `map.blend`, pre-modification wireframe-overlay render `map-wireframe-flat.png`, and post-modification wireframe-overlay render `map-wireframe.png` into `--out-dir`
+- `--with-blender`: also run Blender tactile export and write `map.stl`, `map-ways.stl`, `map-rest.stl`, `map.svg`, `map.pdf`, `map.blend`, pre-modification wireframe-overlay render `map-wireframe-flat.png`, and post-modification wireframe-overlay render `map-wireframe.png` into `--out-dir`
   - also writes `map-clip-report.json` from the `clip-2d` stage
 - `--diameter <int>` and `--size <float>`: required when `--with-blender` is used
 - `--no-borders`: pass through to Blender export when `--with-blender` is used
+- `--target-road-density <number>`: UI road retention for `only-big-roads` (`1`–`100`, default `10`); the production request helper converts this to the pruner's internal density
 - `--marker1 <json>`: pass marker position JSON through to Blender export when `--with-blender` is used
 
 ## Notes

@@ -6,15 +6,18 @@ FORCE: ;
 osm2world:
 	cd OSM2World && ant clean jar
 
-.PHONY: test test-regression test-integration package test-install-ec2 test-restart prod-install-ec2
+.PHONY: test test-regression test-regression-full package test-install-ec2 test-restart prod-install-ec2
 
 test: test-regression
 
 test-regression:
 	python3 test/regression/run.py
 
-test-integration:
-	test/run-osm2world-regression.sh
+test-regression-full: test-regression
+	bash test/run-osm2world-regression.sh
+	python3 test/map-content/check-regression.py
+	$(MAKE) -C web build-offline
+	bash test/e2e/run-offline-map-smoke.sh
 
 dev-aws-install:
 	install/lambda-update.sh dev

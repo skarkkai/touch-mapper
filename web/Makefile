@@ -7,6 +7,12 @@ build: node_modules
 	node build.js
 	./create-env-js.sh $(ENVIRONMENT) >build/scripts/environment.js
 
+build-offline:
+	@test -d node_modules || { echo "web/node_modules is required for the offline build; run ./init.sh first" >&2; exit 1; }
+	./pre2src.py
+	rm -rf build
+	node build.js
+
 node_modules: package.json
 	npm install
 
@@ -17,4 +23,4 @@ watch:
 	make build
 	while true; do inotifywait -q -e close_write,moved_to,create build.js pre-src pre-src/* src/*.html src/styles/* src/scripts/* locales locales/*; echo doing; make build; done
 
-.PHONY: build
+.PHONY: build build-offline

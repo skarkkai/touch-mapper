@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -10,12 +12,27 @@ import sys
 import time
 from pathlib import Path
 from typing import Dict, List, TypedDict
+from types import ModuleType
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from converter.tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
+
+
+def load_request_helpers() -> ModuleType:
+    """Use production local filtering/PDF functions without requiring AWS clients."""
+    spec = importlib.util.spec_from_file_location(
+        "regression_request", str(REPO_ROOT / "converter/process-request.py"))
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    # The functions used here do not use boto3. Any accidental AWS call fails
+    # immediately because this module deliberately provides no client/resource.
+    with patch.dict(sys.modules, {"boto3": ModuleType("boto3")}):
+        spec.loader.exec_module(module)
+    return module
 
 class ClipOutputs(TypedDict):
     reportPath: str
@@ -115,11 +132,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--osm", required=True, help="Path to input .osm file")
     parser.add_argument("--out-dir", required=True, help="Directory for generated files")
     parser.add_argument("--scale", type=int, default=1400, help="TOUCH_MAPPER_SCALE for OSM2World")
+    parser.add_argument("--target-road-density", type=float, default=10,
+                        help="UI road retention (1–100), converted by production request code")
     parser.add_argument(
         "--content-mode",
         choices=["normal", "no-buildings", "only-big-roads", "only-named-roads"],
         default="normal",
-        help="Content mode for conversion. no-buildings maps to TOUCH_MAPPER_EXCLUDE_BUILDINGS=true.",
+        help="Apply production OSM filtering; no-buildings also enables OSM2World building exclusion.",
     )
     parser.add_argument(
         "--with-blender",
@@ -268,6 +287,8 @@ def run_blender_export(
         "-noaudio",
         "--factory-startup",
         "--background",
+        "--threads", "1",
+        "--python-exit-code", "1",
         "--python",
         str(obj_to_tactile_path),
         "--",
@@ -315,6 +336,7 @@ def main() -> int:
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
     from converter.map_desc import run_map_desc
+    request_helpers = load_request_helpers()
 
     osm_path = Path(args.osm).resolve()
     out_dir = Path(args.out_dir).resolve()
@@ -327,26 +349,29 @@ def main() -> int:
     raw_meta_path = out_dir / "map-meta-raw.json"
 
     # Exercise production upstream filtering without modifying the source fixture.
-    if args.content_mode in ("only-big-roads", "only-named-roads"):
+    if args.content_mode != "normal":
         import xml.etree.ElementTree as ET
         import math
         root = ET.parse(str(osm_path)).getroot()
         bounds = root.find("bounds")
         if bounds is None:
-            raise ValueError("Simplified-mode fixture requires OSM bounds")
+            raise ValueError("Content-mode fixture requires OSM bounds")
         south, north = float(bounds.attrib["minlat"]), float(bounds.attrib["maxlat"])
         west, east = float(bounds.attrib["minlon"]), float(bounds.attrib["maxlon"])
         span_m = max((north - south) * 111320, (east - west) * 111320 * math.cos(math.radians((north + south) / 2)))
         filtered_path = out_dir / "filtered.osm"
-        run_cmd([
-            "node", str(repo_root / "converter/prune-only-big-roads.js"),
-            "--osm", str(osm_path), "--output", str(filtered_path),
-            "--content-mode", args.content_mode,
-            "--lon-min", str(west), "--lon-max", str(east),
-            "--lat-min", str(south), "--lat-max", str(north),
-            "--map-scale", str(args.scale), "--print-size-cm", str(args.size or span_m * 100 / args.scale),
-            "--target-road-density", "1.0",
-        ], cwd=repo_root)
+        filtered_path.write_bytes(osm_path.read_bytes())
+        request = {
+            "contentMode": args.content_mode, "scale": args.scale,
+            "size": args.size or span_m * 100 / args.scale,
+            "targetRoadDensity": args.target_road_density,
+            "effectiveArea": {"lonMin": west, "lonMax": east, "latMin": south, "latMax": north},
+        }
+        with contextlib.redirect_stdout(sys.stderr):
+            if args.content_mode == "no-buildings":
+                request_helpers.filter_osm_file_for_no_buildings(str(filtered_path), request)
+            else:
+                request_helpers.prune_osm_file_for_simplified_mode_with_node(str(filtered_path), request)
         osm_path = filtered_path
 
     osm2world_cmd = [
@@ -378,13 +403,6 @@ def main() -> int:
         raise FileNotFoundError(f"OSM2World did not produce expected file: {raw_meta_path}")
     rewrite_json(raw_meta_path, pretty_json)
 
-    map_desc_start = _stage_start(log_prefix, "run-map-desc")
-    map_desc_profile: Dict[str, float] = {}
-    run_map_desc(str(raw_meta_path), profile=map_desc_profile, pretty_json=pretty_json)
-    for key, value in sorted(map_desc_profile.items()):
-        timings["run-map-desc." + key] = value
-    timings["run-map-desc"] = _stage_done(log_prefix, "run-map-desc", map_desc_start)
-
     clip_outputs: ClipOutputs | None = None
     if args.with_blender:
         clip_start = _stage_start(log_prefix, "run-clip-2d")
@@ -396,6 +414,20 @@ def main() -> int:
         mesh_paths = clip_outputs["meshPaths"] if clip_outputs else []
         run_blender_export(repo_root, mesh_paths, raw_meta_path, out_dir / "map", args)
         timings["run-blender"] = _stage_done(log_prefix, "run-blender", blender_start)
+
+    # Follow production ordering: geometry first, then metadata enrichment.
+    map_desc_start = _stage_start(log_prefix, "run-map-desc")
+    map_desc_profile: Dict[str, float] = {}
+    run_map_desc(str(raw_meta_path), profile=map_desc_profile, pretty_json=pretty_json)
+    for key, value in sorted(map_desc_profile.items()):
+        timings["run-map-desc." + key] = value
+    timings["run-map-desc"] = _stage_done(log_prefix, "run-map-desc", map_desc_start)
+
+    if args.with_blender:
+        pdf_start = _stage_start(log_prefix, "run-svg-to-pdf")
+        with contextlib.redirect_stdout(sys.stderr):
+            request_helpers.svg_to_pdf(str(out_dir / "map.svg"), str(out_dir / "map.pdf"))
+        timings["run-svg-to-pdf"] = _stage_done(log_prefix, "run-svg-to-pdf", pdf_start)
 
     map_meta_path = out_dir / "map-meta.json"
     map_meta_augmented_path = out_dir / "map-meta.augmented.json"
@@ -414,6 +446,7 @@ def main() -> int:
             "mapWaysStlPath": str(out_dir / "map-ways.stl"),
             "mapRestStlPath": str(out_dir / "map-rest.stl"),
             "mapSvgPath": str(out_dir / "map.svg"),
+            "mapPdfPath": str(out_dir / "map.pdf"),
             "mapBlendPath": str(out_dir / "map.blend"),
             "mapWireframeFlatPath": str(out_dir / "map-wireframe-flat.png"),
             "mapWireframePath": str(out_dir / "map-wireframe.png"),

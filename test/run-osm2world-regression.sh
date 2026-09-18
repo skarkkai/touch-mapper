@@ -5,15 +5,16 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 data_dir="$repo_root/test/data"
-work_dir="$(mktemp -d "${TMPDIR:-/tmp}/tm-osm2world-test.XXXXXX")"
+"$repo_root/bin/tmpctl" mkdir .tmp/osm2world-regression
+work_dir="$(mktemp -d "$repo_root/.tmp/osm2world-regression/run.XXXXXX")"
 log_path="$work_dir/osm-to-tactile.stdout.log"
 test_ok=0
 
 cleanup() {
   if [[ "$test_ok" -eq 1 ]]; then
-    rm -rf "$work_dir"
+    "$repo_root/bin/tmpctl" rm "$work_dir"
   else
-    echo "Test failed; keeping temp dir: $work_dir" >&2
+    echo "Test failed; keeping artifacts: $work_dir" >&2
     echo "osm-to-tactile stdout: $log_path" >&2
   fi
 }
@@ -40,13 +41,13 @@ python3 "$repo_root/converter/osm-to-tactile.py" \
 
 json_pp < "$work_dir/map-meta.json" > "$work_dir/map-meta.indented.json"
 
-if ! diff -u "$data_dir/map.obj" "$work_dir/map.obj"; then
-  echo "map.obj differs from expected output." >&2
+if ! diff -q "$data_dir/map.obj" "$work_dir/map.obj"; then
+  echo "map.obj differs from expected output; compare with: diff -u '$data_dir/map.obj' '$work_dir/map.obj'" >&2
   exit 1
 fi
 
-if ! diff -u "$data_dir/map-meta.indented.json" "$work_dir/map-meta.indented.json"; then
-  echo "map-meta.json differs from expected output." >&2
+if ! diff -q "$data_dir/map-meta.indented.json" "$work_dir/map-meta.indented.json"; then
+  echo "map-meta.json differs from expected output; compare with: diff -u '$data_dir/map-meta.indented.json' '$work_dir/map-meta.indented.json'" >&2
   exit 1
 fi
 

@@ -16,7 +16,8 @@ function parseArgs(argv) {
     jobs: null,
     offline: false,
     keepExistingOut: false,
-    withBlender: false
+    withBlender: false,
+    suite: "tests.json"
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -46,10 +47,17 @@ function parseArgs(argv) {
       args.withBlender = true;
       continue;
     }
+    if (arg === "--suite") {
+      args.suite = argv[++i];
+      if (!args.suite || path.basename(args.suite) !== args.suite) {
+        throw new Error("--suite must be a file in test/map-content");
+      }
+      continue;
+    }
     throw new Error("Unknown argument: " + arg);
   }
   if (!args.all && args.categories.length === 0) {
-    throw new Error("Select categories with --all or one/more --category <simple|average|complex>");
+    throw new Error("Select cases with --all or one/more --category <name>");
   }
   if (args.jobs !== null && (!Number.isFinite(args.jobs) || args.jobs < 1)) {
     throw new Error("--jobs must be a positive integer");
@@ -410,6 +418,9 @@ function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, reques
   if (Number.isFinite(Number(requestBody.size))) {
     args.push("--size", String(Number(requestBody.size)));
   }
+  if (requestBody.targetRoadDensity !== undefined) {
+    args.push("--target-road-density", String(Number(requestBody.targetRoadDensity)));
+  }
   const marker1 = buildMarkerArg(requestBody);
   if (marker1) {
     args.push("--marker1", marker1);
@@ -467,6 +478,7 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
   const timings = {};
   const totalStart = Date.now();
 
+  const fixturePath = testDef.fixtureOsm && path.resolve(__dirname, testDef.fixtureOsm);
   const cacheDir = path.join(repoRoot, "test", "map-content", "cache", testCategory);
   const outDir = path.join(repoRoot, "test", "map-content", "out", testCategory);
   const sourceDir = path.join(outDir, "source");
@@ -484,7 +496,7 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
       fs.mkdirSync(sourceDir, { recursive: true });
       fs.mkdirSync(pipelineDir, { recursive: true });
       fs.mkdirSync(descriptionsDir, { recursive: true });
-      fs.mkdirSync(cacheDir, { recursive: true });
+      if (!fixturePath) fs.mkdirSync(cacheDir, { recursive: true });
     });
 
     const mapInfo = await runStage(testCategory, "fetch-map-info", timings, async function() {
@@ -492,15 +504,20 @@ async function runSingleTest(repoRoot, testDef, args, locales) {
         category: testDef.category,
         requestBody: testDef.requestBody
       };
-      writeJson(cacheMapInfoPath, info);
+      if (!fixturePath) writeJson(cacheMapInfoPath, info);
       writeJson(path.join(sourceDir, "map-info.json"), info);
       return info;
     });
 
     const sourceOsmPath = await runStage(testCategory, "fetch-map-osm", timings, async function() {
-      await fetchOsmToCache(cacheOsmPath, mapInfo.requestBody, args.offline);
       const sourcePath = path.join(sourceDir, "map.osm");
-      fs.copyFileSync(cacheOsmPath, sourcePath);
+      if (fixturePath) {
+        if (!fs.existsSync(fixturePath)) throw new Error("Missing OSM fixture: " + fixturePath);
+        fs.copyFileSync(fixturePath, sourcePath);
+      } else {
+        await fetchOsmToCache(cacheOsmPath, mapInfo.requestBody, args.offline);
+        fs.copyFileSync(cacheOsmPath, sourcePath);
+      }
       return sourcePath;
     });
 
@@ -624,7 +641,7 @@ function printSummary(results) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const testsPath = path.join(repoRoot, "test", "map-content", "tests.json");
+  const testsPath = path.join(repoRoot, "test", "map-content", args.suite);
   const testsFile = readJson(testsPath);
   const allTests = Array.isArray(testsFile.tests) ? testsFile.tests : [];
   const byCategory = {};
