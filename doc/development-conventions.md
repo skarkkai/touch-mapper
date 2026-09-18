@@ -65,3 +65,16 @@ This document collects day-to-day coding conventions for Touch Mapper.
 ## Setup references
 - See `doc/development-setup.md` for full local setup and web workflow.
 - `init.sh` installs system dependencies and builds `OSM2World`.
+
+## Regression testing requirement
+
+Every bug fix or feature addition must include a small test of observable behavior.
+Register it as a named command in `test/regression/run.py` so `make test-regression`
+runs it before test/production deployment. Prefer tiny deterministic fixtures and
+real local code paths; do not merely check that implementation text contains a flag.
+Keep the combined suite under 30 seconds. Do not add network calls, AWS operations,
+dependency installation, full map conversions, or live browser workflows to it.
+Use `.tmp/` and `bin/tmpctl` for artifacts, fail on missing dependencies, and return
+nonzero on failed assertions. Blender tests must remain Python 3.5 compatible and
+use `--python-exit-code` so assertion failures propagate to the runner.
+See `development-setup.md` for commands and deployment coverage.

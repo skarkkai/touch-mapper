@@ -197,7 +197,7 @@ def export_svg(base_path, args):
 
 def _export_stl(stl_path, scale):
     print("creating {stl}...".format(stl=stl_path))
-    bpy.ops.export_mesh.stl(filepath=stl_path, check_existing=False, \
+    bpy.ops.export_mesh.stl(filepath=stl_path, check_existing=False, use_selection=True, \
                             axis_forward='Y', axis_up='Z', global_scale=(1000 / scale))
 
 def export_stl(base_path, scale):

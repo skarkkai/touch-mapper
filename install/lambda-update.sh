@@ -6,13 +6,18 @@
 
 set -e
 
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-
 if [[ $# != 1 ]]; then
     echo "Usage: $0 ENVIRONMENT"
     exit 1
 fi
 environment=$1
+
+# Validate local code before any deployment preparation or remote operation.
+if [[ "$environment" == test || "$environment" == prod ]]; then
+    make -C "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" test-regression
+fi
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 eval $( ./parameters.sh $environment )
 

@@ -6,7 +6,14 @@ FORCE: ;
 osm2world:
 	cd OSM2World && ant clean jar
 
-test: FORCE
+.PHONY: test test-regression test-integration package test-install-ec2 test-restart prod-install-ec2
+
+test: test-regression
+
+test-regression:
+	python3 test/regression/run.py
+
+test-integration:
 	test/run-osm2world-regression.sh
 
 dev-aws-install:
@@ -33,13 +40,16 @@ prod-web-s3-install:
 package:
 	install/package.sh
 
-test-install-ec2: package
+test-install-ec2: test-regression
+	install/package.sh
 	# First run: eval "$(ssh-agent -s)"; ssh-add .../ssh-key
 	# "tm-ec2" needs to be defined as a Host in ~/.ssh/config
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2:touch-mapper/test/dist/
 
-test-restart: package
+test-restart: test-regression
+	install/package.sh
 	ssh tm-ec2 touch-mapper/test/dist/ec2-restart-pollers.sh
 
-prod-install-ec2: package
+prod-install-ec2: test-regression
+	install/package.sh
 	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/

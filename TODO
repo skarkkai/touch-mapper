@@ -1,10 +1,4 @@
-Use base rank only for pruning roads, to hopefully get fewer gaps. not much else we can do.
-
-Show also train tracks in big-roads mode
-
 Alerting of increased error rates over a day, or usage drops over a week
-
-Don't fetch buildings in no-buildings mode
 
 Store timestamps as timestamp type in Athena (there is some planning conversation about this in codex)
 

@@ -8,6 +8,11 @@ if [[ $# != 1 ]]; then
 fi
 environment=$1
 
+# Validate local code before any deployment preparation or remote operation.
+if [[ "$environment" == test || "$environment" == prod ]]; then
+    make -C "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" test-regression
+fi
+
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ../web
 eval $( ../install/parameters.sh $environment )

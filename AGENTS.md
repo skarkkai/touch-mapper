@@ -116,6 +116,8 @@ Always:
 - Scope changes tightly.
 - Preserve tactile meaning.
 - Update docs if behavior changes.
+- Add a small behavioral regression test for every bug fix or feature addition, and register it in the quick regression suite.
+- Run `make test-regression` before deploying to test or production; keep this suite offline and under 30 seconds.
 
 Never:
 
