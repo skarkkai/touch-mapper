@@ -58,7 +58,7 @@ const NON_TRACK_RAILWAY_VALUES = {
 function usage() {
   return [
     'Usage:',
-    '  prune-only-big-roads.js --osm <path> --lon-min <n> --lat-min <n> --lon-max <n> --lat-max <n> --print-size-cm <n> --map-scale <n> [--target-road-density <n>] [--content-mode <only-big-roads|only-named-roads>] [--output <path>]',
+    '  prune-only-big-roads.js --osm <path> --lon-min <n> --lat-min <n> --lon-max <n> --lat-max <n> --print-width-cm <n> --print-height-cm <n> --map-scale <n> [--target-road-density <n>] [--content-mode <only-big-roads|only-named-roads>] [--output <path>]',
   ].join('\n');
 }
 
@@ -109,6 +109,9 @@ function parseArgs(argv) {
     } else if (arg === '--print-size-cm') {
       out.printSizeCm = Number(takeValue(i));
       i += 1;
+    } else if (arg === '--print-width-cm' || arg === '--print-height-cm') {
+      out[arg === '--print-width-cm' ? 'printWidthCm' : 'printHeightCm'] = Number(takeValue(i));
+      i += 1;
     } else if (arg === '--map-scale') {
       out.mapScale = Number(takeValue(i));
       i += 1;
@@ -131,8 +134,13 @@ function parseArgs(argv) {
   if (!Number.isFinite(out.lonMin) || !Number.isFinite(out.latMin) || !Number.isFinite(out.lonMax) || !Number.isFinite(out.latMax)) {
     throw new Error('All bounds args are required and must be numeric\n' + usage());
   }
-  if (!Number.isFinite(out.printSizeCm) || out.printSizeCm <= 0) {
-    throw new Error('--print-size-cm must be a positive number');
+  if (out.printWidthCm === undefined && out.printHeightCm === undefined) {
+    out.printWidthCm = out.printHeightCm = out.printSizeCm;
+  }
+  for (const value of [out.printWidthCm, out.printHeightCm]) {
+    if (!Number.isFinite(value) || value < 1 || value > 99.9) {
+      throw new Error('Both print dimensions must be in [1, 99.9] cm');
+    }
   }
   if (!Number.isFinite(out.mapScale) || out.mapScale <= 0) {
     throw new Error('--map-scale must be a positive number');
@@ -707,8 +715,8 @@ function computeHaversineM(lat1, lon1, lat2, lon2) {
   return earthRadiusM * c;
 }
 
-function computeTargetRoadLengthMeters(printSizeCm, mapScale, targetRoadDensity) {
-  const printAreaCm2 = printSizeCm * printSizeCm;
+function computeTargetRoadLengthMeters(printWidthCm, printHeightCm, mapScale, targetRoadDensity) {
+  const printAreaCm2 = printWidthCm * printHeightCm;
   const targetPrintedRoadLengthCm = targetRoadDensity * printAreaCm2;
   return targetPrintedRoadLengthCm * mapScale / 100.0;
 }
@@ -1043,7 +1051,7 @@ function computeWayLengthMetersWithinBounds(state, wayIx, bounds) {
 
 // Step 3: Build road-meter totals by rank and decide all-or-none bucket pruning.
 // This uses base-rank ways and printout-area road-density target to compute removed buckets.
-function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, targetRoadDensity) {
+function thirdStepComputePruningDecision(state, bounds, printWidthCm, printHeightCm, mapScale, targetRoadDensity) {
   const wayCount = state.wayIds.length;
   const lengthByRank = new Float64Array(ROAD_SCORE_BUCKET_COUNT);
   const roadGroupLength = [];
@@ -1089,7 +1097,7 @@ function thirdStepComputePruningDecision(state, bounds, printSizeCm, mapScale, t
     lengthByRank[scoreToBucketIx(groupRank)] += roadGroupLength[roadGroupIx];
   }
 
-  const targetRoadLengthM = computeTargetRoadLengthMeters(printSizeCm, mapScale, targetRoadDensity);
+  const targetRoadLengthM = computeTargetRoadLengthMeters(printWidthCm, printHeightCm, mapScale, targetRoadDensity);
   const removedRanks = deriveRemovedRankBuckets(lengthByRank, targetRoadLengthM);
 
   state.keepWay = new Uint8Array(wayCount);
@@ -1458,7 +1466,7 @@ async function run() {
   await firstPassCollectIndexes(state, args.osm);
   await secondPassLoadNodeCoordinates(state, args.osm);
   if (args.contentMode === 'only-named-roads') selectNamedRoads(state, bounds);
-  else thirdStepComputePruningDecision(state, bounds, args.printSizeCm, args.mapScale, args.targetRoadDensity);
+  else thirdStepComputePruningDecision(state, bounds, args.printWidthCm, args.printHeightCm, args.mapScale, args.targetRoadDensity);
   const keepNodeFromRelations = fourthStepApplyRelationKeepLogic(state);
   fifthStepMarkKeptNodes(state, keepNodeFromRelations);
   if (args.contentMode === 'only-named-roads') cleanNamedModeTags(state);
@@ -1835,6 +1843,7 @@ function runBboxLengthSelfTest() {
 }
 
 module.exports = {
+  computeTargetRoadLengthMeters,
   parseTagToken,
   streamParseXml,
   collectSummaryWithCustomParser,

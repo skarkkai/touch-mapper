@@ -456,7 +456,17 @@
               {
                 "Name": "size_cm",
                 "Type": "double",
-                "Comment": "Requested physical map size in centimeters."
+                "Comment": "Legacy square size, populated only in historical records."
+              },
+              {
+                "Name": "print_width_cm",
+                "Type": "double",
+                "Comment": "Requested physical map width in centimeters."
+              },
+              {
+                "Name": "print_height_cm",
+                "Type": "double",
+                "Comment": "Requested physical map height in centimeters."
               },
               {
                 "Name": "content_mode",
@@ -864,7 +874,7 @@
           },
           "S3Key": "lambda-email-sending.zip"
         },
-        "Runtime": "python2.7",
+        "Runtime": "python3.12",
         "Timeout": "10"
       }
     }

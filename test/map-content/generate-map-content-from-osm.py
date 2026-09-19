@@ -19,6 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from converter.print_dimensions import add_print_dimension_arguments, normalize_dimension_arguments
 from converter.tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
 
 
@@ -145,16 +146,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Also run Blender tactile export to produce STL/SVG/BLEND outputs.",
     )
-    parser.add_argument(
-        "--diameter",
-        type=int,
-        help="Larger of map area x and y diameter in meters (required with --with-blender).",
-    )
-    parser.add_argument(
-        "--size",
-        type=float,
-        help="Output print size in cm (required with --with-blender).",
-    )
+    add_print_dimension_arguments(parser)
     parser.add_argument(
         "--no-borders",
         action="store_true",
@@ -270,8 +262,7 @@ def run_blender_export(
     output_base_path: Path,
     args: argparse.Namespace,
 ) -> None:
-    if args.diameter is None or args.size is None:
-        raise ValueError("--diameter and --size are required when --with-blender is set")
+    normalize_dimension_arguments(args)
 
     blender_dir = repo_root / "converter" / "blender"
     blender_path = blender_dir / "blender"
@@ -302,10 +293,10 @@ def run_blender_export(
         str(boundary["maxX"]),
         "--max-y",
         str(boundary["maxY"]),
-        "--diameter",
-        str(args.diameter),
-        "--size",
-        str(args.size),
+        "--print-width-cm",
+        str(args.print_width_cm),
+        "--print-height-cm",
+        str(args.print_height_cm),
         "--base-path",
         str(output_base_path),
     ]
@@ -358,12 +349,16 @@ def main() -> int:
             raise ValueError("Content-mode fixture requires OSM bounds")
         south, north = float(bounds.attrib["minlat"]), float(bounds.attrib["maxlat"])
         west, east = float(bounds.attrib["minlon"]), float(bounds.attrib["maxlon"])
-        span_m = max((north - south) * 111320, (east - west) * 111320 * math.cos(math.radians((north + south) / 2)))
+        height_m = (north - south) * 111320
+        width_m = (east - west) * 111320 * math.cos(math.radians((north + south) / 2))
+        if args.print_width_cm is not None or args.print_height_cm is not None or args.size is not None:
+            normalize_dimension_arguments(args)
         filtered_path = out_dir / "filtered.osm"
         filtered_path.write_bytes(osm_path.read_bytes())
         request = {
             "contentMode": args.content_mode, "scale": args.scale,
-            "size": args.size or span_m * 100 / args.scale,
+            "printWidthCm": args.print_width_cm if args.print_width_cm is not None else width_m * 100 / args.scale,
+            "printHeightCm": args.print_height_cm if args.print_height_cm is not None else height_m * 100 / args.scale,
             "targetRoadDensity": args.target_road_density,
             "effectiveArea": {"lonMin": west, "lonMax": east, "latMin": south, "latMax": north},
         }

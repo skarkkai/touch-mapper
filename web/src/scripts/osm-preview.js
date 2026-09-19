@@ -1,5 +1,5 @@
 'use strict';
-/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next readCookie createCookie data mapDiameter */
+/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next readCookie createCookie data mapDimensionsMeters */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 window.initOsmPreview = function(outputs) {
@@ -28,35 +28,30 @@ window.initOsmPreview = function(outputs) {
     ])
   });
 
-  var previewMapShown = false;
+  // Fit the selected footprint inside a bounded viewport with one common scale.
   function updatePreview() {
-    var view = previewMap.getView();
-    var newCenter = ol.proj.fromLonLat(computeLonLat(data));
-    var diameter = mapDiameter();
-    var metersPerPixel = mapDiameter() / outputs.map.width();
-    var metersPerPixel = mapDiameter() / outputs.map.width();
-    var resolutionAtCoords = metersPerPixel / view.getProjection().getPointResolution(1, newCenter);
+    const dimensions = mapDimensionsMeters();
+    if (![dimensions.width, dimensions.height].every(value => Number.isFinite(value) && value > 0)) return;
+    if (!Number.isFinite(Number(data.get('lat'))) || !Number.isFinite(Number(data.get('lon')))) return;
+    const container = $('#map-area-preview-container').show();
+    const availableWidth = container.width();
+    if (!availableWidth) return;
+    const ratio = dimensions.width / dimensions.height;
+    const width = Math.min(availableWidth, 500 * ratio);
+    outputs.map.css({width: width + 'px', height: width / ratio + 'px'});
+    previewMap.updateSize();
+    const view = previewMap.getView();
+    const newCenter = ol.proj.fromLonLat(computeLonLat(data));
+    const metersPerPixel = dimensions.width / width;
+    const resolutionAtCoords = metersPerPixel / view.getProjection().getPointResolution(1, newCenter);
     view.setResolution(resolutionAtCoords);
     view.setCenter(newCenter);
-    previewMapMarker1.setPosition(ol.proj.fromLonLat([ data.get("lon"), data.get("lat") ]));
-
-    outputs.currentDiameterMeters.text(diameter.toFixed(0));
-    outputs.currentDiameterYards.text((diameter * 1.0936133).toFixed(0));
-
-    if (! previewMapShown) {
-      previewMapShown = true;
-      previewMap.updateSize();
-    }
+    previewMapMarker1.setPosition(ol.proj.fromLonLat([data.get('lon'), data.get('lat')]));
+    outputs.currentCoverageMeters.text(dimensions.width.toFixed(0) + ' × ' + dimensions.height.toFixed(0));
+    outputs.currentCoverageYards.text((dimensions.width * 1.0936133).toFixed(0) + ' × ' + (dimensions.height * 1.0936133).toFixed(0));
   }
 
-  // Update when relevant parameters change
-  data.on("change:lon change:lat change:size change:offsetX change:offsetY change:scale change:multipartXpc change:multipartYpc", function() {
-    if (! (data.get("lat") && data.get("lon") && data.get("size"))) {
-      return;
-    }
-    $("#map-area-preview-container").show();
-    updatePreview();
-  });
+  data.on('change:lon change:lat change:printWidthCm change:printHeightCm change:offsetX change:offsetY change:scale change:multipartXpc change:multipartYpc', updatePreview);
 
   // Map panning
   previewMap.on("moveend", function(ev){
@@ -68,15 +63,17 @@ window.initOsmPreview = function(outputs) {
     var newCenter = ol.proj.toLonLat(previewMap.getView().getCenter());
     var offsetX = Math.round((newCenter[0] - data.get("lon")) * metersPerDeg.lon);
     var offsetY = Math.round((newCenter[1] - data.get("lat")) * metersPerDeg.lat);
-    var maxOffset = mapDiameter() / 2 * 0.9;
+    var dimensions = mapDimensionsMeters();
+    var maxOffsetX = dimensions.width / 2 * 0.9;
+    var maxOffsetY = dimensions.height / 2 * 0.9;
     var fixPreview = false;
-    if (Math.abs(offsetX) > maxOffset) {
+    if (Math.abs(offsetX) > maxOffsetX) {
       fixPreview = true;
-      offsetX = Math.round(Math.sign(offsetX) * maxOffset);
+      offsetX = Math.sign(offsetX) * Math.floor(maxOffsetX);
     }
-    if (Math.abs(offsetY) > maxOffset) {
+    if (Math.abs(offsetY) > maxOffsetY) {
       fixPreview = true;
-      offsetY = Math.round(Math.sign(offsetY) * maxOffset);
+      offsetY = Math.sign(offsetY) * Math.floor(maxOffsetY);
     }
     $("#x-offset-input").val(offsetX);
     $("#y-offset-input").val(offsetY);
@@ -90,12 +87,10 @@ window.initOsmPreview = function(outputs) {
   });
 
   // Show preview when user arrives via back button or browser wake-up.
-  $(window).on('pageshow', function(){
-    previewMapShown = false;
+  $(window).on('pageshow resize', function(){
     updatePreview();
   });
   data.on("initdone", function(){
-    previewMapShown = false;
     updatePreview();
   });
 

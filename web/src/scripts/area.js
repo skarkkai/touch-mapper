@@ -119,14 +119,16 @@ function initInputs(outputs, osmDragPanInteraction) {
     if (!scale) {
       return;
     }
-    var sizeCm = data.get("size");
-    if (!sizeCm) {
+    var sizeCm = data.get("printWidthCm");
+    var heightCm = data.get("printHeightCm");
+    if (!sizeCm || !heightCm) {
       return;
     }
-    var sizeLabel = formatSizeCm(sizeCm);
+    var sizeLabel = formatSizeCm(sizeCm) + " × " + formatSizeCm(heightCm);
     var metersRaw = sizeCm / 100 * scale;
-    var metersAcross = Math.round(metersRaw);
-    var yardsAcross = Math.round(metersRaw * 1.0936133);
+    var heightMeters = heightCm / 100 * scale;
+    var metersAcross = Math.round(metersRaw) + " × " + Math.round(heightMeters);
+    var yardsAcross = Math.round(metersRaw * 1.0936133) + " × " + Math.round(heightMeters * 1.0936133);
     var metersUnit = window.TM && window.TM.translations ? window.TM.translations.meters : "meters";
     var yardsUnit = window.TM && window.TM.translations ? window.TM.translations.yards : "yards";
     var metricText = metersAcross + " " + metersUnit;
@@ -144,7 +146,7 @@ function initInputs(outputs, osmDragPanInteraction) {
     targetRoadDensityRow.toggle(contentMode === "only-big-roads");
   }
 
-  data.on("change:scale change:size change:printing-tech", updateMapScaleCoverage);
+  data.on("change:scale change:printWidthCm change:printHeightCm change:printing-tech", updateMapScaleCoverage);
 
   var initDone = false;
   var initialPrintingTech = getLocalStorageStr('printing-tech', '3d');
@@ -160,7 +162,7 @@ function initInputs(outputs, osmDragPanInteraction) {
     setData("printing-tech", "2d");
     $(".hidden-for-3d").show();
     $(".hidden-for-2d").hide();
-    $("#map-size-input").val(DEFAULT_PRINT_SIZE_2D).change();
+    $("#print-width-input, #print-height-input").val(DEFAULT_PRINT_SIZE_2D).change();
   });
   if (initialPrintingTech === '2d') {
     $("#printing-tech-2d").prop('checked', true).change();
@@ -193,8 +195,8 @@ function initInputs(outputs, osmDragPanInteraction) {
 
   // Print size preset
   $("#map-size-preset").change(function(){
-    var preset = $(this).val();
-    $("#map-size-input").val(parseFloat(preset).toFixed(1)).change();
+    var preset = $(this).val() || DEFAULT_PRINT_SIZE_3D;
+    $("#print-width-input, #print-height-input").val(parseFloat(preset).toFixed(1)).change();
     setLocalStorage("map-size-preset", preset);
   }).val(getLocalStorageStr("map-size-preset", DEFAULT_PRINT_SIZE_3D))
     .change();
@@ -232,6 +234,8 @@ function initInputs(outputs, osmDragPanInteraction) {
       // Set advanced values from non-advanced presets
       if (data.get("printing-tech") === '3d') {
         $("#map-size-preset").change();
+      } else {
+        $("#print-width-input, #print-height-input").val(DEFAULT_PRINT_SIZE_2D).change();
       }
       $("#map-scale-preset").change();
     }
@@ -246,9 +250,16 @@ function initInputs(outputs, osmDragPanInteraction) {
   initSimpleInput("offsetX", $("#x-offset-input"), 'int', 0);
   initSimpleInput("offsetY", $("#y-offset-input"), 'int', 0);
 
-  // Map size
-  initSimpleInput("size", $("#map-size-input"), 'float',
-    initialPrintingTech === '3d' ? DEFAULT_PRINT_SIZE_3D : DEFAULT_PRINT_SIZE_2D);
+  // Migrate persisted squares once; a partial pair is invalid, never guessed.
+  const storedDimensions = normalizePrintDimensions({
+    printWidthCm: localStorage.printWidthCm,
+    printHeightCm: localStorage.printHeightCm,
+    size: localStorage.size || (initialPrintingTech === '3d' ? DEFAULT_PRINT_SIZE_3D : DEFAULT_PRINT_SIZE_2D)
+  });
+  for (const axis of ['Width', 'Height']) {
+    const key = 'print' + axis + 'Cm';
+    initSimpleInput(key, $('#print-' + axis.toLowerCase() + '-input'), 'float', storedDimensions[key]);
+  }
 
   // Scale
   initSimpleInput("scale", $("#scale-input"), 'int', 2400);
@@ -263,11 +274,22 @@ function initInputs(outputs, osmDragPanInteraction) {
   initDone = true;
 }
 
+// Invalid dimensions must not silently create a different footprint.
+function reportPrintDimensionError(error) {
+  if (!(error instanceof RangeError)) throw error;
+  $('#print-dimension-error').text(window.TM.translations.invalid_print_dimensions).removeAttr('hidden');
+}
+
 function setParametersByMapId(id) {
-  return loadInfoJson(id).done(function(data, textStatus, jqXHR){
-      storeMapSettingsFromInfo(data);
+  return loadInfoJson(id).then(function(info){
+    try {
+      storeMapSettingsFromInfo(info);
       return true;
-    });
+    } catch (error) {
+      reportPrintDimensionError(error);
+      return $.Deferred().reject(error).promise();
+    }
+  });
 }
 
 function setParametersFromBlindSquare() {
@@ -303,14 +325,6 @@ function setParametersFromBlindSquare() {
     }
     var number = parseFloat(value);
     return isNaN(number) ? null : number;
-  }
-
-  function parseMapSizeParam(value) {
-    var number = parseFloatParam(value);
-    if (number === null || number >= 100) {
-      return null;
-    }
-    return number;
   }
 
   function parseContentMode(value) {
@@ -419,12 +433,21 @@ function setParametersFromBlindSquare() {
   setLocalStorageIfPresent("multipartXpc", ["multipartXpc", "multipart_xpc", "multipart-xpc"], parseIntParam);
   setLocalStorageIfPresent("multipartYpc", ["multipartYpc", "multipart_ypc", "multipart-ypc"], parseIntParam);
 
-  var sizeValue = setLocalStorageIfPresent("size", ["size", "mapSize", "map_size"], parseMapSizeParam);
-  if (sizeValue !== null) {
-    setLocalStorage(
-      "map-size-preset",
-      optionExistsInSelect($("#map-size-preset"), sizeValue) ? sizeValue : ""
-    );
+  const widthParam = getUrlParam('printWidthCm');
+  const heightParam = getUrlParam('printHeightCm');
+  const legacySize = getUrlParamFromNames(['size', 'mapSize', 'map_size']);
+  if (widthParam !== null || heightParam !== null || legacySize !== null) {
+    const dimensions = normalizePrintDimensions({
+      printWidthCm: widthParam === null ? undefined : widthParam,
+      printHeightCm: heightParam === null ? undefined : heightParam,
+      size: legacySize
+    });
+    setLocalStorage('printWidthCm', dimensions.printWidthCm);
+    setLocalStorage('printHeightCm', dimensions.printHeightCm);
+    const squarePreset = dimensions.printWidthCm === dimensions.printHeightCm &&
+      optionExistsInSelect($('#map-size-preset'), dimensions.printWidthCm);
+    setLocalStorage('map-size-preset', squarePreset ? dimensions.printWidthCm : '17');
+    if (!squarePreset) setLocalStorage('advancedMode', true);
   }
   var scaleValue = setLocalStorageIfPresent("scale", ["scale", "mapScale", "map_scale"], parseIntParam);
   if (scaleValue !== null) {
@@ -483,16 +506,20 @@ function initialAddressAndParameters() {
 
 $(window).ready(function(){
   var outputs = {
-    currentDiameterMeters: $(".current-diameter-meters"),
-    currentDiameterYards: $(".current-diameter-yards"),
+    currentCoverageMeters: $(".current-coverage-meters"),
+    currentCoverageYards: $(".current-coverage-yards"),
     map: $("#map-area-preview")
   };
 
-  setParametersByUrlQuery().done(function(){
-    var osmDragPanInteraction = window.initOsmPreview(outputs); // in osm-preview.js
-    initInputs(outputs, osmDragPanInteraction);
-    initialAddressAndParameters();
-    $(".show-on-load").show(); // Don't use CSS for this to make screen readers happier
-    data.trigger("initdone");
-  });
+  try {
+    setParametersByUrlQuery().done(function(){
+      try {
+        var osmDragPanInteraction = window.initOsmPreview(outputs); // in osm-preview.js
+        initInputs(outputs, osmDragPanInteraction);
+        initialAddressAndParameters();
+        $(".show-on-load").show(); // Don't use CSS for this to make screen readers happier
+        data.trigger("initdone");
+      } catch (error) { reportPrintDimensionError(error); }
+    });
+  } catch (error) { reportPrintDimensionError(error); }
 });

@@ -69,3 +69,26 @@ Each referenced code file contains comments in format:
 - Created at: `converter/map_desc/map_desc_render.py`
 - Stored as: `map-content.json`
 - Diff from previous: serializes structured grouped data for all classes.
+
+## Physical dimensions
+
+Requests normalize at ingress to `printWidthCm` and `printHeightCm` (finite,
+at least 1 cm and at most 99.9 cm) and one isotropic `scale`. Legacy `size` initializes
+both axes only when neither new field exists. A partial pair is rejected even
+when `size` exists. Normalization removes `size` and the unused `diameter`.
+`effectiveArea` already describes an independent longitude/latitude bounding box:
+width and height select geography; neither clipping nor extrusion stretches it.
+
+Both converter CLIs accept `--print-width-cm` and `--print-height-cm`. Their old
+`--size` square alias and ignored `--diameter` remain for existing local callers.
+The road pruner uses physical width × height for its density target; its legacy
+`--print-size-cm` alias is square-only. SVG physical dimensions are width ×
+(height + 1 cm), including the existing north strip; PDF inherits these dimensions.
+STL scaling remains uniform. Small projection differences from requested physical
+size are unchanged (roughly 0.25% in the offline fixtures).
+
+Deploy the converter and email Lambda before enabling the updated browser.
+Queued legacy square requests remain supported. `info.json` and
+`map-content.json.metadata.requestBody` persist the normalized pair. Filtered
+reruns retain both dimensions. Stats use `print_width_cm` and `print_height_cm`;
+the Athena `size_cm` column remains available for historical records.

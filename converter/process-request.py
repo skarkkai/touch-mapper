@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Dict, Optional
 
 import stats_pipeline
+from print_dimensions import normalize_print_dimensions
 
 STORE_AGE = 8640000
 # Use wall-clock timing for stage durations.
@@ -584,6 +585,7 @@ def run_subprocess_with_max_rss_kib(cmd):
 
 # Apply simplified content selection before any geometry or description is generated.
 def prune_osm_file_for_simplified_mode_with_node(osm_path, request_body):
+    normalize_print_dimensions(request_body)
     eff_area = request_body['effectiveArea']
     cmd = [
         'node',
@@ -594,7 +596,8 @@ def prune_osm_file_for_simplified_mode_with_node(osm_path, request_body):
         '--lat-min', str(eff_area['latMin']),
         '--lon-max', str(eff_area['lonMax']),
         '--lat-max', str(eff_area['latMax']),
-        '--print-size-cm', str(request_body['size']),
+        '--print-width-cm', str(request_body['printWidthCm']),
+        '--print-height-cm', str(request_body['printHeightCm']),
         '--map-scale', str(request_body['scale']),
     ]
     if ensure_request_content_mode(request_body) == 'only-big-roads':
@@ -809,6 +812,7 @@ def has_empty_clip_report(output_dir):
     return True
 
 def run_osm_to_tactile(osm_path, request_body):
+    normalize_print_dimensions(request_body)
     output_dir = os.path.dirname(osm_path)
     clip_report_path = os.path.join(output_dir, 'map-clip-report.json')
     try:
@@ -817,7 +821,9 @@ def run_osm_to_tactile(osm_path, request_body):
         stl_path = output_dir + '/map.stl'
         if os.path.exists(stl_path):
             os.rename(stl_path, stl_path + ".old")
-        args = ['--scale', str(request_body['scale']), '--diameter', str(request_body['diameter']), '--size', str(request_body['size']), ]
+        args = ['--scale', str(request_body['scale']),
+                '--print-width-cm', str(request_body['printWidthCm']),
+                '--print-height-cm', str(request_body['printHeightCm'])]
         coastline_refs = [ref for ref in request_body.get('excludedFeatures', [])
                           if ref.startswith('coastline:')]
         if coastline_refs:
@@ -1161,7 +1167,8 @@ def build_stats_record(ctx):
         'printing_tech': request_body.get('printingTech'),
         'offset_x': request_body.get('offsetX'),
         'offset_y': request_body.get('offsetY'),
-        'size_cm': request_body.get('size'),
+        'print_width_cm': request_body.get('printWidthCm'),
+        'print_height_cm': request_body.get('printHeightCm'),
         'content_mode': request_body.get('contentMode'),
         'hide_location_marker': interpreted_request_bool(request_body, 'hideLocationMarker', False),
         'lon': request_body.get('lon'),
@@ -1281,6 +1288,8 @@ def main():
         ctx['info_object_name'] = map_info_object_name_from_request_id(ctx['request_body']['requestId'])
         ctx['name_base'] = ctx['map_object_name'][:-4]
         bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
+        # Normalize before any OSM work, after status reporting is available.
+        normalize_print_dimensions(ctx['request_body'])
         write_status_info_json(ctx, STATUS_PROGRESS_SEEN)
         osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir, bucket)
         if osm_result is None:

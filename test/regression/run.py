@@ -16,6 +16,7 @@ def main():
     subprocess.run([str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/regression'], check=True)
     work = Path(tempfile.mkdtemp(prefix='run-', dir=str(REPO / '.tmp/regression')))
     checks = [
+        ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
         ('Local preview routes', [sys.executable, str(REPO / 'test/regression/local_preview.py'), str(work)]),
         ('Named roads', [sys.executable, str(REPO / 'test/regression/named_roads.py'), str(work)]),
         ('Content filtering', [sys.executable, str(REPO / 'test/regression/content_filter.py'), str(work)]),

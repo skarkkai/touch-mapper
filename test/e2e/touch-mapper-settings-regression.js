@@ -123,7 +123,8 @@ async function readAreaSettings(page) {
       lat: getValue("#lat-input"),
       xOffset: getValue("#x-offset-input"),
       yOffset: getValue("#y-offset-input"),
-      mapSizeInput: getValue("#map-size-input"),
+      mapSizeInput: getValue("#print-width-input"),
+      mapHeightInput: getValue("#print-height-input"),
       scaleInput: getValue("#scale-input"),
       multipart: isChecked("#multipart-map-input"),
       multipartAdjustmentX: getText(".multipart-adjustment-x"),
@@ -167,6 +168,7 @@ async function setSelectValueByDom(page, selector, value) {
     xOffset: "120",
     yOffset: "-80",
     mapSizeInput: "28.0",
+    mapHeightInput: "14.0",
     scaleInput: "5600",
     multipart: true,
     multipartAdjustmentX: "10",
@@ -243,7 +245,8 @@ async function setSelectValueByDom(page, selector, value) {
 
     await page.fill("#x-offset-input", expectedSettings.xOffset);
     await page.fill("#y-offset-input", expectedSettings.yOffset);
-    await page.fill("#map-size-input", expectedSettings.mapSizeInput);
+    await page.fill("#print-width-input", expectedSettings.mapSizeInput);
+    await page.fill("#print-height-input", expectedSettings.mapHeightInput);
     await page.fill("#scale-input", expectedSettings.scaleInput);
     await page.check("#multipart-map-input");
 

@@ -104,7 +104,7 @@
     "map_scale__3200": "suburbios promedio",
     "map_scale__5600": "áreas muy escasamente construidas",
     "map_scale__9999": "áreas con solo carreteras grandes",
-    "map_scale_coverage": "A esta escala, un mapa __size__ de ancho cubre un área __area_metric__ / __area_imperial__ de ancho.",
+    "map_scale_coverage": "A esta escala, un mapa de __size__ cubre aproximadamente __area_metric__ (__area_imperial__).",
     "map_content": "Contenido",
     "content_mode_normal": "Normal",
     "content_mode_no_buildings": "Sin edificios",
@@ -173,7 +173,6 @@
     "conversion_error_unknown": "La creación del mapa falló.",
     "conversion_error_too_large": "El mapa es demasiado denso para procesarlo.",
     "drag_map": "Arrastra el mapa para ajustar la ubicación",
-    "map_diameter": "Diámetro del mapa",
     "label_3d_preview": "Vista previa 3D del mapa táctil",
     "map_preview_controls_hint": "Puedes hacer zoom, rotar y desplazarte por el mapa.",
     "tooltip_selected_address": "Dirección seleccionada",
@@ -570,5 +569,11 @@
     "map_content_osm_value_hospital_building": "edificio hospitalario",
     "map_content_osm_value_church_building": "iglesia",
     "map_content_osm_value_garage_building": "cochera",
-    "map_content_osm_value_roof_building": "techo"
+    "map_content_osm_value_roof_building": "techo",
+    "print_width_x": "Ancho (X)",
+    "print_height_y": "Alto (Y)",
+    "map_coverage": "Cobertura del mapa",
+    "multipart_axis_help": "100 % X desplaza un ancho de mapa; 100 % Y desplaza un alto de mapa.",
+    "area_adjustment_outside": "El ajuste del área no puede dejar la ubicación seleccionada fuera del mapa.",
+    "invalid_print_dimensions": "Introduce ambas dimensiones de impresión, de al menos 1 cm y de hasta 99,9 cm."
 }

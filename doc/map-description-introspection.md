@@ -61,7 +61,7 @@ Optional flags:
 - `TOUCH_MAPPER_TRIANGULATION_COLLINEAR_TOLERANCE_M=<float>` (env): floor-level triangulation simplification tolerance in meters (default `0.01`; set `0` to disable)
 - `--with-blender`: also run Blender tactile export and write `map.stl`, `map-ways.stl`, `map-rest.stl`, `map.svg`, `map.pdf`, `map.blend`, pre-modification wireframe-overlay render `map-wireframe-flat.png`, and post-modification wireframe-overlay render `map-wireframe.png` into `--out-dir`
   - also writes `map-clip-report.json` from the `clip-2d` stage
-- `--diameter <int>` and `--size <float>`: required when `--with-blender` is used
+- `--print-width-cm <float>` and `--print-height-cm <float>`: physical dimensions required with `--with-blender`; legacy `--size` supplies both, and `--diameter` is ignored.
 - `--no-borders`: pass through to Blender export when `--with-blender` is used
 - `--target-road-density <number>`: UI road retention for `only-big-roads` (`1`–`100`, default `10`); the production request helper converts this to the pruner's internal density
 - `--marker1 <json>`: pass marker position JSON through to Blender export when `--with-blender` is used

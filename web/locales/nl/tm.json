@@ -104,7 +104,7 @@
     "map_scale__3200": "gemiddelde buitenwijk",
     "map_scale__5600": "zeer dunbebouwde gebieden",
     "map_scale__9999": "gebieden met alleen grote wegen",
-    "map_scale_coverage": "Op deze schaal beslaat een kaart van __size__ breed een gebied van __area_metric__ / __area_imperial__.",
+    "map_scale_coverage": "Op deze schaal beslaat een kaart van __size__ ongeveer __area_metric__ (__area_imperial__).",
     "map_content": "Inhoud",
     "content_mode_normal": "Normaal",
     "content_mode_no_buildings": "Geen gebouwen",
@@ -173,7 +173,6 @@
     "conversion_error_unknown": "Maken van de kaart is mislukt.",
     "conversion_error_too_large": "De kaart is te dicht om te verwerken.",
     "drag_map": "Sleep de kaart om de locatie aan te passen",
-    "map_diameter": "Kaartdiameter",
     "label_3d_preview": "3D-preview van de tactiele kaart",
     "map_preview_controls_hint": "U kunt inzoomen, roteren en de kaart verschuiven",
     "tooltip_selected_address": "Geselecteerd adres",
@@ -570,5 +569,11 @@
     "map_content_osm_value_hospital_building": "ziekenhuis",
     "map_content_osm_value_church_building": "kerk",
     "map_content_osm_value_garage_building": "garage",
-    "map_content_osm_value_roof_building": "overkapping"
+    "map_content_osm_value_roof_building": "overkapping",
+    "print_width_x": "Breedte (X)",
+    "print_height_y": "Hoogte (Y)",
+    "map_coverage": "Kaartbereik",
+    "multipart_axis_help": "100% X verschuift één kaartbreedte; 100% Y verschuift één kaarthoogte.",
+    "area_adjustment_outside": "De geselecteerde locatie moet bij het verschuiven binnen de kaart blijven.",
+    "invalid_print_dimensions": "Voer beide afdrukmaten in, minimaal 1 cm en maximaal 99,9 cm."
 }

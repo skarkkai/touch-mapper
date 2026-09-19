@@ -14,6 +14,7 @@ script_dir = os.path.dirname(__file__)
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 import tactile_constants as tc
+from print_dimensions import add_print_dimension_arguments, normalize_dimension_arguments
 
 perf_clock = getattr(time, 'perf_counter', time.time)
 
@@ -30,14 +31,13 @@ def do_cmdline():
     parser.add_argument('--no-stl-export', action='store_true', help='do not export to .stl file')
     parser.add_argument('--scale', metavar='N', type=int, help="scale to export STL in, 4000 would mean one Blender unit (meter) = 0.25mm (STL file unit is normally mm)")
     parser.add_argument('--marker1', metavar='MARKER', help="first marker's position relative to top left corner")
-    parser.add_argument('--diameter', metavar='METERS', type=int, help="larger of map area x and y diameter in meters")
-    parser.add_argument('--size', metavar='METERS', type=float, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
     parser.add_argument('--export-wireframe-png', action='store_true', help="export orthographic top-view wireframe PNG")
     parser.add_argument('--base-path', help='base output path (without extension), defaults to first input path')
     parser.add_argument('mesh_paths', metavar='PATHS', nargs='+', help='.obj/.ply files to use as input')
+    add_print_dimension_arguments(parser)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
-    return args
+    return normalize_dimension_arguments(args)
 
 def print_verts(ob):
     for v in ob.data.vertices:
@@ -114,12 +114,12 @@ def add_road_overlay_object(dwg, main_g, ob):
 def export_svg(base_path, args):
     t = perf_clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
-    one_cm_units = (max_y - min_y) / args.size
+    one_cm_units = (max_y - min_y) / args.print_height_cm
 
     import svgwrite
     dwg = svgwrite.Drawing(base_path + '.svg', profile = 'basic')
-    dwg['width']  = "%.2f" % (args.size) + 'cm'
-    dwg['height'] = "%.2f" % (args.size + 1) + 'cm'
+    dwg['width']  = "%.2f" % (args.print_width_cm) + 'cm'
+    dwg['height'] = "%.2f" % (args.print_height_cm + 1) + 'cm'
     dwg['viewBox'] = "%f %f %f %f" % (min_x, min_y - one_cm_units, max_x - min_x, max_y - min_y + one_cm_units)
     dwg['shape-rendering'] = 'geometricPrecision'
     dwg['stroke-linejoin'] = 'round' # greatly reduces protruding edges caused by non-zero stroke-width

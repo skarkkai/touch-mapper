@@ -17,8 +17,10 @@ test-regression-full: test-regression
 	bash test/run-osm2world-regression.sh
 	python3 test/map-content/check-regression.py
 	python3 test/map-content/check-content-filter.py
+	python3 test/map-content/check-rectangular-maps.py
 	$(MAKE) -C web build-offline
 	bash test/e2e/run-offline-map-smoke.sh
+	NODE_PATH=.tmp/e2e-playwright-runtime/node_modules node test/e2e/rectangular-maps.js
 
 dev-aws-install:
 	install/lambda-update.sh dev

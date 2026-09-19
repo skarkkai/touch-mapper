@@ -1,4 +1,4 @@
-/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next mapDiameter */
+/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next mapDimensionsMeters */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 (function(){
@@ -179,9 +179,14 @@
   }
 
   window.submitMapCreation = function() {
-    var radius = mapDiameter() / 2;
-    if (Math.abs(data.get("offsetX")) >= radius || Math.abs(data.get("offsetY")) >= radius) {
-      alert("Area adjustment offset can't be greater than map radius.");
+    for (const id of ['print-width-input', 'print-height-input', 'scale-input']) {
+      const input = document.getElementById(id);
+      if (input && !input.reportValidity()) return;
+    }
+    const dimensions = mapDimensionsMeters();
+    if (![dimensions.width, dimensions.height].every(value => Number.isFinite(value) && value > 0)) return;
+    if (Math.abs(data.get("offsetX")) >= dimensions.width / 2 || Math.abs(data.get("offsetY")) >= dimensions.height / 2) {
+      alert(window.TM.translations.area_adjustment_outside);
       return;
     }
 
@@ -193,15 +198,16 @@
       printingTech: data.get("printing-tech"),
       offsetX: data.get("offsetX"),
       offsetY: data.get("offsetY"),
-      size: data.get("size"),
+      printWidthCm: data.get("printWidthCm"),
+      printHeightCm: data.get("printHeightCm"),
       contentMode: data.get("content-mode") || "normal",
       hideLocationMarker: data.get("hide-location-marker") || false,
       lon: data.get("lon"),
       lat: data.get("lat"),
       effectiveArea: (function(){
         var metersPerDeg = mapCalc.metersPerDegree(data.get("lat"));
-        var degreesLon = 1 / metersPerDeg.lon * radius;
-        var degreesLat = 1 / metersPerDeg.lat * radius;
+        var degreesLon = dimensions.width / 2 / metersPerDeg.lon;
+        var degreesLat = dimensions.height / 2 / metersPerDeg.lat;
         var posLonLat = computeLonLat(data);
         return {
           lonMin: posLonLat[0] - degreesLon,
@@ -211,7 +217,6 @@
         };
       })(),
       scale: parseInt(data.get("scale"), 10),
-      diameter: Math.round(radius * 2), // larger of x and y diameter in meters
       multipartMode: data.get("multipartMode") || false,
       noBorders: data.get("multipartMode"),
       multipartXpc: data.get("multipartXpc"),

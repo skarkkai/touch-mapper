@@ -84,13 +84,13 @@
 
   function requestBody(info, excluded) {
     var fields = [
-      'addrShort', 'addrLong', 'printingTech', 'offsetX', 'offsetY', 'size',
+      'addrShort', 'addrLong', 'printingTech', 'offsetX', 'offsetY', 'printWidthCm', 'printHeightCm',
       'contentMode', 'hideLocationMarker', 'lon', 'lat', 'effectiveArea',
-      'scale', 'diameter', 'multipartMode', 'noBorders', 'multipartXpc',
+      'scale', 'multipartMode', 'noBorders', 'multipartXpc',
       'multipartYpc', 'advancedMode', 'browserFingerprint', 'marker1',
       'targetRoadDensity'
     ];
-    var request = {};
+    var request = normalizePrintDimensions(info);
     fields.forEach(function(field){
       if (info[field] !== undefined) request[field] = info[field];
     });

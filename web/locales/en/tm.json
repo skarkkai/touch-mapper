@@ -104,7 +104,7 @@
     "map_scale__3200": "average suburbs",
     "map_scale__5600": "very sparsely built areas",
     "map_scale__9999": "areas with only large roads",
-    "map_scale_coverage": "At this scale a map __size__ across covers an area __area_metric__ / __area_imperial__ across.",
+    "map_scale_coverage": "At this scale a __size__ map covers approximately __area_metric__ (__area_imperial__).",
     "map_content": "Content",
     "content_mode_normal": "Normal",
     "content_mode_no_buildings": "No buildings",
@@ -173,7 +173,6 @@
     "conversion_error_unknown": "Map conversion failed.",
     "conversion_error_too_large": "Map is too dense to process.",
     "drag_map": "Drag the map to adjust location",
-    "map_diameter": "Map diameter",
     "label_3d_preview": "3D preview of the tactile map",
     "map_preview_controls_hint": "You can zoom, rotate and pan the map",
     "tooltip_selected_address": "Selected address",
@@ -570,5 +569,11 @@
     "map_content_osm_value_hospital_building": "hospital building",
     "map_content_osm_value_church_building": "church",
     "map_content_osm_value_garage_building": "garage",
-    "map_content_osm_value_roof_building": "roof"
+    "map_content_osm_value_roof_building": "roof",
+    "print_width_x": "Width (X)",
+    "print_height_y": "Height (Y)",
+    "map_coverage": "Map coverage",
+    "multipart_axis_help": "100% X moves one map width; 100% Y moves one map height.",
+    "area_adjustment_outside": "Area adjustment cannot move the selected location outside the map.",
+    "invalid_print_dimensions": "Enter both print dimensions, at least 1 cm and at most 99.9 cm."
 }

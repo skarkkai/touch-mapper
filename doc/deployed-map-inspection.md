@@ -37,7 +37,7 @@ else
 fi
 
 # Read key metadata
-curl -sSfL "$INFO_URL" | jq '{requestId, printingTech, addrShort, addrLong, size, scale}'
+curl -sSfL "$INFO_URL" | jq '{requestId, printingTech, addrShort, addrLong, printWidthCm, printHeightCm, size, scale}'
 
 REQUEST_ID="$(curl -sSfL "$INFO_URL" | jq -r '.requestId // empty')"
 if [[ -z "$REQUEST_ID" ]]; then REQUEST_ID="$MAP_ID"; fi

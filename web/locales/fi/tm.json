@@ -104,7 +104,7 @@
     "map_scale__3200": "lähiöt",
     "map_scale__5600": "hyvin harvaan rakennetut alueet",
     "map_scale__9999": "vain isoja teitä sisältävät alueet",
-    "map_scale_coverage": "Tällä mittakaavalla __size__ leveä kartta kattaa __area_metric__ / __area_imperial__.",
+    "map_scale_coverage": "Tässä mittakaavassa __size__ kartta kattaa noin __area_metric__ (__area_imperial__).",
     "map_content": "Sisältö",
     "content_mode_normal": "Normaali",
     "content_mode_no_buildings": "Ei rakennuksia",
@@ -173,7 +173,6 @@
     "conversion_error_unknown": "Kartan luonti epäonnistui.",
     "conversion_error_too_large": "Kartta on liian täysi käsiteltäväksi.",
     "drag_map": "Raahaa karttaa sopivaan kohtaan",
-    "map_diameter": "Kartan halkaisija",
     "label_3d_preview": "Kohokartan 3D-esikatselu",
     "map_preview_controls_hint": "Voit zoomata, kiertää ja siirtää karttaa",
     "tooltip_selected_address": "Valittu osoite",
@@ -570,5 +569,11 @@
     "map_content_osm_value_hospital_building": "sairaalarakennus",
     "map_content_osm_value_church_building": "kirkko",
     "map_content_osm_value_garage_building": "autotalli",
-    "map_content_osm_value_roof_building": "katos"
+    "map_content_osm_value_roof_building": "katos",
+    "print_width_x": "Leveys (X)",
+    "print_height_y": "Korkeus (Y)",
+    "map_coverage": "Kartan kattama alue",
+    "multipart_axis_help": "100 % X siirtää kartan leveyden verran; 100 % Y siirtää kartan korkeuden verran.",
+    "area_adjustment_outside": "Alueen siirto ei saa viedä valittua sijaintia kartan ulkopuolelle.",
+    "invalid_print_dimensions": "Anna molemmat tulostusmitat, vähintään 1 cm ja enintään 99,9 cm."
 }

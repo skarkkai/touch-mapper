@@ -132,3 +132,13 @@ name; otherwise its default group name is retained.
 The Python resolver is `converter/map_desc/road_names.py`; the JavaScript resolver
 is `converter/road-names.js`, included in the browser bundle by `web/build.js` and
 packaged with the converter. Shared regression fixtures verify parity.
+
+### Physical dimensions in request metadata
+
+`metadata.requestBody.printWidthCm` and `printHeightCm` are independent finite,
+physical dimensions in centimeters, each from 1 to 99.9 inclusive. `scale` remains
+one scalar. `effectiveArea` holds the actual rectangular geographic bounds.
+New requests no longer store scalar `size` or `diameter`; legacy saved square
+maps containing `size` remain readable by the browser. A partial explicit pair
+is invalid, even if a legacy `size` also exists. Section identities, textual
+feature semantics, and tactile height/width encodings are unchanged.

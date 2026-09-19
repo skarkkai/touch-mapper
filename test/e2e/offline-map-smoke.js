@@ -156,9 +156,13 @@ async function main() {
     await page.keyboard.press('Enter');
     await page.waitForURL('**/en/map?map=*');
     assert(request, 'Create button must send the map request');
-    for (const key of ['contentMode', 'printingTech', 'scale', 'size', 'diameter', 'hideLocationMarker', 'lat', 'lon']) {
+    for (const key of ['contentMode', 'printingTech', 'scale', 'hideLocationMarker', 'lat', 'lon']) {
       assert.strictEqual(request[key], fixture[key], key);
     }
+    assert.strictEqual(request.printWidthCm, fixture.printWidthCm || fixture.size);
+    assert.strictEqual(request.printHeightCm, fixture.printHeightCm || fixture.size);
+    assert(!Object.hasOwn(request, 'size'));
+    assert(!Object.hasOwn(request, 'diameter'));
     assert(!Object.hasOwn(request, 'targetRoadDensity'), 'Normal mode must omit density');
     for (const key of Object.keys(fixture.effectiveArea)) {
       assert(Math.abs(request.effectiveArea[key] - fixture.effectiveArea[key]) < 1e-9, key);
@@ -240,8 +244,9 @@ async function main() {
     assert.strictEqual(filterRequest.filterSourceRequestId, request.requestId);
     assert.deepStrictEqual(filterRequest.excludedFeatures, ['way:101']);
     assert.strictEqual(filterAttempts, 2);
-    await page.locator('.map-content-summary li').first().waitFor();
-    assert(!(await page.locator('.map-content-summary').innerText()).includes('Main Street'));
+    // The filter editor intentionally reopens, so the updated summary is hidden.
+    await page.locator('.map-content-summary li').first().waitFor({state: 'attached'});
+    assert(!(await page.locator('.map-content-summary').textContent()).includes('Main Street'));
     assert.strictEqual(decodeURIComponent(new URL(await page.locator('#download-map').getAttribute('href')).pathname),
       '/map/data/' + filterRequest.requestId + '.stl');
     await page.locator('.map-content-filter-item').first().waitFor();

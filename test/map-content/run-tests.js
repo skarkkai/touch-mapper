@@ -412,11 +412,13 @@ function runGenerator(repoRoot, testCategory, sourceOsmPath, pipelineDir, reques
   if (requestBody.noBorders) {
     args.push("--no-borders");
   }
-  if (Number.isFinite(Number(requestBody.diameter))) {
-    args.push("--diameter", String(Number(requestBody.diameter)));
-  }
-  if (Number.isFinite(Number(requestBody.size))) {
-    args.push("--size", String(Number(requestBody.size)));
+  if (requestBody.printWidthCm !== undefined || requestBody.printHeightCm !== undefined) {
+    if (requestBody.printWidthCm === undefined || requestBody.printHeightCm === undefined) {
+      throw new Error('Both print dimensions are required');
+    }
+    args.push('--print-width-cm', String(requestBody.printWidthCm), '--print-height-cm', String(requestBody.printHeightCm));
+  } else if (Number.isFinite(Number(requestBody.size))) {
+    args.push('--size', String(Number(requestBody.size)));
   }
   if (requestBody.targetRoadDensity !== undefined) {
     args.push("--target-road-density", String(Number(requestBody.targetRoadDensity)));

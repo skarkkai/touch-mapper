@@ -63,3 +63,9 @@ Use this as a default guide for UI and styling changes unless a task explicitly 
 - Treat this baseline as the "do not drift" reference for routine UI work.
 - If a task intentionally changes this look, update this file in the same change.
 - Document which view changed and what visual rule was intentionally revised.
+
+The settings preview now follows the requested physical aspect ratio, centered
+within the available width and capped at 500 px tall. Its border frames only the
+map, with W × H coverage beneath it. Advanced custom size uses two separately
+labeled fields with visible keyboard focus. Basic square presets and the square
+3D result camera viewport retain their existing layout.

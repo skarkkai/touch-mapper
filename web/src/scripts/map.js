@@ -65,8 +65,10 @@
 
     $(".map-address").text(info.addrLong);
 
+    const dimensions = normalizePrintDimensions(info);
     var meta = {
-        size: info.size,
+        printWidthCm: dimensions.printWidthCm,
+        printHeightCm: dimensions.printHeightCm,
         address: info.addrLong,
         returnUrl: makeReturnUrl(info.requestId),
         permaUrl: makeMapPermaUrl(info.requestId),
@@ -82,15 +84,17 @@
       showMapDescriptionError(error);
     }
 
-    //$("#order-map").attr("href", PLAYFUL_PIXELS_URL
-    //  + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
-    //  + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)));
-    $("#order-map")
-      .attr("href", "https://www.hekeytech.com/contact"
-        + "?touchMapFileUrl=" + encodeURIComponent(makeMapPermaUrl(info.requestId))
-        + "&mapMeta=" + encodeURIComponent(JSON.stringify(meta)))
-      .attr("target", "_blank")
-      .attr("rel", "noopener noreferrer");
+    // Partner ordering is currently absent from the template. If re-enabled,
+    // only squares may use its legacy scalar contract until it supports rectangles.
+    if (dimensions.printWidthCm === dimensions.printHeightCm) {
+      const orderMeta = Object.assign({size: dimensions.printWidthCm}, meta);
+      $('#order-map').attr('href', 'https://www.hekeytech.com/contact'
+        + '?touchMapFileUrl=' + encodeURIComponent(makeMapPermaUrl(info.requestId))
+        + '&mapMeta=' + encodeURIComponent(JSON.stringify(orderMeta)))
+        .attr('target', '_blank').attr('rel', 'noopener noreferrer');
+    } else {
+      $('#order-map').remove();
+    }
 
     // Keep in sync with the email-sending lambda
     initEmailSending($('.email-sending'), meta);

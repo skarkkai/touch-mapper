@@ -1,3 +1,4 @@
+<div id="print-dimension-error" class="error-msg" role="alert" hidden></div>
 <div class="show-on-load" style="display: none">
   <script src="../scripts/aws-sdk-2.3.3.min.js"></script>
   <script src="../scripts/ol-3.15.1-custom.min.js"></script>
@@ -11,6 +12,8 @@
         "progress__uploading": "{{ progress__uploading }}",
         "conversion_error_unknown": "{{ conversion_error_unknown }}",
         "conversion_error_too_large": "{{ conversion_error_too_large }}",
+        "invalid_print_dimensions": "{{ invalid_print_dimensions }}",
+        "area_adjustment_outside": "{{ area_adjustment_outside }}",
         "map_scale_coverage": "{{ map_scale_coverage }}",
         "unit_cm": "{{ unit_cm }}",
         "meters": "{{ meters }}",
@@ -175,11 +178,17 @@
 
     <div class="row main-row map-size-row">
       <div class="col col1">
-        <label for="map-size">{{ custom_map_size }}:</label>
+        <span>{{ custom_map_size }}:</span>
       </div>
       <div class="col col2">
-        <input id="map-size-input" type="number" max="99.9" step="0.1" pattern="[0-9]+(\.[0-9]+)?" required />
-        <span class="map-size-unit">{{ unit_cm }}</span>
+        <div class="single-input">
+          <label for="print-width-input">{{ print_width_x }} ({{ unit_cm }}):</label>
+          <input id="print-width-input" type="number" min="1" max="99.9" step="0.1" required />
+        </div>
+        <div class="single-input">
+          <label for="print-height-input">{{ print_height_y }} ({{ unit_cm }}):</label>
+          <input id="print-height-input" type="number" min="1" max="99.9" step="0.1" required />
+        </div>
       </div>
     </div>
 
@@ -205,6 +214,7 @@
 
     <div class="area-movement-buttons">
       <h3>{{ adjust_area_for_multipart }}</h3>
+      <p>{{ multipart_axis_help }}</p>
 
       <div class="column left">
         <button class="btn left-100 ib" title="<%- @t('move_map_area_left', { amount: '100' }) %>">◀ 100%</button>
@@ -239,23 +249,16 @@
     {{ drag_map }}
   </div>
 
-  <div id="map-area-preview-container" class="square-block-container" aria-hidden="true" style="display: none">
-    <div class="dummy">
-      <div id="map-area-preview" class="square-block" frameborder="0" scrolling="no"
-           marginheight="0" marginwidth="0" tabindex="100"></div>
-    </div>
+  <div id="map-area-preview-container" aria-hidden="true" style="display: none">
+    <div id="map-area-preview" tabindex="-1"></div>
   </div>
 
-  <div aria-live="off" class="map-info">
-    <label class="visuallyhidden">{{ map_diameter }}</label>
+  <div aria-live="polite" class="map-info">
+    <span>{{ map_coverage }}:</span>
     <span class="texts">
-      <span class="current-diameter-meters" aria-live="off"></span> {{ meters }}
-      (<span class="current-diameter-yards" aria-live="off"></span> {{ yards }})
+      <span class="current-coverage-meters"></span> {{ meters }}
+      (<span class="current-coverage-yards"></span> {{ yards }})
     </span>
-    <div class="map-info-arrow">
-      <div class="arrow left"></div>
-      <div class="arrow right"></div>
-    </div>
   </div>
 
   <div class="back-to-previous-page-container">

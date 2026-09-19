@@ -79,8 +79,9 @@ html.advanced-mode select.grey-in-advanced:hover {
 #radius-input {
   width: 80px;
 }
-#map-size-input {
-  width: 60px;
+#print-width-input,
+#print-height-input {
+  width: 80px;
 }
 #search-results li {
   list-style: none;
@@ -135,30 +136,10 @@ html.multipart-mode .drag-map-with-mouse {
   z-index: 1;
   position: relative;
 }
-.map-info-arrow {
-  height: 15px;
-  border-top: 1px solid #999;
-  position: absolute;
-  top: 11px;
-  width: 100%;
-}
-.map-info-arrow .arrow {
-  position: absolute;
-  height: 100%;
-  top: -50%;
-  left: 0;
-}
-.map-info-arrow .arrow.left {
-  border-left: 1px solid #999;
-}
 
-.map-info-arrow .arrow.right {
-  border-right: 1px solid #999;
-  right: 0;
-}
-/* Show square aspect ratio map */
-#map-area-preview-container {
-  border: 1px solid #888;
+/* Frame only the geographic footprint, including portrait maps. */
+#map-area-preview {
+  outline: 1px solid #888;
 }
 
 /* Area movement buttons */
@@ -264,3 +245,10 @@ html.multipart-mode .area-movement-buttons {
   top: -@marker-size / (16 / 3);
   left: -@marker-size / (16 / 3);
 }
+
+#map-area-preview { margin: 0 auto; }
+#map-area-preview-container { width: 100%; margin-bottom: 12px; }
+.map-size-row .single-input label { display: inline-block; min-width: 150px; }
+
+#print-width-input:focus-visible,
+#print-height-input:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; }

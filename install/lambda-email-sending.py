@@ -6,33 +6,45 @@ Sample POST body:
 """
 
 from __future__ import print_function
-import json, boto3, urllib, re
+import json, re, math
+import boto3  # type: ignore[import-not-found]
+from urllib.parse import quote_plus
 
 ses = boto3.client('ses')
 
 PLAYFUL_PIXELS_URL = "https://www.playfulpixels.com/en/tactile-map"
-MAP_URL_REGEXP = re.compile('^https?://.*touch-mapper.org/map/[^ ]+\.stl')
+MAP_URL_REGEXP = re.compile(r'^https?://.*touch-mapper.org/map/[^ ]+\.stl')
 MAIL_FROM = 'info@touch-mapper.org'
 
 def lambda_handler(event, context):
     print(event['body'])
     req = json.loads(event['body']);
-    #if not MAP_URL_REGEXP.match(req['mapUrl']):
-    #    raise Exception("invalid map URL:" + req['mapUrl'])
-
-    if req['emailType'] == 'order':
+    meta = req['meta']
+    has_width = 'printWidthCm' in meta
+    has_height = 'printHeightCm' in meta
+    if has_width != has_height:
+        raise ValueError('Both print dimensions are required')
+    width = float(meta['printWidthCm'] if has_width else meta['size'])
+    height = float(meta['printHeightCm'] if has_height else meta['size'])
+    if not all(math.isfinite(value) and 1 <= value <= 99.9 for value in (width, height)):
+        raise ValueError('Invalid print dimensions')
+    map_url = req.get('mapUrl') or meta['permaUrl']
+    if req.get('emailType') == 'order':
+        if width != height:
+            raise ValueError('Partner ordering does not support rectangular maps')
         subject = 'Touch Mapper order link for ' + req['meta']['address']
-        metaJson = json.dumps(req['meta'], separators=(',', ':'))
+        order_meta = dict(meta, size=width)
+        metaJson = json.dumps(order_meta, separators=(',', ':'))
         body = 'Order your Touch Mapper tactile map at:\n\n' \
-            + PLAYFUL_PIXELS_URL + '?touchMapFileUrl=' + urllib.quote_plus(req['mapUrl']) + '&mapMeta=' + urllib.quote_plus(metaJson)
+            + PLAYFUL_PIXELS_URL + '?touchMapFileUrl=' + quote_plus(map_url) + '&mapMeta=' + quote_plus(metaJson)
     else:
-        subject = 'Touch Mapper STL file for ' + req['meta']['address']
-        body = 'Download your Touch Mapper tactile map STL file at:\n\n' \
-            + req['mapUrl']
+        subject = 'Touch Mapper map for ' + req['meta']['address']
+        body = 'Open your Touch Mapper tactile map at:\n\n' \
+            + map_url
 
     body = body + '\n\n' \
             + 'Address: ' + req['meta']['address'] + '\n' \
-            + 'Size: ' + str(req['meta']['size']) + ' cm\n\n' \
+            + 'Size: ' + ('{:g} × {:g}'.format(width, height)) + ' cm\n\n' \
             + ('View map or create more: ' + req['meta']['permaUrl'] + '\n\n' if 'permaUrl' in req['meta'] else '') \
             + 'Sincerely,\n' \
             + 'Touch Mapper'

@@ -11,6 +11,7 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 from tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
 from telemetry import TelemetryLogger
+from print_dimensions import add_print_dimension_arguments, normalize_dimension_arguments
 
 
 def parse_env_bool(name):
@@ -68,14 +69,13 @@ def do_cmdline():
     parser.add_argument('--foreground', action='store_true', help="open Blender UI, and don't perform STL export")
     parser.add_argument('--scale', metavar='N', type=int, default=3100, help="scale to print in, default 1 : 3100")
     parser.add_argument('--marker1', metavar='MARKER', help="first marker's position relative to top left corner")
-    parser.add_argument('--diameter', metavar='METERS', type=int, required=True, help="larger of map area x and y diameter in meters")
-    parser.add_argument('--size', metavar='CM', type=float, required=True, help="print size in cm")
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
     parser.add_argument('--exclude-buildings', action='store_true', help="don't include buildings")
     parser.add_argument('--exclude-coastline-areas', default='',
                         help='Comma-separated stable references of generated coastal areas to exclude')
+    add_print_dimension_arguments(parser)
     args = parser.parse_args()
-    return args
+    return normalize_dimension_arguments(args)
 
 def _parse_int_env(name, fallback):
     raw = os.environ.get(name)
@@ -181,8 +181,8 @@ def run_blender(mesh_paths, boundary, args, output_base_path, telemetry):
         '--min-y', str(boundary['minY']),
         '--max-x', str(boundary['maxX']),
         '--max-y', str(boundary['maxY']),
-        '--diameter', str(args.diameter),
-        '--size', str(args.size),
+        '--print-width-cm', str(args.print_width_cm),
+        '--print-height-cm', str(args.print_height_cm),
         '--base-path', output_base_path,
     ]
     if args.foreground:

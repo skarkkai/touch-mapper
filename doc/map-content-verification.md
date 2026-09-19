@@ -134,3 +134,9 @@ of approximately 0.831 mm, 1.511 mm and 2.911 mm, with a 169.57 × 169.86 mm bas
 A failure probe that removed car-road relief from the STL was rejected. The
 full developer command took about 9.8 seconds here; the quick gate took about
 2.3 seconds. These are local test-suite timings.
+
+## Rectangular footprints
+
+`make test-regression-full` includes `test/map-content/check-rectangular-maps.py`
+and `test/e2e/rectangular-maps.js`. See [non-square-maps.md](non-square-maps.md)
+for supported inputs, compatibility, measurements and screenshot artifacts.

@@ -28,9 +28,28 @@ function readCookie(name) {
     return null;
 }
 
-function mapDiameter() {
-  // Map diameter in meters
-  return data.get("size") / 100 * data.get("scale");
+// Normalize physical dimensions at legacy storage and metadata boundaries.
+function normalizePrintDimensions(values) {
+  const hasWidth = values.printWidthCm !== undefined;
+  const hasHeight = values.printHeightCm !== undefined;
+  if (hasWidth !== hasHeight) throw new RangeError('Both print dimensions are required');
+  const width = hasWidth ? values.printWidthCm : values.size;
+  const height = hasHeight ? values.printHeightCm : values.size;
+  for (const value of [width, height]) {
+    if ((typeof value !== 'number' && typeof value !== 'string') ||
+        !Number.isFinite(Number(value)) || Number(value) < 1 || Number(value) > 99.9) {
+      throw new RangeError('Print dimensions must be in [1, 99.9] cm');
+    }
+  }
+  return {printWidthCm: Number(width), printHeightCm: Number(height)};
+}
+
+// Scale is isotropic; each physical axis selects its own geographic extent.
+function mapDimensionsMeters(model = data) {
+  return {
+    width: model.get('printWidthCm') / 100 * model.get('scale'),
+    height: model.get('printHeightCm') / 100 * model.get('scale')
+  };
 }
 
 function eraseCookie(name) {
@@ -49,11 +68,11 @@ function computeLonLat(data) {
   var offsetY = toNumberOrDefault(data.get("offsetY"), 0);
   var multipartXpc = toNumberOrDefault(data.get("multipartXpc"), 0);
   var multipartYpc = toNumberOrDefault(data.get("multipartYpc"), 0);
-  var diameter = toNumberOrDefault(mapDiameter(), 0);
+  var dimensions = mapDimensionsMeters(data);
   var metersPerDeg = mapCalc.metersPerDegree(lat);
   return [
-      lon + (offsetX + multipartXpc / 100 * diameter) / metersPerDeg.lon,
-      lat + (offsetY + multipartYpc / 100 * diameter) / metersPerDeg.lat ];
+      lon + (offsetX + multipartXpc / 100 * dimensions.width) / metersPerDeg.lon,
+      lat + (offsetY + multipartYpc / 100 * dimensions.height) / metersPerDeg.lat ];
 }
 
 function getUrlParam(name, url) {
@@ -320,7 +339,8 @@ window.storeMapSettingsFromInfo = function(info) {
     getInfoValue(["targetRoadDensity", "target_road_density"], getLocalStorageInt("target-road-density-ui", 10))
   );
   var hideLocationMarker = getInfoValue(["hideLocationMarker", "hide_location_marker"], false);
-  var size = getInfoValue(["size"], undefined);
+  var dimensions = normalizePrintDimensions(info);
+  var size = dimensions.printWidthCm === dimensions.printHeightCm ? dimensions.printWidthCm : "";
   var scale = getInfoValue(["scale"], undefined);
   var advancedMode = getInfoValue(["advancedMode", "advanced_mode"], false);
   var multipartMode = getInfoValue(["multipartMode", "multipart_mode"], false);
@@ -342,10 +362,11 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage("hide-location-marker", hideLocationMarker);
   setLocalStorage("map-size-preset", toPresetOrEmpty(size, MAP_SIZE_PRESET_VALUES));
   setLocalStorage("map-scale-preset", toPresetOrEmpty(scale, MAP_SCALE_PRESET_VALUES));
-  setLocalStorage("advancedMode", advancedMode);
+  setLocalStorage("advancedMode", advancedMode || size === "" || (printingTech === "2d" ? size !== 27.9 : !MAP_SIZE_PRESET_VALUES[String(size)]));
   setLocalStorage("lat", lat);
   setLocalStorage("lon", lon);
-  setLocalStorage("size", size);
+  setLocalStorage("printWidthCm", dimensions.printWidthCm);
+  setLocalStorage("printHeightCm", dimensions.printHeightCm);
   setLocalStorage("scale", scale);
   setLocalStorage("multipartMode", multipartMode);
   setLocalStorage("multipartXpc", getInfoValue(["multipartXpc", "multipart_xpc"], 0));
