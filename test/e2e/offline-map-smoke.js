@@ -242,6 +242,9 @@ async function main() {
     await page.waitForURL(url => new URL(url).searchParams.get('map') === filterRequest.requestId.split('/')[0]);
     const firstFilteredRequestId = filterRequest.requestId;
     assert.strictEqual(filterRequest.filterSourceRequestId, request.requestId);
+    for (const field of ['printWidthCm', 'printHeightCm', 'scale', 'effectiveArea', 'printingTech']) {
+      assert.deepStrictEqual(filterRequest[field], request[field], 'Filtering must preserve ' + field);
+    }
     assert.deepStrictEqual(filterRequest.excludedFeatures, ['way:101']);
     assert.strictEqual(filterAttempts, 2);
     // The filter editor intentionally reopens, so the updated summary is hidden.
@@ -268,6 +271,9 @@ async function main() {
     await page.waitForURL(url => new URL(url).searchParams.get('map') === filterRequest.requestId.split('/')[0] &&
       filterRequest.requestId !== firstFilteredRequestId);
     assert.strictEqual(filterRequest.filterSourceRequestId, request.requestId);
+    for (const field of ['printWidthCm', 'printHeightCm', 'scale', 'effectiveArea', 'printingTech']) {
+      assert.deepStrictEqual(filterRequest[field], request[field], 'Filtering must preserve ' + field);
+    }
     assert.deepStrictEqual(filterRequest.excludedFeatures, []);
     await page.locator('.map-content-filter-item').first().waitFor();
     assert(await page.locator('.map-content-roads .map-content-filter-item').first().isChecked());

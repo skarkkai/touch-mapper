@@ -140,3 +140,20 @@ full developer command took about 9.8 seconds here; the quick gate took about
 `make test-regression-full` includes `test/map-content/check-rectangular-maps.py`
 and `test/e2e/rectangular-maps.js`. See [non-square-maps.md](non-square-maps.md)
 for supported inputs, compatibility, measurements and screenshot artifacts.
+
+## Broad UI regression checks
+
+The full suite also runs `test/e2e/ui-regression.spec.js` with pinned Playwright
+1.58.2. Five reviewed screenshots compare basic settings, focused advanced
+landscape settings, focused portrait settings on mobile, and 2D/3D result pages.
+Missing baselines and visual differences fail; normal runs never update them.
+WebGL pixels are masked, but the viewer layout is checked. All service responses
+use local fixtures. See [baseline review instructions](../test/e2e/screenshots/README.md)
+for artifacts, environment requirements, intentional updates and a failure probe.
+
+These views also check visible control labels and horizontal overflow/clipped
+controls. Separate behavioral checks cover reload/persistence, printing technology,
+Advanced, square presets, multipart reset, and visible validation alerts. They are
+focused accessibility checks, not a complete WCAG audit. The quick gate retains
+its offline geometry matrix across dimensions, scales, hemispheres and independent
+multipart shifts; it does not launch a browser.
