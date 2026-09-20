@@ -111,6 +111,12 @@ Notes:
 
 ## Road naming and content mode
 
+All supported linear-way type labels have counted plural forms in every locale,
+injected through the result-page template. Connection counts use those forms
+instead of the generic “ways of type” fallback (reserved for unknown types).
+Finnish uses counted partitive forms; Finnish and German connection-count phrases
+use a “Connections:” construction to avoid incompatible grammatical cases.
+
 Individual linear-feature entries describe every visible segment using the existing
 localized location phrases, joined with semicolons and deduplicated in source order.
 Deduplication uses unordered structured endpoint-location pairs, not translated
