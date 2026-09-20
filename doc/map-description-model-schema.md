@@ -111,6 +111,12 @@ Notes:
 
 ## Road naming and content mode
 
+Individual linear-feature entries describe every visible segment using the existing
+localized location phrases, joined with semicolons and deduplicated in source order.
+Edge-crossing descriptions collect all visible segments, deduplicating edges and
+combining their position qualifiers. No connectivity reconstruction is performed.
+Unnamed road/path aggregate summaries remain unchanged.
+
 `metadata.requestBody.contentMode` accepts `normal`, `no-buildings`,
 `only-big-roads`, and `only-named-roads`. The named-roads mode is applied to OSM
 before geometry generation; descriptions must not filter features independently.

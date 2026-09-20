@@ -731,20 +731,18 @@
     return flattened;
   }
 
-  function primarySegmentInfo(target) {
-    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : [];
-    for (let i = 0; i < visibleGeometry.length; i += 1) {
-      const bucket = visibleGeometry[i];
-      const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
-      if (!segments.length) {
-        continue;
-      }
-      return {
-        segment: segments[0],
-        osmId: bucket && bucket.osmId !== undefined ? bucket.osmId : null
-      };
+  // Preserve each visible segment's location without constructing a new route
+  // between separate segments. Repeated descriptions are spoken only once.
+  function routeText(target) {
+    if (target && typeof target.mergedRouteText === "string" && target.mergedRouteText.trim()) {
+      return target.mergedRouteText.trim();
     }
-    return null;
+    const phrases = [];
+    segmentList(target).forEach(function(segment){
+      const phrase = segmentRouteText(segment);
+      if (phrase && phrases.indexOf(phrase) === -1) phrases.push(phrase);
+    });
+    return phrases.length ? phrases.join("; ") : null;
   }
 
   /**
@@ -753,15 +751,8 @@
    * - start->end: "From " + endpoint(start) + " to " + endpoint(end)
    * This avoids "Near near ..." and "From in ...".
    */
-  function routeText(target) {
-    if (target && typeof target.mergedRouteText === "string" && target.mergedRouteText.trim()) {
-      return target.mergedRouteText.trim();
-    }
-    const segments = segmentList(target);
-    if (segments.length !== 1) {
-      return null;
-    }
-    const points = collectSegmentPoints(segments[0]);
+  function segmentRouteText(segment) {
+    const points = collectSegmentPoints(segment);
     if (!points.length) {
       return null;
     }
@@ -1062,10 +1053,8 @@
   }
 
   function collectEdgeDetails(target) {
-    // Keep edge narration consistent with route narration: both should describe
-    // the same representative segment instead of mixing all grouped segments.
-    const primaryInfo = primarySegmentInfo(target);
-    const segments = primaryInfo && primaryInfo.segment ? [primaryInfo.segment] : [];
+    // Every visible segment can contribute a distinct map-edge crossing.
+    const segments = segmentList(target);
     const found = {};
     segments.forEach(function(segment){
       const events = segment && Array.isArray(segment.events) ? segment.events : [];
