@@ -106,6 +106,13 @@
     return value.trim();
   }
 
+  // Name localization keeps these original fields for semantic decisions.
+  function sourceAreaField(entity, field) {
+    if (!entity) return null;
+    const sourceField = field === "label" ? "sourceLabel" : "sourceDisplayLabel";
+    return Object.prototype.hasOwnProperty.call(entity, sourceField) ? entity[sourceField] : entity[field];
+  }
+
   function isUnnamedText(text) {
     if (!text || typeof text !== "string") {
       return true;
@@ -207,53 +214,38 @@
   // Group locations and edge contacts describe every member; physical shape
   // belongs to individual objects, not to a collection of buildings.
   function addBuildingGroupDetails(item, group) {
-    const locations = [];
-    const contacts = [];
+    const locationsByKey = {};
+    const contactsByKey = {};
     let totalCoverage = 0;
     let completeCoverage = true;
     group.items.forEach(function(member){
-      const geometry = member.visibleGeometry || {};
+      const geometry = member && member.visibleGeometry || {};
       const coverage = geometry.coverage;
-      const memberGroup = {items: [member], location: member.location};
-      const location = coverageBreakdown(coverage) || locationPhrase(memberGroup, member);
-      const contact = edgesText(geometry.edgesTouched || [], coverage);
-      [ [locations, location], [contacts, contact] ].forEach(function(pair){
-        const phrase = pair[1] ? capitalizeFirst(pair[1].replace(/[.]+$/, "")) : "";
-        if (phrase && pair[0].indexOf(phrase) === -1) pair[0].push(phrase);
-      });
+      const memberGroup = {items: [member], location: member && member.location};
+      const location = areaLocationDescription(memberGroup, member, coverage);
+      const contact = edgeContactDescription(geometry.edgesTouched || [], coverage);
+      const locationKey = areaLocationDescriptionKey(location);
+      const contactKey = edgeContactDescriptionKey(contact);
+      if (locationKey && !locationsByKey[locationKey]) locationsByKey[locationKey] = location;
+      if (contactKey && !contactsByKey[contactKey]) contactsByKey[contactKey] = contact;
       const percent = coverage && coverage.coveragePercent;
       if (typeof percent !== "number" || !isFinite(percent) || percent < 0) completeCoverage = false;
       else totalCoverage += percent;
     });
-    locations.forEach(function(phrase){
+    Object.keys(locationsByKey).forEach(function(key){
+      const phrase = formatAreaLocationDescription(locationsByKey[key]);
+      if (!phrase) return;
       addModelLine(item, [{text: phrase, className: "map-content-location-text"}], "map-content-location");
     });
-    contacts.forEach(function(phrase){
+    Object.keys(contactsByKey).forEach(function(key){
+      const phrase = formatEdgeContactDescription(contactsByKey[key]);
+      if (!phrase) return;
       addModelLine(item, [{text: phrase, className: "map-content-touches"}], "map-content-location");
     });
     if (completeCoverage) {
       addModelLine(item, interpolatedParts(t("map_content_total_area", "Covers __percent__% of map"),
         {percent: formatPercent(totalCoverage)}, "map-content-parts-coverage"), "map-content-parts");
     }
-  }
-
-  function locationPhrase(group, item) {
-    const components = item && item.visibleGeometry && Array.isArray(item.visibleGeometry.components)
-      ? item.visibleGeometry.components
-      : null;
-    if (components && components.length && components[0].location) {
-      const locationText = locationPhraseFromLoc(components[0].location.loc, "clause");
-      if (locationText) {
-        return locationText;
-      }
-    }
-    if (item && item.location && item.location.center) {
-      return locationTextFromValue(item.location.center, "clause");
-    }
-    if (group && group.location && group.location.center) {
-      return locationTextFromValue(group.location.center, "clause");
-    }
-    return null;
   }
 
   function edgeLabel(edge) {
@@ -406,14 +398,6 @@
     return null;
   }
 
-  function locationTextFromValue(value, form) {
-    if (value && typeof value === 'object') {
-      const loc = value.loc && typeof value.loc === 'object' ? value.loc : value;
-      return locationPhraseFromLoc(loc, form);
-    }
-    return null;
-  }
-
   function joinWithAnd(parts) {
     const andWord = t("map_content_list_and", "and");
     if (!parts.length) {
@@ -522,45 +506,7 @@
   }
 
   function edgesText(edgesTouched, coverage) {
-    const touches = parseEdgeTouches(edgesTouched);
-    if (!touches.length) {
-      return null;
-    }
-    const orderedTouches = touches.slice().sort(function(a, b){
-      const aValue = Number(a.percent);
-      const bValue = Number(b.percent);
-      const aHasPercent = isFinite(aValue);
-      const bHasPercent = isFinite(bValue);
-      if (aHasPercent && bHasPercent) {
-        if (Math.abs(bValue - aValue) > 1e-9) {
-          return bValue - aValue;
-        }
-        return a.order - b.order;
-      }
-      if (aHasPercent !== bHasPercent) {
-        return aHasPercent ? -1 : 1;
-      }
-      return a.order - b.order;
-    });
-    const parts = orderedTouches.map(function(touch){
-      const edge = edgeLabel(touch.edge);
-      if (!edge) {
-        return null;
-      }
-      let base = null;
-      if (touch.percent !== null && touch.percent !== undefined && !isNaN(touch.percent)) {
-        base = interpolate(t("map_content_touches_edge_percent", "touches __percent__% of __edge__ edge"), {
-          edge: edge,
-          percent: formatPercent(touch.percent)
-        });
-      } else {
-        base = interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), { edge: edge });
-      }
-      const position = edgePositionFromCoverage(coverage, touch.edge);
-      const qualifier = edgePositionQualifier(position);
-      return qualifier ? base + " " + qualifier : base;
-    }).filter(Boolean);
-    return joinWithAnd(parts);
+    return formatEdgeContactDescription(edgeContactDescription(edgesTouched, coverage));
   }
 
   function formatPercent(value) {
@@ -646,10 +592,11 @@
     if (!loc || typeof loc !== 'object') {
       return null;
     }
-    const direction = loc.dir || null;
+    const direction = loc.dir === undefined || loc.dir === null || loc.dir === "" ? null : loc.dir;
     if (loc.kind === "center") {
       return { kind: "center", dir: null };
     }
+    if (direction !== null && COVERAGE_COMPASS_DIRECTIONS.indexOf(direction) < 0) return null;
     if (loc.kind === "part") {
       return direction ? { kind: "part", dir: direction } : { kind: "center", dir: null };
     }
@@ -673,7 +620,7 @@
     const bucketMap = {};
     let total = 0;
     coverage.segments.forEach(function(segment){
-      if (!segment || typeof segment.insideCount !== 'number' || segment.insideCount <= 0) {
+      if (!segment || typeof segment.insideCount !== 'number' || !isFinite(segment.insideCount) || segment.insideCount <= 0) {
         return;
       }
       const bucket = normalizeCoverageLoc(segment.loc);
@@ -765,7 +712,7 @@
     if (!first) {
       return null;
     }
-    if (!second || second.share < 0.15) {
+    if (!second) {
       return interpolate(
         t("map_content_summary_distributed_top1", "In several areas, mostly __first__."),
         { first: first }
@@ -782,6 +729,65 @@
         second: secondText
       }
     );
+  }
+
+  // Select coverage using the existing thresholds and cluster priority. Only
+  // regions with share >= 0.15 are meaningful; cluster coverage >= 0.75 and
+  // far leakage <= 0.10 permits the three-region phrase before other forms.
+  function coverageDescription(coverage) {
+    const buckets = normalizedCoverageBuckets(coverage);
+    if (!buckets.length) return null;
+    const top = buckets[0];
+    const second = buckets.length > 1 ? buckets[1] : null;
+    const secondShare = second ? second.share : 0;
+    const meaningful = buckets.filter(function(bucket){ return bucket.share >= 0.15; });
+    const bestCluster = coverageFindBestCluster(buckets);
+    if (bestCluster && bestCluster.farLeak <= 0.10) {
+      const inCluster = {};
+      bestCluster.clusterDirs.forEach(function(direction){ inCluster[direction] = true; });
+      const clusterMeaningful = meaningful.filter(function(bucket){
+        const direction = coverageDirectionComponent(bucket);
+        return !!(direction && inCluster[direction]);
+      });
+      if (clusterMeaningful.length >= 3) {
+        return selectedCoverageDescription("three_regions", clusterMeaningful.slice(0, 3));
+      }
+    }
+    const distributed = meaningful.length >= 4 || top.share < 0.55 || (top.share + secondShare) < 0.80;
+    if (distributed) return selectedCoverageDescription("distributed", second && second.share >= 0.15 ? [top, second] : [top]);
+    if (!second || secondShare < 0.15 || meaningful.length <= 1 || top.share >= 0.85) {
+      return selectedCoverageDescription("single", [top]);
+    }
+    if (Math.abs(top.share - second.share) <= 0.07) return selectedCoverageDescription("equal", [top, second]);
+    return selectedCoverageDescription("mostly", [top, second]);
+  }
+
+  // Retain only the regions selected for narration, never their raw weights.
+  function selectedCoverageDescription(kind, buckets) {
+    return {kind: kind, buckets: buckets.map(function(bucket){
+      return {kind: bucket.kind, dir: bucket.dir || null};
+    })};
+  }
+
+  function coverageDescriptionKey(description) {
+    if (!description || !Array.isArray(description.buckets) || !description.buckets.length) return "";
+    const regions = description.buckets.map(function(bucket){ return JSON.stringify([bucket.kind, bucket.dir]); });
+    // Only the dominant/secondary form gives the regions different roles.
+    if (description.kind !== "mostly") regions.sort();
+    return JSON.stringify([description.kind, regions]);
+  }
+
+  // Translate a previously selected coverage meaning without revisiting selection.
+  function formatCoverageDescription(description) {
+    if (!description || !Array.isArray(description.buckets)) return null;
+    if (description.kind === "single") return coverageSingleSentence(description.buckets[0]);
+    if (description.kind === "equal") return coverageEqualSentence(description.buckets[0], description.buckets[1]);
+    if (description.kind === "mostly") return coverageMostlySentence(description.buckets[0], description.buckets[1]);
+    if (description.kind === "distributed") return coverageDistributedSentence(description.buckets[0], description.buckets[1]);
+    if (description.kind === "three_regions") return threeRegionsPhrase(
+      description.buckets[0], description.buckets[1], description.buckets[2]
+    );
+    return null;
   }
 
   // --- Helpers: graph + distance ------------------------------------------------
@@ -1000,77 +1006,84 @@
     );
   }
 
-  /**
-   * Coverage phrase selection:
-   * - meaningful bucket threshold: share >= 0.15
-   * - cluster phrase (threeRegionsPhrase) if:
-   *   a) there exists a connected cluster of 3..5 adjacent directions whose total share >= 0.75, and
-   *   b) far-away leakage (distance >= 2 from that cluster) is small (<= 0.10), and
-   *   c) at least 3 meaningful buckets fall inside the chosen cluster (so we can name them)
-   * - distributed / single / equal / mostly-extending as before.
-   */
-  function coverageBreakdown(coverage) {
-    const buckets = normalizedCoverageBuckets(coverage);
-    if (!buckets.length) {
-      return null;
+  function normalizedLocationValue(value) {
+    const loc = value && value.loc && typeof value.loc === "object" ? value.loc : value;
+    return normalizeCoverageLoc(loc);
+  }
+
+  // Select the same location meaning used for output so keys cannot drift.
+  function areaLocationDescription(group, item, coverage) {
+    const selectedCoverage = coverageDescription(coverage);
+    if (selectedCoverage) return selectedCoverage;
+    const components = item && item.visibleGeometry && Array.isArray(item.visibleGeometry.components)
+      ? item.visibleGeometry.components : [];
+    const component = components[0] && components[0].location ? normalizedLocationValue(components[0].location.loc) : null;
+    if (component) return selectedCoverageDescription("single", [component]);
+    if (item && item.location && item.location.center) {
+      const itemLocation = normalizedLocationValue(item.location.center);
+      return itemLocation ? selectedCoverageDescription("single", [itemLocation]) : null;
     }
+    const groupLocation = group && group.location ? normalizedLocationValue(group.location.center) : null;
+    return groupLocation ? selectedCoverageDescription("single", [groupLocation]) : null;
+  }
 
-    const top = buckets[0];
-    const second = buckets.length > 1 ? buckets[1] : null;
+  function areaLocationDescriptionKey(description) {
+    return coverageDescriptionKey(description);
+  }
 
-    const topShare = top ? top.share : 0;
-    const secondShare = second ? second.share : 0;
+  function formatAreaLocationDescription(description) {
+    if (!description) return null;
+    const text = formatCoverageDescription(description);
+    return text ? capitalizeFirst(text.replace(/[.]+$/, "")) : null;
+  }
 
-    const meaningful = buckets.filter(function(bucket) {
-      return bucket.share >= 0.15;
+  // Keep exact measurements and selected position facts, including contacts
+  // whose measurement is unknown. Percent formatting never defines identity.
+  function edgeContactDescription(edgesTouched, coverage) {
+    const touches = parseEdgeTouches(edgesTouched);
+    if (!touches.length) return null;
+    return touches.map(function(touch){
+      const percent = touch.percent !== null && touch.percent !== undefined && isFinite(Number(touch.percent))
+        ? Number(touch.percent) : null;
+      return {edge: touch.edge, percent: percent, position: edgePositionFromCoverage(coverage, touch.edge)};
+    }).filter(function(touch){ return !!touch.edge; }).sort(function(a, b){
+      if (a.percent !== null && b.percent !== null) return b.percent - a.percent;
+      if (a.percent !== b.percent) return a.percent !== null ? -1 : 1;
+      return 0;
     });
+  }
 
-    // clustered >=3 adjacent regions, minimal far-away spill -------------
-    const bestCluster = coverageFindBestCluster(buckets);
-    if (bestCluster && bestCluster.farLeak <= 0.10) {
-      const inCluster = {};
-      for (let i = 0; i < bestCluster.clusterDirs.length; i += 1) {
-        inCluster[bestCluster.clusterDirs[i]] = true;
-      }
+  function edgeContactDescriptionKey(description) {
+    if (!Array.isArray(description) || !description.length) return "";
+    return JSON.stringify(description.map(function(touch){
+      return JSON.stringify([touch.edge, touch.percent, touch.position]);
+    }).sort());
+  }
 
-      // Pick the top 3 meaningful buckets within the cluster to mention
-      const clusterMeaningful = meaningful.filter(function(bucket) {
-        const dir = coverageDirectionComponent(bucket);
-        return !!(dir && inCluster[dir]);
-      });
-
-      if (clusterMeaningful.length >= 3) {
-        return threeRegionsPhrase(clusterMeaningful[0], clusterMeaningful[1], clusterMeaningful[2]);
-      }
-    }
-
-    // --- Existing distributed logic (unchanged, except no forced "not connected")-
-    const moreDistributed =
-      meaningful.length >= 4 ||
-      topShare < 0.55 ||
-      (topShare + secondShare) < 0.80;
-
-    if (moreDistributed) {
-      return coverageDistributedSentence(top, second);
-    }
-    if (!second || secondShare < 0.15 || meaningful.length <= 1 || topShare >= 0.85) {
-      return coverageSingleSentence(top);
-    }
-    if (Math.abs(topShare - secondShare) <= 0.07) {
-      return coverageEqualSentence(top, second);
-    }
-    return coverageMostlySentence(top, second);
+  // Format the selected contacts for singleton and grouped area descriptions.
+  function formatEdgeContactDescription(description) {
+    if (!Array.isArray(description) || !description.length) return null;
+    const parts = description.map(function(touch){
+      const edge = edgeLabel(touch.edge);
+      const base = touch.percent !== null
+        ? interpolate(t("map_content_touches_edge_percent", "touches __percent__% of __edge__ edge"),
+          {edge: edge, percent: formatPercent(touch.percent)})
+        : interpolate(t("map_content_touches_edge", "Touches __edge__ edge"), {edge: edge});
+      const qualifier = edgePositionQualifier(touch.position);
+      return qualifier ? base + " " + qualifier : base;
+    });
+    return capitalizeFirst(joinWithAnd(parts));
   }
 
   function buildingGroupIsNamed(group) {
     const primary = pickPrimaryItem(group);
-    const explicitName = trimString(group && group.label) || trimString(primary && primary.label);
+    const explicitName = trimString(sourceAreaField(group, "label")) || trimString(sourceAreaField(primary, "label"));
     if (explicitName && !isUnnamedText(explicitName)) {
       return true;
     }
-    let labelSource = group && group.displayLabel;
+    let labelSource = sourceAreaField(group, "displayLabel");
     if (!labelSource && primary) {
-      labelSource = primary.displayLabel;
+      labelSource = sourceAreaField(primary, "displayLabel");
     }
     const nameParts = splitLabel(labelSource);
     return !!(nameParts && typeof nameParts.subtitle === "string" && nameParts.subtitle.trim());
@@ -1134,10 +1147,10 @@
     return t("map_content_water_area_type_generic_plural", "water areas");
   }
 
-  function waterAreaNameFromDisplayLabel(group, primary) {
+  function waterAreaNameFromDisplayLabel(group, primary, sourceNames) {
     const sources = [
-      trimString(group && group.displayLabel),
-      trimString(primary && primary.displayLabel)
+      trimString(sourceNames ? sourceAreaField(group, "displayLabel") : group && group.displayLabel),
+      trimString(sourceNames ? sourceAreaField(primary, "displayLabel") : primary && primary.displayLabel)
     ].filter(Boolean);
     for (let i = 0; i < sources.length; i += 1) {
       const source = sources[i];
@@ -1155,21 +1168,22 @@
     return null;
   }
 
-  function waterAreaEntryName(entry) {
+  function waterAreaEntryName(entry, sourceNames) {
     if (!entry) {
       return null;
     }
     const group = entry.group;
     const primary = pickPrimaryItem(group);
-    const explicit = trimString(group && group.label) || trimString(primary && primary.label);
-    if (explicit && !isUnnamedText(explicit)) {
+    const explicit = trimString(sourceNames ? sourceAreaField(group, "label") : group && group.label) ||
+      trimString(sourceNames ? sourceAreaField(primary, "label") : primary && primary.label);
+    if (explicit && (sourceNames ? !isUnnamedText(explicit) : waterAreaEntryIsNamed(entry))) {
       return explicit;
     }
-    return waterAreaNameFromDisplayLabel(group, primary);
+    return waterAreaNameFromDisplayLabel(group, primary, sourceNames);
   }
 
   function waterAreaEntryIsNamed(entry) {
-    return !!waterAreaEntryName(entry);
+    return !!waterAreaEntryName(entry, true);
   }
 
   function waterAreaEntryTitleKey(entry) {
@@ -1491,16 +1505,14 @@
     if (!labelSource && primary) {
       labelSource = primary.displayLabel;
     }
-    const explicitName = group && typeof group.label === "string" && group.label.trim()
-      ? group.label.trim()
-      : (primary && typeof primary.label === "string" && primary.label.trim() ? primary.label.trim() : "");
+    const explicitName = trimString(sourceAreaField(group, "label")) || trimString(sourceAreaField(primary, "label"));
     const nameParts = splitLabel(labelSource);
-    const hasSubtitle = !!(nameParts && typeof nameParts.subtitle === "string" && nameParts.subtitle.trim());
+    const sourceNameParts = splitLabel(sourceAreaField(group, "displayLabel") || sourceAreaField(primary, "displayLabel"));
+    const hasSubtitle = !!(sourceNameParts && typeof sourceNameParts.subtitle === "string" && sourceNameParts.subtitle.trim());
     const isNamedForSummary = !!explicitName || hasSubtitle;
     const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
     const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
-    const coverageLine = coverageBreakdown(coverage);
-    const location = locationPhrase(group, primary);
+    const locationDescription = areaLocationDescription(group, primary, coverage);
     const edges = visibleGeometry && Array.isArray(visibleGeometry.edgesTouched)
       ? visibleGeometry.edgesTouched
       : [];
@@ -1538,8 +1550,7 @@
       return item;
     }
 
-    const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
-    const primaryLocationText = primaryLocation ? primaryLocation.replace(/[.]+$/, "") : null;
+    const primaryLocationText = formatAreaLocationDescription(locationDescription);
     if (primaryLocationText) {
       addModelLine(item, [
         { text: primaryLocationText, className: "map-content-location-text" }
@@ -1633,7 +1644,7 @@
     return groupCoveragePercent(entry.group);
   }
 
-  function waterAreaPrimaryLocationText(entry) {
+  function waterAreaPrimaryLocationDescription(entry) {
     if (!entry || !entry.group) {
       return null;
     }
@@ -1641,22 +1652,12 @@
     const primary = pickPrimaryItem(group);
     const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
     const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
-    const coverageLine = coverageBreakdown(coverage);
-    const location = locationPhrase(group, primary);
-    const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
-    if (!primaryLocation || typeof primaryLocation !== "string") {
-      return null;
-    }
-    const trimmed = primaryLocation.replace(/[.]+$/, "").trim();
-    return trimmed || null;
+    return areaLocationDescription(group, primary, coverage);
   }
 
-  function waterAreaPrimaryLocationKey(text) {
-    if (!text || typeof text !== "string") {
-      return null;
-    }
-    const trimmed = text.trim();
-    return trimmed ? trimmed.toLowerCase() : null;
+  function waterAreaPrimaryLocationKey(description) {
+    const key = areaLocationDescriptionKey(description);
+    return key || null;
   }
 
   function mergeWaterAreaEdgesTouched(entries) {
@@ -1705,15 +1706,14 @@
     const primary = pickPrimaryItem(group);
     const visibleGeometry = primary && primary.visibleGeometry ? primary.visibleGeometry : null;
     const coverage = visibleGeometry && visibleGeometry.coverage ? visibleGeometry.coverage : null;
-    const coverageLine = coverageBreakdown(coverage);
-    const location = locationPhrase(group, primary);
+    const locationDescription = areaLocationDescription(group, primary, coverage);
     const edges = visibleGeometry && Array.isArray(visibleGeometry.edgesTouched)
       ? visibleGeometry.edgesTouched
       : [];
     const touches = edgesText(edges, coverage);
     const name = waterAreaEntryName(entry);
     const typeText = waterAreaTypeLabel(entry.subClass);
-    const isNamed = !!name;
+    const isNamed = waterAreaEntryIsNamed(entry);
 
     const item = {
       type: "water_area",
@@ -1742,8 +1742,7 @@
       { text: capitalizeFirst(titleText), className: "map-content-title" }
     ], "map-content-title-line", scoreTooltip, titleLink);
 
-    const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
-    const primaryLocationText = primaryLocation ? primaryLocation.replace(/[.]+$/, "") : null;
+    const primaryLocationText = formatAreaLocationDescription(locationDescription);
     if (primaryLocationText) {
       addModelLine(item, [
         { text: primaryLocationText, className: "map-content-location-text" }
@@ -1792,9 +1791,10 @@
       { text: capitalizeFirst(titleText), className: "map-content-title" }
     ], "map-content-title-line");
 
-    if (summary.locationText) {
+    const locationText = formatAreaLocationDescription(summary.locationDescription);
+    if (locationText) {
       addModelLine(item, [
-        { text: capitalizeFirst(summary.locationText), className: "map-content-location-text" }
+        { text: locationText, className: "map-content-location-text" }
       ], "map-content-location");
     }
 
@@ -1839,8 +1839,8 @@
     const unnamedBucketsByKey = {};
     const unnamedKeyByIndex = {};
     unnamedEntries.forEach(function(entry, index){
-      const locationText = waterAreaPrimaryLocationText(entry);
-      const locationKey = waterAreaPrimaryLocationKey(locationText);
+      const locationDescription = waterAreaPrimaryLocationDescription(entry);
+      const locationKey = waterAreaPrimaryLocationKey(locationDescription);
       if (!locationKey) {
         return;
       }
@@ -1849,7 +1849,7 @@
         unnamedBucketsByKey[locationKey] = {
           count: 0,
           coveragePercent: 0,
-          locationText: locationText,
+          locationDescription: locationDescription,
           firstIndex: index,
           entries: [],
           filterRefs: []

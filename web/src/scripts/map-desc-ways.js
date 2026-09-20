@@ -316,7 +316,7 @@
         ways.push({
           group: group,
           subclassOrder: subclassOrder,
-          subclassType: singularSubclassType(subclass.key, subclass.name),
+          subclassName: subclass.name,
           subClass: subclass.key,
           sectionKey: sectionKey
         });
@@ -374,35 +374,7 @@
       targetGroup.totalLength = targetLength + sourceLength;
     }
 
-    function normalizeMergeText(value) {
-      if (!value || typeof value !== "string") {
-        return "";
-      }
-      return value
-        .replace(/[‐‑‒–—]/g, "-")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
-    }
-
-    function appendUniqueMergedText(list, value) {
-      if (!Array.isArray(list) || !value || typeof value !== "string") {
-        return list;
-      }
-      const trimmed = value.trim();
-      if (!trimmed) {
-        return list;
-      }
-      const normalized = normalizeMergeText(trimmed);
-      for (let i = 0; i < list.length; i += 1) {
-        if (normalizeMergeText(list[i]) === normalized) {
-          return list;
-        }
-      }
-      list.push(trimmed);
-      return list;
-    }
-
+    // Use selected map semantics, never localized sentences, to combine unnamed ways.
     function unnamedMergeSignature(entry) {
       if (!entry) {
         return null;
@@ -415,35 +387,26 @@
           entry.sectionKey !== "otherLinear") {
         return null;
       }
-      const routeSig = routeText(entry.group) || "";
-      const edgeSig = edgesText(entry.group) || "";
-      if (!routeSig && !edgeSig) {
+      const routeDescriptions = routeDescriptionsForTarget(entry.group);
+      const edgeDetails = collectEdgeDetails(entry.group);
+      if (!routeDescriptions.length && !edgeDetails.length) {
         return null;
       }
-      const lengthSig = formatLength(entry.group) || "";
-      const normalizedRouteSig = normalizeMergeText(routeSig);
-      const normalizedEdgeSig = normalizeMergeText(edgeSig);
-      const normalizedLocationParts = [];
-      if (normalizedRouteSig) {
-        normalizedLocationParts.push(normalizedRouteSig);
+      const lengthBucket = lengthIdentityBucket(entry.group);
+      // A missing measurement has no semantic display bucket. Keep the feature
+      // separate rather than treating all missing values as interchangeable.
+      if (lengthBucket === null && entry.sectionKey !== "railways") {
+        return null;
       }
-      if (normalizedEdgeSig && normalizedLocationParts.indexOf(normalizedEdgeSig) === -1) {
-        normalizedLocationParts.push(normalizedEdgeSig);
-      }
-      normalizedLocationParts.sort();
-      const normalizedLocationSig = normalizedLocationParts.join("||");
-      const normalizedLengthSig = normalizeMergeText(lengthSig);
       // Unnamed railways should merge like roads in length aggregation:
       // equivalent entries merge and lengths sum, so length does not belong in railway merge key.
       // Keep route/edge distinctions in the key to avoid collapsing unrelated rail segments
       // that happen to share a coarse location phrase.
-      const unnamedKey = entry.sectionKey === "railways"
-        ? ("unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig)
-        : ("unnamed|" + (entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normalizedLocationSig + "|" + normalizedLengthSig);
+      const unnamedKey = JSON.stringify(["unnamed", entry.sectionKey, entry.subClass,
+        routeDescriptions.map(routeDescriptionKey).sort(), edgeDetails.map(edgeDetailKey).sort(),
+        entry.sectionKey === "railways" ? null : lengthBucket]);
       return {
-        key: unnamedKey,
-        routeSig: routeSig,
-        edgeSig: edgeSig
+        key: unnamedKey
       };
     }
 
@@ -451,11 +414,11 @@
       const merged = [];
       const byKey = {};
       entries.forEach(function(entry){
-        const name = wayName(entry && entry.group ? entry.group : null);
+        const name = sourceWayName(entry && entry.group ? entry.group : null);
         const normName = normalizedWayName(name);
         const unnamedSig = normName ? null : unnamedMergeSignature(entry);
         const key = normName
-          ? ((entry.sectionKey || "") + "|" + (entry.subClass || "") + "|" + normName)
+          ? JSON.stringify([entry.sectionKey, entry.subClass, normName])
           : (unnamedSig ? unnamedSig.key : null);
         if (!key) {
           merged.push(entry);
@@ -463,15 +426,12 @@
         }
         if (!byKey[key]) {
           const groupClone = Object.assign({}, entry.group || {});
-          if (unnamedSig) {
-            groupClone.mergedRouteText = unnamedSig.routeSig || null;
-            groupClone.mergedEdgeText = unnamedSig.edgeSig || null;
-            groupClone.mergedEdgeTexts = appendUniqueMergedText([], unnamedSig.edgeSig || "");
-          }
+          // Localization metadata may be non-enumerable on parsed input.
+          groupClone.sourceLabel = sourceWayName(entry.group);
           byKey[key] = {
             group: groupClone,
             subclassOrder: entry.subclassOrder,
-            subclassType: entry.subclassType,
+            subclassName: entry.subclassName,
             subClass: entry.subClass,
             sectionKey: entry.sectionKey
           };
@@ -479,18 +439,6 @@
           return;
         }
         mergeGroupWays(byKey[key].group, entry.group || {});
-        if (unnamedSig) {
-          const existingEdgeTexts = Array.isArray(byKey[key].group.mergedEdgeTexts)
-            ? byKey[key].group.mergedEdgeTexts.slice()
-            : [];
-          appendUniqueMergedText(existingEdgeTexts, unnamedSig.edgeSig || "");
-          byKey[key].group.mergedEdgeTexts = existingEdgeTexts;
-          if (existingEdgeTexts.length > 1) {
-            byKey[key].group.mergedEdgeText = joinWithAnd(existingEdgeTexts);
-          } else if (existingEdgeTexts.length === 1) {
-            byKey[key].group.mergedEdgeText = existingEdgeTexts[0];
-          }
-        }
       });
       return merged;
     }
@@ -640,6 +588,13 @@
     return label || null;
   }
 
+  // Source names identify groups even when the browser displays a localized name.
+  function sourceWayName(group) {
+    if (!group || group.isNamed === false) return null;
+    const label = Object.prototype.hasOwnProperty.call(group, "sourceLabel") ? group.sourceLabel : group.label;
+    return typeof label === "string" && label.trim() ? label.trim() : null;
+  }
+
   function singularSubclassType(subclassKey, fallbackName) {
     if (subclassKey) {
       const typeKey = "map_content_way_type_" + subclassKey;
@@ -665,19 +620,24 @@
   }
 
   function formatLength(item) {
+    const rounded = lengthIdentityBucket(item);
+    if (rounded === null) return null;
+    return interpolate(t("map_content_way_length_m", "__meters__ meters"), { meters: rounded });
+  }
+
+  // Match the existing displayed-meter precision without depending on its text.
+  function lengthIdentityBucket(item) {
     const length = wayLengthValue(item);
     if (!length) {
       return null;
     }
-    let rounded = 0;
     if (length >= 1000) {
-      rounded = Math.round(length / 10) * 10;
-    } else if (length >= 100) {
-      rounded = Math.round(length / 5) * 5;
-    } else {
-      rounded = Math.round(length);
+      return Math.round(length / 10) * 10;
     }
-    return interpolate(t("map_content_way_length_m", "__meters__ meters"), { meters: rounded });
+    if (length >= 100) {
+      return Math.round(length / 5) * 5;
+    }
+    return Math.round(length);
   }
 
   function unnamedRoadsCountText(count) {
@@ -731,78 +691,81 @@
     return flattened;
   }
 
-  // Identify narrated locations independently of translated grammatical forms.
-  function locationKey(zone) {
+  // Select only supported approximate locations; absent part directions mean center.
+  function selectLocation(zone) {
     if (!zone || typeof zone !== "object") return null;
-    if (zone.kind === "center" || (zone.kind === "part" && !zone.dir)) return "center";
-    if ((zone.kind === "part" || zone.kind === "near_edge") && zone.dir) {
-      return zone.kind + ":" + zone.dir;
+    if (zone.kind === "center") return {kind: "center"};
+    if (zone.kind === "part" && (zone.dir === undefined || zone.dir === null || zone.dir === "")) {
+      // Preserve legacy endpoint grammar as a presentation hint, not an identity field.
+      return {kind: "center", implicitPart: true};
+    }
+    const directions = ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"];
+    if ((zone.kind === "part" || zone.kind === "near_edge") && directions.includes(zone.dir)) {
+      return {kind: zone.kind, dir: zone.dir};
     }
     return null;
   }
 
-  // Describe distinct location pairs once, regardless of segment direction.
-  // Standalone locations already covered by a pair need no additional narration.
-  function routeText(target) {
-    if (target && typeof target.mergedRouteText === "string" && target.mergedRouteText.trim()) {
-      return target.mergedRouteText.trim();
-    }
+  // Keys contain explicit fields, never property enumeration or formatted text.
+  function locationKey(location) {
+    return location ? JSON.stringify([location.kind, location.dir || null]) : null;
+  }
+
+  // Select distinct locations before applying any route grammar or translation.
+  function routeDescriptionsForTarget(target) {
     const descriptions = [];
     const seen = new Set();
     const covered = new Set();
     segmentList(target).forEach(function(segment){
-      const phrase = segmentRouteText(segment);
-      if (!phrase) return;
       const points = collectSegmentPoints(segment);
-      const start = locationKey(points[0].zone);
-      const end = locationKey(points[points.length - 1].zone);
-      const pair = start && end && start !== end;
-      const key = pair ? JSON.stringify([start, end].sort()) : (start || phrase);
+      if (!points.length) return;
+      const start = selectLocation(points[0].zone);
+      const end = selectLocation(points[points.length - 1].zone);
+      // Preserve the established known-start fallback when the last point is unknown.
+      if (!start) return;
+      const startKey = locationKey(start);
+      const endKey = locationKey(end);
+      const pair = end && startKey !== endKey;
+      const description = {kind: pair ? "route" : "location", start: start, end: pair ? end : null};
+      const key = routeDescriptionKey(description);
       if (seen.has(key)) return;
       seen.add(key);
       if (pair) {
-        covered.add(start);
-        covered.add(end);
+        covered.add(startKey);
+        covered.add(endKey);
       }
-      descriptions.push({phrase: phrase, single: pair ? null : start});
+      descriptions.push(description);
     });
-    const phrases = descriptions.filter(function(description){
-      return !description.single || !covered.has(description.single);
-    }).map(function(description){ return description.phrase; });
+    return descriptions.filter(function(description){
+      return description.kind === "route" || !covered.has(locationKey(description.start));
+    });
+  }
+
+  function routeDescriptionKey(description) {
+    return JSON.stringify([description.kind, description.kind === "route"
+      ? [locationKey(description.start), locationKey(description.end)].sort()
+      : locationKey(description.start)]);
+  }
+
+  // Format the selected location structures only at the render boundary.
+  function formatRouteDescriptions(descriptions) {
+    const phrases = descriptions.map(function(description){
+      if (description.kind === "route") {
+        return interpolate(
+          t("map_content_way_route_from_to", "From __start__ to __end__"),
+          {start: locationTextFromZone(description.start, description.start.implicitPart ? "clause" : "route_from"),
+            end: locationTextFromZone(description.end, description.end.implicitPart ? "clause" : "route_to")}
+        );
+      }
+      const single = locationTextFromZone(description.start, "clause");
+      return single ? interpolate(t("map_content_way_route_near", "__location__"),
+        {location: single.replace(/[.]+$/, "")}) : null;
+    }).filter(Boolean);
     return phrases.length ? phrases.join("; ") : null;
   }
 
-  /**
-   * Route line grammar:
-   * - single visible location: sentence(clause(loc))
-   * - start->end: "From " + endpoint(start) + " to " + endpoint(end)
-   * This avoids "Near near ..." and "From in ...".
-   */
-  function segmentRouteText(segment) {
-    const points = collectSegmentPoints(segment);
-    if (!points.length) {
-      return null;
-    }
-    const startEndpoint = locationTextFromZone(points[0].zone, "route_from") ||
-      locationTextFromZone(points[0].zone, "endpoint");
-    const endEndpoint = locationTextFromZone(points[points.length - 1].zone, "route_to") ||
-      locationTextFromZone(points[points.length - 1].zone, "endpoint");
-
-    if (startEndpoint && endEndpoint &&
-        locationKey(points[0].zone) !== locationKey(points[points.length - 1].zone)) {
-      return interpolate(
-        t("map_content_way_route_from_to", "From __start__ to __end__"),
-        { start: startEndpoint, end: endEndpoint }
-      );
-    }
-    const single = locationTextFromZone(points[0].zone, "clause") || startEndpoint;
-    if (single) {
-      return interpolate(
-        t("map_content_way_route_near", "__location__"),
-        { location: single.replace(/[.]+$/, "") }
-      );
-    }
-    return null;
+  function routeText(target) {
+    return formatRouteDescriptions(routeDescriptionsForTarget(target));
   }
 
   function translatedWayType(subClass) {
@@ -863,7 +826,7 @@
     if (ids.length) {
       return "ways:" + ids.slice().sort().join("|");
     }
-    const normName = normalizedWayName(wayName(group));
+    const normName = normalizedWayName(sourceWayName(group));
     return normName ? ("name:" + normName) : null;
   }
 
@@ -936,7 +899,7 @@
       entry.connectionKey = key;
       groupsByKey[key] = group;
       bucketsByKey[key] = {
-        currentName: normalizedWayName(wayName(group)),
+        currentName: normalizedWayName(sourceWayName(group)),
         namedKeys: {},
         namedLabels: {},
         typeBuckets: {}
@@ -1026,7 +989,7 @@
 
       Object.keys(bucket.namedKeys).forEach(function(targetKey){
         const targetName = wayName(groupsByKey[targetKey]);
-        const norm = normalizedWayName(targetName);
+        const norm = normalizedWayName(sourceWayName(groupsByKey[targetKey]));
         if (norm && !bucket.namedLabels[norm]) {
           bucket.namedLabels[norm] = targetName;
         }
@@ -1087,7 +1050,7 @@
     segments.forEach(function(segment){
       const events = segment && Array.isArray(segment.events) ? segment.events : [];
       events.forEach(function(event){
-        if (!event || event.type !== "map_edge_crossing" || !event.edge) {
+        if (!event || event.type !== "map_edge_crossing" || !["north", "south", "east", "west"].includes(event.edge)) {
           return;
         }
         if (!found[event.edge]) {
@@ -1132,21 +1095,11 @@
     });
   }
 
+  function edgeDetailKey(detail) {
+    return JSON.stringify([detail.edge, detail.position]);
+  }
+
   function edgesText(target) {
-    if (target && Array.isArray(target.mergedEdgeTexts)) {
-      const mergedTexts = target.mergedEdgeTexts
-        .map(function(text){ return typeof text === "string" ? text.trim() : ""; })
-        .filter(function(text){ return !!text; });
-      if (mergedTexts.length > 1) {
-        return joinWithAnd(mergedTexts);
-      }
-      if (mergedTexts.length === 1) {
-        return mergedTexts[0];
-      }
-    }
-    if (target && typeof target.mergedEdgeText === "string" && target.mergedEdgeText.trim()) {
-      return target.mergedEdgeText.trim();
-    }
     const details = collectEdgeDetails(target);
     if (!details.length) {
       return null;
@@ -1388,7 +1341,7 @@
       item.attrs.dataOsmId = String(mainWay.osmId);
     }
 
-    const typeText = entry.subclassType || null;
+    const typeText = singularSubclassType(entry.subClass, entry.subclassName);
     const nameText = wayName(group);
     const lengthText = formatLength(group);
     const scoreTooltip = importanceScoreTooltip(group.importanceScore);
@@ -1599,24 +1552,24 @@
     return !!(entry && entry.sectionKey === "waterways" && !wayName(entry.group));
   }
 
-  function unnamedWaterwayLocationText(entry) {
+  function unnamedWaterwayLocationDescription(entry) {
     if (!entry || !entry.group) {
       return null;
     }
-    const text = routeText(entry.group);
-    if (!text || typeof text !== "string") {
+    const routes = routeDescriptionsForTarget(entry.group);
+    if (!routes.length) {
       return null;
     }
-    const trimmed = text.trim();
-    return trimmed || null;
+    return routes;
   }
 
-  function unnamedWaterwayLocationKey(locationText) {
-    if (!locationText || typeof locationText !== "string") {
+  function unnamedWaterwayLocationKey(description) {
+    if (!description || !description.length) {
       return null;
     }
-    const trimmed = locationText.trim();
-    return trimmed ? trimmed.toLowerCase() : null;
+    // The existing broad waterway summary category groups by route, not subtype,
+    // edge or length. Keep that product rule independent of presentation.
+    return JSON.stringify(description.map(routeDescriptionKey).sort());
   }
 
   function buildMergedUnnamedWaterwayModel(summary) {
@@ -1647,9 +1600,10 @@
     addModelLine(item, [
       { text: capitalizeFirst(titleText), className: "map-content-title" }
     ], "map-content-title-line");
-    if (summary.locationText) {
+    const locationText = formatRouteDescriptions(summary.routes);
+    if (locationText) {
       addModelLine(item, [
-        { text: capitalizeFirst(summary.locationText), className: "map-content-location-text" }
+        { text: capitalizeFirst(locationText), className: "map-content-location-text" }
       ], "map-content-location");
     }
     return item;
@@ -1683,8 +1637,8 @@
       if (!isUnnamedWaterwayEntry(entry)) {
         return;
       }
-      const locationText = unnamedWaterwayLocationText(entry);
-      const locationKey = unnamedWaterwayLocationKey(locationText);
+      const locationDescription = unnamedWaterwayLocationDescription(entry);
+      const locationKey = unnamedWaterwayLocationKey(locationDescription);
       if (!locationKey) {
         return;
       }
@@ -1693,7 +1647,7 @@
         unnamedWaterwayBucketsByKey[locationKey] = {
           count: 0,
           totalLength: 0,
-          locationText: locationText,
+          routes: locationDescription,
           firstIndex: index,
           filterRefs: []
         };

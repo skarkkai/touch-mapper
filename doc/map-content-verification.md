@@ -30,6 +30,15 @@ Run with `--with-blender` to generate geometry regression snapshots in `test/map
 - `map-wireframe.png`: after geometry modifications.
 
 ## Content and language checks
+- The quick suite's `map_description_semantics.js`, `area_semantics.js`, and
+  `poi_semantics.js` execute production browser selectors and formatters with
+  synthetic inputs in all five locales. They cover deliberate translation
+  collisions, changed wording, selected-location equivalence, route/edge order,
+  length buckets, exact contact measurements, unknown data, source names,
+  counts, totals, and retained filtering references. Existing area and fragmented
+  route output baselines remain unchanged. Run these Node scripts individually
+  when a platform prerequisite prevents the overall suite from reaching them;
+  that is focused coverage, not a passing full regression gate.
 - `make test-regression` includes anonymized area-group fixtures in all five
   locales: seven multi-building groups verify counts, complete member locations
   and contacts, summed coverage, and suppressed group shape/orientation. Separate

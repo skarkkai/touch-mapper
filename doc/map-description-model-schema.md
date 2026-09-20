@@ -138,6 +138,63 @@ Edge-crossing descriptions collect all visible segments, deduplicating edges and
 combining their position qualifiers. No connectivity reconstruction is performed.
 Unnamed road/path aggregate summaries remain unchanged.
 
+### Semantic grouping boundary
+
+Browser selectors choose small location, route, edge-contact, coverage, and POI
+type descriptions before their formatters produce `LineModel.parts[].text`.
+The same selected values supply explicit-field JSON keys for semantic equality;
+neither complete input records nor rendered sentences are compared. This is
+browser-only state: the `map-content.json` schema and converter stages are unchanged.
+
+- Route pairs and sets of selected route/edge facts compare without regard to
+  input order. The first retained route direction still supplies the wording.
+  A known start with an unknown end retains only the start location; no route
+  is inferred. Unknown locations do not supply a generic merge identity.
+- First-stage unnamed linear merging includes the source subclass, selected
+  routes and edge qualifiers. Railways ignore length; other linear types use
+  the numeric displayed-meter bucket: nearest meter below 100 m, nearest 5 m
+  below 1000 m, nearest 10 m thereafter. A bucket is the rounded value itself,
+  so 99.6 m and 100.2 m both have identity 100. Formatting uses this same
+  function; totals sum the unformatted source measurements. Missing/nonpositive
+  lengths do not supply a first-stage merge bucket.
+- The existing broad unnamed-waterway summary category still groups by selected
+  route/location, across waterway subtypes. Counts retain the existing post-merge
+  entry convention; lengths and filtering references include all contributors.
+  Its existing title-plus-route output remains unchanged: unlike individual
+  linear entries, the aggregate does not narrate edge crossings.
+- Localized source names remain presentation values. The browser preserves
+  the original source label when localizing a payload so that locale changes
+  cannot merge distinct named groups or discard named connection facts. Area
+  namedness also uses those original fields: a translated name matching an
+  unnamed placeholder must not make a named area eligible for aggregation.
+- Area coverage equality compares only the selected sentence kind and regions,
+  not the input weights. Dominant/secondary regions retain their roles; region
+  sets in the other multi-region descriptions compare without input order.
+  A selected single region and an equivalent fallback location compare equally.
+  Selection thresholds and fallback priorities are unchanged.
+- Building-member edge contacts compare explicit edge, position qualifier, and
+  unrounded percentage fields. Unknown measurements remain distinct from zero;
+  two distinct measurements survive even if their formatted percentages match.
+  Contacts are never summed or geometrically unioned.
+- The existing POI payload encodes its untranslated source type qualifier in
+  the converter's `displayLabel` prefix; there is no separate amenity/shop/type
+  field in those records. The input adapter extracts that source token before
+  localization, and uses it for type identity. Translated type labels and
+  location sentences never become keys. Missing meaningful types or locations
+  cannot establish equality between independently supplied POI groups.
+
+Missing structured information leaves an item separate rather than using
+translated text as a fallback identity. Existing source OSM filter references
+are carried through aggregation; description keys do not replace them.
+
+Existing area-aggregation limitations remain intentionally unchanged: unnamed
+water-area summaries span source subtypes, use each group's primary member for
+coverage aggregation, and retain the maximum percentage per edge rather than
+unioning spans. Their aggregated edge positions are not inferred from coverage.
+The current coverage-selector priority also classifies a 50/50 distribution as
+distributed before reaching the comparable-region branch; this refactor does
+not reorder those rules.
+
 `metadata.requestBody.contentMode` accepts `normal`, `no-buildings`,
 `only-big-roads`, and `only-named-roads`. The named-roads mode is applied to OSM
 before geometry generation; descriptions must not filter features independently.

@@ -465,20 +465,23 @@
       if (!entity || typeof entity !== "object" || Array.isArray(entity)) {
         return;
       }
-      const currentLabel = typeof entity.label === "string" ? entity.label.trim() : "";
+      // Retain source identities when the same payload is presented in another language.
+      if (!Object.prototype.hasOwnProperty.call(entity, "sourceLabel") &&
+          (typeof entity.label === "string" || typeof entity.displayLabel === "string")) {
+        Object.defineProperty(entity, "sourceLabel", { value: entity.label });
+        Object.defineProperty(entity, "sourceDisplayLabel", { value: entity.displayLabel });
+      }
+      const currentLabel = typeof entity.sourceLabel === "string" ? entity.sourceLabel.trim() : "";
       if (!currentLabel) {
         return;
       }
       const selfExtraNames = entity.importanceTags && entity.importanceTags.extraNames;
-      const localized = entity.nameTags
+      const localized = (entity.nameTags
         ? window.TMRoadNames.resolve(entity.nameTags, candidates[0])
-        : pickLocalizedName(selfExtraNames, candidates) || localizedNameFromChildren(entity, candidates);
-      if (!localized || localized === currentLabel) {
-        return;
-      }
+        : pickLocalizedName(selfExtraNames, candidates) || localizedNameFromChildren(entity, candidates)) || currentLabel;
       entity.label = localized;
-      if (typeof entity.displayLabel === "string") {
-        entity.displayLabel = replaceLabelInDisplayLabel(entity.displayLabel, currentLabel, localized);
+      if (typeof entity.sourceDisplayLabel === "string") {
+        entity.displayLabel = replaceLabelInDisplayLabel(entity.sourceDisplayLabel, currentLabel, localized);
       }
     }
 

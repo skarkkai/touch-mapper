@@ -169,8 +169,23 @@
     return direction;
   }
 
-  function locationPhraseFromLoc(loc, form) {
-    if (!loc || typeof loc !== 'object') {
+  // Select exactly the location meaning used for both grouping and presentation.
+  function selectLocationDescription(value) {
+    const loc = value && value.loc && typeof value.loc === "object" ? value.loc : value;
+    if (!loc || typeof loc !== "object") return null;
+    if (loc.kind === "center" || (loc.kind === "part" && (loc.dir === undefined || loc.dir === null || loc.dir === ""))) {
+      return {kind: "center", dir: null};
+    }
+    const directions = ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"];
+    if ((loc.kind === "part" || loc.kind === "near_edge") && directions.indexOf(loc.dir) >= 0) {
+      return {kind: loc.kind, dir: loc.dir};
+    }
+    return null;
+  }
+
+  function locationPhraseFromLoc(value, form) {
+    const loc = selectLocationDescription(value);
+    if (!loc) {
       return null;
     }
     const phraseForm = form || "clause";
@@ -242,18 +257,11 @@
   }
 
   function locationKey(entry) {
-    const value = locationValue(entry);
-    if (!value || !value.loc) {
-      return "";
-    }
-    const kind = value.loc.kind || "";
-    const dir = value.loc.dir || "";
-    return String(kind) + ":" + String(dir);
+    return unnamedPoiLocationKey(selectLocationDescription(locationValue(entry)));
   }
 
   function locationRank(entry) {
-    const value = locationValue(entry);
-    const loc = value && value.loc ? value.loc : null;
+    const loc = selectLocationDescription(locationValue(entry));
     if (!loc) {
       return 0;
     }
@@ -269,13 +277,20 @@
     return 0;
   }
 
-  function parseTypeAndName(group, item) {
-    const displayLabel = group && typeof group.displayLabel === 'string'
-      ? group.displayLabel
-      : (item && typeof item.displayLabel === 'string' ? item.displayLabel : "");
-    const label = group && typeof group.label === 'string'
-      ? group.label
-      : (item && typeof item.label === 'string' ? item.label : null);
+  // The existing input contract encodes its untranslated POI type token before
+  // the colon in displayLabel. Decode that source token before browser formatting.
+  function parseTypeAndName(group, item, source) {
+    function field(entity, key) {
+      const sourceKey = key === "label" ? "sourceLabel" : "sourceDisplayLabel";
+      return entity && source && Object.prototype.hasOwnProperty.call(entity, sourceKey)
+        ? entity[sourceKey] : entity && entity[key];
+    }
+    const displayLabel = typeof field(group, "displayLabel") === 'string'
+      ? field(group, "displayLabel")
+      : (typeof field(item, "displayLabel") === 'string' ? field(item, "displayLabel") : "");
+    const label = typeof field(group, "label") === 'string'
+      ? field(group, "label")
+      : (typeof field(item, "label") === 'string' ? field(item, "label") : null);
     const parts = displayLabel ? displayLabel.split(":") : [];
     if (parts.length >= 2) {
       return {
@@ -476,8 +491,9 @@
         }
         const item = items[0];
         const parsed = parseTypeAndName(group, item);
+        const source = parseTypeAndName(group, item, true);
         const name = parsed.name && parsed.name.trim() ? parsed.name.trim() : null;
-        const typeLabel = parsed.typeLabel && parsed.typeLabel.trim() ? parsed.typeLabel.trim() : "";
+        const typeLabel = source.typeLabel && source.typeLabel.trim() ? source.typeLabel.trim() : "";
         const hasTypeLabel = hasMeaningfulPoiTypeLabel(typeLabel);
         if (!name && !hasTypeLabel) {
           return;
@@ -488,6 +504,7 @@
           item: item,
           typeLabel: typeLabel,
           name: name,
+          sourceName: source.name,
           hasName: !!name,
           itemCount: items.length,
           filterRefs: items.filter(function(poi){ return poi && poi.osmId !== undefined && poi.osmId !== null; }).map(function(poi){
@@ -501,23 +518,27 @@
       });
     });
 
-    const deduped = {};
-    output.forEach(function(entry){
+    const deduped = Object.create(null);
+    output.forEach(function(entry, index){
       const typeNorm = normalizedLower(entry.typeLabel || "poi");
-      const nameNorm = normalizedLower(entry.name || "");
-      const key = entry.section + "|" + typeNorm + "|" + nameNorm + "|" + locationKey(entry);
+      const nameNorm = normalizedLower(entry.sourceName || "");
+      const locKey = locationKey(entry);
+      // Unknown locations cannot establish that two independent groups are equivalent.
+      const comparable = locKey && hasMeaningfulPoiTypeLabel(entry.typeLabel);
+      const key = JSON.stringify([entry.section, typeNorm, nameNorm, locKey, comparable ? null : index]);
       if (!deduped[key]) {
         deduped[key] = entry;
         return;
       }
       const combinedFilterRefs = deduped[key].filterRefs.concat(entry.filterRefs);
-      deduped[key].itemCount += entry.itemCount;
+      const combinedCount = deduped[key].itemCount + entry.itemCount;
       if (entry.importanceScore > deduped[key].importanceScore) {
         deduped[key] = entry;
       } else if (entry.importanceScore === deduped[key].importanceScore && entry.score > deduped[key].score) {
         deduped[key] = entry;
       }
       deduped[key].filterRefs = combinedFilterRefs;
+      deduped[key].itemCount = combinedCount;
     });
 
     return Object.keys(deduped).map(function(key){ return deduped[key]; });
@@ -549,29 +570,24 @@
     });
   }
 
-  function unnamedPoiLocationText(entry) {
-    const location = locationTextFromValue(locationValue(entry), "clause");
-    if (!location || typeof location !== "string") {
-      return null;
-    }
-    const trimmed = location.trim();
-    return trimmed || null;
+  // Keep the source location identity separate from its localized sentence.
+  function unnamedPoiLocationDescription(entry) {
+    return selectLocationDescription(locationValue(entry));
   }
 
-  function unnamedPoiLocationKey(locationText) {
-    if (!locationText || typeof locationText !== "string") {
-      return null;
-    }
-    const trimmed = locationText.trim();
-    return trimmed ? trimmed.toLowerCase() : null;
+  function unnamedPoiLocationKey(description) {
+    return description ? description.kind + ":" + (description.dir || "") : null;
+  }
+
+  function formatUnnamedPoiLocation(description) {
+    return description ? locationPhraseFromLoc(description, "clause") : null;
   }
 
   function unnamedPoiTypeKey(entry) {
     if (!entry || entry.hasName) {
       return null;
     }
-    const normalizedType = normalizeTypeLabel(entry.typeLabel);
-    const lowered = normalizedLower(normalizedType);
+    const lowered = normalizedLower(entry.typeLabel);
     return lowered || null;
   }
 
@@ -597,7 +613,7 @@
     const buckets = Object.keys(locationBucketsByKey || {}).map(function(key){
       return locationBucketsByKey[key];
     }).filter(function(bucket){
-      return !!(bucket && bucket.locationText);
+      return !!(bucket && bucket.locationDescription);
     });
     buckets.sort(function(a, b){
       if (a.count !== b.count) {
@@ -619,9 +635,13 @@
     if (!locationBuckets.length) {
       return null;
     }
-    const orderedLocationClauses = locationBuckets.map(function(locationBucket){
-      return locationBucket.locationText;
-    });
+    return locationBuckets.map(function(locationBucket){ return locationBucket.locationDescription; });
+  }
+
+  // Format the retained location facts only after unnamed POI groups are complete.
+  function formatMergedUnnamedPoiLocationSummary(descriptions) {
+    if (!descriptions || !descriptions.length) return null;
+    const orderedLocationClauses = descriptions.map(formatUnnamedPoiLocation);
     let text = null;
     if (orderedLocationClauses.length === 1) {
       text = capitalizeFirst(orderedLocationClauses[0]);
@@ -636,15 +656,11 @@
         { first: orderedLocationClauses[0], second: orderedLocationClauses[1], third: orderedLocationClauses[2] }
       );
     }
-    return {
-      distinctLocationCount: orderedLocationClauses.length,
-      orderedLocationClauses: orderedLocationClauses,
-      text: text
-    };
+    return text;
   }
 
   function mergeUnnamedEntriesByTypeAndLocation(entries) {
-    const bucketsByTypeKey = {};
+    const bucketsByTypeKey = Object.create(null);
     const typeKeyByIndex = {};
 
     entries.forEach(function(entry, index){
@@ -652,8 +668,8 @@
         return;
       }
       const typeKey = unnamedPoiTypeKey(entry);
-      const locationText = unnamedPoiLocationText(entry);
-      const locationKey = unnamedPoiLocationKey(locationText);
+      const locationDescription = unnamedPoiLocationDescription(entry);
+      const locationKey = unnamedPoiLocationKey(locationDescription);
       if (!typeKey || !locationKey) {
         return;
       }
@@ -681,15 +697,15 @@
       if (!bucket.locationBucketsByKey[locationKey]) {
         bucket.locationBucketsByKey[locationKey] = {
           count: 0,
-          locationText: locationText,
+          locationDescription: locationDescription,
           locationRank: locationRank(entry),
           firstIndex: index
         };
       }
       const locationBucket = bucket.locationBucketsByKey[locationKey];
       locationBucket.count += entryCount;
-      if (!locationBucket.locationText && locationText) {
-        locationBucket.locationText = locationText;
+      if (!locationBucket.locationDescription && locationDescription) {
+        locationBucket.locationDescription = locationDescription;
       }
       if (locationRank(entry) > locationBucket.locationRank) {
         locationBucket.locationRank = locationRank(entry);
@@ -743,13 +759,7 @@
   function entryToModelItem(entry) {
     const normalizedType = normalizeTypeLabel(entry.typeLabel);
     const location = locationTextFromValue(locationValue(entry), "clause");
-    const mergedLocationSummary = entry && entry.mergedLocationSummary &&
-      typeof entry.mergedLocationSummary === "object"
-      ? entry.mergedLocationSummary
-      : null;
-    const mergedLocationText = mergedLocationSummary && typeof mergedLocationSummary.text === "string"
-      ? mergedLocationSummary.text.trim()
-      : "";
+    const mergedLocationText = formatMergedUnnamedPoiLocationSummary(entry.mergedLocationSummary);
     const locationLineText = mergedLocationText || location;
     const scoreTooltip = importanceScoreTooltip(entry && entry.group ? entry.group.importanceScore : null);
     const titleLink = bestGroupExternalLink(entry && entry.group ? entry.group : null);

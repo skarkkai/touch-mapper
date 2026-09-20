@@ -70,6 +70,19 @@ function check() {
       return lines(render(input)[0])[1];
     });
     assert.strictEqual(actualRoute, expectedClauses.join('; '), locale + ': retain exactly the three distinct pairs');
+    const reordered = fragmentedPayload();
+    const reorderedGroup = reordered.A.subclasses[0].groups[0];
+    reorderedGroup.visibleGeometry.reverse();
+    reorderedGroup.visibleGeometry.push(...reorderedGroup.visibleGeometry.slice());
+    const unrelatedSegment = {events: [{t: 0, zone: {kind: 'center'}}]};
+    reorderedGroup.visibleGeometry.push({segments: [unrelatedSegment, unrelatedSegment]});
+    const reorderedExpected = [['NEC', 'NE'], ['E', 'NE'], ['E', 'SEC']].map(([from, to]) =>
+      lines(render(payload('A1_secondary_roads', [[{events: [
+        {t: 0, zone: fragmented.zones[from]}, {t: 1, zone: fragmented.zones[to]}
+      ]}]]))[0])[1]);
+    reorderedExpected.push(translations.map_content_way_route_near.replace('__location__', translations.map_content_loc_full_center));
+    assert.strictEqual(lines(render(reordered)[0])[1], reorderedExpected.join('; '),
+      locale + ': reordered/repeated fixture retains first direction and unrelated standalone location');
     if (locale === 'en') {
       assert.strictEqual(actualRoute, fragmented.expectedEnglish);
       // Establish that the fixture reproduces the original exact-text-only failure.
