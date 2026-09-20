@@ -3,3 +3,318 @@ Alerting of increased error rates over a day, or usage drops over a week
 Store timestamps as timestamp type in Athena (there is some planning conversation about this in codex)
 
 Create a dashboard from athena queries, showing usage and error trends.
+
+
+
+
+---
+
+```text
+Refactor Touch Mapper’s browser-side map-description code so that feature grouping and semantic deduplication never depend on translated or formatted display text.
+
+First read AGENTS.md and the relevant documentation under doc/, particularly:
+- development-conventions.md
+- map-description-model-schema.md
+- map-content-verification.md
+- map-description-introspection.md
+- converter-pipeline-stages.md
+
+Implement and verify the refactor. Do not merely produce a plan.
+
+## Context
+
+Touch Mapper produces tactile maps for blind and visually impaired users. It also presents a textual description containing roads, paths, railways, waterways, water areas, buildings, and points of interest.
+
+The converter supplies structured feature data in map-content.json. The browser selects, groups, combines, and translates that information into readable descriptions.
+
+This architecture should remain intact. The problem is that some browser code translates information too early and subsequently uses the resulting text as a grouping or deduplication key.
+
+Examples include:
+- Combining a building group’s member locations and edge contacts by comparing their formatted phrases.
+- Grouping unnamed water areas by a formatted location description.
+- Grouping unnamed waterways by formatted route/location text.
+- Grouping unnamed POIs by formatted location text or localized type labels.
+- Merging unnamed linear features using formatted route descriptions, edge descriptions, and lengths.
+
+Consequently, wording changes or language differences can affect which features are combined or which facts survive.
+
+Some code already uses structured identities. For example, road-route deduplication compares unordered endpoint-location pairs. Preserve that behavior and reuse the underlying approach where appropriate.
+
+## Objective
+
+Make semantic decisions independent of presentation language:
+
+1. Select the meaning to describe from the existing structured input.
+2. Combine and deduplicate language-independent descriptions.
+3. Translate and format only after those decisions are complete.
+
+Changing the locale, wording, capitalization, punctuation, grammatical form, or number formatting must not change:
+- Feature group membership.
+- Counts.
+- Coverage or length totals.
+- Filtering identities.
+- Which location, route, edge-contact, or connection facts survive.
+
+Natural changes in output wording and ordering caused solely by localized presentation remain permissible where already intended. Do not make semantic deduplication depend on that ordering.
+
+## Scope and non-goals
+
+Inspect the entire browser map-description path, not just the recently added building-group code.
+
+Likely starting points:
+- web/src/scripts/map-desc-ways.js
+- web/src/scripts/map-desc-areas.js
+- web/src/scripts/map-desc-pois.js
+- web/src/scripts/map-description.js
+
+Search for translated text used as map keys, set membership, equality tests, normalized signatures, and merge criteria. Function names may include locationKey, normalizeMergeText, unnamedMergeSignature, or similar; inspect actual behavior rather than relying on names.
+
+This is a semantic/presentation separation refactor, not a redesign of descriptions.
+
+Do not:
+- Change converter pipeline responsibilities.
+- Change tactile geometry, feature classification, content modes, or map filtering.
+- Introduce React or another frontend framework.
+- Reconstruct route connectivity or add geometry-union algorithms.
+- Change which buildings are grouped by address.
+- Add account or map-history features.
+- Rewrite Git history.
+- Merge genuinely distinct feature types just because their translated labels are identical.
+- Infer unsupported facts when source data is missing.
+
+Existing map-content.json should contain the necessary structured information. Prefer a browser-only solution without changing its schema or regenerating maps. If you discover a genuine missing-data blocker, explain it before expanding the scope.
+
+## Existing behaviors that must be preserved
+
+### Linear features
+
+Road/route descriptions can contain multiple visible segments.
+
+Current intended behavior:
+- Describe every distinct visible segment location pair.
+- Treat A→B and B→A as the same approximate location pair.
+- Retain the first encountered direction for wording.
+- Suppress a standalone location if that location is already covered by a retained pair.
+- Preserve unrelated standalone locations.
+- Include edge crossings from all visible segments.
+- Do not infer a continuous route between disconnected segments.
+- Preserve existing intersection/connection reporting.
+- Railway junction narration is intentionally suppressed and must remain suppressed.
+- Unnamed road/path aggregate summaries are a separate product decision; do not change their content as part of this refactor.
+
+### Existing multi-building groups
+
+Current intended behavior for groups with more than one building:
+- Explicit localized count and plural type in the heading.
+- Every distinct member location description.
+- Every distinct member edge-contact description.
+- Sum all members’ coverage percentages and format the total once.
+- If any member’s coverage is missing or invalid, omit the total rather than presenting a partial sum as complete.
+- Do not show single-building shape, orientation, or component-count details for the group.
+- Preserve all member filter references.
+- Preserve existing group membership.
+
+Singleton building descriptions must remain unchanged.
+
+The UI currently sums the coverage values provided by the converter, which may already be rounded. Do not invent additional precision or change this into geometric union coverage.
+
+For edge contacts, preserve distinct member facts. Do not blindly sum edge-contact percentages because spans may overlap.
+
+### Other areas and POIs
+
+Preserve the current intended grouping categories, counts, filtering references, and aggregation behavior while replacing text-based equivalence with structured equivalence.
+
+Do not opportunistically fix unrelated area-aggregation issues during this refactor. Document any you discover.
+
+## Implementation approach
+
+Use small, explicit, language-independent description structures.
+
+Conceptually, these may represent:
+- A single approximate location.
+- A route between two approximate locations.
+- A dominant region with a secondary extension.
+- Two similarly occupied regions.
+- Several regions or a distributed area.
+- An edge crossing/contact, with its edge, position qualifiers, and applicable measurement.
+- A connection to an identified feature or feature type.
+
+These are examples, not a requirement to create a large generic framework. Inspect the existing selectors and represent the actual cases they support.
+
+### Separate selection from formatting
+
+The area coverage formatter is particularly important. It currently selects among several kinds of location sentences while constructing translated text.
+
+Split that responsibility:
+- One function selects a structured description from coverage/location data.
+- Another formats the selected description using the existing translations.
+
+Preserve the existing thresholds, priorities, fallback behavior, and region-selection rules unless a change is strictly necessary to remove language dependence.
+
+Apply the same separation to relevant way and POI code.
+
+### Define equivalence explicitly
+
+Do not deduplicate raw geometry objects or complete raw records. Compare the semantic information selected for presentation.
+
+Examples:
+- Slightly different area coverage distributions may legitimately select the same “mostly in A, extending toward B” description.
+- Route endpoint pairs are unordered for deduplication, but the first encountered orientation can be retained for wording.
+- Dominant and secondary regions are not interchangeable: “mostly A, extending toward B” differs from “mostly B, extending toward A.”
+- A corner, a nearby edge, and an interior part must remain distinct where the current model distinguishes them.
+- Different edge-contact measurements must not disappear merely because formatting rounds them to the same displayed value, unless the intended equivalence explicitly uses a documented numeric display bucket.
+- Missing or invalid structured information must not cause unrelated features to collapse into one generic group.
+
+Use canonical, deterministic keys built from explicit fields. Do not rely on incidental object property order.
+
+If current merging intentionally depends on displayed length or another rounded measurement, make the numeric bucketing rule explicit and locale-independent. Preserve the existing precision rule where reasonable; do not use the formatted string as its identity.
+
+### Avoid textual fallback identities
+
+Do not replace text-based deduplication with structured keys that quietly fall back to translated phrases.
+
+When information is insufficient for safe semantic comparison:
+- Keep features/descriptions separate, or
+- Use a stable feature identity where that is appropriate.
+
+Document the choice and test it.
+
+Distinguish source names from presentation text. Comparing actual source names or stable feature IDs may be legitimate; comparing translated type labels or rendered sentences is not.
+
+### Keep formatting at the boundary
+
+Translation functions should not be needed to decide semantic group membership or equivalence.
+
+Preserve useful styling and accessibility structure in the existing render-ready models. The final text should still flow through the established translation/template mechanism; there is no complete runtime locale dictionary.
+
+Do not add a second independent set of location-selection rules solely to compute keys. The same structured description should drive both equivalence and formatting.
+
+## Regression tests
+
+Add small offline behavioral tests to the quick regression suite and register new checks in test/regression/run.py.
+
+Use actual production description code, not a reimplementation of the algorithm in tests.
+
+Existing relevant tests include:
+- test/regression/way_segments.js and its fragmented-road fixture.
+- test/regression/way_plurals.js.
+- test/regression/area_groups.js.
+- test/regression/area_groups.json.
+- test/regression/area_groups_baseline.json.
+- Existing naming, content-filtering, converter, and browser checks.
+
+Inspect the current repository because filenames or coverage may have evolved.
+
+Required coverage:
+
+1. Locale independence
+   Run the same structured features through every supported locale:
+   en, fi, de, es, nl.
+   Assert identical semantic grouping, counts, totals, member/filter identities,
+   and retained location facts.
+
+2. Deliberate translation collisions
+   Supply translations that make semantically different regions or feature
+   types render identically.
+   Assert that distinct semantic descriptions/features are not merged.
+
+3. Different wording for equivalent meanings
+   Change grammatical forms, punctuation, capitalization, or equivalent
+   from/to wording.
+   Assert that semantic duplicates still deduplicate.
+
+4. Fragmented roads
+   Preserve the existing complex multi-segment regression:
+   reversed endpoint pairs and repeated covered locations reduce to the
+   expected distinct pairs, with no lost unrelated location facts.
+   Include repeated and differently ordered input segments.
+
+5. Grouped buildings
+   Preserve the anonymized multi-building fixture:
+   explicit counts, all unique member locations/contacts, summed coverage,
+   no group shape/orientation, unchanged filter references.
+   Preserve singleton and unrelated water-area baselines.
+
+6. Unnamed linear features and waterways
+   Exercise former text-based route/edge/length merge paths.
+   Include equivalent facts in different input orders, distinct edges,
+   different feature types, and measurements around rounding boundaries.
+
+7. Water areas
+   Cover single-region, dominant/secondary, comparable-region, multi-region,
+   and distributed descriptions.
+   Prove that equivalent selected descriptions can merge despite irrelevant
+   raw-data differences, while different selected meanings remain distinct.
+
+8. POIs
+   Cover unnamed POI grouping by structured location and type.
+   Ensure identical translated labels do not merge distinct types.
+
+9. Missing and malformed data
+   No crashes, unresolved placeholders, invented locations, or accidental
+   grouping of unrelated features with unknown locations.
+
+10. Display compatibility
+    Keep existing expected wording where semantics are unchanged.
+    Review any differences explicitly; do not blindly regenerate snapshots
+    to make tests pass.
+
+Prefer assertions on structured meaning plus selected exact-text checks. Avoid making the new tests depend entirely on translated prose.
+
+## Privacy requirements
+
+All permanent regression fixtures and documentation must use synthetic addresses, names, map IDs, feature IDs, and links.
+
+Do not include:
+- A real user-provided address.
+- A source map URL or ID.
+- Original OSM IDs from a user-provided map.
+- Comments explaining which real location a fixture came from.
+- Request metadata, IP addresses, fingerprints, or other identifying metadata.
+
+Use the existing anonymized fixtures. Do not recover their original identities from temporary files or Git history.
+
+If new examples are needed, construct synthetic structured inputs rather than fetching a real user map.
+
+Do not copy ignored temporary artifacts into the repository without inspecting and sanitizing them.
+
+## Verification
+
+Follow the repository’s operational instructions.
+
+At minimum:
+- Run make test-regression; keep it offline and below the repository’s time limit.
+- Run make test-regression-full.
+- Build the local UI.
+- Inspect relevant description output in all five languages.
+- Capture and visually inspect desktop and narrow/mobile screenshots of
+  representative road, grouped-building, water-area, and POI descriptions.
+- Check wrapping, clipping, heading/list structure, and any affected keyboard
+  interactions.
+- Keep the local preview running afterward.
+
+Use the required sandbox/network permissions for local browser tests as
+documented in AGENTS.md. Do not deploy unless explicitly asked.
+
+## Documentation and handoff
+
+Document:
+- The new separation between semantic description selection and formatting.
+- Canonical equivalence rules, especially unordered route pairs versus
+  ordered dominant/secondary regions.
+- Measurement bucketing, if needed.
+- Behavior when structured data is missing.
+
+In the completion report:
+- Summarize the text-based grouping/deduplication paths that were removed.
+- State any remaining uses of text comparison and explain why they are
+  identity/name comparisons rather than semantic-description comparisons.
+- Report tests and visual checks.
+- This is a behavior-preserving refactor. Do not change map-content.json, converter behavior, or user-visible descriptions and interactions. Treat existing output as the compatibility baseline. If semantic deduplication exposes a conflict with existing behavior, report it and obtain a decision before changing that behavior. Do not update expected output or visual snapshots merely to accommodate the refactor.
+- Confirm that no converter/schema changes were needed, or explain any
+  previously approved exception.
+- Confirm that permanent fixtures contain no source-map identifying data.
+
+Preserve unrelated worktree changes and do not commit or deploy automatically.
+```
+
