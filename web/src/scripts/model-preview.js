@@ -689,7 +689,8 @@
           renderer = new THREE.WebGLRenderer({ antialias: true });
         }
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.setSize(size.width, size.height, false);
+        // Keep CSS dimensions independent of the high-density drawing buffer.
+        renderer.setSize(size.width, size.height);
         renderer.setClearColor(0x000000, 0);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE[PREVIEW_VISUALS.renderer.toneMapping] || THREE.NoToneMapping;
@@ -891,7 +892,7 @@
             var currentSize = readSize(elem, size.width, size.height);
             camera.aspect = currentSize.width / currentSize.height;
             camera.updateProjectionMatrix();
-            renderer.setSize(currentSize.width, currentSize.height, false);
+            renderer.setSize(currentSize.width, currentSize.height);
           }
 
           var onWindowResize = function() {

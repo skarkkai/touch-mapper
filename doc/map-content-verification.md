@@ -45,6 +45,13 @@ Required for POI/type-label/i18n changes:
 - Render simulation text from resulting `mapDescriptionModel` and review POI lines in each locale.
 - Treat leftover English suffixes in non-English outputs as validation failures unless the borrowed word is intentionally identical in that locale.
 
+## 3D preview sizing
+
+The quick suite checks initial sizing and responsive resizing at device pixel ratios
+1 and 2. The canvas CSS dimensions must match its container while the drawing
+buffer retains high-density resolution. Visually check the rotating map remains
+inside the preview on high-density displays.
+
 ## Browser level testing
 
 After changes affecting UI appearance, capture and visually inspect screenshots of the affected views in the local preview at `http://127.0.0.1:9000/en/`. Check layout, spacing, text wrapping, clipping, and visible keyboard focus against `doc/ui-visual-baseline.md`. Automated DOM assertions alone are insufficient. Store screenshots under `.tmp/` using `bin/tmpctl` to create artifact directories.

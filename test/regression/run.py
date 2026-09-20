@@ -18,6 +18,7 @@ def main():
     checks = [
         ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
         ('Local preview routes', [sys.executable, str(REPO / 'test/regression/local_preview.py'), str(work)]),
+        ('3D preview sizing', ['node', str(REPO / 'test/regression/model_preview.js')]),
         ('Map history', ['node', str(REPO / 'test/regression/map_history.js')]),
         ('Result history notices', ['node', str(REPO / 'test/regression/result_history.js')]),
         ('Map cards', ['node', str(REPO / 'test/regression/map_cards.js')]),
