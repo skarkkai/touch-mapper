@@ -101,7 +101,8 @@ context.Date = class extends Date {
 };
 for (const [minutes, label] of [[0, 'A few moments ago'], [1, '1 minute ago'], [5, '5 minutes ago'],
   [59, '59 minutes ago'], [60, 'An hour ago'], [119, 'An hour ago'], [120, '2 hours ago'],
-  [300, '5 hours ago'], [360, 'Today'], [1440, 'Yesterday'], [4320, '3 days ago'],
+  [300, '5 hours ago'], [360, '6 hours ago'], [720, '12 hours ago'],
+  [1380, '23 hours ago'], [1439, '23 hours ago'], [1440, 'Yesterday'], [4320, '3 days ago'],
   [21600, '15 days ago'], [191520, '133 days ago']]) {
   assert(context.window.formatDate(new Date(fixed - minutes * 60000).toISOString()).startsWith(label + ' ('), label);
 }

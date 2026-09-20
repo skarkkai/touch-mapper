@@ -47,6 +47,13 @@ console.log('Centimetre/inch input synchronization passed');
 // Both dimension rows expose the same visual conversion separator while input
 // accessible names continue to identify their own axis and unit.
 const template = fs.readFileSync('web/pre-src/area.pre', 'utf8');
+for (const [locale, label] of Object.entries({en: 'Parameters', fi: 'Parametrit',
+  de: 'Parameter', es: 'Parámetros', nl: 'Parameters'})) {
+  const translations = JSON.parse(fs.readFileSync('web/locales/' + locale + '/tm.json'));
+  assert.strictEqual(translations.breadcrumb_area, label);
+  assert(translations.map_parameters.toLocaleLowerCase(locale).includes(label.toLocaleLowerCase(locale)),
+    'Parameter heading and breadcrumb use consistent terminology');
+}
 for (const axis of ['width', 'height']) {
   assert(template.includes('<span class="dimension-equals" aria-hidden="true">=</span> <input id="print-' + axis + '-inches"'));
 }

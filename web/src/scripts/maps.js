@@ -77,7 +77,7 @@
     if (elapsed < 60000) relative = text('momentsAgo');
     else if (elapsed < 3600000) relative = formatter.format(-Math.floor(elapsed / 60000), 'minute');
     else if (elapsed < 7200000) relative = text('hourAgo');
-    else if (elapsed < 21600000) relative = formatter.format(-Math.floor(elapsed / 3600000), 'hour');
+    else if (elapsed < 86400000) relative = formatter.format(-Math.floor(elapsed / 3600000), 'hour');
     else relative = formatter.format(days, 'day');
     return relative.charAt(0).toLocaleUpperCase(document.documentElement.lang || undefined) + relative.slice(1) + ' (' + exact + ')';
   }

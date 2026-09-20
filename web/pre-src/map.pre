@@ -435,12 +435,7 @@ window.TM = { translations: {
   <h2>{{ map_for_address }} <span class="map-address"></span></h2>
 
   <div class="map-history-notice" aria-live="polite">
-    <p class="map-history-saved" hidden>
-      {{ my_maps_saved_confirmation }} <a href="maps">{{ my_maps }}</a>.
-      <span>{{ my_maps_saved_local_explanation }}</span>
-    </p>
     <div class="map-history-save-shared" hidden>
-      <p>{{ my_maps_shared_explanation }}</p>
       <button type="button" id="save-map-to-history">{{ my_maps_save_this }}</button>
     </div>
     <p class="map-history-save-error error-msg" data-link-label="{{ my_maps_copy_link }}" role="alert" hidden>{{ my_maps_storage_error }} </p>

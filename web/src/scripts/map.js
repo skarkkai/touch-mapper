@@ -61,13 +61,12 @@
     }
   }
 
-  function infoLoadHandler(info, textStatus, jqXHR){
-    // A full browser store must not prevent reviewing or downloading a map.
-    try { storeMapSettingsFromInfo(info); } catch (_storageError) { /* History controls report write failures. */ }
-
+  // Keep routine history state quiet; report failures only after a write attempt.
+  function initMapHistory(info) {
     if (TMMapHistory.find(info.requestId)) {
-      TMMapHistory.markReady(info);
-      $(".map-history-saved").removeAttr("hidden");
+      if (!TMMapHistory.markReady(info).ok) {
+        $(".map-history-save-error").removeAttr("hidden");
+      }
     } else {
       $(".map-history-save-shared").removeAttr("hidden");
       $("#save-map-to-history").off("click").on("click", function(){
@@ -77,9 +76,15 @@
           return;
         }
         $(".map-history-save-shared").attr("hidden", "hidden");
-        $(".map-history-saved").removeAttr("hidden");
+        $(".map-history-save-error").attr("hidden", "hidden");
       });
     }
+  }
+
+  function infoLoadHandler(info, textStatus, jqXHR){
+    // A full browser store must not prevent reviewing or downloading a map.
+    try { storeMapSettingsFromInfo(info); } catch (_storageError) { /* History controls report write failures. */ }
+    initMapHistory(info);
 
     $(".map-address").text(info.addrLong);
 
