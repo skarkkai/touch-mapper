@@ -27,6 +27,11 @@ Run with `--with-blender` to generate geometry regression snapshots in `test/map
 - `map-wireframe.png`: after geometry modifications.
 
 ## Content and language checks
+- `make test-regression` includes anonymized area-group fixtures in all five
+  locales: seven multi-building groups verify counts, complete member locations
+  and contacts, summed coverage, and suppressed group shape/orientation. Separate
+  baselines protect singleton buildings and water areas. The fixtures contain
+  synthetic identity fields and no source-map references or request metadata.
 - Current UI grouping for linear features is roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
 - For result-page filtering, check that section tri-state controls include collapsed entries, aggregate entries carry all contributing OSM references, and a filtered rerun updates tactile output and descriptions from the same post-preset OSM source without another fetch. The editor should remain open after regeneration with removed entries still visible and unticked; checking one and applying again should restore it. The quick regression suite covers stored-source reuse and upstream exclusion; the offline browser smoke covers selection, request submission, and regenerated-result navigation.
 - If map content UI strings changed, inspect `simulated.txt` in each locale output for natural language quality.

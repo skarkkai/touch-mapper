@@ -2,3 +2,4 @@ Alerting of increased error rates over a day, or usage drops over a week
 
 Store timestamps as timestamp type in Athena (there is some planning conversation about this in codex)
 
+Create a dashboard from athena queries, showing usage and error trends.

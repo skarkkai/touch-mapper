@@ -13,7 +13,7 @@ function fragmentedPayload() {
     {t: 1, type: 'terminates', zone: fragmented.zones[entry.to]}
   ]}]));
   const group = data.A.subclasses[0].groups[0];
-  group.label = 'Lähderannantie';
+  group.label = 'Example Road';
   group.ways.forEach((way, index) => {
     way.osmId = fragmented.segments[index].osmId;
     way.label = group.label;

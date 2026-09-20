@@ -194,6 +194,49 @@
     return group.items[0];
   }
 
+  // Count actual group members without borrowing one member's singular title.
+  function countedBuildingTitle(title, count) {
+    const type = slugifyOsmValue((title || "").replace(/\s+building$/i, ""));
+    const key = "map_content_building_plural_" + type;
+    const plural = t(key, key);
+    if (plural !== key) return count + " " + plural;
+    return interpolate(t("map_content_buildings_counted_type", "__count__ buildings (__type__)"),
+      {count: count, type: localizeBuildingTitle(title)});
+  }
+
+  // Group locations and edge contacts describe every member; physical shape
+  // belongs to individual objects, not to a collection of buildings.
+  function addBuildingGroupDetails(item, group) {
+    const locations = [];
+    const contacts = [];
+    let totalCoverage = 0;
+    let completeCoverage = true;
+    group.items.forEach(function(member){
+      const geometry = member.visibleGeometry || {};
+      const coverage = geometry.coverage;
+      const memberGroup = {items: [member], location: member.location};
+      const location = coverageBreakdown(coverage) || locationPhrase(memberGroup, member);
+      const contact = edgesText(geometry.edgesTouched || [], coverage);
+      [ [locations, location], [contacts, contact] ].forEach(function(pair){
+        const phrase = pair[1] ? capitalizeFirst(pair[1].replace(/[.]+$/, "")) : "";
+        if (phrase && pair[0].indexOf(phrase) === -1) pair[0].push(phrase);
+      });
+      const percent = coverage && coverage.coveragePercent;
+      if (typeof percent !== "number" || !isFinite(percent) || percent < 0) completeCoverage = false;
+      else totalCoverage += percent;
+    });
+    locations.forEach(function(phrase){
+      addModelLine(item, [{text: phrase, className: "map-content-location-text"}], "map-content-location");
+    });
+    contacts.forEach(function(phrase){
+      addModelLine(item, [{text: phrase, className: "map-content-touches"}], "map-content-location");
+    });
+    if (completeCoverage) {
+      addModelLine(item, interpolatedParts(t("map_content_total_area", "Covers __percent__% of map"),
+        {percent: formatPercent(totalCoverage)}, "map-content-parts-coverage"), "map-content-parts");
+    }
+  }
+
   function locationPhrase(group, item) {
     const components = item && item.visibleGeometry && Array.isArray(item.visibleGeometry.components)
       ? item.visibleGeometry.components
@@ -1476,7 +1519,9 @@
     if (primary && primary.osmId !== undefined && primary.osmId !== null) {
       item.attrs.dataOsmId = String(primary.osmId);
     }
-    const localizedTitle = capitalizeFirst(localizeBuildingTitle(nameParts.title));
+    const memberCount = group && Array.isArray(group.items) ? group.items.length : 0;
+    const localizedTitle = memberCount > 1 ? countedBuildingTitle(nameParts.title, memberCount)
+      : capitalizeFirst(localizeBuildingTitle(nameParts.title));
     const titleParts = [{ text: localizedTitle, className: "map-content-title" }];
     if (nameParts.subtitle) {
       titleParts.push({
@@ -1487,6 +1532,11 @@
       titleParts.push({ text: nameParts.subtitle, className: "map-content-subtitle" });
     }
     addModelLine(item, titleParts, "map-content-title-line", scoreTooltip, titleLink);
+
+    if (memberCount > 1) {
+      addBuildingGroupDetails(item, group);
+      return item;
+    }
 
     const primaryLocation = coverageLine || (location ? capitalizeFirst(location) : null);
     const primaryLocationText = primaryLocation ? primaryLocation.replace(/[.]+$/, "") : null;

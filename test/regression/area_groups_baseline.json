@@ -1,0 +1,3797 @@
+{
+  "en": {
+    "buildings": [
+      {
+        "refs": [
+          "way:1001"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Kindergarten at Example Street 1"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the east part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 1.4% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1039"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 20"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 1.0% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1030"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the center"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.4% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation east-north-east to west-south-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1037"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In several areas, mostly near the south edge and in the south part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.4% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1034"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the center, extending toward north-west part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.4% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1009"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Building at Example Street 3"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the north edge"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 2.5% of north edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.3% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1031"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the south-east part, extending toward center"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.3% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1036"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 17"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the south edge"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 2.5% of south edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.3% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1035"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the west part, extending toward center"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.3% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-east to south-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1044"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 21"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.3% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1045"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south-west part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.3% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-east to south-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1024"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 11"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 2.5% of north edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1027"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 14"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south-east part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1028"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 15"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1029"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation east-north-east to west-south-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1038"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 19"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the south edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1017"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 4"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the east edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1019"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 6"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the east edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1020"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 7"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the east edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1021"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 8"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the east edge"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 6.7% of east edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1022"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 9"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1023"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 10"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1026"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 13"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 5.0% of north edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1018"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 5"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the east edge"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 6.7% of east edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1046"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Shed building at Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1047"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Storage at Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the center, extending toward south part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientation north-south"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1025"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building at Example Street 12"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.0% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1002"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Utility at Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the center"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.0% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1010"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Example Place 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the center, extending toward north part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.2% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1011"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the north-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1016"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the south-east part, extending toward south-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.1% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1003"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Building"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south-east part"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.0% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1006"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Building"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Near the north edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.0% of map"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1015"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Residential building"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In the south-east corner"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 0.0% of map"
+          }
+        ]
+      }
+    ],
+    "water_areas": [
+      {
+        "refs": [
+          "way:1000"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Lake Example Place"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Mostly in the north-west corner, near the west edge, and in the south-west corner"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Touches 100% of west edge in multiple places, touches 26% of north edge, and touches 21% of south edge"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Covers 22% of map"
+          }
+        ]
+      }
+    ]
+  },
+  "fi": {
+    "buildings": [
+      {
+        "refs": [
+          "way:1001"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Päiväkoti osoitteessa Example Street 1"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Itäosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 1.4 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1039"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 20"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koillisosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 1.0 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1030"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Keskellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.4 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta itä-koillis - länsi-lounais"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1037"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Usealla alueella, enimmäkseen eteläreunan lähellä ja eteläosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.4 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1034"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Enimmäkseen keskellä, ulottuen kohti luoteisosaa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.4 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1009"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Rakennus osoitteessa Example Street 3"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Pohjoisreunan lähellä"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 2.5 % pohjoisreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.3 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1031"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Enimmäkseen kaakkoisosassa, ulottuen kohti keskustaa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.3 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1036"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 17"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Eteläreunan lähellä"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 2.5 % eteläreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.3 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1035"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Enimmäkseen länsiosassa, ulottuen kohti keskustaa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.3 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta koillis-lounais"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1044"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 21"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.3 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1045"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Lounaisosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.3 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta koillis-lounais"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1024"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 11"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 2.5 % pohjoisreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1027"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 14"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Kaakkoisosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1028"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 15"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Kaakkoiskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1029"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Eteläosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta itä-koillis - länsi-lounais"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1038"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 19"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Eteläreunan lähellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1017"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 4"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Itäreunan lähellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1019"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 6"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Itäreunan lähellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1020"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 7"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Itäreunan lähellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1021"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 8"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Itäreunan lähellä"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 6.7 % itäreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1022"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 9"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1023"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 10"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1026"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 13"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 5.0 % pohjoisreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1018"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 5"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Itäreunan lähellä"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 6.7 % itäreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1046"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Shed building osoitteessa Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Eteläosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1047"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Storage osoitteessa Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Enimmäkseen keskellä, ulottuen kohti eteläosaa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Suunta pohjois-etelä"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1025"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus osoitteessa Example Street 12"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.0 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1002"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Utility osoitteessa Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Keskellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.0 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1010"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Example Place 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Enimmäkseen keskellä, ulottuen kohti pohjoisosaa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.2 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1011"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koilliskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1016"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Enimmäkseen kaakkoisosassa, ulottuen kohti kaakkoiskulmaa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.1 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1003"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Rakennus"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Kaakkoisosassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.0 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1006"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Rakennus"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Pohjoisreunan lähellä"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.0 % kartasta"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1015"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Asuinrakennus"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Kaakkoiskulmassa"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 0.0 % kartasta"
+          }
+        ]
+      }
+    ],
+    "water_areas": [
+      {
+        "refs": [
+          "way:1000"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Järvi Example Place"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Usealla alueella, enimmäkseen luoteiskulmassa, länsireunan lähellä ja lounaiskulmassa"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Koskettaa 100 % länsireunasta useassa kohdassa, koskettaa 26 % pohjoisreunasta, ja koskettaa 21 % eteläreunasta"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Kattaa 22 % kartasta"
+          }
+        ]
+      }
+    ]
+  },
+  "de": {
+    "buildings": [
+      {
+        "refs": [
+          "way:1001"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Kindergarten in Example Street 1"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Ostteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 1.4 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1039"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 20"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Nordostteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 1.0 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1030"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Mitte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.4 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Ost-Nordost bis West-Südwest"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1037"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In mehreren Bereichen, meist nahe am Südrand und im Südteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.4 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1034"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Meist in der Mitte, mit Ausdehnung Richtung Nordwestteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.4 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1009"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Gebäude in Example Street 3"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Nordrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 2.5 % des Nordrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.3 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1031"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Meist im Südostteil, mit Ausdehnung Richtung Mitte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.3 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1036"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 17"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Südrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 2.5 % des Südrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.3 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1035"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Meist im Westteil, mit Ausdehnung Richtung Mitte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.3 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nordost bis Südwest"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1044"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 21"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.3 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1045"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Südwestteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.3 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nordost bis Südwest"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1024"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 11"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 2.5 % des Nordrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1027"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 14"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Südostteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1028"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 15"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Südostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1029"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Südteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Ost-Nordost bis West-Südwest"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1038"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 19"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Südrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1017"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 4"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Ostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1019"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 6"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Ostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1020"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 7"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Ostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1021"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 8"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Ostrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 6.7 % des Ostrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1022"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 9"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1023"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 10"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1026"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 13"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 5.0 % des Nordrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1018"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 5"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Ostrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 6.7 % des Ostrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1046"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Shed building in Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Südteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1047"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Storage in Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Meist in der Mitte, mit Ausdehnung Richtung Südteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Ausrichtung Nord-Süd"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1025"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude in Example Street 12"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.0 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1002"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Utility in Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Mitte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.0 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1010"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Example Place 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Meist in der Mitte, mit Ausdehnung Richtung Nordteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.2 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1011"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Nordostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1016"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Meist im Südostteil, mit Ausdehnung Richtung Südostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.1 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1003"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Gebäude"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Im Südostteil"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.0 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1006"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Gebäude"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Nahe am Nordrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.0 % der Karte"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1015"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Wohngebäude"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In der Südostecke"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 0.0 % der Karte"
+          }
+        ]
+      }
+    ],
+    "water_areas": [
+      {
+        "refs": [
+          "way:1000"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "See Example Place"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In mehreren Bereichen, meist in der Nordwestecke, nahe am Westrand und in der Südwestecke"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Berührt 100 % des Westrands an mehreren Stellen, berührt 26 % des Nordrands, und berührt 21 % des Südrands"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Bedeckt 22 % der Karte"
+          }
+        ]
+      }
+    ]
+  },
+  "es": {
+    "buildings": [
+      {
+        "refs": [
+          "way:1001"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Kindergarten en Example Street 1"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte este"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 1.4% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1039"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 20"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte nordeste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 1.0% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1030"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el centro"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.4% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación este-noreste a oeste-suroeste"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1037"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En varias áreas, principalmente cerca del borde sur y en la parte sur"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.4% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1034"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en el centro, extendiéndose hacia noroeste parte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.4% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1009"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio en Example Street 3"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde norte"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 2.5% del borde norte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.3% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1031"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en la parte sudeste, extendiéndose hacia centro"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.3% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1036"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 17"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde sur"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 2.5% del borde sur"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.3% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1035"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en la parte oeste, extendiéndose hacia centro"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.3% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación de noreste a suroeste"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1044"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 21"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.3% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1045"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte suroeste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.3% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación de noreste a suroeste"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1024"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 11"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 2.5% del borde norte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1027"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 14"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte sudeste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1028"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 15"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina sureste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1029"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte sur"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación este-noreste a oeste-suroeste"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1038"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 19"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde sur"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1017"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 4"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde este"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1019"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 6"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde este"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1020"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 7"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde este"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1021"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 8"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde este"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 6.7% del borde este"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1022"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 9"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1023"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 10"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1026"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 13"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 5.0% del borde norte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1018"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 5"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde este"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 6.7% del borde este"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1046"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Shed building en Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte sur"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1047"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Storage en Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en el centro, extendiéndose hacia sur parte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Orientación norte-sur"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1025"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial en Example Street 12"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.0% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1002"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Utility en Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el centro"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.0% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1010"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Example Place 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en el centro, extendiéndose hacia norte parte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.2% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1011"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina noreste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1016"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en la parte sudeste, extendiéndose hacia esquina sureste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.1% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1003"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En la parte sudeste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.0% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1006"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Cerca del borde norte"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.0% del mapa"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1015"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Edificio residencial"
+          },
+          {
+            "className": "map-content-location",
+            "text": "En el esquina sureste"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 0.0% del mapa"
+          }
+        ]
+      }
+    ],
+    "water_areas": [
+      {
+        "refs": [
+          "way:1000"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Lago Example Place"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Principalmente en el esquina noroeste, cerca del borde oeste y en el esquina suroeste"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Toca 100% del borde oeste en múltiples lugares, toca 26% del borde norte, y toca 21% del borde sur"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Cubre 22% del mapa"
+          }
+        ]
+      }
+    ]
+  },
+  "nl": {
+    "buildings": [
+      {
+        "refs": [
+          "way:1001"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Kinderdagverblijf bij Example Street 1"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het oostdeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 1.4 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1039"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 20"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het noord-oostdeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 1.0 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1030"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het midden"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.4 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie oost-noord-oost naar west-zuid-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1037"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In meerdere gebieden, vooral dicht bij de zuidrand en in het zuiddeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.4 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1034"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Vooral in het midden, uitstrekkend richting het noord-westdeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.4 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1009"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Gebouw bij Example Street 3"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de noordrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 2.5 % van de noordrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.3 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1031"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Vooral in het zuid-oostdeel, uitstrekkend richting het midden"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.3 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1036"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 17"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de zuidrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 2.5 % van de zuidrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.3 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1035"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Vooral in het westdeel, uitstrekkend richting het midden"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.3 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-oost naar zuid-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1044"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 21"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.3 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1045"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het zuid-westdeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.3 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-oost naar zuid-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1024"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 11"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 2.5 % van de noordrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1027"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 14"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het zuid-oostdeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1028"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 15"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de zuid-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1029"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het zuiddeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie oost-noord-oost naar west-zuid-west"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1038"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 19"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de zuidrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1017"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 4"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de oostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1019"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 6"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de oostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1020"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 7"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de oostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1021"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 8"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de oostrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 6.7 % van de oostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1022"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 9"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1023"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 10"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1026"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 13"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 5.0 % van de noordrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1018"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 5"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de oostrand"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 6.7 % van de oostrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1046"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Shed building bij Example Street 18"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het zuiddeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1047"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Storage bij Example Street 16"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Vooral in het midden, uitstrekkend richting het zuiddeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          },
+          {
+            "className": "map-content-shape",
+            "text": "Oriëntatie noord-zuid"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1025"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw bij Example Street 12"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.0 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1002"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Utility bij Example Street 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het midden"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.0 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1010"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Example Place 2"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Vooral in het midden, uitstrekkend richting het noorddeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.2 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1011"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de noord-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1016"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Vooral in het zuid-oostdeel, uitstrekkend richting de zuid-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.1 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1003"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Gebouw"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In het zuid-oostdeel"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.0 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1006"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Gebouw"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Dicht bij de noordrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.0 % van de kaart"
+          }
+        ]
+      },
+      {
+        "refs": [
+          "way:1015"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Woongebouw"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In de zuid-oosthoek"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 0.0 % van de kaart"
+          }
+        ]
+      }
+    ],
+    "water_areas": [
+      {
+        "refs": [
+          "way:1000"
+        ],
+        "lines": [
+          {
+            "className": "map-content-title-line",
+            "text": "Meer Example Place"
+          },
+          {
+            "className": "map-content-location",
+            "text": "In meerdere gebieden, vooral in de noord-westhoek, dicht bij de westrand en in de zuid-westhoek"
+          },
+          {
+            "className": "map-content-location",
+            "text": "Raakt 100 % van de westrand op meerdere plekken, raakt 26 % van de noordrand, en raakt 21 % van de zuidrand"
+          },
+          {
+            "className": "map-content-parts",
+            "text": "Beslaat 22 % van de kaart"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -86,7 +86,7 @@ async function main() {
           status: match[1] === 'Bfailed' ? {errorCode: 'too_large'} : {progress: 100}}});
       }
       if (route.request().method() === 'HEAD') return route.fulfill({headers,
-        status: url.pathname.includes('Bexpired') ? 404 : 200});
+        status: url.pathname.includes('Bexpired') ? 404 : url.pathname.includes('Bnetwork') ? 503 : 200});
       return route.abort();
     });
     await page.goto(base + '/en/maps');
@@ -94,7 +94,7 @@ async function main() {
       const records = ['Bready', 'Bexpired', 'Bnetwork', 'Bpending', 'Bfailed'].map((id, index) => ({
         id, requestId: id + '/Map', addressShort: id === 'Bready' ? 'Central Station' : id,
         addressLong: id === 'Bready' ? 'Central Station, Helsinki, Uusimaa, Finland' : 'Helsinki', createdAt: new Date(Date.now() - index * 86400000).toISOString(),
-        source: 'created', status: id === 'Bpending' ? 'in-progress' : id === 'Bfailed' ? 'failed' : 'ready',
+        source: 'created', status: id === 'Bpending' || id === 'Bready' ? 'in-progress' : id === 'Bfailed' ? 'failed' : 'ready',
         name: '', note: '', request: {printingTech: '3d', printWidthCm: 17, printHeightCm: 20,
           scale: 2400, lat: 60, lon: 24, offsetX: 0, offsetY: 0,
           contentMode: id === 'Bready' || id === 'Bnetwork' ? 'only-big-roads' : 'normal', multipartMode: id === 'Bnetwork',

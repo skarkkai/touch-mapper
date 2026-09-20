@@ -25,6 +25,7 @@ def main():
         ('Named roads', [sys.executable, str(REPO / 'test/regression/named_roads.py'), str(work)]),
         ('Way segment descriptions', ['node', str(REPO / 'test/regression/way_segments.js')]),
         ('Way plural descriptions', ['node', str(REPO / 'test/regression/way_plurals.js')]),
+        ('Area group descriptions', ['node', str(REPO / 'test/regression/area_groups.js')]),
         ('Content filtering', [sys.executable, str(REPO / 'test/regression/content_filter.py'), str(work)]),
         ('Big roads pruning', [sys.executable, str(REPO / 'test/regression/big_roads.py'), str(work)]),
         ('STL export geometry', [str(REPO / 'blender/blender'), '--background',

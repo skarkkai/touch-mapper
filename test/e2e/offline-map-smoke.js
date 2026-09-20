@@ -172,7 +172,8 @@ async function main() {
     assert.strictEqual(createdHistory.maps.length, 1);
     assert.strictEqual(createdHistory.maps[0].id, request.requestId.split('/')[0]);
     assert.strictEqual(createdHistory.maps[0].status, 'ready');
-    assert.strictEqual(await page.locator('.map-history-saved').isVisible(), true);
+    assert.strictEqual(await page.locator('.map-history-saved').count(), 0, 'Successful saving has no routine notice');
+    assert.strictEqual(await page.locator('.map-history-save-error').isVisible(), false);
     assert.strictEqual(await page.locator('.map-history-save-shared').isVisible(), false);
     await page.locator('.preview-3d canvas').waitFor({state: 'visible'});
     assert(infoPolls >= 2, 'Creation polling and result info fetch must both run');

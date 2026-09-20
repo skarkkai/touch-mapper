@@ -1,0 +1,3564 @@
+{
+  "B": {
+    "subclasses": [
+      {
+        "key": "B1_lakes",
+        "kind": "area",
+        "groups": [
+          {
+            "label": "Example Place",
+            "displayLabel": "Example Place 1",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southwest",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 50
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1000,
+                "label": "Example Place",
+                "displayLabel": "Example Place 1",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southwest",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 22.1,
+                    "consideredCells": 3840,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 919,
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "near_edge"
+                        }
+                      },
+                      {
+                        "insideCount": 894,
+                        "loc": {
+                          "dir": "west",
+                          "kind": "near_edge"
+                        }
+                      },
+                      {
+                        "insideCount": 803,
+                        "loc": {
+                          "dir": "southwest",
+                          "kind": "near_edge"
+                        }
+                      },
+                      {
+                        "insideCount": 197,
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 187,
+                        "loc": {
+                          "dir": "west",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 185,
+                        "loc": {
+                          "dir": "southwest",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 3185
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.856,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 3.871
+                  },
+                  "edgesTouched": [
+                    {
+                      "north": 25.8
+                    },
+                    {
+                      "south": 20.8
+                    },
+                    {
+                      "west": 100
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 3185,
+                      "touchesEdge": true,
+                      "edges": [
+                        "north",
+                        "south",
+                        "west"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "west",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "C": {
+    "subclasses": [
+      {
+        "key": "C2_public",
+        "kind": "building",
+        "groups": [
+          {
+            "label": null,
+            "displayLabel": "kindergarten, Example Street 1",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 5
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1001,
+                "label": null,
+                "displayLabel": "kindergarten, Example Street 1",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 1.4,
+                    "consideredCells": 360,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 178,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 18,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 196
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.56,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 3.5
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 196,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "utility, Example Street 2",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": null,
+                  "kind": "center"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1002,
+                "label": null,
+                "displayLabel": "utility, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": null,
+                      "kind": "center"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 2,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 1,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    ],
+                    "insideCells": 1
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 1,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "C3_other_buildings",
+        "kind": "building",
+        "groups": [
+          {
+            "label": null,
+            "displayLabel": "building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southeast",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1003,
+                "label": null,
+                "displayLabel": "building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southeast",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 8,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 6,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 6
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.75,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 2
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1004,
+                "label": null,
+                "displayLabel": "building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 35,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 11,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 11
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.565,
+                    "orientationDeg": 45,
+                    "orientationLabel": "northeast-southwest",
+                    "aspectRatio": 3.343
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 11,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1005,
+                "label": null,
+                "displayLabel": "building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 12,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 8,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 8
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.8,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2.5
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 8,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "north",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1006,
+                "label": null,
+                "displayLabel": "building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "north",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 4,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 2,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 2
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 2,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "building, Example Street 2",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": null,
+                  "kind": "center"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1007,
+                "label": null,
+                "displayLabel": "building, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": null,
+                      "kind": "center"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 8,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 6,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    ],
+                    "insideCells": 6
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.5
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1008,
+                "label": null,
+                "displayLabel": "building, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": null,
+                      "kind": "center"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 45,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 27,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    ],
+                    "insideCells": 27
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.6,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1.8
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 27,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "building, Example Street 3",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "north",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1009,
+                "label": null,
+                "displayLabel": "building, Example Street 3",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "north",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 39,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 39,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 39
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 4.333
+                  },
+                  "edgesTouched": [
+                    {
+                      "north": 2.5
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 39,
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "Example Place 2",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": null,
+                  "kind": "center"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1010,
+                "label": null,
+                "displayLabel": "Example Place 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": null,
+                      "kind": "center"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 32,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 23,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      },
+                      {
+                        "insideCount": 7,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 1,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 31
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.969,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 2
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 31,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1011,
+                "label": null,
+                "displayLabel": "residential building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 15,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 8,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      },
+                      {
+                        "insideCount": 1,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 9
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.75,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.333
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 9,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1012,
+                "label": null,
+                "displayLabel": "residential building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 12,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 6,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 6
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.5
+                  },
+                  "edgesTouched": [
+                    {
+                      "south": 1.7
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 6,
+                      "touchesEdge": true,
+                      "edges": [
+                        "south"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1013,
+                "label": null,
+                "displayLabel": "residential building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 5,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 5,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 5
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 5
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 5,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1014,
+                "label": null,
+                "displayLabel": "residential building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 1,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 1,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 1
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1
+                  },
+                  "edgesTouched": [
+                    {
+                      "south": 0.8
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 1,
+                      "touchesEdge": true,
+                      "edges": [
+                        "south"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1015,
+                "label": null,
+                "displayLabel": "residential building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 9,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 7,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 7
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.778,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 7,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southeast",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1016,
+                "label": null,
+                "displayLabel": "residential building",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southeast",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 20,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 7,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 5,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 12
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.75,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 12,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 4",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1017,
+                "label": null,
+                "displayLabel": "residential building, Example Street 4",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 40,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 23,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 23
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.639,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2.25
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 23,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 5",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1018,
+                "label": null,
+                "displayLabel": "residential building, Example Street 5",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 36,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 14,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 14
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.583,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2.667
+                  },
+                  "edgesTouched": [
+                    {
+                      "east": 6.7
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 14,
+                      "touchesEdge": true,
+                      "edges": [
+                        "east"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 6",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1019,
+                "label": null,
+                "displayLabel": "residential building, Example Street 6",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 45,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 23,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 23
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.575,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.6
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 23,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 7",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1020,
+                "label": null,
+                "displayLabel": "residential building, Example Street 7",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 45,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 23,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 23
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.575,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.6
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 23,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 8",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "east",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1021,
+                "label": null,
+                "displayLabel": "residential building, Example Street 8",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "east",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 44,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 30,
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 30
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.682,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2.75
+                  },
+                  "edgesTouched": [
+                    {
+                      "east": 6.7
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 30,
+                      "touchesEdge": true,
+                      "edges": [
+                        "east"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "east",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 9",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1022,
+                "label": null,
+                "displayLabel": "residential building, Example Street 9",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 42,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 26,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 26
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.743,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.4
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 26,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 10",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1023,
+                "label": null,
+                "displayLabel": "residential building, Example Street 10",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 36,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 19,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 19
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.594,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 19,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 11",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1024,
+                "label": null,
+                "displayLabel": "residential building, Example Street 11",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 50,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 29,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 29
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.58,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2
+                  },
+                  "edgesTouched": [
+                    {
+                      "north": 2.5
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 29,
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 12",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1025,
+                "label": null,
+                "displayLabel": "residential building, Example Street 12",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0,
+                    "consideredCells": 5,
+                    "gridSize": 120,
+                    "segments": [],
+                    "insideCells": 0
+                  },
+                  "edgesTouched": [],
+                  "components": []
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 13",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1026,
+                "label": null,
+                "displayLabel": "residential building, Example Street 13",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 42,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 20,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 20
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.667,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1.2
+                  },
+                  "edgesTouched": [
+                    {
+                      "north": 5
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 20,
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 14",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southeast",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1027,
+                "label": null,
+                "displayLabel": "residential building, Example Street 14",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southeast",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 30,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 22,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 22
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.733,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.2
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 22,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 15",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1028,
+                "label": null,
+                "displayLabel": "residential building, Example Street 15",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 36,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 27,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 27
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.75,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 2.25
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 27,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 16",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1029,
+                "label": null,
+                "displayLabel": "residential building, Example Street 16",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 98,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 31,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 2,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 33
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.608,
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "aspectRatio": 4.315
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 33,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 16",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": null,
+                  "kind": "center"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1030,
+                "label": null,
+                "displayLabel": "residential building, Example Street 16",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": null,
+                      "kind": "center"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "consideredCells": 190,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 59,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    ],
+                    "insideCells": 59
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.557,
+                    "orientationDeg": 22.5,
+                    "orientationLabel": "east-northeast to west-southwest",
+                    "aspectRatio": 3.55
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 59,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 16",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southeast",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1031,
+                "label": null,
+                "displayLabel": "residential building, Example Street 16",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southeast",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 100,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 38,
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 8,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    ],
+                    "insideCells": 46
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.484,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 3.8
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 46,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southeast",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 2",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northwest",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1032,
+                "label": null,
+                "displayLabel": "residential building, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northwest",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 126,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 24,
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 12,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 4,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 40
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.591,
+                    "orientationDeg": 67.5,
+                    "orientationLabel": "north-northeast to south-southwest",
+                    "aspectRatio": 3.971
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 40,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1033,
+                "label": null,
+                "displayLabel": "residential building, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northwest",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 176,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 33,
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 17,
+                        "loc": {
+                          "dir": "west",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 50
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.471,
+                    "orientationDeg": 67.5,
+                    "orientationLabel": "north-northeast to south-southwest",
+                    "aspectRatio": 4.314
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 50,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 2",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": null,
+                  "kind": "center"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1034,
+                "label": null,
+                "displayLabel": "residential building, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": null,
+                      "kind": "center"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "consideredCells": 96,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 46,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      },
+                      {
+                        "insideCount": 10,
+                        "loc": {
+                          "dir": "northwest",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 1,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 57
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.594,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 6
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 57,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 2",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "west",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1035,
+                "label": null,
+                "displayLabel": "residential building, Example Street 2",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "west",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 117,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 25,
+                        "loc": {
+                          "dir": "west",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 16,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      },
+                      {
+                        "insideCount": 3,
+                        "loc": {
+                          "dir": "southwest",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 44
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.645,
+                    "orientationDeg": 45,
+                    "orientationLabel": "northeast-southwest",
+                    "aspectRatio": 2.484
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 44,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "west",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 17",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1036,
+                "label": null,
+                "displayLabel": "residential building, Example Street 17",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 70,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 45,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 45
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.865,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 3.25
+                  },
+                  "edgesTouched": [
+                    {
+                      "south": 2.5
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 45,
+                      "touchesEdge": true,
+                      "edges": [
+                        "south"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 18",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1037,
+                "label": null,
+                "displayLabel": "residential building, Example Street 18",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.4,
+                    "consideredCells": 112,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 34,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      },
+                      {
+                        "insideCount": 28,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 62
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.574,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 6.75
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 62,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 19",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1038,
+                "label": null,
+                "displayLabel": "residential building, Example Street 19",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 48,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 36,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 36
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.75,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.333
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 36,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 20",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 3
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1039,
+                "label": null,
+                "displayLabel": "residential building, Example Street 20",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 1,
+                    "consideredCells": 240,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 141,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 141
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.627,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 141,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 3",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "north",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1040,
+                "label": null,
+                "displayLabel": "residential building, Example Street 3",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "north",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 48,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 36,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 12,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 48
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 5.333
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 48,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1041,
+                "label": null,
+                "displayLabel": "residential building, Example Street 3",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "north",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.7,
+                    "consideredCells": 224,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 71,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 27,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 98
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.438,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 4.571
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 98,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "north",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 21",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "north",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1042,
+                "label": null,
+                "displayLabel": "residential building, Example Street 21",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "north",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 48,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 38,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 38
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.792,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.333
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 38,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1043,
+                "label": null,
+                "displayLabel": "residential building, Example Street 21",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "north",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 49,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 24,
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      },
+                      {
+                        "insideCount": 14,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 38
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.776,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1
+                  },
+                  "edgesTouched": [
+                    {
+                      "north": 5.8
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 38,
+                      "touchesEdge": true,
+                      "edges": [
+                        "north"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "north",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential building, Example Street 21",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "northeast",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1044,
+                "label": null,
+                "displayLabel": "residential building, Example Street 21",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "northeast",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 88,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 47,
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 47
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.588,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 1.25
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 47,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "northeast",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "residential, Example Street 18",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "southwest",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1045,
+                "label": null,
+                "displayLabel": "residential, Example Street 18",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "southwest",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 104,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 33,
+                        "loc": {
+                          "dir": "southwest",
+                          "kind": "part"
+                        }
+                      },
+                      {
+                        "insideCount": 5,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 38
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.589,
+                    "orientationDeg": 45,
+                    "orientationLabel": "northeast-southwest",
+                    "aspectRatio": 2.349
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 38,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "southwest",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "shed building, Example Street 18",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1046,
+                "label": null,
+                "displayLabel": "shed building, Example Street 18",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 12,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 12,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 12
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 1,
+                    "orientationDeg": 0,
+                    "orientationLabel": "east-west",
+                    "aspectRatio": 1.333
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 12,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "storage, Example Street 16",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "part"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 0
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1047,
+                "label": null,
+                "displayLabel": "storage, Example Street 16",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "part"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.1,
+                    "consideredCells": 16,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 6,
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      },
+                      {
+                        "insideCount": 3,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "part"
+                        }
+                      }
+                    ],
+                    "insideCells": 9
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.643,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 3.5
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 9,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": null,
+                          "kind": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "label": null,
+            "displayLabel": "terrace building, Example Street 18",
+            "location": {
+              "center": {
+                "loc": {
+                  "dir": "south",
+                  "kind": "near_edge"
+                }
+              }
+            },
+            "importanceScore": {
+              "final": 1
+            },
+            "items": [
+              {
+                "osmType": "way",
+                "osmId": 1048,
+                "label": null,
+                "displayLabel": "terrace building, Example Street 18",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.2,
+                    "consideredCells": 60,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 35,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 35
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.583,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 3.75
+                  },
+                  "edgesTouched": [
+                    {
+                      "south": 1.7
+                    }
+                  ],
+                  "components": [
+                    {
+                      "cellCount": 35,
+                      "touchesEdge": true,
+                      "edges": [
+                        "south"
+                      ],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "osmType": "way",
+                "osmId": 1049,
+                "label": null,
+                "displayLabel": "terrace building, Example Street 18",
+                "location": {
+                  "center": {
+                    "loc": {
+                      "dir": "south",
+                      "kind": "near_edge"
+                    }
+                  }
+                },
+                "visibleGeometry": {
+                  "coverage": {
+                    "coveragePercent": 0.3,
+                    "consideredCells": 72,
+                    "gridSize": 120,
+                    "segments": [
+                      {
+                        "insideCount": 40,
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    ],
+                    "insideCells": 40
+                  },
+                  "shape": {
+                    "type": "regular",
+                    "fillRatio": 0.625,
+                    "orientationDeg": 90,
+                    "orientationLabel": "north-south",
+                    "aspectRatio": 4
+                  },
+                  "edgesTouched": [],
+                  "components": [
+                    {
+                      "cellCount": 40,
+                      "touchesEdge": false,
+                      "edges": [],
+                      "location": {
+                        "loc": {
+                          "dir": "south",
+                          "kind": "near_edge"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

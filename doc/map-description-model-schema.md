@@ -109,6 +109,18 @@ Notes:
 - `wrap=false` means the text fragment is rendered as raw inline text (no span).
 
 
+## Existing building groups
+
+Building groups with multiple members display a localized count/type heading,
+every distinct member location and edge-contact phrase, and summed member
+coverage (rounded once for display). Missing or invalid member coverage omits
+the total rather than showing a partial sum. Group descriptions do not display
+single-building shape, orientation or component-count details. Individual
+filter identities and converter group membership remain unchanged; this does
+not merge additional buildings by address. Singleton and water-area descriptions
+retain their existing behavior. Coverage values supplied by the converter are
+already rounded; the UI does not infer additional precision or union geometry.
+
 ## Road naming and content mode
 
 All supported linear-way type labels have counted plural forms in every locale,

@@ -1,24 +1,24 @@
 {
   "A": {
     "key": "A",
-    "name": "Linear features",
+    "name": "Synthetic Place 20",
     "subclasses": [
       {
         "key": "A1_secondary_roads",
-        "name": "Secondary roads",
+        "name": "Synthetic Place 17",
         "kind": "linear",
         "groups": [
           {
-            "label": "L\u00e4hderannantie",
-            "displayLabel": "L\u00e4hderannantie",
+            "label": "Synthetic Place 22",
+            "displayLabel": "Synthetic Place 22",
             "totalLength": 16.966932720523957,
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 140383778,
+                "osmId": 4294967435547746,
                 "osmType": "way",
-                "label": "L\u00e4hderannantie",
-                "displayLabel": "L\u00e4hderannantie",
+                "label": "Synthetic Place 22",
+                "displayLabel": "Synthetic Place 22",
                 "visibleGeometry": [
                   {
                     "length": 16.966932720523957,
@@ -58,14 +58,14 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365013,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967321970773,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383778,
-                            "name": "L\u00e4hderannantie",
+                            "osmId": 4294967435547746,
+                            "name": "Synthetic Place 22",
                             "subClass": "A1_secondary_roads"
                           }
                         ]
@@ -113,7 +113,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 140383778,
+                "osmId": 4294967435547746,
                 "segments": [
                   {
                     "length": 16.966932720523957,
@@ -153,14 +153,14 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365013,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967321970773,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383778,
-                            "name": "L\u00e4hderannantie",
+                            "osmId": 4294967435547746,
+                            "name": "Synthetic Place 22",
                             "subClass": "A1_secondary_roads"
                           }
                         ]
@@ -180,20 +180,20 @@
       },
       {
         "key": "A1_local_streets",
-        "name": "Local streets",
+        "name": "Synthetic Place 24",
         "kind": "linear",
         "groups": [
           {
-            "label": "Nuum\u00e4entie",
-            "displayLabel": "Nuum\u00e4entie",
+            "label": "Synthetic Place 27",
+            "displayLabel": "Synthetic Place 27",
             "totalLength": 319.05520432850614,
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 140383769,
+                "osmId": 4294967435547737,
                 "osmType": "way",
-                "label": "Nuum\u00e4entie",
-                "displayLabel": "Nuum\u00e4entie",
+                "label": "Synthetic Place 27",
+                "displayLabel": "Synthetic Place 27",
                 "visibleGeometry": [
                   {
                     "length": 302.9625695395819,
@@ -233,13 +233,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212465,
+                            "osmId": 4294967950507505,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -253,13 +253,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212467,
+                            "osmId": 4294967950507507,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -273,19 +273,19 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -299,13 +299,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -319,13 +319,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -339,13 +339,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -359,13 +359,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -379,8 +379,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -399,8 +399,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -419,8 +419,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -431,7 +431,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -458,10 +458,10 @@
                 }
               },
               {
-                "osmId": 25365013,
+                "osmId": 4294967321970773,
                 "osmType": "way",
-                "label": "Nuum\u00e4entie",
-                "displayLabel": "Nuum\u00e4entie",
+                "label": "Synthetic Place 27",
+                "displayLabel": "Synthetic Place 27",
                 "visibleGeometry": [
                   {
                     "length": 16.0926347889242,
@@ -501,14 +501,14 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365013,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967321970773,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383778,
-                            "name": "L\u00e4hderannantie",
+                            "osmId": 4294967435547746,
+                            "name": "Synthetic Place 22",
                             "subClass": "A1_secondary_roads"
                           }
                         ]
@@ -545,7 +545,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 140383769,
+                "osmId": 4294967435547737,
                 "segments": [
                   {
                     "length": 302.9625695395819,
@@ -585,13 +585,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212465,
+                            "osmId": 4294967950507505,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -605,13 +605,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212467,
+                            "osmId": 4294967950507507,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -625,19 +625,19 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -651,13 +651,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -671,13 +671,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -691,13 +691,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -711,13 +711,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -731,8 +731,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -751,8 +751,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -771,8 +771,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -783,7 +783,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -794,7 +794,7 @@
                 ]
               },
               {
-                "osmId": 25365013,
+                "osmId": 4294967321970773,
                 "segments": [
                   {
                     "length": 16.0926347889242,
@@ -834,14 +834,14 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365013,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967321970773,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383778,
-                            "name": "L\u00e4hderannantie",
+                            "osmId": 4294967435547746,
+                            "name": "Synthetic Place 22",
                             "subClass": "A1_secondary_roads"
                           }
                         ]
@@ -858,16 +858,16 @@
             ]
           },
           {
-            "label": "Nuuniitynkuja",
-            "displayLabel": "Nuuniitynkuja",
+            "label": "Synthetic Place 25",
+            "displayLabel": "Synthetic Place 25",
             "totalLength": 36.41522743963166,
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 25365011,
+                "osmId": 4294967321970771,
                 "osmType": "way",
-                "label": "Nuuniitynkuja",
-                "displayLabel": "Nuuniitynkuja",
+                "label": "Synthetic Place 25",
+                "displayLabel": "Synthetic Place 25",
                 "visibleGeometry": [
                   {
                     "length": 36.41522743963166,
@@ -902,19 +902,19 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -928,13 +928,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -963,7 +963,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 25365011,
+                "osmId": 4294967321970771,
                 "segments": [
                   {
                     "length": 36.41522743963166,
@@ -998,19 +998,19 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1024,13 +1024,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1051,7 +1051,7 @@
       },
       {
         "key": "A1_service_roads",
-        "name": "Service roads",
+        "name": "Synthetic Place 26",
         "kind": "linear",
         "groups": [
           {
@@ -1061,7 +1061,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958718,
+                "osmId": 4294967753484158,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -1099,13 +1099,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1119,13 +1119,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982747,
+                            "osmId": 4294967816278683,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1149,7 +1149,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958718,
+                "osmId": 4294967753484158,
                 "segments": [
                   {
                     "length": 131.22360364789728,
@@ -1184,13 +1184,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1204,13 +1204,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982747,
+                            "osmId": 4294967816278683,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1234,7 +1234,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958719,
+                "osmId": 4294967753484159,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -1272,13 +1272,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1292,7 +1292,7 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
@@ -1318,7 +1318,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1338,7 +1338,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1362,7 +1362,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958719,
+                "osmId": 4294967753484159,
                 "segments": [
                   {
                     "length": 130.45481817559906,
@@ -1397,13 +1397,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1417,7 +1417,7 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
@@ -1443,7 +1443,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1463,7 +1463,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1487,7 +1487,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958714,
+                "osmId": 4294967753484154,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -1525,19 +1525,19 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1551,13 +1551,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1571,13 +1571,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466273,
+                            "osmId": 4294968092286497,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1591,13 +1591,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466274,
+                            "osmId": 4294968092286498,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1611,13 +1611,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466275,
+                            "osmId": 4294968092286499,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1631,13 +1631,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466276,
+                            "osmId": 4294968092286500,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1651,13 +1651,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466277,
+                            "osmId": 4294968092286501,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1671,13 +1671,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466278,
+                            "osmId": 4294968092286502,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1691,13 +1691,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1721,7 +1721,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958714,
+                "osmId": 4294967753484154,
                 "segments": [
                   {
                     "length": 70.47328960088342,
@@ -1756,19 +1756,19 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1782,13 +1782,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1802,13 +1802,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466273,
+                            "osmId": 4294968092286497,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1822,13 +1822,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466274,
+                            "osmId": 4294968092286498,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1842,13 +1842,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466275,
+                            "osmId": 4294968092286499,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1862,13 +1862,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466276,
+                            "osmId": 4294968092286500,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1882,13 +1882,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466277,
+                            "osmId": 4294968092286501,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1902,13 +1902,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466278,
+                            "osmId": 4294968092286502,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1922,13 +1922,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -1952,7 +1952,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 520982744,
+                "osmId": 4294967816278680,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -1995,13 +1995,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982745,
+                            "osmId": 4294967816278681,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2015,13 +2015,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2035,13 +2035,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2060,7 +2060,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 520982744,
+                "osmId": 4294967816278680,
                 "segments": [
                   {
                     "length": 58.064255068449356,
@@ -2100,13 +2100,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982745,
+                            "osmId": 4294967816278681,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2120,13 +2120,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2140,13 +2140,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2165,7 +2165,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457957434,
+                "osmId": 4294967753482874,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -2203,13 +2203,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2223,13 +2223,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469206,
+                            "osmId": 4294968092288406,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2243,13 +2243,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469205,
+                            "osmId": 4294968092288405,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2263,13 +2263,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469204,
+                            "osmId": 4294968092288404,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2293,7 +2293,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457957434,
+                "osmId": 4294967753482874,
                 "segments": [
                   {
                     "length": 55.35991572506152,
@@ -2328,13 +2328,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365011,
-                            "name": "Nuuniitynkuja",
+                            "osmId": 4294967321970771,
+                            "name": "Synthetic Place 25",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2348,13 +2348,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469206,
+                            "osmId": 4294968092288406,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2368,13 +2368,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469205,
+                            "osmId": 4294968092288405,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2388,13 +2388,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469204,
+                            "osmId": 4294968092288404,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2418,7 +2418,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 520982745,
+                "osmId": 4294967816278681,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -2461,13 +2461,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982745,
+                            "osmId": 4294967816278681,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2486,7 +2486,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 520982745,
+                "osmId": 4294967816278681,
                 "segments": [
                   {
                     "length": 54.730551322115055,
@@ -2526,13 +2526,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982745,
+                            "osmId": 4294967816278681,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2551,7 +2551,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 520982743,
+                "osmId": 4294967816278679,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -2589,13 +2589,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982743,
+                            "osmId": 4294967816278679,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2619,7 +2619,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 520982743,
+                "osmId": 4294967816278679,
                 "segments": [
                   {
                     "length": 51.94729401707427,
@@ -2654,13 +2654,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982743,
+                            "osmId": 4294967816278679,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2684,7 +2684,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 520982747,
+                "osmId": 4294967816278683,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -2722,13 +2722,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982747,
+                            "osmId": 4294967816278683,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2752,7 +2752,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 520982747,
+                "osmId": 4294967816278683,
                 "segments": [
                   {
                     "length": 50.188664805397096,
@@ -2787,13 +2787,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958718,
+                            "osmId": 4294967753484158,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982747,
+                            "osmId": 4294967816278683,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -2855,8 +2855,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -2920,8 +2920,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -2950,7 +2950,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958713,
+                "osmId": 4294967753484153,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -2988,13 +2988,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3008,13 +3008,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3038,7 +3038,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958713,
+                "osmId": 4294967753484153,
                 "segments": [
                   {
                     "length": 40.79980512004592,
@@ -3073,13 +3073,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3093,13 +3093,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3123,7 +3123,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958710,
+                "osmId": 4294967753484150,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -3161,13 +3161,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3181,13 +3181,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982743,
+                            "osmId": 4294967816278679,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3201,13 +3201,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3226,7 +3226,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958710,
+                "osmId": 4294967753484150,
                 "segments": [
                   {
                     "length": 40.17609794794471,
@@ -3261,13 +3261,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3281,13 +3281,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982743,
+                            "osmId": 4294967816278679,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3301,13 +3301,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958710,
+                            "osmId": 4294967753484150,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3326,7 +3326,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 655212465,
+                "osmId": 4294967950507505,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -3364,13 +3364,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212465,
+                            "osmId": 4294967950507505,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3394,7 +3394,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 655212465,
+                "osmId": 4294967950507505,
                 "segments": [
                   {
                     "length": 38.8347682016924,
@@ -3429,13 +3429,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212465,
+                            "osmId": 4294967950507505,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3459,7 +3459,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958712,
+                "osmId": 4294967753484152,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -3497,13 +3497,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3517,13 +3517,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3547,7 +3547,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958712,
+                "osmId": 4294967753484152,
                 "segments": [
                   {
                     "length": 36.07313272787226,
@@ -3582,13 +3582,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3602,13 +3602,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958712,
+                            "osmId": 4294967753484152,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3670,8 +3670,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -3682,7 +3682,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3741,8 +3741,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -3753,7 +3753,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -3815,8 +3815,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -3880,8 +3880,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -3910,7 +3910,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466321,
+                "osmId": 4294968092286673,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -3963,7 +3963,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466321,
+                "osmId": 4294968092286673,
                 "segments": [
                   {
                     "length": 27.64035445629487,
@@ -4013,7 +4013,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958728,
+                "osmId": 4294967753484040,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -4051,8 +4051,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -4063,7 +4063,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4077,13 +4077,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958729,
+                            "osmId": 4294967753484041,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4107,7 +4107,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958728,
+                "osmId": 4294967753484040,
                 "segments": [
                   {
                     "length": 26.07194970608792,
@@ -4142,8 +4142,8 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
@@ -4154,7 +4154,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4168,13 +4168,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958729,
+                            "osmId": 4294967753484041,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4198,7 +4198,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 520982746,
+                "osmId": 4294967816278682,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -4236,13 +4236,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4256,13 +4256,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4281,7 +4281,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 520982746,
+                "osmId": 4294967816278682,
                 "segments": [
                   {
                     "length": 25.424056796664054,
@@ -4316,13 +4316,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4336,13 +4336,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 520982744,
+                            "osmId": 4294967816278680,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4361,7 +4361,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 655212467,
+                "osmId": 4294967950507507,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -4399,13 +4399,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212467,
+                            "osmId": 4294967950507507,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4434,7 +4434,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 655212467,
+                "osmId": 4294967950507507,
                 "segments": [
                   {
                     "length": 16.63364706030776,
@@ -4469,13 +4469,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 140383769,
-                            "name": "Nuum\u00e4entie",
+                            "osmId": 4294967435547737,
+                            "name": "Synthetic Place 27",
                             "subClass": "A1_local_streets"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212467,
+                            "osmId": 4294967950507507,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4499,7 +4499,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958729,
+                "osmId": 4294967753484041,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -4537,13 +4537,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958729,
+                            "osmId": 4294967753484041,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4567,7 +4567,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958729,
+                "osmId": 4294967753484041,
                 "segments": [
                   {
                     "length": 15.366409762856124,
@@ -4602,13 +4602,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958728,
+                            "osmId": 4294967753484040,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958729,
+                            "osmId": 4294967753484041,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -4670,7 +4670,7 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
@@ -4735,7 +4735,7 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           },
@@ -4865,7 +4865,7 @@
       },
       {
         "key": "A2_footpaths_trails",
-        "name": "Footpaths / trails",
+        "name": "Synthetic Place 15",
         "kind": "linear",
         "groups": [
           {
@@ -4875,7 +4875,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 24724848,
+                "osmId": 4294967320512304,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -4913,13 +4913,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -4933,13 +4933,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -4953,13 +4953,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -4973,13 +4973,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5008,7 +5008,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 24724848,
+                "osmId": 4294967320512304,
                 "segments": [
                   {
                     "length": 257.1883554134748,
@@ -5043,13 +5043,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5063,13 +5063,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5083,13 +5083,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5103,13 +5103,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5133,7 +5133,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 1282562992,
+                "osmId": 4294968579267056,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -5176,13 +5176,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5196,13 +5196,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5231,7 +5231,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 1282562992,
+                "osmId": 4294968579267056,
                 "segments": [
                   {
                     "length": 178.61656885894612,
@@ -5271,13 +5271,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5291,13 +5291,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5316,7 +5316,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 525693383,
+                "osmId": 4294967822005127,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -5354,13 +5354,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5374,13 +5374,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5394,13 +5394,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5424,7 +5424,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 525693383,
+                "osmId": 4294967822005127,
                 "segments": [
                   {
                     "length": 82.6864855488189,
@@ -5459,13 +5459,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5479,13 +5479,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5499,13 +5499,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5524,7 +5524,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 457958716,
+                "osmId": 4294967753484156,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -5562,13 +5562,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5582,13 +5582,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 796466272,
+                            "osmId": 4294968092286496,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5602,13 +5602,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5627,7 +5627,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 457958716,
+                "osmId": 4294967753484156,
                 "segments": [
                   {
                     "length": 45.275098800307426,
@@ -5662,13 +5662,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958713,
+                            "osmId": 4294967753484153,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5682,13 +5682,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 796466272,
+                            "osmId": 4294968092286496,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5702,13 +5702,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5771,7 +5771,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5791,7 +5791,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5851,7 +5851,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5871,7 +5871,7 @@
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958719,
+                            "osmId": 4294967753484159,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -5890,7 +5890,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466272,
+                "osmId": 4294968092286496,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -5928,13 +5928,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 796466272,
+                            "osmId": 4294968092286496,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -5958,7 +5958,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466272,
+                "osmId": 4294968092286496,
                 "segments": [
                   {
                     "length": 38.79053506404736,
@@ -5993,13 +5993,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 457958716,
+                            "osmId": 4294967753484156,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 796466272,
+                            "osmId": 4294968092286496,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6023,7 +6023,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 25365012,
+                "osmId": 4294967321970772,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6061,13 +6061,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6081,13 +6081,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212919,
+                            "osmId": 4294967950476087,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6116,7 +6116,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 25365012,
+                "osmId": 4294967321970772,
                 "segments": [
                   {
                     "length": 30.453397213983944,
@@ -6151,13 +6151,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6171,13 +6171,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212919,
+                            "osmId": 4294967950476087,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6201,7 +6201,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466273,
+                "osmId": 4294968092286497,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6244,13 +6244,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466273,
+                            "osmId": 4294968092286497,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6269,7 +6269,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466273,
+                "osmId": 4294968092286497,
                 "segments": [
                   {
                     "length": 16.783060929921234,
@@ -6309,13 +6309,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466273,
+                            "osmId": 4294968092286497,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6334,7 +6334,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 655212919,
+                "osmId": 4294967950476087,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6372,13 +6372,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212919,
+                            "osmId": 4294967950476087,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6402,7 +6402,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 655212919,
+                "osmId": 4294967950476087,
                 "segments": [
                   {
                     "length": 16.362217215259026,
@@ -6437,13 +6437,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 25365012,
+                            "osmId": 4294967321970772,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 655212919,
+                            "osmId": 4294967950476087,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -6467,7 +6467,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466274,
+                "osmId": 4294968092286498,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6510,13 +6510,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466274,
+                            "osmId": 4294968092286498,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6535,7 +6535,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466274,
+                "osmId": 4294968092286498,
                 "segments": [
                   {
                     "length": 15.551830209080276,
@@ -6575,13 +6575,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466274,
+                            "osmId": 4294968092286498,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6600,7 +6600,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466275,
+                "osmId": 4294968092286499,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6643,13 +6643,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466275,
+                            "osmId": 4294968092286499,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6668,7 +6668,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466275,
+                "osmId": 4294968092286499,
                 "segments": [
                   {
                     "length": 14.220536479313235,
@@ -6708,13 +6708,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466275,
+                            "osmId": 4294968092286499,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6733,7 +6733,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466278,
+                "osmId": 4294968092286502,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6776,13 +6776,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466278,
+                            "osmId": 4294968092286502,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6801,7 +6801,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466278,
+                "osmId": 4294968092286502,
                 "segments": [
                   {
                     "length": 10.442586996351242,
@@ -6841,13 +6841,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466278,
+                            "osmId": 4294968092286502,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6866,7 +6866,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466277,
+                "osmId": 4294968092286501,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -6909,13 +6909,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466277,
+                            "osmId": 4294968092286501,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6934,7 +6934,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466277,
+                "osmId": 4294968092286501,
                 "segments": [
                   {
                     "length": 9.806908791259684,
@@ -6974,13 +6974,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466277,
+                            "osmId": 4294968092286501,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -6999,7 +6999,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796466276,
+                "osmId": 4294968092286500,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -7042,13 +7042,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466276,
+                            "osmId": 4294968092286500,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7067,7 +7067,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796466276,
+                "osmId": 4294968092286500,
                 "segments": [
                   {
                     "length": 9.332144233776074,
@@ -7107,13 +7107,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796466276,
+                            "osmId": 4294968092286500,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457958714,
+                            "osmId": 4294967753484154,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7132,7 +7132,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796469204,
+                "osmId": 4294968092288404,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -7175,13 +7175,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469204,
+                            "osmId": 4294968092288404,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7200,7 +7200,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796469204,
+                "osmId": 4294968092288404,
                 "segments": [
                   {
                     "length": 9.229429126441136,
@@ -7240,13 +7240,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469204,
+                            "osmId": 4294968092288404,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7265,7 +7265,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796469206,
+                "osmId": 4294968092288406,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -7308,13 +7308,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469206,
+                            "osmId": 4294968092288406,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7333,7 +7333,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796469206,
+                "osmId": 4294968092288406,
                 "segments": [
                   {
                     "length": 8.226874406547488,
@@ -7373,13 +7373,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469206,
+                            "osmId": 4294968092288406,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7398,7 +7398,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 1327887801,
+                "osmId": 4294968624199673,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -7436,13 +7436,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -7456,13 +7456,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -7486,7 +7486,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 1327887801,
+                "osmId": 4294968624199673,
                 "segments": [
                   {
                     "length": 7.20314296486216,
@@ -7521,13 +7521,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -7541,13 +7541,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1327887801,
+                            "osmId": 4294968624199673,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -7566,7 +7566,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 796469205,
+                "osmId": 4294968092288405,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -7609,13 +7609,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469205,
+                            "osmId": 4294968092288405,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7634,7 +7634,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 796469205,
+                "osmId": 4294968092288405,
                 "segments": [
                   {
                     "length": 3.7973983199027197,
@@ -7674,13 +7674,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 796469205,
+                            "osmId": 4294968092288405,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 457957434,
+                            "osmId": 4294967753482874,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7699,7 +7699,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 1355154126,
+                "osmId": 4294968651366542,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -7737,13 +7737,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7757,13 +7757,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -7782,7 +7782,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 1355154126,
+                "osmId": 4294968651366542,
                 "segments": [
                   {
                     "length": 2.8370824802955603,
@@ -7817,13 +7817,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 520982746,
+                            "osmId": 4294967816278682,
                             "name": null,
                             "subClass": "A1_service_roads"
                           }
@@ -7837,13 +7837,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 1282562992,
+                            "osmId": 4294968579267056,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 1355154126,
+                            "osmId": 4294968651366542,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -7859,7 +7859,7 @@
       },
       {
         "key": "A2_cycleways",
-        "name": "Cycleways",
+        "name": "Synthetic Place 30",
         "kind": "linear",
         "groups": [
           {
@@ -7972,7 +7972,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 24724510,
+                "osmId": 4294967320512094,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -8015,13 +8015,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 426104083,
+                            "osmId": 4294967722415955,
                             "name": null,
                             "subClass": "A2_cycleways"
                           }
@@ -8035,13 +8035,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -8055,13 +8055,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -8098,7 +8098,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 24724510,
+                "osmId": 4294967320512094,
                 "segments": [
                   {
                     "length": 36.100407943031364,
@@ -8138,13 +8138,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 426104083,
+                            "osmId": 4294967722415955,
                             "name": null,
                             "subClass": "A2_cycleways"
                           }
@@ -8158,13 +8158,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 525693383,
+                            "osmId": 4294967822005127,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -8178,13 +8178,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 24724848,
+                            "osmId": 4294967320512304,
                             "name": null,
                             "subClass": "A2_footpaths_trails"
                           }
@@ -8311,7 +8311,7 @@
             "totalArea": 0.0,
             "ways": [
               {
-                "osmId": 426104083,
+                "osmId": 4294967722415955,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "(unnamed)",
@@ -8349,13 +8349,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 426104083,
+                            "osmId": 4294967722415955,
                             "name": null,
                             "subClass": "A2_cycleways"
                           }
@@ -8396,7 +8396,7 @@
             ],
             "visibleGeometry": [
               {
-                "osmId": 426104083,
+                "osmId": 4294967722415955,
                 "segments": [
                   {
                     "length": 3.785341988246539,
@@ -8431,13 +8431,13 @@
                         "connections": [
                           {
                             "osmType": "way",
-                            "osmId": 24724510,
+                            "osmId": 4294967320512094,
                             "name": null,
                             "subClass": "A2_cycleways"
                           },
                           {
                             "osmType": "way",
-                            "osmId": 426104083,
+                            "osmId": 4294967722415955,
                             "name": null,
                             "subClass": "A2_cycleways"
                           }
@@ -8711,30 +8711,30 @@
       },
       {
         "key": "A5_connectivity_nodes",
-        "name": "Connectivity nodes",
+        "name": "Synthetic Place 16",
         "kind": "connectivity",
         "groups": [
           {
-            "label": "connector: (unnamed)",
+            "label": "Synthetic Place 10",
             "displayLabel": null,
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 268724899,
+                "osmId": 4294967565166819,
                 "osmType": "node",
-                "label": "connector: (unnamed)"
+                "label": "Synthetic Place 10"
               },
               {
-                "osmId": 268725041,
+                "osmId": 4294967565166961,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 276457277,
+                "osmId": 4294967572112765,
                 "osmType": "node",
-                "label": "crossing: (unnamed)",
+                "label": "Synthetic Place 13",
                 "semantics": {
                   "raw": {
                     "highway": "crossing",
@@ -8748,9 +8748,9 @@
                 }
               },
               {
-                "osmId": 276457280,
+                "osmId": 4294967572112640,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie",
+                "label": "Synthetic Place 11",
                 "semantics": {
                   "raw": {
                     "highway": "turning_circle"
@@ -8758,34 +8758,34 @@
                 }
               },
               {
-                "osmId": 1538138535,
+                "osmId": 4294968833303527,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 1538139031,
+                "osmId": 4294968833302999,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 1539655844,
+                "osmId": 4294968835967716,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
-                "osmId": 1539656211,
+                "osmId": 4294968835967059,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
-                "osmId": 2921555993,
+                "osmId": 4294970218130009,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
                 "osmId": 4254168966,
                 "osmType": "node",
-                "label": "crossing: (unnamed)",
+                "label": "Synthetic Place 13",
                 "semantics": {
                   "raw": {
                     "highway": "crossing",
@@ -8801,7 +8801,7 @@
               {
                 "osmId": 4254168969,
                 "osmType": "node",
-                "label": "crossing: (unnamed)",
+                "label": "Synthetic Place 13",
                 "semantics": {
                   "raw": {
                     "highway": "crossing",
@@ -8815,194 +8815,194 @@
                 }
               },
               {
-                "osmId": 4540138274,
+                "osmId": 4294967540466019,
                 "osmType": "node",
-                "label": "junction: Nuuniitynkuja"
+                "label": "Synthetic Place 8"
               },
               {
-                "osmId": 4540138286,
+                "osmId": 4294967540466031,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 4540152725,
+                "osmId": 4294967540480468,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
-                "osmId": 4540152727,
+                "osmId": 4294967540480470,
                 "osmType": "node",
-                "label": "connector: (unnamed)"
+                "label": "Synthetic Place 10"
               },
               {
-                "osmId": 4540152732,
+                "osmId": 4294967540480477,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
-                "osmId": 4540152736,
+                "osmId": 4294967540480481,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 4540152737,
+                "osmId": 4294967540480480,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 4540152741,
+                "osmId": 4294967540480484,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 4540152742,
+                "osmId": 4294967540480487,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 4540152743,
+                "osmId": 4294967540480486,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 4540152754,
+                "osmId": 4294967540480499,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
                 "osmId": 4540152768,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
                 "osmId": 4540152780,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
                 "osmId": 4540152782,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
                 "osmId": 4540152890,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
                 "osmId": 4540152893,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
-                "osmId": 4540152903,
+                "osmId": 4294967540481542,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 5076856678,
+                "osmId": 4294968077577511,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 5076867288,
+                "osmId": 4294968077556377,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 5076867294,
+                "osmId": 4294968077556383,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 5076867299,
+                "osmId": 4294968077556386,
                 "osmType": "node",
-                "label": "connector: (unnamed)"
+                "label": "Synthetic Place 10"
               },
               {
-                "osmId": 5076867300,
+                "osmId": 4294968077556389,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 5076867301,
+                "osmId": 4294968077556388,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 5113592090,
+                "osmId": 4294968114183003,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 6139123141,
+                "osmId": 4294969139713924,
                 "osmType": "node",
-                "label": "junction: Nuum\u00e4entie"
+                "label": "Synthetic Place 11"
               },
               {
-                "osmId": 6139126877,
+                "osmId": 4294969139717660,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448817945,
+                "osmId": 4294970449376088,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448817965,
+                "osmId": 4294970449376108,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448817966,
+                "osmId": 4294970449376111,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448817969,
+                "osmId": 4294970449376112,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448817972,
+                "osmId": 4294970449376117,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448840427,
+                "osmId": 4294970449267370,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 7448840431,
+                "osmId": 4294970449267374,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 11901878576,
+                "osmId": 4294970607862642,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 11901878578,
+                "osmId": 4294970607862640,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 12285606746,
+                "osmId": 4294970991720728,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 12285606749,
+                "osmId": 4294970991720735,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               },
               {
-                "osmId": 12741249986,
+                "osmId": 4294971448314240,
                 "osmType": "node",
-                "label": "junction: (unnamed)"
+                "label": "Synthetic Place 14"
               }
             ]
           }
@@ -9012,25 +9012,25 @@
   },
   "B": {
     "key": "B",
-    "name": "Areal features",
+    "name": "Synthetic Place 23",
     "subclasses": [
       {
         "key": "B1_lakes",
-        "name": "Lakes",
+        "name": "Synthetic Place 36",
         "kind": "area",
         "groups": [
           {
-            "label": "Lippaj\u00e4rvi",
-            "displayLabel": "lake: Lippaj\u00e4rvi",
+            "label": "Synthetic Place 29",
+            "displayLabel": "lake: Synthetic Place 29",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 585814.0000454999,
             "items": [
               {
-                "osmId": 171940210,
+                "osmId": 4294967466974002,
                 "osmType": "way",
-                "label": "Lippaj\u00e4rvi",
-                "displayLabel": "lake: Lippaj\u00e4rvi",
+                "label": "Synthetic Place 29",
+                "displayLabel": "lake: Synthetic Place 29",
                 "location": null,
                 "area": 585814.0000454999
               }
@@ -9042,25 +9042,25 @@
   },
   "C": {
     "key": "C",
-    "name": "Buildings",
+    "name": "Synthetic Place 32",
     "subclasses": [
       {
         "key": "C2_public",
-        "name": "Functional public buildings",
+        "name": "Synthetic Place 2",
         "kind": "building",
         "groups": [
           {
             "label": null,
-            "displayLabel": "kindergarten, Nuum\u00e4entie 2",
+            "displayLabel": "kindergarten, Synthetic Place 27 2",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 322065714,
+                "osmId": 4294967618770802,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "kindergarten, Nuum\u00e4entie 2",
+                "displayLabel": "kindergarten, Synthetic Place 27 2",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -9130,7 +9130,7 @@
           },
           {
             "label": null,
-            "displayLabel": "utility, Nuum\u00e4entie 5",
+            "displayLabel": "utility, Synthetic Place 27 5",
             "location": {
               "center": {
                 "loc": {
@@ -9143,10 +9143,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 322066438,
+                "osmId": 4294967618771526,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "utility, Nuum\u00e4entie 5",
+                "displayLabel": "utility, Synthetic Place 27 5",
                 "location": {
                   "center": {
                     "loc": {
@@ -9205,7 +9205,7 @@
       },
       {
         "key": "C3_other_buildings",
-        "name": "Other buildings",
+        "name": "Synthetic Place 21",
         "kind": "building",
         "groups": [
           {
@@ -9234,7 +9234,7 @@
                 }
               },
               {
-                "osmId": 1376096432,
+                "osmId": 4294968672441072,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "building",
@@ -9306,7 +9306,7 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 1376096430,
+                "osmId": 4294968672441070,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "building",
@@ -9363,7 +9363,7 @@
                 }
               },
               {
-                "osmId": 1376096431,
+                "osmId": 4294968672441071,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "building",
@@ -9424,7 +9424,7 @@
           },
           {
             "label": null,
-            "displayLabel": "building, Nuum\u00e4entie 13",
+            "displayLabel": "building, Synthetic Place 27 13",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -9433,7 +9433,7 @@
                 "osmId": 322065439,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "building, Nuum\u00e4entie 13",
+                "displayLabel": "building, Synthetic Place 27 13",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -9483,16 +9483,16 @@
           },
           {
             "label": null,
-            "displayLabel": "building, Nuum\u00e4entie 5",
+            "displayLabel": "building, Synthetic Place 27 5",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 322066437,
+                "osmId": 4294967618771525,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "building, Nuum\u00e4entie 5",
+                "displayLabel": "building, Synthetic Place 27 5",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -9546,10 +9546,10 @@
                 }
               },
               {
-                "osmId": 322066439,
+                "osmId": 4294967618771527,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "building, Nuum\u00e4entie 5",
+                "displayLabel": "building, Synthetic Place 27 5",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -9612,7 +9612,7 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 288601751,
+                "osmId": 4294967585207511,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "garages building",
@@ -9671,7 +9671,7 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330061,
+                "osmId": 4294967486281357,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "residential building",
@@ -9728,7 +9728,7 @@
                 }
               },
               {
-                "osmId": 190330096,
+                "osmId": 4294967486281392,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "residential building",
@@ -9778,7 +9778,7 @@
                 }
               },
               {
-                "osmId": 190330146,
+                "osmId": 4294967486281570,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "residential building",
@@ -9844,7 +9844,7 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330100,
+                "osmId": 4294967486281396,
                 "osmType": "way",
                 "label": null,
                 "displayLabel": "residential building",
@@ -9904,16 +9904,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 10a",
+            "displayLabel": "residential building, Synthetic Place 27 10a",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190327151,
+                "osmId": 4294967486278447,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 10a",
+                "displayLabel": "residential building, Synthetic Place 27 10a",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -9963,7 +9963,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 10b",
+            "displayLabel": "residential building, Synthetic Place 27 10b",
             "location": {
               "center": {
                 "loc": {
@@ -9976,10 +9976,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190327196,
+                "osmId": 4294967486278620,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 10b",
+                "displayLabel": "residential building, Synthetic Place 27 10b",
                 "location": {
                   "center": {
                     "loc": {
@@ -10036,7 +10036,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 11a",
+            "displayLabel": "residential building, Synthetic Place 27 11a",
             "location": {
               "center": {
                 "loc": {
@@ -10052,7 +10052,7 @@
                 "osmId": 190330237,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 11a",
+                "displayLabel": "residential building, Synthetic Place 27 11a",
                 "location": {
                   "center": {
                     "loc": {
@@ -10116,7 +10116,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 11b",
+            "displayLabel": "residential building, Synthetic Place 27 11b",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -10125,7 +10125,7 @@
                 "osmId": 190330239,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 11b",
+                "displayLabel": "residential building, Synthetic Place 27 11b",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -10182,7 +10182,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 12",
+            "displayLabel": "residential building, Synthetic Place 27 12",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -10191,7 +10191,7 @@
                 "osmId": 190330004,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 12",
+                "displayLabel": "residential building, Synthetic Place 27 12",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -10248,7 +10248,7 @@
                 "osmId": 190330161,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 12",
+                "displayLabel": "residential building, Synthetic Place 27 12",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -10298,7 +10298,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 13",
+            "displayLabel": "residential building, Synthetic Place 27 13",
             "location": {
               "center": {
                 "loc": {
@@ -10314,7 +10314,7 @@
                 "osmId": 190330064,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 13",
+                "displayLabel": "residential building, Synthetic Place 27 13",
                 "location": {
                   "center": {
                     "loc": {
@@ -10371,7 +10371,7 @@
                 "osmId": 190330204,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 13",
+                "displayLabel": "residential building, Synthetic Place 27 13",
                 "location": {
                   "center": {
                     "loc": {
@@ -10435,7 +10435,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 14",
+            "displayLabel": "residential building, Synthetic Place 27 14",
             "location": {
               "center": {
                 "loc": {
@@ -10451,7 +10451,7 @@
                 "osmId": 190330316,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 14",
+                "displayLabel": "residential building, Synthetic Place 27 14",
                 "location": {
                   "center": {
                     "loc": {
@@ -10508,7 +10508,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 4",
+            "displayLabel": "residential building, Synthetic Place 27 4",
             "location": {
               "center": {
                 "loc": {
@@ -10521,10 +10521,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330040,
+                "osmId": 4294967486281464,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 4",
+                "displayLabel": "residential building, Synthetic Place 27 4",
                 "location": {
                   "center": {
                     "loc": {
@@ -10588,7 +10588,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 4",
+            "displayLabel": "residential building, Synthetic Place 27 4",
             "location": {
               "center": {
                 "loc": {
@@ -10601,10 +10601,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 288603510,
+                "osmId": 4294967585210166,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 4",
+                "displayLabel": "residential building, Synthetic Place 27 4",
                 "location": {
                   "center": {
                     "loc": {
@@ -10682,16 +10682,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 4",
+            "displayLabel": "residential building, Synthetic Place 27 4",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 288603511,
+                "osmId": 4294967585210167,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 4",
+                "displayLabel": "residential building, Synthetic Place 27 4",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -10748,16 +10748,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 5",
+            "displayLabel": "residential building, Synthetic Place 27 5",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 288603132,
+                "osmId": 4294967585208764,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 5",
+                "displayLabel": "residential building, Synthetic Place 27 5",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -10810,10 +10810,10 @@
                 }
               },
               {
-                "osmId": 288603135,
+                "osmId": 4294967585208767,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 5",
+                "displayLabel": "residential building, Synthetic Place 27 5",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -10870,7 +10870,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 5",
+            "displayLabel": "residential building, Synthetic Place 27 5",
             "location": {
               "center": {
                 "loc": {
@@ -10883,10 +10883,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 288603349,
+                "osmId": 4294967585210005,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 5",
+                "displayLabel": "residential building, Synthetic Place 27 5",
                 "location": {
                   "center": {
                     "loc": {
@@ -10961,10 +10961,10 @@
                 }
               },
               {
-                "osmId": 288603350,
+                "osmId": 4294967585210006,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 5",
+                "displayLabel": "residential building, Synthetic Place 27 5",
                 "location": {
                   "center": {
                     "loc": {
@@ -11028,16 +11028,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 6",
+            "displayLabel": "residential building, Synthetic Place 27 6",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330163,
+                "osmId": 4294967486281587,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 6",
+                "displayLabel": "residential building, Synthetic Place 27 6",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11101,7 +11101,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 7",
+            "displayLabel": "residential building, Synthetic Place 27 7",
             "location": {
               "center": {
                 "loc": {
@@ -11114,10 +11114,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330273,
+                "osmId": 4294967486281697,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 7",
+                "displayLabel": "residential building, Synthetic Place 27 7",
                 "location": {
                   "center": {
                     "loc": {
@@ -11174,16 +11174,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 8",
+            "displayLabel": "residential building, Synthetic Place 27 8",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330288,
+                "osmId": 4294967486281712,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 8",
+                "displayLabel": "residential building, Synthetic Place 27 8",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11240,7 +11240,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 9",
+            "displayLabel": "residential building, Synthetic Place 27 9",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
@@ -11249,7 +11249,7 @@
                 "osmId": 190330010,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 9",
+                "displayLabel": "residential building, Synthetic Place 27 9",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11306,7 +11306,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 9",
+            "displayLabel": "residential building, Synthetic Place 27 9",
             "location": {
               "center": {
                 "loc": {
@@ -11322,7 +11322,7 @@
                 "osmId": 190330024,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 9",
+                "displayLabel": "residential building, Synthetic Place 27 9",
                 "location": {
                   "center": {
                     "loc": {
@@ -11386,7 +11386,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuum\u00e4entie 9",
+            "displayLabel": "residential building, Synthetic Place 27 9",
             "location": {
               "center": {
                 "loc": {
@@ -11402,7 +11402,7 @@
                 "osmId": 190330059,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 9",
+                "displayLabel": "residential building, Synthetic Place 27 9",
                 "location": {
                   "center": {
                     "loc": {
@@ -11466,7 +11466,7 @@
                 "osmId": 190330178,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuum\u00e4entie 9",
+                "displayLabel": "residential building, Synthetic Place 27 9",
                 "location": {
                   "center": {
                     "loc": {
@@ -11530,16 +11530,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuuniitynkuja 1",
+            "displayLabel": "residential building, Synthetic Place 25 1",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190326831,
+                "osmId": 4294967486278255,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuuniitynkuja 1",
+                "displayLabel": "residential building, Synthetic Place 25 1",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11602,16 +11602,16 @@
           },
           {
             "label": null,
-            "displayLabel": "residential building, Nuuniitynkuja 2",
+            "displayLabel": "residential building, Synthetic Place 25 2",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 288600948,
+                "osmId": 4294967585206580,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuuniitynkuja 2",
+                "displayLabel": "residential building, Synthetic Place 25 2",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11664,10 +11664,10 @@
                 }
               },
               {
-                "osmId": 288601098,
+                "osmId": 4294967585207882,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential building, Nuuniitynkuja 2",
+                "displayLabel": "residential building, Synthetic Place 25 2",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11788,7 +11788,7 @@
           },
           {
             "label": null,
-            "displayLabel": "residential, Nuum\u00e4entie 7",
+            "displayLabel": "residential, Synthetic Place 27 7",
             "location": {
               "center": {
                 "loc": {
@@ -11801,10 +11801,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 322066644,
+                "osmId": 4294967618771604,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "residential, Nuum\u00e4entie 7",
+                "displayLabel": "residential, Synthetic Place 27 7",
                 "location": {
                   "center": {
                     "loc": {
@@ -11868,16 +11868,16 @@
           },
           {
             "label": null,
-            "displayLabel": "shed building, Nuum\u00e4entie 7",
+            "displayLabel": "shed building, Synthetic Place 27 7",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 322066645,
+                "osmId": 4294967618771605,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "shed building, Nuum\u00e4entie 7",
+                "displayLabel": "shed building, Synthetic Place 27 7",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -11941,16 +11941,16 @@
           },
           {
             "label": null,
-            "displayLabel": "storage, Nuum\u00e4entie 4",
+            "displayLabel": "storage, Synthetic Place 27 4",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 322066294,
+                "osmId": 4294967618770230,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "storage, Nuum\u00e4entie 4",
+                "displayLabel": "storage, Synthetic Place 27 4",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -12008,7 +12008,7 @@
           },
           {
             "label": null,
-            "displayLabel": "terrace building, Nuum\u00e4entie 7",
+            "displayLabel": "terrace building, Synthetic Place 27 7",
             "location": {
               "center": {
                 "loc": {
@@ -12021,10 +12021,10 @@
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330049,
+                "osmId": 4294967486281345,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "terrace building, Nuum\u00e4entie 7",
+                "displayLabel": "terrace building, Synthetic Place 27 7",
                 "location": {
                   "center": {
                     "loc": {
@@ -12088,16 +12088,16 @@
           },
           {
             "label": null,
-            "displayLabel": "terrace building, Nuum\u00e4entie 7",
+            "displayLabel": "terrace building, Synthetic Place 27 7",
             "location": null,
             "totalLength": 0.0,
             "totalArea": 0.0,
             "items": [
               {
-                "osmId": 190330155,
+                "osmId": 4294967486281579,
                 "osmType": "way",
                 "label": null,
-                "displayLabel": "terrace building, Nuum\u00e4entie 7",
+                "displayLabel": "terrace building, Synthetic Place 27 7",
                 "location": null,
                 "visibleGeometry": {
                   "coverage": {
@@ -12158,7 +12158,7 @@
   },
   "D": {
     "key": "D",
-    "name": "POIs",
+    "name": "Synthetic Place 37",
     "subclasses": [
       {
         "key": null,
@@ -12171,7 +12171,7 @@
   },
   "E": {
     "key": "E",
-    "name": "Boundaries and edges",
+    "name": "Synthetic Place 12",
     "subclasses": [
       {
         "key": null,
