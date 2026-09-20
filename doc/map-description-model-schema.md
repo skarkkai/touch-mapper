@@ -129,14 +129,53 @@ instead of the generic “ways of type” fallback (reserved for unknown types).
 Finnish uses counted partitive forms; Finnish and German connection-count phrases
 use a “Connections:” construction to avoid incompatible grammatical cases.
 
-Individual linear-feature entries describe every visible segment using the existing
+Road entries prioritize map-border crossings for their location description:
+
+- Two or more crossing events: report only the border edges and their position
+  qualifiers; omit internal segment location clauses.
+- One crossing event: report that border location plus distinct in-map terminal
+  locations, each labelled `Endpoint`. A terminal can be a dead end or a segment
+  endpoint junction with no continuation into another member of the same road
+  group. Intermediate junctions and same-road splits are omitted. For branching
+  roads, retain all known terminal locations. Missing endpoint data contributes
+  no invented endpoint.
+- No crossings: retain the segment-based location description below.
+
+Repeated source-segment events are deduplicated before counting crossings. Two
+contacts on the same edge still count separately; a corner contact counts once
+while contributing both adjacent edges to the crossing sentence. This selection
+uses existing `visibleGeometry[].segments[].events` metadata (`t`, `type`, `zone`,
+`edge`, `edges`, `connections`) and does not change the converter JSON schema.
+
+Other individual linear-feature entries describe every visible segment using the existing
 localized location phrases, joined with semicolons and deduplicated in source order.
 Deduplication uses unordered structured endpoint-location pairs, not translated
 text; the first pair's direction is retained. Standalone locations are omitted
 when already covered by a retained pair. Distinct unrelated locations remain.
 Edge-crossing descriptions collect all visible segments, deduplicating edges and
-combining their position qualifiers. No connectivity reconstruction is performed.
+combining their position qualifiers. No geometric connectivity reconstruction is performed.
 Unnamed road/path aggregate summaries remain unchanged.
+
+### Roundabout connections
+
+Junction `connections[]` retain the physical `osmType`, `osmId`, `name`, and
+`subClass`. A member of a connected `junction=roundabout` component additionally
+has `roundabout: {id, name}`. The ID is `roundabout:way:<representative-osm-id>`,
+using the lexicographically smallest member ID; it is deterministic for the same
+source ways, independent of iteration order. The name is the sole distinct
+nonblank roundabout-member name, or `null` when absent or conflicting.
+
+The metadata renderer groups roundabout source centerlines at shared coordinates,
+before clipping affects connection visibility. Ordinary approach roads never
+join components. Only visible contacts become junction events. A contact between
+a roundabout and an approach can supply an inferred junction when explicit
+connector metadata is absent, even when the roundabout is unnamed.
+
+The UI counts roundabout connections by this shared ID, not by member way ID or
+translated label. It emits named or counted unnamed-roundabout phrases, excluding
+those same contacts from generic road counts. It does not infer connections
+between roads on opposite sides of a roundabout or borrow approach-road names.
+Physical way IDs and map-content filtering references remain unchanged.
 
 ### Semantic grouping boundary
 

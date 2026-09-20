@@ -27,6 +27,8 @@ def main():
         ('Print unit inputs', ['node', str(REPO / 'test/regression/print_units.js')]),
         ('Named roads', [sys.executable, str(REPO / 'test/regression/named_roads.py'), str(work)]),
         ('Way segment descriptions', ['node', str(REPO / 'test/regression/way_segments.js')]),
+        ('Road border locations', ['node', str(REPO / 'test/regression/road_border_locations.js')]),
+        ('Roundabout connections', [sys.executable, str(REPO / 'test/regression/roundabout_connections.py'), str(work)]),
         ('Way plural descriptions', ['node', str(REPO / 'test/regression/way_plurals.js')]),
         ('Map description semantics', ['node', str(REPO / 'test/regression/map_description_semantics.js')]),
         ('Area description semantics', ['node', str(REPO / 'test/regression/area_semantics.js')]),

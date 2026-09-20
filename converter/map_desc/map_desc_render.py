@@ -1610,7 +1610,11 @@ def _collect_inferred_named_connectors(
                 continue
             seen_names.add(norm)
             names.append(name)
-        if len(names) < 2:
+        # An unnamed roundabout is still a meaningful junction target. Its
+        # approaches must get events even without explicit connector metadata.
+        roundabout_contact = (any(feature.get("roundabout") for feature in features) and
+                              any(not feature.get("roundabout") for feature in features))
+        if len(names) < 2 and not roundabout_contact:
             continue
         try:
             x_str, y_str = key.split(",")
@@ -1667,8 +1671,58 @@ def _is_railway_subclass(sub_class: Any) -> bool:
     return isinstance(sub_class, str) and sub_class.startswith("A3_")
 
 
+# Give connected roundabout ways one identity without joining their approaches.
+def _roundabout_connections(grouped: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    parents = {}  # type: Dict[str, str]
+    names = {}  # type: Dict[str, Set[str]]
+    at_coord = {}  # type: Dict[str, str]
+
+    def root(way_id: str) -> str:
+        while parents[way_id] != way_id:
+            parents[way_id] = parents[parents[way_id]]
+            way_id = parents[way_id]
+        return way_id
+
+    for item in _iter_grouped_items(grouped):
+        tags = item.get("tags") or {}
+        geom = item.get("geometry") or {}
+        if (item.get("osmType") != "way" or item.get("osmId") is None or
+                tags.get("junction") != "roundabout" or geom.get("type") != "line_string"):
+            continue
+        way_id = str(item["osmId"])
+        parents.setdefault(way_id, way_id)
+        names.setdefault(way_id, set())
+        name = _get_name(tags)
+        if name:
+            names[way_id].add(name)
+        # Use source centerlines for identity so clipping cannot split a ring's
+        # identity. Actual reported contacts still use only visible geometry.
+        for coord in geom.get("coordinates") or []:
+            key = _coord_key(coord)
+            other = at_coord.get(key)
+            if other is not None:
+                a, b = root(way_id), root(other)
+                parents[max(a, b)] = min(a, b)
+            else:
+                at_coord[key] = way_id
+
+    component_names = {}  # type: Dict[str, Set[str]]
+    for way_id in parents:
+        component_names.setdefault(root(way_id), set()).update(names[way_id])
+    result = {}  # type: Dict[str, Dict[str, Any]]
+    for way_id in parents:
+        component = root(way_id)
+        labels = component_names[component]
+        result[way_id] = {
+            "id": "roundabout:way:" + component,
+            "name": next(iter(labels)) if len(labels) == 1 else None
+        }
+    return result
+
+
 def _build_connections_index(grouped: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
     index = {}
+    roundabouts = _roundabout_connections(grouped)
     for item in _iter_grouped_items(grouped):
         geom = item.get("geometry") or {}
         if geom.get("type") != "line_string":
@@ -1679,6 +1733,9 @@ def _build_connections_index(grouped: Dict[str, Any]) -> Dict[str, List[Dict[str
         # Railway intersections are intentionally omitted from connectivity narration.
         if _is_railway_subclass(info.get("subClass")):
             continue
+        roundabout = roundabouts.get(str(info["osmId"])) if info["osmType"] == "way" else None
+        if roundabout:
+            info["roundabout"] = roundabout
         for coords in _iter_line_segments(item):
             for coord in coords:
                 key = _coord_key(coord)

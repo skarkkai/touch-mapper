@@ -64,6 +64,10 @@ Each referenced code file contains comments in format:
 - Created at: `converter/map_desc/map_desc_render.py`
 - Stored as: in-memory (not written to disk)
 - Diff from previous: items are grouped/sorted with display labels, counts, lengths/areas, and connectivity.
+- Connectivity assigns shared roundabout identities to connected source ways
+  tagged `junction=roundabout`. Visible contacts carry this identity through
+  `connections[].roundabout`; the browser counts each component once. This is
+  semantic metadata enrichment, with no change to tactile geometry or clipping.
 
 ### Stage: Final map content
 - Created at: `converter/map_desc/map_desc_render.py`

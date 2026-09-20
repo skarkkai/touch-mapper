@@ -90,7 +90,8 @@ function check() {
         lines(render(payload('A1_secondary_roads', [bucket.segments]))[0])[1]);
       assert.strictEqual(new Set(oldClauses).size, 10);
     }
-    for (const key of ['A1_local_streets', 'A1_service_roads', 'A2_footpaths_trails', 'A2_cycleways']) {
+    // Road border priorities have separate coverage in road_border_locations.js.
+    for (const key of ['A2_footpaths_trails', 'A2_cycleways']) {
       const one = lines(render(payload(key, [[first]]))[0]);
       const two = lines(render(payload(key, [[second]]))[0]);
       assert(one[1] && two[1] && one[1] !== two[1]);
@@ -123,7 +124,7 @@ function check() {
       assert(!absent.some(line => line.includes('undefined') || line.includes('__')));
     }
   }
-  // Verify same-name groups merged by the renderer also retain both locations.
+  // Same-name road groups combine their crossings without internal route clauses.
   const data = payload('A1_local_streets', [[first]]);
   const other = payload('A1_local_streets', [[second]]).A.subclasses[0].groups[0];
   other.ways[0].osmId = 2;
@@ -131,7 +132,7 @@ function check() {
   data.A.subclasses[0].groups.push(other);
   const merged = sandbox.window.TM.mapDescWays.buildModel(data, {t: (key, fallback) => fallback});
   assert.strictEqual(merged.length, 1);
-  assert(lines(merged[0])[1].includes('; '));
+  assert.strictEqual(lines(merged[0])[1], 'Crosses north edge near the center and west edge near the center');
   console.log('Multi-segment route and edge descriptions passed in all locales');
 }
 

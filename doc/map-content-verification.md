@@ -30,6 +30,17 @@ Run with `--with-blender` to generate geometry regression snapshots in `test/map
 - `map-wireframe.png`: after geometry modifications.
 
 ## Content and language checks
+- `roundabout_connections.py` and its browser-model companion run in the quick
+  suite. They verify split-ring identity, separation across ordinary connecting
+  roads, clipping, member names, inferred approach junctions, and all five
+  locales' named/unnamed roundabout counts without duplicated generic road counts
+  or invented cross-roundabout street connections.
+- `road_border_locations.js` is registered in the quick suite. Across all five
+  locales it checks fragmented through-roads, one-crossing roads ending at a
+  junction or dead end, internal same-road splits, branches, repeated source
+  buckets, same-edge crossings, corner contacts, unknown termini, and the
+  no-crossing fallback. Roads with multiple crossings must have only the border
+  sentence for location; one-crossing roads additionally label known endpoints.
 - The quick suite's `map_description_semantics.js`, `area_semantics.js`, and
   `poi_semantics.js` execute production browser selectors and formatters with
   synthetic inputs in all five locales. They cover deliberate translation

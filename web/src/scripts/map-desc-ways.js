@@ -747,6 +747,109 @@
       : locationKey(description.start)]);
   }
 
+  // Keep approximate locations unique without depending on translated text.
+  function distinctLocations(locations) {
+    const result = [];
+    const seen = new Set();
+    locations.forEach(function(location){
+      const key = locationKey(location);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      result.push(location);
+    });
+    return result;
+  }
+
+  // Identify other members of this logical road at a segment endpoint.
+  function groupedWayIds(target) {
+    const ids = new Set();
+    const ways = target && Array.isArray(target.ways) ? target.ways : [];
+    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : [];
+    ways.concat(visibleGeometry).forEach(function(item){
+      if (item && item.osmId !== undefined && item.osmId !== null) {
+        ids.add(String(item.osmId));
+      }
+    });
+    return ids;
+  }
+
+  // A junction with another member is an internal split, not a road endpoint.
+  function junctionContinuesGroupedWay(event, currentOsmId, wayIds) {
+    const connections = event && Array.isArray(event.connections) ? event.connections : [];
+    return connections.some(function(connection){
+      if (!connection || connection.osmId === undefined || connection.osmId === null) return false;
+      const id = String(connection.osmId);
+      return wayIds.has(id) && (currentOsmId === null || id !== currentOsmId);
+    });
+  }
+
+  // Select terminal locations, including junctions where the named road ends.
+  function inMapEndpointLocations(target) {
+    const locations = [];
+    const wayIds = groupedWayIds(target);
+    const visibleGeometry = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : [];
+    visibleGeometry.forEach(function(bucket){
+      const currentOsmId = bucket && bucket.osmId !== undefined && bucket.osmId !== null
+        ? String(bucket.osmId) : null;
+      const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
+      segments.forEach(function(segment){
+        const events = segment && Array.isArray(segment.events) ? segment.events.filter(Boolean) : [];
+        if (!events.length) return;
+        [0, 1].forEach(function(endpointT){
+          const endpointEvents = events.filter(function(event){
+            const eventT = typeof event.t === "number" ? event.t : NaN;
+            return Math.abs(eventT - endpointT) <= 1e-9;
+          });
+          if (endpointEvents.some(function(event){ return event.type === "map_edge_crossing"; })) return;
+          const terminalEvent = endpointEvents.find(function(event){
+            if (event.type === "endpoint" || event.type === "terminates") return true;
+            return event.type === "junction" && Array.isArray(event.connections) &&
+              event.connections.length > 0 && currentOsmId !== null &&
+              !junctionContinuesGroupedWay(event, currentOsmId, wayIds);
+          });
+          const location = terminalEvent ? selectLocation(terminalEvent.zone) : null;
+          if (location) locations.push(location);
+        });
+      });
+    });
+    return distinctLocations(locations);
+  }
+
+  // Border crossings already have their own precise edge-position sentence.
+  // Two or more crossings need no extra location line; one crossing adds only
+  // terminal locations inside the map. Keep every endpoint for a branched road.
+  function roadLocationText(target) {
+    const crossings = [];
+    const seen = new Set();
+    const buckets = target && Array.isArray(target.visibleGeometry) ? target.visibleGeometry : [];
+    buckets.forEach(function(bucket){
+      const segments = bucket && Array.isArray(bucket.segments) ? bucket.segments : [];
+      segments.forEach(function(segment){
+        const events = segment && Array.isArray(segment.events) ? segment.events : [];
+        const sourceKey = JSON.stringify([bucket.osmId, events]);
+        events.forEach(function(event){
+          if (!event || event.type !== "map_edge_crossing") return;
+          const edges = event.edge === "corner" ? event.edges : [event.edge];
+          if (!Array.isArray(edges) || !edges.some(function(edge){
+            return ["north", "south", "east", "west"].includes(edge);
+          })) return;
+          const key = JSON.stringify([sourceKey, event.t, event.edge]);
+          if (seen.has(key)) return;
+          seen.add(key);
+          crossings.push(event);
+        });
+      });
+    });
+    if (!crossings.length) return routeText(target);
+    if (crossings.length > 1) return null;
+    const endpoints = inMapEndpointLocations(target).map(function(location){
+      return interpolate(t("map_content_way_endpoint", "Endpoint: __location__"), {
+        location: locationTextFromZone(location, "clause")
+      });
+    });
+    return endpoints.length ? endpoints.join("; ") : null;
+  }
+
   // Format the selected location structures only at the render boundary.
   function formatRouteDescriptions(descriptions) {
     const phrases = descriptions.map(function(description){
@@ -902,6 +1005,7 @@
         currentName: normalizedWayName(sourceWayName(group)),
         namedKeys: {},
         namedLabels: {},
+        roundabouts: {},
         typeBuckets: {}
       };
       wayOsmIds(group).forEach(function(id){
@@ -935,6 +1039,14 @@
             return;
           }
           if (connectionId && ownIds[connectionId]) {
+            return;
+          }
+
+          // Source ways of one roundabout share a converter-assigned identity.
+          // Retain direct road contacts; do not infer links across the ring.
+          const roundabout = connection.roundabout;
+          if (roundabout && typeof roundabout.id === "string" && roundabout.id) {
+            bucket.roundabouts[roundabout.id] = roundabout;
             return;
           }
 
@@ -996,6 +1108,23 @@
       });
 
       const texts = [];
+      const roundabouts = Object.keys(bucket.roundabouts).sort().map(function(id){
+        return bucket.roundabouts[id];
+      });
+      const unnamedRoundabouts = roundabouts.filter(function(roundabout){
+        return !normalizedWayName(roundabout.name);
+      });
+      roundabouts.forEach(function(roundabout){
+        if (!normalizedWayName(roundabout.name)) return;
+        texts.push(interpolate(t("map_content_connects_to_named_roundabout", "Connects to roundabout __name__"),
+          {name: roundabout.name}));
+      });
+      if (unnamedRoundabouts.length) {
+        texts.push(unnamedRoundabouts.length === 1
+          ? t("map_content_connects_to_roundabout", "Connects to an unnamed roundabout")
+          : interpolate(t("map_content_connects_to_roundabouts", "Connects to __count__ unnamed roundabouts"),
+            {count: unnamedRoundabouts.length}));
+      }
       const namedNames = Object.keys(bucket.namedLabels).map(function(norm){
         return bucket.namedLabels[norm];
       }).filter(function(value){ return !!value; });
@@ -1050,21 +1179,24 @@
     segments.forEach(function(segment){
       const events = segment && Array.isArray(segment.events) ? segment.events : [];
       events.forEach(function(event){
-        if (!event || event.type !== "map_edge_crossing" || !["north", "south", "east", "west"].includes(event.edge)) {
+        if (!event || event.type !== "map_edge_crossing") {
           return;
         }
-        if (!found[event.edge]) {
-          found[event.edge] = { edge: event.edge, buckets: {} };
-        }
-        const zone = event.zone && typeof event.zone === 'object' ? event.zone : null;
-        if (!zone || zone.kind !== "near_edge") {
-          return;
-        }
-        const bucket = edgePositionBucketFromDirection(event.edge, zone.dir);
-        if (!bucket) {
-          return;
-        }
-        found[event.edge].buckets[bucket] = (found[event.edge].buckets[bucket] || 0) + 1;
+        const edges = event.edge === "corner" && Array.isArray(event.edges) ? event.edges : [event.edge];
+        edges.filter(function(edge){ return ["north", "south", "east", "west"].includes(edge); }).forEach(function(edge){
+          if (!found[edge]) {
+            found[edge] = { edge: edge, buckets: {} };
+          }
+          const zone = event.zone && typeof event.zone === 'object' ? event.zone : null;
+          if (!zone || zone.kind !== "near_edge") {
+            return;
+          }
+          const bucket = edgePositionBucketFromDirection(edge, zone.dir);
+          if (!bucket) {
+            return;
+          }
+          found[edge].buckets[bucket] = (found[edge].buckets[bucket] || 0) + 1;
+        });
       });
     });
     const preferred = ["north", "south", "east", "west"];
@@ -1373,7 +1505,7 @@
       { text: capitalizeFirst(lineText), className: "map-content-title" }
     ], "map-content-title-line", scoreTooltip, titleLink);
 
-    const routeSummary = routeText(group);
+    const routeSummary = entry.sectionKey === "roads" ? roadLocationText(group) : routeText(group);
     if (routeSummary) {
       addModelLine(item, [
         { text: capitalizeFirst(routeSummary), className: "map-content-location-text" }
