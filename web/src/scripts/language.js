@@ -13,7 +13,21 @@ $(function(){
   var match = window.location.pathname.match(/([a-z][a-z])\b.*/);
   if (match) {
     $(".language-selector").val(match[1]);
+    document.documentElement.lang = match[1];
   }
+  $('.page-maps .my-maps-link, .page-help .help-link').attr('aria-current', 'page');
+
+  // Refresh the discovery hint after local saves, visits in another tab, or Back.
+  function updateMapsHint() {
+    const show = window.TMMapHistory.shouldShowNew();
+    $('.my-maps-new').prop('hidden', !show);
+    document.documentElement.classList.toggle('has-my-maps-hint', show);
+  }
+  if (document.documentElement.classList.contains('page-maps')) window.TMMapHistory.markVisited();
+  updateMapsHint();
+  window.addEventListener('tm-map-history-changed', updateMapsHint);
+  window.addEventListener('storage', updateMapsHint);
+  window.addEventListener('pageshow', updateMapsHint);
 
   // Change language callback
   $(".language-selector").change(function(){

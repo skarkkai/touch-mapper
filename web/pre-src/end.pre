@@ -13,15 +13,5 @@
     <script src="../scripts/app-common.js"></script>
     <script src="../scripts/[% pagename %].js"></script>
 
-    <script>
-    	try {
-    		var storage = window.localStorage,
-    			x = '__storage_test__';
-    		storage.setItem(x, x);
-    		storage.removeItem(x);
-    	} catch(e) {
-        $(".main-wrapper").empty().html("<h1>Your browser is too old for Touch Mapper to work</h1><p>Support for localStorage required.</p>");
-    	}
-    </script>
   </body>
 </html>

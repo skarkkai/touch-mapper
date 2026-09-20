@@ -80,8 +80,13 @@ for (const scenario of [
     if (scenario.focus) {
       await page.locator('#print-width-input').focus();
       await page.keyboard.press('Tab');
+      await expect(page.locator('#print-width-inches')).toBeFocused();
+      await page.keyboard.press('Tab');
       await expect(page.locator('#print-height-input')).toBeFocused();
       await expect(page.locator('#print-height-input')).toBeVisible();
+      const cmBox = await page.locator('#print-width-input').boundingBox();
+      const inchBox = await page.locator('#print-width-inches').boundingBox();
+      expect(Math.abs(cmBox.y - inchBox.y)).toBeLessThan(2);
     }
     await checkLayoutAndLabels(page);
     // Deliberate mutation used to prove the visual gate detects the original border bug.

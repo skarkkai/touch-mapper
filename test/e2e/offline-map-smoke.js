@@ -168,6 +168,12 @@ async function main() {
       assert(Math.abs(request.effectiveArea[key] - fixture.effectiveArea[key]) < 1e-9, key);
     }
     assert.strictEqual(new URL(page.url()).searchParams.get('map'), request.requestId.split('/')[0]);
+    const createdHistory = await page.evaluate(() => JSON.parse(localStorage.getItem('tm-map-history-v1')));
+    assert.strictEqual(createdHistory.maps.length, 1);
+    assert.strictEqual(createdHistory.maps[0].id, request.requestId.split('/')[0]);
+    assert.strictEqual(createdHistory.maps[0].status, 'ready');
+    assert.strictEqual(await page.locator('.map-history-saved').isVisible(), true);
+    assert.strictEqual(await page.locator('.map-history-save-shared').isVisible(), false);
     await page.locator('.preview-3d canvas').waitFor({state: 'visible'});
     assert(infoPolls >= 2, 'Creation polling and result info fetch must both run');
     assert(stlFetched, '3D preview must load the generated STL');
@@ -241,6 +247,9 @@ async function main() {
     releaseFilterRequest();
     await page.waitForURL(url => new URL(url).searchParams.get('map') === filterRequest.requestId.split('/')[0]);
     const firstFilteredRequestId = filterRequest.requestId;
+    const filteredHistory = await page.evaluate(() => JSON.parse(localStorage.getItem('tm-map-history-v1')));
+    assert(filteredHistory.maps.some(record => record.id === firstFilteredRequestId.split('/')[0] &&
+      record.status === 'ready'), 'Successful filtered maps must be saved in browser history');
     assert.strictEqual(filterRequest.filterSourceRequestId, request.requestId);
     for (const field of ['printWidthCm', 'printHeightCm', 'scale', 'effectiveArea', 'printingTech']) {
       assert.deepStrictEqual(filterRequest[field], request[field], 'Filtering must preserve ' + field);

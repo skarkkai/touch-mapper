@@ -18,6 +18,9 @@ def main():
     checks = [
         ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
         ('Local preview routes', [sys.executable, str(REPO / 'test/regression/local_preview.py'), str(work)]),
+        ('Map history', ['node', str(REPO / 'test/regression/map_history.js')]),
+        ('Map cards', ['node', str(REPO / 'test/regression/map_cards.js')]),
+        ('Print unit inputs', ['node', str(REPO / 'test/regression/print_units.js')]),
         ('Named roads', [sys.executable, str(REPO / 'test/regression/named_roads.py'), str(work)]),
         ('Content filtering', [sys.executable, str(REPO / 'test/regression/content_filter.py'), str(work)]),
         ('Big roads pruning', [sys.executable, str(REPO / 'test/regression/big_roads.py'), str(work)]),

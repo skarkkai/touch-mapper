@@ -80,9 +80,16 @@ html.advanced-mode select.grey-in-advanced:hover {
   width: 80px;
 }
 #print-width-input,
-#print-height-input {
-  width: 80px;
+#print-height-input,
+#print-width-inches,
+#print-height-inches {
+  width: 68px;
 }
+.map-size-row .single-input { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.map-size-row .dimension-unit { white-space: nowrap; }
+.map-size-row .dimension-unit label { min-width: 0; }
+#print-width-inches:focus-visible,
+#print-height-inches:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; }
 #search-results li {
   list-style: none;
   margin-bottom: 4px;
@@ -248,7 +255,7 @@ html.multipart-mode .area-movement-buttons {
 
 #map-area-preview { margin: 0 auto; }
 #map-area-preview-container { width: 100%; margin-bottom: 12px; }
-.map-size-row .single-input label { display: inline-block; min-width: 150px; }
+.map-size-row .single-input > label { display: inline-block; min-width: 95px; }
 
 #print-width-input:focus-visible,
 #print-height-input:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; }

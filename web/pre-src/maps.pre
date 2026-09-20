@@ -1,0 +1,110 @@
+<div class="show-on-load maps-page" style="display: none"
+     data-status-in-progress="{{ my_maps_status_in_progress }}"
+     data-status-ready="{{ my_maps_status_ready }}"
+     data-status-failed="{{ my_maps_status_failed }}"
+     data-status-unavailable="{{ my_maps_status_unavailable }}"
+     data-open="{{ my_maps_open }}"
+     data-review-progress="{{ my_maps_review_progress }}"
+     data-review-failure="{{ my_maps_review_failure }}"
+     data-review-unavailable="{{ my_maps_review_unavailable }}"
+     data-created="{{ my_maps_created }}"
+     data-multipart="{{ multipart_map }}"
+     data-part-shift="{{ my_maps_part_shift }}"
+     data-location-shift="{{ my_maps_location_shift }}"
+     data-adjusted-coordinates="{{ my_maps_adjusted_coordinates }}"
+     data-reference-coordinates="{{ my_maps_reference_coordinates }}"
+     data-latitude="{{ latitude_y }}"
+     data-longitude="{{ longitude_x }}"
+     data-moments-ago="{{ my_maps_moments_ago }}"
+     data-hour-ago="{{ my_maps_hour_ago }}"
+     data-saved="{{ my_maps_saved_date }}"
+     data-check-pending="{{ my_maps_check_pending }}"
+     data-retry-confirm="{{ my_maps_retry_confirm }}"
+     data-variation-confirm="{{ my_maps_variation_confirm }}"
+     data-progress-reading="{{ progress__reading_osm }}"
+     data-progress-converting="{{ progress__converting }}"
+     data-progress-uploading="{{ progress__uploading }}"
+     data-failure-too-large="{{ conversion_error_too_large }}"
+     data-map-type="{{ my_maps_map_type }}"
+     data-size="{{ my_maps_size }}"
+     data-scale="{{ my_maps_scale }}"
+     data-content="{{ my_maps_content }}"
+     data-type-three="{{ printing_tech__3d }}"
+     data-type-two="{{ printing_tech__2d }}"
+     data-content-normal="{{ content_mode_normal }}"
+     data-content-no-buildings="{{ content_mode_no_buildings }}"
+     data-content-only-big-roads="{{ content_mode_only_big_roads }}"
+     data-content-only-named-roads="{{ content_mode_only_named_roads }}"
+     data-favorite="{{ my_maps_favorite }}"
+     data-unfavorite="{{ my_maps_unfavorite }}"
+     data-favorite-label="{{ my_maps_favorite_label }}"
+     data-create-variation="{{ my_maps_create_variation }}"
+     data-edit="{{ my_maps_edit }}"
+     data-share="{{ my_maps_share }}"
+     data-share-url="{{ my_maps_share_url }}"
+     data-copy-link="{{ my_maps_copy }}"
+     data-copy-manually="{{ my_maps_copy_manually }}"
+     data-remove="{{ my_maps_remove }}"
+     data-try-again="{{ my_maps_try_again }}"
+     data-change-settings="{{ my_maps_change_settings }}"
+     data-name="{{ my_maps_name }}"
+     data-note="{{ my_maps_note }}"
+     data-save="{{ my_maps_save }}"
+     data-cancel="{{ my_maps_cancel }}"
+     data-link-copied="{{ my_maps_link_copied }}"
+     data-remove-confirm="{{ my_maps_remove_confirm }}"
+     data-removed="{{ my_maps_removed }}"
+     data-clear-confirm="{{ my_maps_clear_confirm }}"
+     data-cleared="{{ my_maps_cleared }}"
+     data-storage-error="{{ my_maps_storage_error }}"
+     data-status-updated="{{ my_maps_status_updated }}"
+     data-failure-unknown="{{ conversion_error_unknown }}"
+     data-files-unavailable-help="{{ my_maps_files_unavailable_help }}">
+  <nav class="breadcrumb" aria-label="{{ breadcrumb_nav_title }}" role="navigation">
+    <ul>
+      <li><a href=".">{{ breadcrumb_home }}</a></li>
+      <li aria-current="location">{{ my_maps }}</li>
+    </ul>
+  </nav>
+
+  <h2>{{ my_maps_heading }}</h2>
+  <p>{{ my_maps_intro }}</p>
+
+  <div class="my-maps-controls">
+    <div>
+      <label for="my-maps-search">{{ my_maps_search }}</label>
+      <input id="my-maps-search" type="search" autocomplete="off">
+    </div>
+    <div>
+      <label for="my-maps-status-filter">{{ my_maps_filter_status }}</label>
+      <select id="my-maps-status-filter">
+        <option value="">{{ my_maps_filter_all }}</option>
+        <option value="in-progress">{{ my_maps_status_in_progress }}</option>
+        <option value="ready">{{ my_maps_status_ready }}</option>
+        <option value="failed">{{ my_maps_status_failed }}</option>
+        <option value="unavailable">{{ my_maps_status_unavailable }}</option>
+      </select>
+    </div>
+    <div>
+      <label for="my-maps-type-filter">{{ my_maps_filter_type }}</label>
+      <select id="my-maps-type-filter">
+        <option value="">{{ my_maps_filter_all }}</option>
+        <option value="3d">{{ printing_tech__3d }}</option>
+        <option value="2d">{{ printing_tech__2d }}</option>
+      </select>
+    </div>
+  </div>
+
+  <p id="my-maps-live" class="visuallyhidden" role="status" aria-live="polite"></p>
+  <p id="my-maps-storage-error" class="error-msg" role="alert" hidden>{{ my_maps_read_error }}</p>
+  <div id="my-maps-empty" class="my-maps-empty" hidden>
+    <p>{{ my_maps_empty }}</p>
+    <a class="green-button large-row" href=".">{{ my_maps_create }}</a>
+  </div>
+  <p id="my-maps-no-results" hidden>{{ my_maps_no_results }}</p>
+  <ul id="my-maps-list" class="my-maps-list" aria-label="{{ my_maps_list_label }}"></ul>
+
+  <div class="my-maps-clear-container">
+    <button id="my-maps-clear" type="button" class="danger-button">{{ my_maps_clear }}</button>
+  </div>
+</div>

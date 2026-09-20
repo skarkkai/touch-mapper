@@ -63,11 +63,11 @@ var metalsmith = Metalsmith(__dirname)
         rename: true,
     }))
     .use(less({
-        pattern: ['**/styles/common.less', '**/styles/index.less', '**/styles/area.less', '**/styles/map.less', '**/styles/help.less'],
+        pattern: ['**/styles/common.less', '**/styles/index.less', '**/styles/area.less', '**/styles/map.less', '**/styles/maps.less', '**/styles/help.less'],
         useDynamicSourceMap: true,
     }))
     .use(concat({
-        files: ['**/road-names.js', '**/util.js', '**/map-calc.js', '**/model-preview.js', '**/language.js',
+        files: ['**/road-names.js', '**/util.js', '**/map-history.js', '**/map-calc.js', '**/model-preview.js', '**/language.js',
                 '**/email.js', '**/multipart-mode.js', '**/backbone-helpers.js', '**/map-creation.js',
                 '**/osm-preview.js', '**/map-desc-ways.js', '**/map-desc-areas.js', '**/map-desc-pois.js', '**/map-description.js' ],
         output: 'scripts/app-common.js'

@@ -1,4 +1,4 @@
-/* global $, newMapId, makeS3InfoUrl, makeMapPageUrlRelative, makeCloudFrontMapContentUrl, insertMapDescription */
+/* global $, newMapId, makeS3InfoUrl, makeMapPageUrlRelative, makeCloudFrontMapContentUrl, insertMapDescription, TMMapHistory */
 /* eslint quotes:0, consistent-return:0 */
 (function(){
   'use strict';
@@ -88,7 +88,7 @@
       'contentMode', 'hideLocationMarker', 'lon', 'lat', 'effectiveArea',
       'scale', 'multipartMode', 'noBorders', 'multipartXpc',
       'multipartYpc', 'advancedMode', 'browserFingerprint', 'marker1',
-      'targetRoadDensity'
+      'targetRoadDensity', 'coordinatesAdjusted'
     ];
     var request = normalizePrintDimensions(info);
     fields.forEach(function(field){
@@ -130,10 +130,21 @@
           try { payload = JSON.parse(payload); } catch (_error) { payload = {}; }
         }
         var status = payload && payload.status;
-        if (status && status.errorCode) return showError();
+        if (status && status.errorCode) {
+          TMMapHistory.update(requestId, {
+            status: 'failed',
+            errorCode: status.errorCode,
+            errorDescription: status.errorDescription
+          });
+          return showError();
+        }
         if (status && Number(status.progress) >= 100) {
+          TMMapHistory.update(requestId, {status: 'ready', progress: 100});
           window.location.href = makeMapPageUrlRelative(requestId);
           return;
+        }
+        if (status && status.progress !== undefined) {
+          TMMapHistory.update(requestId, {status: 'in-progress', progress: Number(status.progress) || 0});
         }
         setTimeout(function(){ poll(requestId, started); }, 1000);
       }).fail(function(jqXHR){
@@ -202,13 +213,22 @@
       $('#cancel-map-content-filter').prop('disabled', true);
       $('.map-content-filter-section, .map-content-filter-item').prop('disabled', true);
       var request = requestBody(info, excluded);
+      if (!TMMapHistory.addAttempt(request, 'created').ok) {
+        $('.map-history-save-error').removeAttr('hidden').append($('<a>')
+          .attr('href', window.makeMapPermaUrl(request.requestId))
+          .text($('.map-history-save-error').attr('data-link-label')));
+      }
       $.ajax({
         type: 'GET',
         url: window.TM_MAP_REQUEST_SQS_QUEUE + '?Action=SendMessage&MessageBody=' +
           encodeURIComponent(JSON.stringify(request)) + '&Version=2012-11-05'
       }).done(function(){
+        TMMapHistory.update(request.requestId, {submission: 'accepted'});
         poll(request.requestId, Date.now());
-      }).fail(showError);
+      }).fail(function(){
+        TMMapHistory.update(request.requestId, {status: 'in-progress', submission: 'unconfirmed', errorCode: 'submission'});
+        showError();
+      });
     });
   }
 

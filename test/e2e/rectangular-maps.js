@@ -25,15 +25,33 @@ async function main() {
     const url = base + '/en/area?origin=BlindSquare&lat=60.001&lon=24.002&addrName=Rectangle';
     await page.goto(url + '&size=17');
     await page.waitForFunction(() => window.data && data.get('printHeightCm') === 17);
-    assert.strictEqual(await page.locator('#print-width-input').inputValue(), '17');
+    assert.strictEqual(await page.locator('#print-width-input').inputValue(), '17.0');
     // Legacy localStorage migrates without losing the square size.
     await page.evaluate(() => {
       localStorage.removeItem('printWidthCm'); localStorage.removeItem('printHeightCm'); localStorage.size = '20';
     });
     await page.goto(url);
     await page.waitForFunction(() => data.get('printWidthCm') === 20);
-    assert.strictEqual(await page.locator('#print-height-input').inputValue(), '20');
+    assert.strictEqual(await page.locator('#print-height-input').inputValue(), '20.0');
     await page.check('#advanced-input');
+    await page.locator('#print-width-inches').fill('9.1');
+    await page.locator('#print-width-inches').press('Tab');
+    assert.strictEqual(await page.locator('#print-width-input').inputValue(), '23.1');
+    assert.strictEqual(await page.evaluate(() => data.get('printWidthCm')), 23.1);
+    await page.locator('#print-width-input').fill('20');
+    await page.locator('#print-width-input').press('Tab');
+    assert.strictEqual(await page.locator('#print-width-inches').inputValue(), '7.9');
+    assert.strictEqual(await page.locator('#print-width-input').inputValue(), '20.0');
+    await page.locator('#print-height-inches').fill('4');
+    await page.locator('#print-height-inches').press('Tab');
+    assert.strictEqual(await page.locator('#print-height-input').inputValue(), '10.2');
+    assert.strictEqual(await page.locator('#print-height-inches').inputValue(), '4.0');
+    await page.locator('#lat-input').fill('60.25');
+    await page.locator('#lat-input').press('Tab');
+    assert.strictEqual(await page.evaluate(() => data.get('coordinatesAdjusted')), true);
+    await page.locator('#lat-input').fill('60.001');
+    await page.locator('#lat-input').press('Tab');
+    assert.strictEqual(await page.evaluate(() => data.get('coordinatesAdjusted')), false);
     for (const axis of ['width', 'height']) {
       const field = page.locator('#print-' + axis + '-input');
       assert.strictEqual(await field.getAttribute('min'), '1');
@@ -66,6 +84,18 @@ async function main() {
       assert.strictEqual(request.printWidthCm, width);
       assert.strictEqual(request.printHeightCm, height);
       assert(!('size' in request) && !('diameter' in request));
+      if (width === 20 && height === 10) {
+        await page.locator('#lat-input').fill('60.25');
+        await page.locator('#lat-input').press('Tab');
+        const adjusted = await capture();
+        assert.strictEqual(adjusted.coordinatesAdjusted, true);
+        assert.strictEqual(adjusted.lat, 60.25);
+        const saved = await page.evaluate(id => TMMapHistory.find(id), adjusted.requestId);
+        assert.strictEqual(saved.request.coordinatesAdjusted, true);
+        assert.strictEqual(saved.request.lat, 60.25);
+        await page.locator('#lat-input').fill('60.001');
+        await page.locator('#lat-input').press('Tab');
+      }
       const geo = await page.evaluate(request => {
         const meters = mapCalc.metersPerDegree(request.lat);
         return [(request.effectiveArea.lonMax - request.effectiveArea.lonMin) * meters.lon,
@@ -78,6 +108,8 @@ async function main() {
       await page.waitForFunction(([w, h]) => window.data && data.get('printWidthCm') === w && data.get('printHeightCm') === h, [width, height]);
       if (width === 20 || height === 20) {
         await page.locator('#print-width-input').focus();
+        await page.keyboard.press('Tab');
+        assert.strictEqual(await page.evaluate(() => document.activeElement.id), 'print-width-inches');
         await page.keyboard.press('Tab');
         assert.strictEqual(await page.evaluate(() => document.activeElement.id), 'print-height-input');
         await page.screenshot({path: path.join(out, `${width}x${height}.png`), fullPage: true});

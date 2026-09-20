@@ -1,4 +1,4 @@
-/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next mapDimensionsMeters */
+/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next mapDimensionsMeters TMMapHistory */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 (function(){
@@ -79,6 +79,11 @@
           var genericError = window.TM.translations.conversion_error_unknown || "Map conversion failed.";
           var localized = window.TM.translations[translationKey] || genericError;
           showPollingError(localized);
+          TMMapHistory.update(requestId, {
+            status: "failed",
+            errorCode: status.errorCode,
+            errorDescription: status.errorDescription || localized
+          });
           if (status.errorDescription && window.console && window.console.error) {
             window.console.error("Map conversion failed (" + status.errorCode + "): " + status.errorDescription);
           }
@@ -91,8 +96,10 @@
           return;
         }
         if (progress >= 100) {
+          TMMapHistory.update(requestId, {status: "ready", progress: 100});
           location.href = makeMapPageUrlRelative(requestId);
         } else {
+          TMMapHistory.update(requestId, {status: "in-progress", progress: progress});
           var progressKey = progressLabelKeyByValue[progress];
           var desc = progressKey ? (window.TM.translations[progressKey] || progressKey) : (progress + "%");
           $("#submit-button").val(desc);
@@ -112,10 +119,27 @@
         type: "GET",
         url: window.TM_MAP_REQUEST_SQS_QUEUE + "?Action=SendMessage&MessageBody=" + body + "&Version=2012-11-05"
     }).done(function(d, textStatus, jqXHR){
+      TMMapHistory.update(msg.requestId, {submission: 'accepted'});
       sqsSendDone(msg.requestId);
     }).fail(function(jqXHR, textStatus, errorThrown) {
+      TMMapHistory.update(msg.requestId, {
+        status: "in-progress",
+        submission: "unconfirmed",
+        errorCode: "submission",
+        errorDescription: textStatus + ": " + errorThrown
+      });
       showError("can't access SQS queue: " + textStatus + ": " + errorThrown);
     });
+  }
+
+  // Show a durable-link fallback when the browser cannot retain a history entry.
+  function showHistoryStorageError(requestId) {
+    var container = $("<div>").addClass("error-msg large-row").attr("role", "alert");
+    container.append($("<p>").text(window.TM.translations.history_save_failed));
+    container.append($("<a>")
+      .attr("href", makeMapPermaUrl(requestId))
+      .text(window.TM.translations.history_copy_link));
+    $("#output").append(container).slideDown();
   }
 
   function withBrowserIp(msg, done) {
@@ -179,7 +203,7 @@
   }
 
   window.submitMapCreation = function() {
-    for (const id of ['print-width-input', 'print-height-input', 'scale-input']) {
+    for (const id of ['print-width-input', 'print-height-input', 'print-width-inches', 'print-height-inches', 'scale-input']) {
       const input = document.getElementById(id);
       if (input && !input.reportValidity()) return;
     }
@@ -204,6 +228,7 @@
       hideLocationMarker: data.get("hide-location-marker") || false,
       lon: data.get("lon"),
       lat: data.get("lat"),
+      coordinatesAdjusted: data.get('coordinatesAdjusted') || false,
       effectiveArea: (function(){
         var metersPerDeg = mapCalc.metersPerDegree(data.get("lat"));
         var degreesLon = dimensions.width / 2 / metersPerDeg.lon;
@@ -244,11 +269,25 @@
         lon: parseFloat(data.get("lon"))
       };
     }
+    var historyResult = TMMapHistory.addAttempt(msg, "created");
+    if (!historyResult.ok) {
+      showHistoryStorageError(msg.requestId);
+    }
     $("#submit-button").val(window.TM.translations.progress__connecting);
     withBrowserIp(msg, function() {
       sendSqsRequest(msg);
     });
     //fbq('track', 'ViewContent');
+  };
+
+  // Repeat the saved request exactly, including upstream feature exclusions.
+  window.retrySavedMapCreation = function(record) {
+    const msg = Object.assign({}, record.request, {
+      requestId: newMapId() + '/' + (record.requestId.split('/').slice(1).join('/') || 'map')
+    });
+    $('#submit-button').prop('disabled', true);
+    if (!TMMapHistory.addAttempt(msg, 'created').ok) showHistoryStorageError(msg.requestId);
+    sendSqsRequest(msg);
   };
 
 })();

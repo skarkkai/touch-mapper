@@ -348,6 +348,7 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage("addresses", JSON.stringify([{
     addrShort: withDefault(addrShort, ""),
     addrLong: withDefault(addrLong, ""),
+    coordinatesAdjusted: info.coordinatesAdjusted === true,
     lat: lat,
     lon: lon
   }]));
@@ -365,6 +366,7 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage("advancedMode", advancedMode || size === "" || (printingTech === "2d" ? size !== 27.9 : !MAP_SIZE_PRESET_VALUES[String(size)]));
   setLocalStorage("lat", lat);
   setLocalStorage("lon", lon);
+  setLocalStorage('coordinatesAdjusted', info.coordinatesAdjusted === true);
   setLocalStorage("printWidthCm", dimensions.printWidthCm);
   setLocalStorage("printHeightCm", dimensions.printHeightCm);
   setLocalStorage("scale", scale);

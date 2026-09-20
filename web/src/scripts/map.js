@@ -1,5 +1,5 @@
 'use strict';
-/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next show3dPreview */
+/* global $ mapCalc Backbone isNan _ ol THREE performance google ga fbq TRANSLATIONS i18next show3dPreview TMMapHistory */
 /* eslint quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
 (function(){
@@ -37,14 +37,15 @@
     }
   }
 
-  function checkDataAvailability(url) {
+  function checkDataAvailability(url, requestId) {
     $.ajax({
         type: "HEAD",
         url: url
     }).fail(function(jqXHR, textStatus, errorThrown){
       if (jqXHR.status === 404) {
+          TMMapHistory.update(requestId, {status: "unavailable"});
           $(".hidden-for-3d, .hidden-for-2d").hide();
-          $(".no-data-available-msg").attr().show();
+          $(".no-data-available-msg").show();
       }
     });
   }
@@ -53,15 +54,32 @@
     if (printingTech === '3d') {
       $(".hidden-for-3d").hide();
       initPrintingMethod();
-      checkDataAvailability(makeS3url(requestId));
+      checkDataAvailability(makeS3url(requestId), requestId);
     } else {
       $(".hidden-for-2d").hide();
-      checkDataAvailability(makeS3urlSvg(requestId));
+      checkDataAvailability(makeS3urlSvg(requestId), requestId);
     }
   }
 
   function infoLoadHandler(info, textStatus, jqXHR){
-    storeMapSettingsFromInfo(info);
+    // A full browser store must not prevent reviewing or downloading a map.
+    try { storeMapSettingsFromInfo(info); } catch (_storageError) { /* History controls report write failures. */ }
+
+    if (TMMapHistory.find(info.requestId)) {
+      TMMapHistory.markReady(info);
+      $(".map-history-saved").removeAttr("hidden");
+    } else {
+      $(".map-history-save-shared").removeAttr("hidden");
+      $("#save-map-to-history").off("click").on("click", function(){
+        var result = TMMapHistory.saveShared(info);
+        if (!result.ok) {
+          $(".map-history-save-error").removeAttr("hidden");
+          return;
+        }
+        $(".map-history-save-shared").attr("hidden", "hidden");
+        $(".map-history-saved").removeAttr("hidden");
+      });
+    }
 
     $(".map-address").text(info.addrLong);
 

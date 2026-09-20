@@ -77,45 +77,86 @@
   top: 5px;
   color: white;
 }
+.language-selector-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+  color: white;
+}
+.language-selector-container::after {
+  content: "\25BE";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
 .language-selector {
   color: white;
-  background-color: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, .3);
+  background: transparent;
+  border: 0;
   height: auto;
-  padding: 3px 6px 1px 8px;
-  border-radius: 2px;
+  padding: 0 14px 0 0;
+  text-align: right;
+  text-align-last: right;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   cursor: pointer;
 }
-.language-selector:hover,
-.language-selector:active {
-  background-color: white;
-  color: black;
-  -webkit-appearance: initial;
-  -moz-appearance: initial;
-  appearance: initial;
-}
 .language-selector option {
   background-color: white;
   color: black;
 }
-.help-link {
-  margin-left: 10px;
+.help-link,
+.my-maps-link {
+  margin-left: ~"calc(10px + .2em)";
   color: white;
 }
-@media only screen and (max-width: 450px) {
+.page-maps .my-maps-link,
+.page-help .help-link {
+  border-bottom: 1px solid currentColor;
+}
+.my-maps-link { white-space: nowrap; }
+.has-my-maps-hint .top-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.top-corner a:focus-visible,
+.top-corner select:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+.top-corner .my-maps-new {
+  margin-left: .2em;
+  padding: .1em .4em;
+  border-radius: 1em;
+  background: #fff;
+  color: #075c00;
+  font-size: .75em;
+  font-weight: bold;
+  vertical-align: middle;
+}
+@media only screen and (max-width: 800px) {
   .top-corner {
     right: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .language-selector-container,
+  .help-link,
+  .my-maps-link {
+    margin: 0;
+    padding-right: 10px;
+    text-align: right;
+  }
+  .language-selector-container::after {
+    right: 10px;
   }
   .language-selector {
-    margin-right: 5px;
-  }
-  .help-link {
-    display: block;
-    text-align: right;
-    padding-right: 10px;
+    padding-right: 14px;
   }
   .top-corner * {
     font-size: 14px;
@@ -140,4 +181,13 @@
     xmargin-top: 11px;
     xmargin-bottom: 12px;
   }
+}
+
+@media only screen and (max-width: 450px) {
+  // Reserve a navigation row so the hint cannot overlap the centered logo.
+  .has-my-maps-hint .banner-texts h1 { padding-top: 75px; }
+  .has-my-maps-hint.page-index .banner .logo-bg { top: 119px; }
+}
+@media only screen and (max-width: 400px) {
+  .has-my-maps-hint.page-index .banner .logo-bg { top: 109px; }
 }

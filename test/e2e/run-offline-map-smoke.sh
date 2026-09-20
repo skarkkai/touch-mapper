@@ -22,3 +22,4 @@ if ! curl -fsS --max-time 2 http://127.0.0.1:9000/en/ >/dev/null; then
   exit 1
 fi
 NODE_PATH="$runtime_dir/node_modules" node "$repo_root/test/e2e/offline-map-smoke.js"
+NODE_PATH="$runtime_dir/node_modules" node "$repo_root/test/e2e/my-maps.js"

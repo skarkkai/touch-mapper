@@ -21,6 +21,7 @@ function normalizeTargetRoadDensityUiValue(value) {
 }
 
 function resetParameters(addr) {
+  setData('coordinatesAdjusted', false);
   $("#lat-input").val(addr.lat).trigger('change');
   $("#lon-input").val(addr.lon).trigger('change');
   $("#x-offset-input").val("0").change();
@@ -245,6 +246,14 @@ function initInputs(outputs, osmDragPanInteraction) {
   // Coordinates
   initSimpleInput("lat", $("#lat-input"), 'float', 0);
   initSimpleInput("lon", $("#lon-input"), 'float', 0);
+  setData('coordinatesAdjusted', getLocalStorageStr('coordinatesAdjusted', 'false') === 'true');
+  $('#lat-input, #lon-input').on('change', function(event){
+    if (!event.originalEvent || !this.checkValidity()) return;
+    const addresses = JSON.parse(localStorage.addresses || '[]');
+    const address = addresses[getLocalStorageInt('addressesSelectedIndex', 0)];
+    setData('coordinatesAdjusted', !address || address.coordinatesAdjusted === true ||
+      Number(data.get('lat')) !== Number(address.lat) || Number(data.get('lon')) !== Number(address.lon));
+  });
 
   // Offset
   initSimpleInput("offsetX", $("#x-offset-input"), 'int', 0);
@@ -259,6 +268,7 @@ function initInputs(outputs, osmDragPanInteraction) {
   for (const axis of ['Width', 'Height']) {
     const key = 'print' + axis + 'Cm';
     initSimpleInput(key, $('#print-' + axis.toLowerCase() + '-input'), 'float', storedDimensions[key]);
+    initPrintUnitInputs(axis, key);
   }
 
   // Scale
@@ -272,6 +282,33 @@ function initInputs(outputs, osmDragPanInteraction) {
 
   updateMapScaleCoverage();
   initDone = true;
+}
+
+// Keep centimetres authoritative while accepting either unit at one-decimal precision.
+function initPrintUnitInputs(axis, key) {
+  const cm = $('#print-' + axis.toLowerCase() + '-input');
+  const inches = $('#print-' + axis.toLowerCase() + '-inches');
+  let fromInches = false;
+  function updateInches() {
+    if (!fromInches && cm[0].checkValidity()) inches.val((Number(cm.val()) / 2.54).toFixed(1));
+  }
+  cm.on('input change', function(event){
+    if (!cm.val()) { inches.val(''); return; }
+    if (!this.checkValidity()) return;
+    if (event.type === 'change') cm.val(Number(cm.val()).toFixed(1));
+    setData(key, Number(cm.val()));
+    updateInches();
+  });
+  inches.on('input change', function(event){
+    if (!inches.val()) { cm.val(''); return; }
+    if (!this.checkValidity()) return;
+    fromInches = true;
+    cm.val((Number(inches.val()) * 2.54).toFixed(1)).trigger('change');
+    fromInches = false;
+    if (event.type === 'change') inches.val(Number(inches.val()).toFixed(1));
+  });
+  cm.val(Number(cm.val()).toFixed(1));
+  updateInches();
 }
 
 // Invalid dimensions must not silently create a different footprint.
@@ -519,6 +556,12 @@ $(window).ready(function(){
         initialAddressAndParameters();
         $(".show-on-load").show(); // Don't use CSS for this to make screen readers happier
         data.trigger("initdone");
+        const retryId = window.sessionStorage.getItem('tm-map-history-auto-retry');
+        if (retryId) {
+          window.sessionStorage.removeItem('tm-map-history-auto-retry');
+          const record = window.TMMapHistory.find(retryId);
+          if (record) window.setTimeout(function(){ window.retrySavedMapCreation(record); }, 0);
+        }
       } catch (error) { reportPrintDimensionError(error); }
     });
   } catch (error) { reportPrintDimensionError(error); }

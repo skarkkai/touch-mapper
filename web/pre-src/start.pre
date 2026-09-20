@@ -47,13 +47,15 @@
           <p>{{ blurb }}</p>
           <div class="top-corner">
             <label for="language-selector" class="visuallyhidden">{{ language }}</label>
-            <select class="language-selector" id="language-selector">
-              <option value="en">English</option>
-              <option value="de">Deutsch</option>
-              <option value="es">Español</option>
-              <option value="nl">Nederlands</option>
-              <option value="fi">Suomi</option>
-            </select><a class="help-link" href="help" target="_blank" aria-label="{{ open_help_aria }}">{{ help }}</a>
+            <span class="language-selector-container">
+              <select class="language-selector" id="language-selector">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="es">Español</option>
+                <option value="nl">Nederlands</option>
+                <option value="fi">Suomi</option>
+              </select>
+            </span><a class="my-maps-link" href="maps">{{ my_maps }}<span class="my-maps-new" hidden> {{ my_maps_new }}</span></a><a class="help-link" href="help" target="_blank" aria-label="{{ open_help_aria }}">{{ help }}</a>
           </div>
         </div>
       </div>

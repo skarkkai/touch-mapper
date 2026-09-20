@@ -18,6 +18,10 @@ SPECS = {
         'vars': {
         },
     },
+    'maps': {
+        'vars': {
+        },
+    },
     'help': {
         'vars': {
         },
