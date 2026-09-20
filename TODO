@@ -2,10 +2,3 @@ Alerting of increased error rates over a day, or usage drops over a week
 
 Store timestamps as timestamp type in Athena (there is some planning conversation about this in codex)
 
-Make sure all types of roadways are shown intersections, map edge crossings, location etc -- they aren't:
-"Unnamed roads and paths lose all three details during summarization.
-Roads are aggregated by surface type; paths by their subtype. Those summaries retain counts and lengths, and roads retain surface information, but discard spatial and connection details—even when there is just one unnamed feature.
-For example, an unnamed footpath with a known location, edge crossing, and connection to “Cross Street” produces only:
-1 unnamed footpath / trail, 100 meters
-
-I verified this across all 12 road/path subclasses, including service roads, tracks, cycleways, pedestrian streets, and steps/ramps. The distinction is primarily named versus unnamed, not a particular roadway type. See [summary rendering (line 1509)](/home/hippo/git/touch-mapper/web/src/scripts/map-desc-ways.js:1509)."

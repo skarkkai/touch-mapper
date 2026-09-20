@@ -4,6 +4,24 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const repo = path.resolve(__dirname, '../..');
+const fragmented = require('./way_segments_fragmented.json');
+
+// Recreate the grouped production input using only the location data under test.
+function fragmentedPayload() {
+  const data = payload('A1_secondary_roads', fragmented.segments.map(entry => [{events: [
+    {t: 0, type: 'terminates', zone: fragmented.zones[entry.from]},
+    {t: 1, type: 'terminates', zone: fragmented.zones[entry.to]}
+  ]}]));
+  const group = data.A.subclasses[0].groups[0];
+  group.label = 'Lähderannantie';
+  group.ways.forEach((way, index) => {
+    way.osmId = fragmented.segments[index].osmId;
+    way.label = group.label;
+    way.nameTags = {name: group.label};
+    group.visibleGeometry[index].osmId = way.osmId;
+  });
+  return data;
+}
 
 // Distinct pieces carry independent routes, edges, and a shared junction.
 function segment(edge, end) {
@@ -39,6 +57,26 @@ function check() {
     const translations = JSON.parse(fs.readFileSync(path.join(repo, 'web/locales', locale, 'tm.json')));
     const render = data => sandbox.window.TM.mapDescWays.buildModel(data,
       {t: (key, fallback) => translations[key] || fallback});
+    const fragmentedData = fragmentedPayload();
+    const fragmentedItems = render(fragmentedData);
+    assert.strictEqual(fragmentedItems.length, 1);
+    assert.strictEqual(fragmentedItems[0].attrs.filterRefs.length, 17, 'all source ways remain represented');
+    const actualRoute = lines(fragmentedItems[0])[1];
+    assert.strictEqual(actualRoute.split('; ').length, 3, locale + ': ten distinct clauses reduce to three');
+    const expectedClauses = fragmented.expectedPairs.map(([from, to]) => {
+      const input = payload('A1_secondary_roads', [[{events: [
+        {t: 0, zone: fragmented.zones[from]}, {t: 1, zone: fragmented.zones[to]}
+      ]}]]);
+      return lines(render(input)[0])[1];
+    });
+    assert.strictEqual(actualRoute, expectedClauses.join('; '), locale + ': retain exactly the three distinct pairs');
+    if (locale === 'en') {
+      assert.strictEqual(actualRoute, fragmented.expectedEnglish);
+      // Establish that the fixture reproduces the original exact-text-only failure.
+      const oldClauses = fragmentedData.A.subclasses[0].groups[0].visibleGeometry.map(bucket =>
+        lines(render(payload('A1_secondary_roads', [bucket.segments]))[0])[1]);
+      assert.strictEqual(new Set(oldClauses).size, 10);
+    }
     for (const key of ['A1_local_streets', 'A1_service_roads', 'A2_footpaths_trails', 'A2_cycleways']) {
       const one = lines(render(payload(key, [[first]]))[0]);
       const two = lines(render(payload(key, [[second]]))[0]);
@@ -53,6 +91,18 @@ function check() {
       const repeated = lines(render(payload(key, [[first, first]]))[0]);
       assert.strictEqual(repeated[1], one[1]);
       assert.strictEqual(repeated[2], one[2], 'duplicate edges do not become multiple locations');
+      const reverse = {events: first.events.map(event => ({...event, t: 1 - event.t})).reverse()};
+      const standalone = zone => ({events: [{t: 0, zone}, {t: 1, zone}]});
+      const startOnly = standalone(first.events[0].zone);
+      const endOnly = standalone(first.events[first.events.length - 1].zone);
+      const unrelated = standalone({kind: 'part', dir: 'southwest'});
+      const unrelatedText = lines(render(payload(key, [[unrelated]]))[0])[1];
+      const compact = lines(render(payload(key, [[startOnly, first], [reverse, endOnly, unrelated]]))[0]);
+      assert.strictEqual(compact[1].toLocaleLowerCase(locale), (one[1] + '; ' + unrelatedText).toLocaleLowerCase(locale),
+        locale + ': reversed pairs and covered standalone locations are redundant');
+      const singleText = lines(render(payload(key, [[startOnly]]))[0])[1];
+      assert(!singleText.includes(translations.map_content_way_route_from_to.split('__')[0]),
+        locale + ': a single region is not a route, even with different from/to grammar');
       const emptyFirst = lines(render(payload(key, [[{events: []}, second]]))[0]);
       assert.strictEqual(emptyFirst[1], two[1]);
       assert.strictEqual(emptyFirst[2], two[2]);

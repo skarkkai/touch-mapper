@@ -1,0 +1,30 @@
+{
+  "description": "Reduced Lähderannantie endpoint-location fixture from map Bc09230e668fa337. Preserves all 17 visible segments in source order; no network or personal request metadata required.",
+  "zones": {
+    "E": {"kind": "near_edge", "dir": "east"},
+    "NE": {"kind": "part", "dir": "northeast"},
+    "NEC": {"kind": "near_edge", "dir": "northeast"},
+    "SEC": {"kind": "near_edge", "dir": "southeast"}
+  },
+  "segments": [
+    {"osmId": 140542860, "from": "E", "to": "E"},
+    {"osmId": 140383841, "from": "NE", "to": "NE"},
+    {"osmId": 140383778, "from": "NE", "to": "NE"},
+    {"osmId": 4297187, "from": "SEC", "to": "E"},
+    {"osmId": 140542868, "from": "E", "to": "SEC"},
+    {"osmId": 140383835, "from": "NEC", "to": "NEC"},
+    {"osmId": 140383767, "from": "NE", "to": "E"},
+    {"osmId": 140383763, "from": "E", "to": "NE"},
+    {"osmId": 140542866, "from": "SEC", "to": "SEC"},
+    {"osmId": 140542871, "from": "SEC", "to": "SEC"},
+    {"osmId": 140383776, "from": "NE", "to": "NEC"},
+    {"osmId": 140383787, "from": "NEC", "to": "NE"},
+    {"osmId": 140542864, "from": "SEC", "to": "SEC"},
+    {"osmId": 140542852, "from": "SEC", "to": "SEC"},
+    {"osmId": 140542843, "from": "SEC", "to": "SEC"},
+    {"osmId": 138625559, "from": "SEC", "to": "SEC"},
+    {"osmId": 22981225, "from": "SEC", "to": "SEC"}
+  ],
+  "expectedPairs": [["SEC", "E"], ["NE", "E"], ["NE", "NEC"]],
+  "expectedEnglish": "From the south-east corner to near the east edge; From the north-east part to near the east edge; From the north-east part to the north-east corner"
+}

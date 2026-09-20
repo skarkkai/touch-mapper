@@ -113,6 +113,9 @@ Notes:
 
 Individual linear-feature entries describe every visible segment using the existing
 localized location phrases, joined with semicolons and deduplicated in source order.
+Deduplication uses unordered structured endpoint-location pairs, not translated
+text; the first pair's direction is retained. Standalone locations are omitted
+when already covered by a retained pair. Distinct unrelated locations remain.
 Edge-crossing descriptions collect all visible segments, deduplicating edges and
 combining their position qualifiers. No connectivity reconstruction is performed.
 Unnamed road/path aggregate summaries remain unchanged.

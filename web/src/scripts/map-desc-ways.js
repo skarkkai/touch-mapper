@@ -731,17 +731,44 @@
     return flattened;
   }
 
-  // Preserve each visible segment's location without constructing a new route
-  // between separate segments. Repeated descriptions are spoken only once.
+  // Identify narrated locations independently of translated grammatical forms.
+  function locationKey(zone) {
+    if (!zone || typeof zone !== "object") return null;
+    if (zone.kind === "center" || (zone.kind === "part" && !zone.dir)) return "center";
+    if ((zone.kind === "part" || zone.kind === "near_edge") && zone.dir) {
+      return zone.kind + ":" + zone.dir;
+    }
+    return null;
+  }
+
+  // Describe distinct location pairs once, regardless of segment direction.
+  // Standalone locations already covered by a pair need no additional narration.
   function routeText(target) {
     if (target && typeof target.mergedRouteText === "string" && target.mergedRouteText.trim()) {
       return target.mergedRouteText.trim();
     }
-    const phrases = [];
+    const descriptions = [];
+    const seen = new Set();
+    const covered = new Set();
     segmentList(target).forEach(function(segment){
       const phrase = segmentRouteText(segment);
-      if (phrase && phrases.indexOf(phrase) === -1) phrases.push(phrase);
+      if (!phrase) return;
+      const points = collectSegmentPoints(segment);
+      const start = locationKey(points[0].zone);
+      const end = locationKey(points[points.length - 1].zone);
+      const pair = start && end && start !== end;
+      const key = pair ? JSON.stringify([start, end].sort()) : (start || phrase);
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (pair) {
+        covered.add(start);
+        covered.add(end);
+      }
+      descriptions.push({phrase: phrase, single: pair ? null : start});
     });
+    const phrases = descriptions.filter(function(description){
+      return !description.single || !covered.has(description.single);
+    }).map(function(description){ return description.phrase; });
     return phrases.length ? phrases.join("; ") : null;
   }
 
@@ -761,7 +788,8 @@
     const endEndpoint = locationTextFromZone(points[points.length - 1].zone, "route_to") ||
       locationTextFromZone(points[points.length - 1].zone, "endpoint");
 
-    if (startEndpoint && endEndpoint && startEndpoint !== endEndpoint) {
+    if (startEndpoint && endEndpoint &&
+        locationKey(points[0].zone) !== locationKey(points[points.length - 1].zone)) {
       return interpolate(
         t("map_content_way_route_from_to", "From __start__ to __end__"),
         { start: startEndpoint, end: endEndpoint }
