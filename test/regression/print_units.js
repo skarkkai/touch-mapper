@@ -43,3 +43,10 @@ cm.val('99.9').trigger('change');
 assert.strictEqual(inches.val(), '39.3');
 assert.strictEqual(model.printWidthCm, 99.9);
 console.log('Centimetre/inch input synchronization passed');
+
+// Both dimension rows expose the same visual conversion separator while input
+// accessible names continue to identify their own axis and unit.
+const template = fs.readFileSync('web/pre-src/area.pre', 'utf8');
+for (const axis of ['width', 'height']) {
+  assert(template.includes('<span class="dimension-equals" aria-hidden="true">=</span> <input id="print-' + axis + '-inches"'));
+}
