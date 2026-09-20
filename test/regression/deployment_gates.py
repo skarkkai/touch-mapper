@@ -20,6 +20,13 @@ def main():
     for directory in ('install', 'test/regression', 'web', 'stubs'):
         (fixture / directory).mkdir(parents=True, exist_ok=True)
     shutil.copyfile(REPO / 'Makefile', fixture / 'Makefile')
+    # A case-insensitive Mac resolves the OSM2World directory as the build target.
+    # Simulate that name collision on every host; the command must still run.
+    (fixture / 'osm2world').mkdir(exist_ok=True)
+    build = subprocess.run(['make', '-n', 'osm2world'], cwd=str(fixture), check=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           universal_newlines=True)
+    assert 'ant clean jar' in build.stdout, build.stdout
     for name in ('web-s3.sh', 'lambda-update.sh', 'cloudformation-update.sh'):
         shutil.copy2(REPO / 'install' / name, fixture / 'install' / name)
     (fixture / 'test/regression/run.py').write_text(

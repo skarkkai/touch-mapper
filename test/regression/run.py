@@ -16,7 +16,9 @@ def main():
     subprocess.run([str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/regression'], check=True)
     work = Path(tempfile.mkdtemp(prefix='run-', dir=str(REPO / '.tmp/regression')))
     checks = [
+        ('Subprocess timing', [sys.executable, str(REPO / 'test/regression/subprocess_timing.py')]),
         ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
+        ('Stored print dimensions', ['node', str(REPO / 'test/regression/stored_print_dimensions.js')]),
         ('Local preview routes', [sys.executable, str(REPO / 'test/regression/local_preview.py'), str(work)]),
         ('3D preview sizing', ['node', str(REPO / 'test/regression/model_preview.js')]),
         ('Map history', ['node', str(REPO / 'test/regression/map_history.js')]),

@@ -8,6 +8,9 @@ Use this workflow when changing converter map-description logic or related UI de
 - Use tests under `test/map-content/`.
 - Canonical workflow and CLI details live in `doc/map-description-introspection.md`.
 - Run `make test-regression` for the under-30-second offline deployment gate.
+  On macOS this also tests native `/usr/bin/time -l`; if an agent sandbox blocks
+  its `sysctl kern.clockrate` call, run with
+  `sandbox_permissions: "require_escalated"`. The suite remains offline.
 - Run `make test-regression-full` for the OSM2World output snapshot, fixture
   pipeline, tactile STL/SVG/PDF checks, and one local Chromium browser flow.
   The full command is offline after the one-time Playwright installation
@@ -70,6 +73,12 @@ Full conversion validation can use `generate-map-content-from-osm.py` with
 Keep full conversions and browser tests outside the quick regression suite.
 
 ## Full offline regression setup
+
+For macOS runtime installation, Rosetta, the Blender app launcher, compatible
+Java selection, and SVG/PDF dependencies, follow
+[development-setup.md](development-setup.md). The quick suite has been verified
+on Apple Silicon/Rosetta; the full suite's Linux screenshot baselines still
+require the matching browser/font environment described below.
 
 The full suite uses the existing OSM2World jar, Blender 2.78, CairoSVG, Python 3.10+
 for development scripts, and installed web build dependencies. Rebuild the jar

@@ -259,12 +259,9 @@ function initInputs(outputs, osmDragPanInteraction) {
   initSimpleInput("offsetX", $("#x-offset-input"), 'int', 0);
   initSimpleInput("offsetY", $("#y-offset-input"), 'int', 0);
 
-  // Migrate persisted squares once; a partial pair is invalid, never guessed.
-  const storedDimensions = normalizePrintDimensions({
-    printWidthCm: localStorage.printWidthCm,
-    printHeightCm: localStorage.printHeightCm,
-    size: localStorage.size || (initialPrintingTech === '3d' ? DEFAULT_PRINT_SIZE_3D : DEFAULT_PRINT_SIZE_2D)
-  });
+  // Repair invalid saved preferences so the settings remain available after search.
+  const storedDimensions = getStoredPrintDimensions(data.get('printing-tech') === '3d'
+    ? $('#map-size-preset').val() || DEFAULT_PRINT_SIZE_3D : DEFAULT_PRINT_SIZE_2D);
   for (const axis of ['Width', 'Height']) {
     const key = 'print' + axis + 'Cm';
     initSimpleInput(key, $('#print-' + axis.toLowerCase() + '-input'), 'float', storedDimensions[key]);

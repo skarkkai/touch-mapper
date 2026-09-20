@@ -4,9 +4,9 @@ all:
 FORCE: ;
 
 osm2world:
-	cd OSM2World && ant clean jar
+	cd ./OSM2World && ant clean jar
 
-.PHONY: test test-regression test-regression-full package test-install-ec2 test-restart prod-install-ec2
+.PHONY: osm2world test test-regression test-regression-full package test-install-ec2 test-restart prod-install-ec2
 
 test: test-regression
 

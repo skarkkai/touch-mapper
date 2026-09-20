@@ -44,6 +44,25 @@ function normalizePrintDimensions(values) {
   return {printWidthCm: Number(width), printHeightCm: Number(height)};
 }
 
+// Recover stale browser preferences without weakening explicit map dimensions.
+function getStoredPrintDimensions(defaultSize) {
+  let dimensions;
+  try {
+    dimensions = normalizePrintDimensions({
+      printWidthCm: localStorage.printWidthCm,
+      printHeightCm: localStorage.printHeightCm,
+      size: localStorage.size || defaultSize
+    });
+  } catch (error) {
+    if (!(error instanceof RangeError)) throw error;
+    dimensions = normalizePrintDimensions({size: defaultSize});
+  }
+  // Replace both axes before input initialization reads the preferences again.
+  setLocalStorage('printWidthCm', dimensions.printWidthCm);
+  setLocalStorage('printHeightCm', dimensions.printHeightCm);
+  return dimensions;
+}
+
 // Scale is isotropic; each physical axis selects its own geographic extent.
 function mapDimensionsMeters(model = data) {
   return {

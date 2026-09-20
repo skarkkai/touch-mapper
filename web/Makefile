@@ -8,7 +8,7 @@ build: node_modules
 	./create-env-js.sh $(ENVIRONMENT) >build/scripts/environment.js
 
 build-offline:
-	@test -d node_modules || { echo "web/node_modules is required for the offline build; run ./init.sh first" >&2; exit 1; }
+	@test -d node_modules || { echo "web/node_modules is required for the offline build; run npm --prefix web install from the repository root" >&2; exit 1; }
 	./pre2src.py
 	rm -rf build
 	node build.js

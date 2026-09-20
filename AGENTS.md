@@ -133,7 +133,9 @@ Never:
 Performance baseline constraints:
 
 - Production assumptions are single core, 1 GB RAM, EC2 T-class instance.
-- Benchmark with `taskset -c 0` when making performance claims.
+- Benchmark production performance on Linux with `taskset -c 0`. macOS/Rosetta
+  test timings are local developer timings and must not be presented as
+  single-core production measurements.
 
 Runtime architecture constraints:
 
@@ -171,6 +173,25 @@ smoke (`bash test/e2e/run-offline-map-smoke.sh`) use a local HTTP preview on
 with `exec_command`'s `sandbox_permissions: "require_escalated"` **on the first
 attempt**. The same applies when starting or checking the preview directly.
 The quick `make test-regression` suite does not need socket access.
+
+On macOS the quick suite nevertheless needs
+`sandbox_permissions: "require_escalated"` in a restricted agent sandbox: native `/usr/bin/time -l`
+reads `sysctl kern.clockrate`. Linux uses GNU `time -v`; both platforms report
+peak RSS in KiB and preserve the converter's UTF-8 locale.
+
+## macOS development
+
+Follow the macOS sections of `doc/development-setup.md`; `init.sh` and the old
+web `make watch` recipe are Linux-specific. When a pinned runtime is missing,
+check the documented official download and local installation flow before
+reporting setup as blocked. Use Blender 2.78c with its bundled Python 3.5, not a
+current Blender app. On Apple Silicon use Rosetta and the documented launcher
+that resolves the real macOS app path. Keep downloaded archives in `.tmp/` and
+installed runtimes in the ignored project-local Blender paths.
+
+Use `make -C web build-offline` and `python3 bin/serve-local` for the portable
+local preview. Native macOS fonts may differ from the Linux screenshot baselines;
+do not replace accepted baselines just to make platform differences pass.
 
 ## Docs index
 

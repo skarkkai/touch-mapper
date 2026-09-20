@@ -27,6 +27,7 @@ from typing import Any, Dict, Optional
 
 import stats_pipeline
 from print_dimensions import normalize_print_dimensions
+from subprocess_timing import timed_command, parse_max_rss_kib
 
 STORE_AGE = 8640000
 # Use wall-clock timing for stage durations.
@@ -39,7 +40,6 @@ TOP_RAM_STAGE_TO_FIELD = {
     'run-blender': 'rss_blender_kib',
     'run-clip-2d': 'rss_clip_2d_kib',
 }
-MAX_RSS_KIB_RE = re.compile(r'^\s*Maximum resident set size \(kbytes\):\s*([0-9]+)\s*$')
 MAX_OSM_BYTES_GENERAL = 25 * 1024 * 1024
 MAX_OSM_BYTES_ONLY_BIG_ROADS_BEFORE_PRUNE = 70 * 1024 * 1024
 STATUS_PROGRESS_SEEN = 20
@@ -544,11 +544,9 @@ def filter_osm_file_for_no_buildings(osm_path, request_body):
     with open(osm_path, 'wb') as f:
         filtered_tree.write(f, encoding='UTF-8', xml_declaration=True)
 
+# Run a converter subprocess and report peak RSS in the shared telemetry units.
 def run_subprocess_with_max_rss_kib(cmd):
-    timed_cmd = list(cmd)
-    use_time = os.path.exists('/usr/bin/time')
-    if use_time:
-        timed_cmd = ['/usr/bin/time', '-v'] + timed_cmd
+    timed_cmd, time_style = timed_command(cmd)
 
     process = subprocess.Popen(
         timed_cmd,
@@ -559,15 +557,7 @@ def run_subprocess_with_max_rss_kib(cmd):
     stdout_text = stdout_data.decode('utf8', errors='replace')
     stderr_text = stderr_data.decode('utf8', errors='replace')
 
-    max_rss_kib = None
-    if use_time:
-        for line in stderr_text.splitlines():
-            match = MAX_RSS_KIB_RE.match(line)
-            if match is not None:
-                try:
-                    max_rss_kib = int(match.group(1))
-                except Exception:
-                    max_rss_kib = None
+    max_rss_kib = parse_max_rss_kib(stderr_text, time_style)
 
     if process.returncode != 0:
         raise Exception(

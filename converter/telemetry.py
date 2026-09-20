@@ -9,8 +9,8 @@ import subprocess
 import time
 from typing import Any, Dict, List, Optional
 
+from subprocess_timing import timed_command, parse_max_rss_kib
 
-_MAX_RSS_RE = re.compile(r"Maximum resident set size \(kbytes\):\s*([0-9]+)")
 _WHITESPACE_RE = re.compile(r"\s")
 
 
@@ -200,19 +200,14 @@ class TelemetryLogger(object):
         if env:
             run_env.update(env)
 
-        timed_cmd = cmd
-        using_time = False
-        if os.path.exists("/usr/bin/time"):
-            timed_cmd = ["/usr/bin/time", "-v"] + cmd
-            using_time = True
-        else:
-            if not self._warned_time_unavailable:
-                self._warned_time_unavailable = True
-                self._line(
-                    stage_component,
-                    depth,
-                    "note: /usr/bin/time not available, subprocess maxRSS unavailable",
-                )
+        timed_cmd, time_style = timed_command(cmd)
+        if time_style is None and not self._warned_time_unavailable:
+            self._warned_time_unavailable = True
+            self._line(
+                stage_component,
+                depth,
+                "note: native subprocess timing unavailable, subprocess maxRSS unavailable",
+            )
 
         started = time.perf_counter()
         process = subprocess.Popen(
@@ -229,14 +224,7 @@ class TelemetryLogger(object):
         stderr_text = stderr_data.decode("utf-8", errors="replace")
         combined_output = stdout_text + stderr_text
 
-        max_rss_kib = None  # type: Optional[int]
-        if using_time:
-            match = _MAX_RSS_RE.search(stderr_text)
-            if match:
-                try:
-                    max_rss_kib = int(match.group(1))
-                except Exception:
-                    max_rss_kib = None
+        max_rss_kib = parse_max_rss_kib(stderr_text, time_style)
 
         if output_log_path:
             with open(output_log_path, "w", encoding="utf-8") as handle:

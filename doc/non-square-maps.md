@@ -23,7 +23,12 @@ or `map_size`. Those legacy aliases still select squares. Rectangular and custom
 sizes enable Advanced so their dimensions are visible. Map-ID URLs are unchanged.
 Old `info.json` and localStorage `size` values initialize both axes only if neither
 explicit dimension exists. Invalid, missing-partner, nonfinite and out-of-range
-dimensions are rejected, without guessing a square.
+dimensions in URL parameters and map metadata are rejected, without guessing a
+square. Invalid saved browser preferences instead reset both axes to the selected
+3D square preset (17 cm if unavailable), or 27.9 cm for embossing/swell paper.
+Both repaired values are persisted before binding the inputs, so the settings
+remain accessible after search and the recovery survives reload. Other saved
+preferences and My Maps history are retained.
 
 Email metadata includes both numeric dimensions. The Lambda accepts old square
 metadata too and displays W × H cm. Partner ordering is already absent from the

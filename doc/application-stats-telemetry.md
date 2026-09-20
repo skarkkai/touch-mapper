@@ -68,7 +68,12 @@ For `too_large`, converter includes size/threshold details in `errorDescription`
 ## RAM telemetry fields
 
 RAM telemetry combines:
-- Subprocess stage RSS from `/usr/bin/time -v` via `converter/telemetry.py` (`maxRssKiB`)
+- Subprocess stage RSS from native `/usr/bin/time` via the shared
+  `converter/subprocess_timing.py` helper used by both converter runners
+  (`maxRssKiB`): Linux uses `-v` and reads KiB; macOS uses `-l` and converts
+  bytes to KiB. Timed commands retain the child process's locale and encoding.
+  If the timer is missing or the platform is unsupported, commands run without
+  memory measurement and report `null`.
 - In-process peak RSS sampled from `/proc/self/status` inside `process-request.py` (VmRSS)
 
 `process-request.py` stores these fixed fields:
