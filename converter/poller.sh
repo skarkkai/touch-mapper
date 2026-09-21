@@ -29,6 +29,14 @@ cd $dirname
   echo $$ >&200
   echo "Starting at $(date --utc --rfc-3339=seconds) as worker $worker_name with environment=$environment"
 
+  # Report missing dashboard configuration once for the poller that owns this worker.
+  if [[ "$environment" == test || "$environment" == prod ]]; then
+      dashboard_config="$(cd .. && pwd)/dashboard.env"
+      if [[ ! -f "$dashboard_config" ]]; then
+          echo "WARNING: dashboard publication disabled for $environment: missing $dashboard_config" >&2
+      fi
+  fi
+
   # Keep the loop as simple as possible to minimize chance of this process ever exiting
   while true; do
       cd .  # "dist" may have just been replaced due to version update

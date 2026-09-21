@@ -101,7 +101,7 @@ def check_case(width, height, no_borders=False, marker_x=.75):
 
 
 def main():
-    subprocess.run([str(REPO / 'bin/tmpctl'), 'mkdir', str(OUT)], check=True)
+    subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'mkdir', str(OUT)], check=True)
     for width, height, borderless, marker in [(20, 10, False, .75), (10, 20, False, .75),
                                              (20, 10, True, .02), (50, 5, False, .75)]:
         check_case(width, height, borderless, marker)

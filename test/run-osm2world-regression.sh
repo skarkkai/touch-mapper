@@ -5,14 +5,14 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 data_dir="$repo_root/test/data"
-"$repo_root/bin/tmpctl" mkdir .tmp/osm2world-regression
+python3 "$repo_root/bin/tmpctl" mkdir .tmp/osm2world-regression
 work_dir="$(mktemp -d "$repo_root/.tmp/osm2world-regression/run.XXXXXX")"
 log_path="$work_dir/osm-to-tactile.stdout.log"
 test_ok=0
 
 cleanup() {
   if [[ "$test_ok" -eq 1 ]]; then
-    "$repo_root/bin/tmpctl" rm "$work_dir"
+    python3 "$repo_root/bin/tmpctl" rm "$work_dir"
   else
     echo "Test failed; keeping artifacts: $work_dir" >&2
     echo "osm-to-tactile stdout: $log_path" >&2

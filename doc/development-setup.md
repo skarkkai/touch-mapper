@@ -35,7 +35,7 @@ Download Blender from the [official 2.78 release directory](https://download.ble
 For a fresh checkout with no existing `blender` or `blender-macos-2.78c` paths:
 
 ```bash
-bin/tmpctl mkdir .tmp/blender-macos
+python3 bin/tmpctl mkdir .tmp/blender-macos
 curl -fL --retry 2 \
   -o .tmp/blender-macos/blender-2.78c-OSX_10.6-x86_64.zip \
   https://download.blender.org/release/Blender2.78/blender-2.78c-OSX_10.6-x86_64.zip
@@ -84,8 +84,12 @@ make test-regression
 
 Expected versions are Blender 2.78 (2.78c archive) and Python 3.5.2. The quick
 suite needs neither a rebuilt OSM2World jar nor CairoSVG, AWS, or Playwright.
-`bin/tmpctl` is tracked as executable; preserve Git executable bits when copying
-a checkout. In a restricted macOS agent sandbox, invoke the quick suite with
+`bin/tmpctl` is tracked as executable, but copied checkouts have repeatedly lost
+that bit. Automated callers therefore invoke it through Python: `sys.executable`
+in Python and `python3` in shell/Node. Restoring the bit alone is not a durable
+fix; retain explicit-interpreter calls when adding new artifact workflows. The
+quick suite verifies mkdir/removal using a non-executable copy of the real helper.
+In a restricted macOS agent sandbox, invoke the quick suite with
 `sandbox_permissions: "require_escalated"` because native `time -l` reads
 `sysctl kern.clockrate`. No network is used by the suite.
 
@@ -119,7 +123,7 @@ make osm2world
 Keep modern development packages out of Blender's Python environment:
 
 ```bash
-bin/tmpctl mkdir .tmp/python-dev
+python3 bin/tmpctl mkdir .tmp/python-dev
 python3 -m venv .tmp/python-dev
 source .tmp/python-dev/bin/activate
 python -m pip install cairosvg

@@ -9,7 +9,7 @@ const {execFileSync} = require('child_process');
 async function main() {
   const repo = path.resolve(__dirname, '../..');
   const out = path.join(repo, '.tmp/rectangular-maps');
-  execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', out]);
+  execFileSync('python3', [path.join(repo, 'bin/tmpctl'), 'mkdir', out]);
   const browser = await chromium.launch({headless: true});
   try {
     const page = await browser.newPage({viewport: {width: 1100, height: 1000}});

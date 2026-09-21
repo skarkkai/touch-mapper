@@ -109,7 +109,7 @@ Blender inspection remains compatible with its bundled Python 3.5.
 Install Playwright and Chromium once:
 
 ```bash
-bin/tmpctl mkdir .tmp/e2e-playwright-runtime
+python3 bin/tmpctl mkdir .tmp/e2e-playwright-runtime
 npm install --prefix .tmp/e2e-playwright-runtime --no-audit --no-fund playwright@1.58.2
 .tmp/e2e-playwright-runtime/node_modules/.bin/playwright install chromium
 ```

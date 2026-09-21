@@ -130,14 +130,18 @@ Local stats are compacted into one gzipped NDJSON object per month:
 
 ## Normal mode behavior
 
-- At `process-request.py` startup, daily maintenance runs once per UTC day using a lock file.
-- The job rebuilds month-to-date NDJSON for the previous UTC day and rewrites the monthly S3 object.
+- At the first `process-request.py` startup at or after 00:15 UTC, daily maintenance uploads prior-day telemetry. This is worker-triggered, not an independent clock; no eligible startup means no publication.
+- After upload succeeds, the nightly aggregate dashboard is published for `test` and `prod` using EC2-only configuration (see [nightly dashboard](nightly-dashboard.md)). Separate nonblocking locks let concurrent workers skip maintenance.
+- Upload and report success have separate UTC-date markers. Upload failures prevent reporting; report failures retry on later eligible startups without repeating a successful upload. Neither failure stops map conversion.
+- The job rebuilds month-to-date NDJSON for the previous UTC day and rewrites the monthly S3 object. It retains the existing scope: it does not drain older local months after a gap spanning month boundaries. Such historical files require a separate manual upload; the dashboard reflects only telemetry available in Athena.
 - When the previous day is the final day of a month, the local month directory is deleted after successful upload.
 
 Maintenance files under `stats/.maintenance/`:
 
 - `upload.lock`
-- `last-successful-run-utc.txt`
+- `last-successful-run-utc.txt` (upload success; retained existing filename)
+- `report.lock`
+- `last-successful-report-utc.txt` (publication success)
 
 ## Quicktime mode behavior
 

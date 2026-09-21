@@ -13,9 +13,13 @@ REPO = Path(__file__).resolve().parents[2]
 # Run each check in isolation and retain diagnostics when anything fails.
 def main():
     started = time.monotonic()
-    subprocess.run([str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/regression'], check=True)
+    subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/regression'], check=True)
     work = Path(tempfile.mkdtemp(prefix='run-', dir=str(REPO / '.tmp/regression')))
     checks = [
+        ('Temporary artifact helper', [sys.executable, str(REPO / 'test/regression/tmpctl.py'), str(work)]),
+        ('Nightly dashboard', [sys.executable, str(REPO / 'test/regression/dashboard.py'), str(work)]),
+        ('Dashboard maintenance', [sys.executable, str(REPO / 'test/regression/dashboard_maintenance.py'), str(work)]),
+        ('Poller startup', [sys.executable, str(REPO / 'test/regression/poller_startup.py'), str(work)]),
         ('Subprocess timing', [sys.executable, str(REPO / 'test/regression/subprocess_timing.py')]),
         ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
         ('Stored print dimensions', ['node', str(REPO / 'test/regression/stored_print_dimensions.js')]),
@@ -56,7 +60,7 @@ def main():
             print('FAIL {}: {}\nArtifacts: {}'.format(name, error, work), file=sys.stderr)
             return 1
         print('PASS {} ({:.2f}s)'.format(name, time.monotonic() - tick), flush=True)
-    subprocess.run([str(REPO / 'bin/tmpctl'), 'rm', str(work)], check=True)
+    subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'rm', str(work)], check=True)
     print('Regression suite passed ({:.2f}s)'.format(time.monotonic() - started))
     return 0
 

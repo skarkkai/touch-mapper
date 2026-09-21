@@ -46,7 +46,8 @@ git tag web-install-$time
 
 # Sync dist to S3
 mapfile -t langs < <( cd dist && find ?? -maxdepth 0 -type d )
-sync_excludes=()
+# Dashboard paths are configured only on EC2; preserve every dashboard object.
+sync_excludes=( --exclude "dashboard/*" )
 for lang in "${langs[@]}"; do
     sync_excludes+=( --exclude "$lang/*" )
 done

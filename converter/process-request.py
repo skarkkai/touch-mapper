@@ -1088,10 +1088,17 @@ def init_stats_services(ctx):
         ctx['stats_s3'] = boto3.resource('s3')
         if not STATS_QUICKTIME_MODE:
             try:
-                stats_pipeline.run_daily_upload_if_due(
+                def publish_report(now_utc):
+                    if ctx['environment'] not in ('test', 'prod'):
+                        return False
+                    import dashboard
+                    return dashboard.publish_dashboard(ctx['environment'], now_utc=now_utc)
+
+                stats_pipeline.run_daily_maintenance_if_due(
                     stats_root_dir=ctx['stats_root_dir'],
                     s3_resource=ctx['stats_s3'],
-                    stats_bucket_name=ctx['stats_bucket_name']
+                    stats_bucket_name=ctx['stats_bucket_name'],
+                    publish_report=publish_report
                 )
             except Exception as e:
                 print("stats daily upload failed: " + str(e))

@@ -7,7 +7,7 @@ const {execFileSync} = require('child_process');
 // Verify the real local UI without making requests to external services.
 async function main() {
   const repo = path.resolve(__dirname, '../..');
-  execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/named-roads']);
+  execFileSync('python3', [path.join(repo, 'bin/tmpctl'), 'mkdir', '.tmp/named-roads']);
   const browser = await chromium.launch({headless: true});
   try {
     const page = await browser.newPage();

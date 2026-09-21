@@ -3,6 +3,7 @@
 import contextlib
 import datetime
 import fcntl
+import errno
 import gzip
 import ipaddress
 import io
@@ -48,10 +49,43 @@ def write_attempt_record(stats_root_dir, record, quicktime_mode=False, s3_resour
     return _write_attempt_record_real_date(stats_root_dir=stats_root_dir, record=record, now_utc=now_utc)
 
 
+# Publish only after today's prior-day upload succeeds, with independent retry state.
+def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
+                                 publish_report, now_utc=None):
+    if now_utc is None:
+        now_utc = datetime.datetime.utcnow()
+    if (now_utc.hour, now_utc.minute) < (0, 15):
+        return False
+    try:
+        run_daily_upload_if_due(stats_root_dir, s3_resource, stats_bucket_name, now_utc)
+        maintenance_dir = _maintenance_dir(stats_root_dir)
+        today = now_utc.date().isoformat()
+        # A competing worker may still own the upload lock. Never race its upload.
+        if _read_small_text(os.path.join(maintenance_dir, 'last-successful-run-utc.txt')) != today:
+            return False
+        with _try_exclusive_lock(os.path.join(maintenance_dir, 'report.lock')) as acquired:
+            if not acquired:
+                return False
+            marker_path = os.path.join(maintenance_dir, 'last-successful-report-utc.txt')
+            if (_read_small_text(marker_path) or '') >= today:
+                return False
+            if publish_report(now_utc=now_utc) is False:
+                return False
+            _write_small_text_atomic(marker_path, today)
+            return True
+    except Exception as exc:
+        # Report/config/AWS failures are best effort and must never abort a map.
+        print('stats daily maintenance failed: {}'.format(type(exc).__name__))
+        return False
+
+
+# Flush yesterday only after the UTC cutoff; never wait on another worker.
 def run_daily_upload_if_due(stats_root_dir, s3_resource, stats_bucket_name, now_utc=None):
     _ensure_dir(stats_root_dir)
     if now_utc is None:
         now_utc = datetime.datetime.utcnow()
+    if (now_utc.hour, now_utc.minute) < (0, 15):
+        return False
     today = now_utc.date()
     marker_value = today.isoformat()
 
@@ -60,9 +94,11 @@ def run_daily_upload_if_due(stats_root_dir, s3_resource, stats_bucket_name, now_
     lock_path = os.path.join(maintenance_dir, 'upload.lock')
     marker_path = os.path.join(maintenance_dir, 'last-successful-run-utc.txt')
 
-    with _exclusive_lock(lock_path):
+    with _try_exclusive_lock(lock_path) as acquired:
+        if not acquired:
+            return False
         previous_marker = _read_small_text(marker_path)
-        if previous_marker == marker_value:
+        if previous_marker is not None and previous_marker >= marker_value:
             return False
 
         flush_day = today - datetime.timedelta(days=1)
@@ -484,3 +520,23 @@ def _exclusive_lock(path):
 
 def _is_last_day_of_month(target_day):
     return (target_day + datetime.timedelta(days=1)).month != target_day.month
+
+
+# Skip maintenance when another startup owns its lock so map work can continue.
+@contextlib.contextmanager
+def _try_exclusive_lock(path):
+    _ensure_dir(os.path.dirname(path))
+    handle = open(path, 'a+')
+    acquired = False
+    try:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            acquired = True
+        except OSError as exc:
+            if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                raise
+        yield acquired
+    finally:
+        if acquired:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        handle.close()

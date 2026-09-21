@@ -198,7 +198,7 @@ async function main() {
       assert.strictEqual(decodeURIComponent(new URL(href).pathname), '/map/data/' + request.requestId + extension);
     }
     await tabTo(page, '#filter-map-content');
-    execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/e2e/offline-smoke']);
+    execFileSync('python3', [path.join(repo, 'bin/tmpctl'), 'mkdir', '.tmp/e2e/offline-smoke']);
     await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-entry-focus.png'), fullPage: true});
     await page.keyboard.press('Enter');
     const roadCheckbox = page.locator('.map-content-roads .map-content-filter-item').first();
@@ -227,7 +227,7 @@ async function main() {
     await page.locator('.map-content-roads .map-content-filter-item').first().waitFor();
     assert.strictEqual(await page.locator('.map-content-roads .map-content-filter-item:checked').count(), 2);
     await page.locator('.map-content-roads .map-content-filter-item').first().uncheck();
-    execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/e2e/offline-smoke']);
+    execFileSync('python3', [path.join(repo, 'bin/tmpctl'), 'mkdir', '.tmp/e2e/offline-smoke']);
     await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-desktop.png'), fullPage: true});
     await page.setViewportSize({width: 390, height: 844});
     await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/filter-mobile.png'), fullPage: true});
@@ -294,7 +294,7 @@ async function main() {
     assert.deepStrictEqual(errors, []);
     console.log('PASS offline creation and map-content filtering through regenerated result');
   } catch (error) {
-    execFileSync(path.join(repo, 'bin/tmpctl'), ['mkdir', '.tmp/e2e/offline-smoke']);
+    execFileSync('python3', [path.join(repo, 'bin/tmpctl'), 'mkdir', '.tmp/e2e/offline-smoke']);
     await page.screenshot({path: path.join(repo, '.tmp/e2e/offline-smoke/failure.png'), fullPage: true});
     console.error('Browser errors:', errors);
     throw error;

@@ -13,10 +13,11 @@ from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'test/regression'))
-from content_filter import PROCESS, Bucket
+from content_filter import PROCESS, Bucket  # pyright: ignore[reportMissingImports]
 from converter import map_desc
 
 SPEC = importlib.util.spec_from_file_location('artifact_checks', str(REPO / 'test/map-content/check-regression.py'))
+assert SPEC is not None and SPEC.loader is not None
 CHECKS = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(CHECKS)
 OUT = REPO / '.tmp/filter-regression'
@@ -76,7 +77,7 @@ def svg_polygons(result, fill):
 
 
 def main():
-    subprocess.run([str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/filter-regression'], check=True)
+    subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/filter-regression'], check=True)
     original = ET.parse(str(REPO / 'test/map-content/fixtures/mixed.osm'))
     # A second real road keeps the browser's tri-state and retry checks meaningful.
     browser = copy.deepcopy(original)
@@ -101,6 +102,7 @@ def main():
     # A road's way also supplies the geometry of a separately selected lake.
     shared = copy.deepcopy(original)
     way = shared.find("way[@id='103']")
+    assert way is not None
     for tag in list(way.findall('tag')):
         way.remove(tag)
     ET.SubElement(way, 'tag', k='highway', v='residential')

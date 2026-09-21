@@ -147,7 +147,7 @@ OSM data reading over Overpass API is dominant cost.
 
 Temporary file policy:
 
-- Use `.tmp/` and `bin/tmpctl`.
+- Use `.tmp/` and `bin/tmpctl`. Automated callers must invoke it with explicit Python (`sys.executable` from Python, `python3` from shell/Node) so copied checkouts work even when executable bits are lost.
 - Do not use `/tmp/` for project temp files.
 
 Web i18n guardrail:
@@ -192,6 +192,10 @@ installed runtimes in the ignored project-local Blender paths.
 Use `make -C web build-offline` and `python3 bin/serve-local` for the portable
 local preview. Native macOS fonts may differ from the Linux screenshot baselines;
 do not replace accepted baselines just to make platform differences pass.
+
+## Nightly dashboard layout preference
+
+The nightly dashboard is used on a large screen. Prioritize desktop chart comparisons and information density; retain the existing narrow-screen fallback without further mobile-specific polish unless requested.
 
 ## Docs index
 

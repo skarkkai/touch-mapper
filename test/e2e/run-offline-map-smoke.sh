@@ -9,7 +9,7 @@ if [[ ! -d "$runtime_dir/node_modules/playwright" ]]; then
 fi
 
 if ! curl -fsS --max-time 2 http://127.0.0.1:9000/en/ >/dev/null 2>&1; then
-  "$repo_root/bin/tmpctl" mkdir .tmp/e2e
+  python3 "$repo_root/bin/tmpctl" mkdir .tmp/e2e
   nohup python3 "$repo_root/bin/serve-local" >"$repo_root/.tmp/e2e/local-preview.log" 2>&1 </dev/null &
   for attempt in 1 2 3 4 5 6 7 8 9 10; do
     if curl -fsS --max-time 2 http://127.0.0.1:9000/en/ >/dev/null 2>&1; then break; fi
