@@ -17,7 +17,7 @@ fi
 ln -s ../OSM2World ../blender converter || true
 
 # Install Python modules for AWS
-pip install --target=converter/py-lib/boto3 boto3==1.2.2
+python3 -m pip install --upgrade --target=converter/py-lib/boto3 -r converter/aws-requirements.txt
 
 # Install Python modules for Blender scripts
 curl -o /tmp/get-pip.py https://bootstrap.pypa.io/pip/3.5/get-pip.py
@@ -35,4 +35,3 @@ sudo apt install jq rename
 make osm2world
 
 echo "Finished"
-

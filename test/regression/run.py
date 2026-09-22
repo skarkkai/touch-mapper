@@ -18,6 +18,10 @@ def main():
     checks = [
         ('Temporary artifact helper', [sys.executable, str(REPO / 'test/regression/tmpctl.py'), str(work)]),
         ('Nightly dashboard', [sys.executable, str(REPO / 'test/regression/dashboard.py'), str(work)]),
+        ('AWS runtime Python 3.5', [str(REPO / 'blender/blender'), '--background',
+                                  '--factory-startup', '--threads', '1', '--python-exit-code', '1',
+                                  '--python', str(REPO / 'test/regression/aws_runtime.py'),
+                                  '--', str(work)]),
         ('Dashboard maintenance', [sys.executable, str(REPO / 'test/regression/dashboard_maintenance.py'), str(work)]),
         ('Poller startup', [sys.executable, str(REPO / 'test/regression/poller_startup.py'), str(work)]),
         ('Subprocess timing', [sys.executable, str(REPO / 'test/regression/subprocess_timing.py')]),

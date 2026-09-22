@@ -1,0 +1,10 @@
+# The deployed converter must support Python 3.5, even when packaging on modern Python.
+# Pin the complete dependency set so the packaging host cannot select newer syntax.
+# These versions include Athena and botocore.config.Config.
+boto3==1.16.63
+botocore==1.19.63
+s3transfer==0.3.7
+jmespath==0.10.0
+python-dateutil==2.8.2
+six==1.16.0
+urllib3==1.26.20

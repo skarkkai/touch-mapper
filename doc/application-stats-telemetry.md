@@ -4,6 +4,12 @@ This document describes the map-attempt telemetry pipeline and the quicktime sim
 
 ## Overview
 
+The [deployed EC2 layout](development-setup.md#deployed-ec2-layout) has test and
+production on one 1 GB host, with one test poller for ease of debugging and three
+production pollers (four total). Each environment's
+pollers share `/home/ubuntu/touch-mapper/<environment>/stats/`; this directory is
+created during operation and lives beside the installed `dist/` directory.
+
 `converter/process-request.py` records one telemetry JSON object per map attempt (success or failure) to local disk:
 
 `stats/<year>/<month>/<day>/<map-id>.json`
@@ -130,9 +136,10 @@ Local stats are compacted into one gzipped NDJSON object per month:
 
 ## Normal mode behavior
 
-- At the first `process-request.py` startup at or after 00:15 UTC, daily maintenance uploads prior-day telemetry. This is worker-triggered, not an independent clock; no eligible startup means no publication.
+- At the first `process-request.py` startup at or after 00:15 UTC, daily maintenance uploads prior-day telemetry. This is worker-triggered, not an independent clock.
 - After upload succeeds, the nightly aggregate dashboard is published for `test` and `prod` using EC2-only configuration (see [nightly dashboard](nightly-dashboard.md)). Separate nonblocking locks let concurrent workers skip maintenance.
-- Upload and report success have separate UTC-date markers. Upload failures prevent reporting; report failures retry on later eligible startups without repeating a successful upload. Neither failure stops map conversion.
+- After each poller's first successful map, it also publishes if it has not yet done so in that poller's lifetime. Before 00:15 this uses telemetry already in Athena and does not mark the daily run complete; at or after 00:15 it requires today's upload to have succeeded. The lifetime success marker lives in `runtime/<worker>/dashboard-published-poller.txt` and is checked against the poller's fresh `TM_POLLER_RUN_ID`. Failed publications retry after later successful maps.
+- Upload and report success have separate UTC-date markers. During the daily window, upload failures prevent reporting; report failures retry on later eligible startups without repeating a successful upload. Neither failure stops map conversion.
 - The job rebuilds month-to-date NDJSON for the previous UTC day and rewrites the monthly S3 object. It retains the existing scope: it does not drain older local months after a gap spanning month boundaries. Such historical files require a separate manual upload; the dashboard reflects only telemetry available in Athena.
 - When the previous day is the final day of a month, the local month directory is deleted after successful upload.
 

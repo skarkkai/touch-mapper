@@ -117,6 +117,7 @@ Always:
 - Scope changes tightly.
 - Preserve tactile meaning.
 - Update docs if behavior changes.
+- When changes require an AWS infrastructure deployment (for example Athena/Glue schema or configuration, CloudFormation resources, IAM policies, or Lambda code), explicitly advise the user to run `make test-aws-install` from the repository root. Deploying EC2 `dist/` alone does not apply these changes. For production, explain that `make prod-aws-install` updates Lambda and prints the separate required `install/cloudformation-update.sh prod` command; do not imply that the make target updates the production stack automatically.
 - After changes affecting UI appearance, inspect screenshots of the affected views in the local preview. Check layout, spacing, wrapping, clipping, and visible focus; automated DOM assertions alone are insufficient. Follow `doc/map-content-verification.md`.
 - Add a small behavioral regression test for every bug fix or feature addition, and register it in the quick regression suite.
 - Run `make test-regression` before deploying to test or production; keep this suite offline and under 30 seconds.

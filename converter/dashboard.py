@@ -5,6 +5,7 @@ import datetime
 import math
 import os
 import re
+import sys
 import time
 
 BUCKETS = {'test': 'test.touch-mapper.org', 'prod': 'touch-mapper.org'}
@@ -132,7 +133,7 @@ def build_query(now_utc=None):
     return base + '\nUNION ALL\n'.join(parts)
 
 
-# Bound Athena work and hide query diagnostics that may contain private source data.
+# Keep query diagnostics in private worker logs and out of report data.
 def query_rows(client, query, config, timeout_seconds=120, sleep=time.sleep, clock=time.monotonic):
     args = {'QueryString': query, 'QueryExecutionContext': {'Database': config['database']},
             'WorkGroup': config['workgroup']}
@@ -141,10 +142,13 @@ def query_rows(client, query, config, timeout_seconds=120, sleep=time.sleep, clo
     query_id = client.start_query_execution(**args)['QueryExecutionId']
     deadline = clock() + timeout_seconds
     while True:
-        status = client.get_query_execution(QueryExecutionId=query_id)['QueryExecution']['Status']['State']
+        execution_status = client.get_query_execution(QueryExecutionId=query_id)['QueryExecution']['Status']
+        status = execution_status['State']
         if status == 'SUCCEEDED':
             break
         if status in ('FAILED', 'CANCELLED'):
+            print('dashboard Athena query {} {}: {}'.format(
+                query_id, status, execution_status.get('StateChangeReason', 'No reason returned')), file=sys.stderr)
             raise RuntimeError('Dashboard aggregate query did not succeed')
         if clock() >= deadline:
             client.stop_query_execution(QueryExecutionId=query_id)

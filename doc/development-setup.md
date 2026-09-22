@@ -11,6 +11,13 @@ builds and offline tests do not require AWS credentials. Development scripts use
 Python 3.10+ and Node.js; Blender scripts must use Blender 2.78's bundled Python
 3.5. A current Blender installation is not a substitute for that runtime.
 
+The EC2 worker also has a Python 3.5 compatibility baseline and starts through
+`/usr/bin/python3`. The development interpreter's version does not establish
+what syntax or dependencies work on EC2. Install the full pinned
+`converter/aws-requirements.txt` when preparing the converter's bundled AWS SDK;
+the quick suite checks worker imports and dashboard AWS calls on Python 3.5
+using the installed Blender runtime when the SDK bundle is present.
+
 ### Linux
 
 The legacy bootstrap below is Linux-specific: it downloads Linux Blender and
@@ -167,6 +174,61 @@ make dev-web-s3-install
 ```
 
 The last output line includes the CloudFront URL (for example `https://something.cloudfront.net`) for accessing the web UI.
+
+## Deployed EC2 layout
+
+The deployed service uses **one EC2 instance with 1 GB RAM in total**. Both
+`test` and `prod` run on this same host under `/home/ubuntu/touch-mapper` as the
+`ubuntu` user. Currently, **one test poller runs for ease of debugging and three
+production pollers run**, for **four pollers on the machine**. All pollers and their converter subprocesses
+share the host's memory and CPU resources; the 1 GB budget is for the whole
+machine, not for each environment or poller.
+
+The directory layout is:
+
+```text
+/home/ubuntu/touch-mapper/
+├── test/
+│   ├── dist/                       # Installed converter distribution
+│   │   ├── poller.sh
+│   │   ├── process-request.py
+│   │   ├── VERSION.txt
+│   │   └── ...                    # Other scripts, libraries and bundled tools
+│   ├── dashboard.env              # Environment-specific host configuration
+│   ├── runtime/                   # Created for runtime use
+│   │   └── <worker-id>/            # One numerically named directory per poller
+│   │       ├── poller.log
+│   │       ├── request.log
+│   │       ├── lockfile
+│   │       └── ...                # Working files and per-poller state
+│   └── stats/                     # Created for runtime telemetry
+│       ├── .maintenance/          # Shared locks and markers for test
+│       └── <year>/<month>/<day>/   # Map-attempt JSON records
+└── prod/
+    ├── dist/                       # Installed converter distribution
+    ├── dashboard.env              # Production dashboard configuration
+    ├── runtime/
+    │   └── <worker-id>/            # Same per-poller structure as test
+    └── stats/
+        ├── .maintenance/          # Shared locks and markers for prod
+        └── <year>/<month>/<day>/
+```
+
+`<worker-id>` is a numeric poller identifier such as `1`, `2`, or `3`, not a
+literal directory name. Each active poller uses
+its own directory. Directories left by older pollers may remain, so counting
+runtime directories does not establish how many pollers are currently running.
+
+**`dist/` is the installed artifact.** `runtime/` and `stats/` are created during
+service startup and operation and live outside that artifact. Replacing `dist/`
+must preserve the environment's runtime data, telemetry, and `dashboard.env`.
+Pollers in the same environment share its `stats/` directory; test and production
+have separate runtime and telemetry directories even though they share the host.
+
+See [application telemetry](application-stats-telemetry.md) for the stats lifecycle
+and [nightly dashboard](nightly-dashboard.md) for dashboard configuration and
+publication. The single-core production benchmarking rules remain in `AGENTS.md`;
+four running pollers do not imply four dedicated CPU cores.
 
 ## Run OSM -> STL converter service (Linux)
 

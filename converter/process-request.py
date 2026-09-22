@@ -1086,25 +1086,37 @@ def init_stats_services(ctx):
         return
     try:
         ctx['stats_s3'] = boto3.resource('s3')
-        if not STATS_QUICKTIME_MODE:
-            try:
-                def publish_report(now_utc):
-                    if ctx['environment'] not in ('test', 'prod'):
-                        return False
-                    import dashboard
-                    return dashboard.publish_dashboard(ctx['environment'], now_utc=now_utc)
-
-                stats_pipeline.run_daily_maintenance_if_due(
-                    stats_root_dir=ctx['stats_root_dir'],
-                    s3_resource=ctx['stats_s3'],
-                    stats_bucket_name=ctx['stats_bucket_name'],
-                    publish_report=publish_report
-                )
-            except Exception as e:
-                print("stats daily upload failed: " + str(e))
+        run_stats_maintenance(ctx)
     except Exception as e:
         print("stats init failed: " + str(e))
         ctx['stats_s3'] = None
+
+
+# Keep daily maintenance and the first-map publication outside map generation.
+def run_stats_maintenance(ctx, after_map=False):
+    if not STATS_ENABLED or STATS_QUICKTIME_MODE or ctx['stats_s3'] is None:
+        return
+    poller_run_id = os.environ.get('TM_POLLER_RUN_ID')
+    if after_map and (ctx['status'] != 'success' or not poller_run_id):
+        return
+    try:
+        def publish_report(now_utc):
+            if ctx['environment'] not in ('test', 'prod'):
+                return False
+            import dashboard
+            return dashboard.publish_dashboard(ctx['environment'], now_utc=now_utc)
+
+        stats_pipeline.run_daily_maintenance_if_due(
+            stats_root_dir=ctx['stats_root_dir'],
+            s3_resource=ctx['stats_s3'],
+            stats_bucket_name=ctx['stats_bucket_name'],
+            publish_report=publish_report,
+            poller_run_id=poller_run_id,
+            poller_work_dir=ctx['args'].work_dir,
+            after_map=after_map
+        )
+    except Exception as exc:
+        print('stats maintenance failed: {}: {}'.format(type(exc).__name__, exc), file=sys.stderr)
 
 
 def handle_main_exception(ctx, e):
@@ -1437,6 +1449,7 @@ def main():
         handle_main_exception(ctx, e)
     finally:
         write_final_stats_if_possible(ctx)
+        run_stats_maintenance(ctx, after_map=True)
         rethrow_failure_if_needed(ctx)
 
 # never output anything

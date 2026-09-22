@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import time
 import urllib.request
 
@@ -49,33 +50,46 @@ def write_attempt_record(stats_root_dir, record, quicktime_mode=False, s3_resour
     return _write_attempt_record_real_date(stats_root_dir=stats_root_dir, record=record, now_utc=now_utc)
 
 
-# Publish only after today's prior-day upload succeeds, with independent retry state.
+# Publish daily after upload, or after a poller's first successful map.
 def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
-                                 publish_report, now_utc=None):
+                                 publish_report, now_utc=None, poller_run_id=None,
+                                 poller_work_dir=None, after_map=False):
     if now_utc is None:
         now_utc = datetime.datetime.utcnow()
-    if (now_utc.hour, now_utc.minute) < (0, 15):
-        return False
     try:
-        run_daily_upload_if_due(stats_root_dir, s3_resource, stats_bucket_name, now_utc)
+        daily_window = (now_utc.hour, now_utc.minute) >= (0, 15)
+        poller_marker = (os.path.join(poller_work_dir, 'dashboard-published-poller.txt')
+                         if poller_run_id and poller_work_dir else None)
+        startup_due = (after_map and poller_marker is not None and
+                       _read_small_text(poller_marker) != poller_run_id)
+        if not daily_window and not startup_due:
+            return False
         maintenance_dir = _maintenance_dir(stats_root_dir)
         today = now_utc.date().isoformat()
-        # A competing worker may still own the upload lock. Never race its upload.
-        if _read_small_text(os.path.join(maintenance_dir, 'last-successful-run-utc.txt')) != today:
-            return False
+        if daily_window:
+            run_daily_upload_if_due(stats_root_dir, s3_resource, stats_bucket_name, now_utc)
+            # A competing worker may still own the upload lock. Never race its upload.
+            if _read_small_text(os.path.join(maintenance_dir, 'last-successful-run-utc.txt')) != today:
+                return False
         with _try_exclusive_lock(os.path.join(maintenance_dir, 'report.lock')) as acquired:
             if not acquired:
                 return False
+            startup_due = (after_map and poller_marker is not None and
+                           _read_small_text(poller_marker) != poller_run_id)
             marker_path = os.path.join(maintenance_dir, 'last-successful-report-utc.txt')
-            if (_read_small_text(marker_path) or '') >= today:
+            daily_due = daily_window and (_read_small_text(marker_path) or '') < today
+            if not daily_due and not startup_due:
                 return False
             if publish_report(now_utc=now_utc) is False:
                 return False
-            _write_small_text_atomic(marker_path, today)
+            if daily_window:
+                _write_small_text_atomic(marker_path, today)
+            if poller_marker:
+                _write_small_text_atomic(poller_marker, poller_run_id)
             return True
     except Exception as exc:
         # Report/config/AWS failures are best effort and must never abort a map.
-        print('stats daily maintenance failed: {}'.format(type(exc).__name__))
+        print('stats daily maintenance failed: {}: {}'.format(type(exc).__name__, exc), file=sys.stderr)
         return False
 
 

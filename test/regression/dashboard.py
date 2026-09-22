@@ -1,5 +1,7 @@
 """Exercise aggregate mapping and AWS publication boundaries without network access."""
 import datetime
+import contextlib
+import io
 import importlib.util
 import json
 import os
@@ -15,6 +17,7 @@ sys.path.insert(0, str(REPO / 'converter'))
 sys.path.insert(0, str(REPO))
 from converter import dashboard as publisher
 from converter.dashboard_html import render_report
+from aws_runtime import check_bundled_sdk
 
 NOW = datetime.datetime(2026, 3, 1, 0, 15)
 COLUMNS = ('kind', 'period', 'label', 'attempts', 'successes', 'errors', 'unique_users', 'p50', 'p95', 'maximum')
@@ -182,18 +185,24 @@ def main():
     assert events == ['start', 'status', 'page', 'page']
     for state in ('FAILED', 'CANCELLED', 'RUNNING'):
         events[:] = []
+        diagnostics = io.StringIO()
         try:
-            publisher.query_rows(Athena(rows, events, state), publisher.build_query(NOW), config,
-                                 timeout_seconds=0, sleep=lambda _: None)
+            with contextlib.redirect_stderr(diagnostics):
+                publisher.query_rows(Athena(rows, events, state), publisher.build_query(NOW), config,
+                                     timeout_seconds=0, sleep=lambda _: None)
         except RuntimeError as error:
             assert 'PRIVATE' not in str(error)
         else:
             raise AssertionError('unsuccessful query accepted')
         assert 'page' not in events
         assert ('cancel' in events) == (state == 'RUNNING')
+        if state in ('FAILED', 'CANCELLED'):
+            assert 'private-query-id' in diagnostics.getvalue()
+            assert 'PRIVATE ERROR' in diagnostics.getvalue()
 
     base = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / '.tmp'
     base.mkdir(parents=True, exist_ok=True)
+    check_bundled_sdk(base)
     with tempfile.TemporaryDirectory(prefix='dashboard-', dir=str(base)) as directory:
         check_deployment_configs(Path(directory) / 'deployments', rows)
         events[:] = []

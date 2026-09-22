@@ -28,6 +28,8 @@ cd $dirname
   flock --exclusive --nonblock 200 || exit 1
   echo $$ >&200
   echo "Starting at $(date --utc --rfc-3339=seconds) as worker $worker_name with environment=$environment"
+  # Request processes share one identity until this poller is restarted.
+  export TM_POLLER_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
 
   # Report missing dashboard configuration once for the poller that owns this worker.
   if [[ "$environment" == test || "$environment" == prod ]]; then
@@ -60,8 +62,8 @@ cd $dirname
 
       cp "$work_dir/request.log" "$work_dir/prev-request.log"
       if [[ $exit_code -ne 0 ]]; then
-        $VERBOSE && echo "request processing failed" >&2
         cp "$work_dir/request.log" "$work_dir/latest-failure.log"
+        $VERBOSE && echo "request processing failed: exit_code=$exit_code; see $work_dir/latest-failure.log" >&2
       fi
   done
 

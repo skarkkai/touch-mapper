@@ -1,5 +1,7 @@
 """Exercise cutoff, upload/report ordering, contention, and independent retries offline."""
 import datetime
+import contextlib
+import io
 import os
 import shutil
 import subprocess
@@ -56,7 +58,9 @@ def main():
             state['report'] = 'exception'
             old_month = os.path.join(root, '2026', '02')
             os.makedirs(old_month)
-            assert not run(moment)
+            with contextlib.redirect_stderr(io.StringIO()) as diagnostics:
+                assert not run(moment)
+            assert 'stats daily maintenance failed: RuntimeError: query failed' in diagnostics.getvalue()
             assert events == [('upload', 2026, 2, 28), ('report', '2026-03-01')]
             assert stats._read_small_text(upload_marker) == '2026-03-01'
             assert not os.path.exists(old_month)
@@ -93,7 +97,98 @@ def main():
             with mock.patch.object(stats, '_ensure_dir', side_effect=OSError('read-only')):
                 assert not run(tomorrow + datetime.timedelta(days=1))
         check_web_deployment(root)
+        check_poller_publication(os.path.join(root, 'poller'))
+        check_worker_callback()
     print('dashboard maintenance regression passed')
+
+
+# Check a poller's first-map publication independently of daily markers and cutoff.
+def check_poller_publication(root):
+    events = []
+    work = os.path.join(root, 'runtime', '1')
+    stats_root = os.path.join(root, 'stats')
+    marker = os.path.join(work, 'dashboard-published-poller.txt')
+    daily_marker = os.path.join(stats_root, '.maintenance', 'last-successful-report-utc.txt')
+    moment = datetime.datetime(2026, 3, 1, 0, 10)
+
+    def report(now_utc):
+        events.append('report')
+        return True
+
+    def run(now=moment, run_id='first-poller', after_map=False, publish=report, worker=work):
+        return stats.run_daily_maintenance_if_due(
+            stats_root, None, 'fixture', publish, now,
+            poller_run_id=run_id, poller_work_dir=worker, after_map=after_map)
+
+    def upload(**kwargs):
+        events.append('upload')
+        return True
+
+    with mock.patch.object(stats, 'upload_month_from_local_data', side_effect=upload):
+        assert not run()  # No first-map exception merely for starting a worker.
+        assert run(after_map=True)
+        assert events == ['report']
+        assert stats._read_small_text(marker) == 'first-poller'
+        assert not os.path.exists(daily_marker)  # 00:10 must not consume the 00:15 run.
+        events[:] = []
+        assert not run(after_map=True)
+        assert events == []
+
+        later = moment.replace(minute=15)
+        assert run(now=later)
+        assert events == ['upload', 'report']
+        assert stats._read_small_text(daily_marker) == '2026-03-01'
+        events[:] = []
+        assert not run(now=later, after_map=True)
+        assert not run(now=later, run_id='restarted-poller')
+        assert run(now=later, run_id='restarted-poller', after_map=True)
+        assert events == ['report']
+        assert stats._read_small_text(marker) == 'restarted-poller'
+
+        events[:] = []
+        assert run(now=later, run_id='second-worker', after_map=True,
+                   worker=os.path.join(root, 'runtime', '2'))
+        assert events == ['report']  # Each poller has its own lifetime.
+        events[:] = []
+        for callback in (lambda **kwargs: False, mock.Mock(side_effect=RuntimeError('AWS unavailable'))):
+            assert not run(now=later, run_id='retry-poller', after_map=True, publish=callback)
+            assert stats._read_small_text(marker) == 'restarted-poller'
+        with stats._exclusive_lock(os.path.join(stats_root, '.maintenance', 'report.lock')):
+            assert not run(now=later, run_id='retry-poller', after_map=True)
+        assert events == []
+        assert run(now=later, run_id='retry-poller', after_map=True)
+        assert events == ['report']
+
+        tomorrow = later + datetime.timedelta(days=1)
+        events[:] = []
+        assert run(now=tomorrow, run_id='new-day-poller')
+        assert events == ['upload', 'report']
+        assert not run(now=tomorrow, run_id='new-day-poller', after_map=True)
+        assert events == ['upload', 'report']  # A daily publication also counts for this lifetime.
+
+
+# Only a completed map may request the first-map exception, never an idle or failed attempt.
+def check_worker_callback():
+    from types import SimpleNamespace
+    from content_filter import PROCESS  # pyright: ignore[reportMissingImports]
+    ctx = {'stats_s3': object(), 'status': 'idle', 'environment': 'test',
+           'stats_root_dir': '/fixture/test/stats', 'stats_bucket_name': 'fixture',
+           'args': SimpleNamespace(work_dir='/fixture/test/runtime/1')}
+    with mock.patch.dict(os.environ, {'TM_POLLER_RUN_ID': 'poller-identity'}), \
+            mock.patch.object(PROCESS.stats_pipeline, 'run_daily_maintenance_if_due') as maintenance:
+        for status in ('idle', 'failed', 'running'):
+            ctx['status'] = status
+            PROCESS.run_stats_maintenance(ctx, after_map=True)
+        maintenance.assert_not_called()
+        ctx['status'] = 'success'
+        PROCESS.run_stats_maintenance(ctx, after_map=True)
+        assert maintenance.call_args.kwargs['after_map'] is True
+        assert maintenance.call_args.kwargs['poller_run_id'] == 'poller-identity'
+        assert maintenance.call_args.kwargs['poller_work_dir'] == '/fixture/test/runtime/1'
+        maintenance.reset_mock()
+        with mock.patch.dict(os.environ, {'TM_POLLER_RUN_ID': ''}):
+            PROCESS.run_stats_maintenance(ctx, after_map=True)
+        maintenance.assert_not_called()
 
 
 # Execute the deployment entrypoint against fake tools and an actual local object tree.

@@ -25,12 +25,18 @@ flock() { return "$POLLER_TEST_LOCK_STATUS"; }
 date() { printf 'fixture startup time\\n'; }
 timeout() {
     POLLER_TEST_REQUESTS=$(( ${POLLER_TEST_REQUESTS:-0} + 1 ))
+    echo "$TM_POLLER_RUN_ID" >> "$POLLER_TEST_IDENTITIES"
     echo "PROGRESS fixture iteration $POLLER_TEST_REQUESTS"
+    if [[ $POLLER_TEST_REQUESTS -eq 1 ]]; then
+        echo 'fixture worker failure' >&2
+        return 7
+    fi
     if [[ $POLLER_TEST_REQUESTS -eq 3 ]]; then exit 0; fi
 }
 ''')
     env = dict(os.environ, BASH_ENV=str(shell_stubs),
-               POLLER_TEST_LOCK_STATUS='1' if locked else '0', POLLER_TEST_REQUESTS='0')
+               POLLER_TEST_LOCK_STATUS='1' if locked else '0', POLLER_TEST_REQUESTS='0',
+               POLLER_TEST_IDENTITIES=str(root / 'identities'))
     result = subprocess.run(['bash', str(dist / 'poller.sh'), environment, '1'],
                             cwd=str(root), env=env, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, universal_newlines=True, timeout=5)
@@ -46,6 +52,17 @@ timeout() {
     else:
         assert log.count('last progress marker before poller loop iteration end:') == 2, log
         assert 'PROGRESS fixture iteration 3' in (worker / 'request.log').read_text()
+        assert 'request processing failed: exit_code=7; see ' + str(worker / 'latest-failure.log') in log
+        assert 'fixture worker failure' in (worker / 'latest-failure.log').read_text()
+        identities = (root / 'identities').read_text().splitlines()
+        assert len(identities) == 3 and len(set(identities)) == 1
+        assert len(identities[0]) == 32
+        # A restarted poller must not reuse its predecessor's success marker.
+        subprocess.run(['bash', str(dist / 'poller.sh'), environment, '1'],
+                       cwd=str(root), env=env, check=True, timeout=5)
+        restarted = (root / 'identities').read_text().splitlines()
+        assert len(restarted) == 6 and len(set(restarted[3:])) == 1
+        assert restarted[3] != identities[0]
 
 
 # Cover enabled environments, existing config, disabled development, and lock contention.
