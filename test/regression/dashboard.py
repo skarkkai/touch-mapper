@@ -292,11 +292,20 @@ def check_reliability_metrics():
                                      'test', datetime.datetime(2024, 2, 21))
     assert partial['monthly'][0]['partial'] is True
     assert partial['monthly'][0]['attempts_per_day'] == 10
+    report['summary']['attempts'] = 100
+    report['usage']['countries'] = [{'label': 'FI', 'count': 60}, {'label': 'US', 'count': 20}]
     page = render_report(report)
     assert 'PRIVATE' not in page
-    titles = ['Daily attempts', 'Monthly attempts', 'Daily errors', 'Monthly errors']
+    titles = ['Daily attempts', 'Monthly attempts', 'Daily failure rate', 'Monthly failure rate']
     positions = [page.index('<h2>' + title + '</h2>') for title in titles]
     assert positions == sorted(positions)
+    assert '<h2>Daily errors</h2>' not in page and '<h2>Monthly errors</h2>' not in page
+    assert 'Country shares of all map attempts' in page
+    assert 'FI: 60 attempts (60.0%)' in page
+    assert 'US: 20 attempts (20.0%)' in page
+    assert 'Other / unlisted: 20 attempts (20.0%)' in page
+    assert page.count('<path d="M100,100') == 3
+    assert 'View country data' in page
     assert 'Successful map duration' in page and 'Failed attempt duration' in page
     sql = publisher.build_query(NOW)
     assert "WHERE status='success' GROUP BY 2" in sql

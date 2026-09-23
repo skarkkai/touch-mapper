@@ -310,12 +310,17 @@ shown as unavailable, never as zero. `approx_distinct` counts nonempty browser
 fingerprints; fingerprints themselves never leave Athena, and unidentifiable
 attempts do not contribute to that estimate. Approximate users are neither
 verified people nor additive across periods. All grouping uses recorded UTC
-telemetry dates and excludes today. The first four charts show daily attempts,
-monthly attempts, daily errors, and monthly errors. Attempts stack successful
-and failed outcomes. The following charts show failure rates, successful and
-failed durations separately, daily errors by stage, and daily OSM failure
-classes. Monthly bars mark partial months; per-day monthly counts divide by elapsed calendar days. The
-first available historical month may have incomplete coverage.
+telemetry dates and excludes today. The first four charts show daily and monthly
+attempts followed by daily and monthly failure rates. Attempts stack successful
+and failed outcomes. Failure-rate axes use a labeled ceiling matched to the
+observed values, capped at 100%; the actual percentages remain available in the
+trend tables. The following charts show successful and failed durations
+separately, daily errors by stage, and daily OSM failure classes. Top countries
+is a pie chart of all attempts, with remaining countries and unknown
+locations outside the displayed ten grouped as Other / unlisted; its table
+retains the listed counts. Monthly bars mark partial months; per-day monthly
+counts divide by elapsed calendar days. The first available historical month
+may have incomplete coverage.
 
 No raw request IDs, addresses, IPs, fingerprints, coordinates, error descriptions
 or exception messages are selected into query results or embedded in HTML. Safe
