@@ -31,7 +31,6 @@ import org.osm2world.core.map_elevation.creation.ZeroInterpolator;
 import org.osm2world.core.map_elevation.data.EleConnector;
 import org.osm2world.core.math.VectorXYZ;
 import org.osm2world.core.math.AxisAlignedBoundingBoxXZ;
-import org.osm2world.core.osm.creation.JOSMFileHack;
 import org.osm2world.core.osm.creation.OsmosisReader;
 import org.osm2world.core.osm.data.OSMData;
 import org.osm2world.core.target.Renderable;
@@ -225,50 +224,10 @@ public class ConversionFacade {
 			throw new IllegalArgumentException("osmFile must not be null");
 		}
 		
-		OSMData osmData = null;
-		boolean useJOSMHack = false;
-		
-		if (JOSMFileHack.isJOSMGenerated(osmFile)) {
-			useJOSMHack = true;
-		} else {
-			
-			/* try to read file using Osmosis */
-			
-			try {
-				long readOsmStart = TouchMapperProfile.start();
-				osmData = new OsmosisReader(osmFile).getData();
-				TouchMapperProfile.logMillis("input.read_osmosis_ms", readOsmStart);
-			} catch (IOException e) {
-				
-				System.out.println("could not read file," +
-						" trying workaround for files created by JOSM");
-				
-				useJOSMHack = true;
-							
-			}
-			
-		}
-		
-		/* create a temporary "cleaned up" file as workaround for JOSM files */
-		
-		if (useJOSMHack) {
-			
-			File tempFile;
-			try {
-				long josmCleanupStart = TouchMapperProfile.start();
-				tempFile = JOSMFileHack.createTempOSMFile(osmFile);
-				TouchMapperProfile.logMillis("input.josm_cleanup_ms", josmCleanupStart);
-			} catch (Exception e2) {
-				throw new IOException("could not read OSM file" +
-						" (not even with workaround for JOSM files)", e2);
-			}
-			
-			long readCleanedStart = TouchMapperProfile.start();
-			osmData = new OsmosisReader(tempFile).getData();
-			TouchMapperProfile.logMillis("input.read_cleaned_osmosis_ms", readCleanedStart);
-			
-		}
-		
+		long readOsmStart = TouchMapperProfile.start();
+		OSMData osmData = new OsmosisReader(osmFile).getData();
+		TouchMapperProfile.logMillis("input.read_osmosis_ms", readOsmStart);
+
 		Results results = createRepresentations(osmData, worldModules, config, targets);
 		TouchMapperProfile.logMillis("conversion.from_file_total_ms", totalStart);
 		return results;
