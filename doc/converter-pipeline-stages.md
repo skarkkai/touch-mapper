@@ -6,6 +6,10 @@ This document describes converter data flow and stage names used by code comment
 
 ## OSM2World notes
 - `OSM2World/` is a modified upstream dependency and rarely changed.
+- OSM2World reads file input directly with Osmosis. The removed JOSM fallback no longer
+  supplies missing element versions or applies JOSM `action=delete` semantics. Use
+  unedited API OSM XML for conversion; local JOSM edits can fail to parse or render
+  deleted objects as map geometry.
 - To build safely, use:
   - `ant clean jar`
 - OSM2World outputs:

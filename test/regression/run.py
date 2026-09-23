@@ -55,6 +55,7 @@ def main():
         ('Temporary artifact helper', [sys.executable, str(REPO / 'test/regression/tmpctl.py'), str(work)]),
         ('Nightly dashboard', [sys.executable, str(REPO / 'test/regression/dashboard.py'), str(work)]),
         ('Dashboard chart scaling', ['node', str(REPO / 'test/regression/dashboard_charts.js')]),
+        ('OSM2World file input', [sys.executable, str(REPO / 'test/regression/osm2world_input.py'), str(work)]),
         ('AWS runtime Python 3.5', [str(REPO / 'blender/blender'), '--background',
                                   '--factory-startup', '--threads', '1', '--python-exit-code', '1',
                                   '--python', str(REPO / 'test/regression/aws_runtime.py'),

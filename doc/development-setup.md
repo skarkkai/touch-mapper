@@ -10,6 +10,9 @@ Run commands from the repository root unless a section says otherwise. Local
 builds and offline tests do not require AWS credentials. Development scripts use
 Python 3.10+ and Node.js; Blender scripts must use Blender 2.78's bundled Python
 3.5. A current Blender installation is not a substitute for that runtime.
+The quick regression suite also needs Ant and a JDK that accepts Java 7
+source/target because it builds and exercises OSM2World (JDK 17 works; JDK 21
+does not).
 
 The EC2 worker also has a Python 3.5 compatibility baseline and starts through
 `/usr/bin/python3`. The development interpreter's version does not establish
@@ -33,6 +36,8 @@ Install the web dependencies separately with `npm --prefix web install`.
 ### macOS: quick regression prerequisites
 
 Install Node.js and Python 3.10+ if needed (for example, `brew install node python`).
+Install the required Java tools with `brew install ant openjdk@17`, then
+select that JDK as shown below.
 On Apple Silicon, the official Blender 2.78c binary is Intel-only and needs
 Rosetta. Check with `arch -x86_64 /usr/bin/uname -m`; it should print `x86_64`.
 If Rosetta is absent, install it using Apple's normal installation flow before
@@ -95,7 +100,7 @@ Failures print the failing check's output and retain all check logs under
 use `make test-regression-verbose`.
 
 Expected versions are Blender 2.78 (2.78c archive) and Python 3.5.2. The quick
-suite needs neither a rebuilt OSM2World jar nor CairoSVG, AWS, or Playwright.
+suite builds the OSM2World jar itself and needs neither CairoSVG, AWS, nor Playwright.
 `bin/tmpctl` is tracked as executable, but copied checkouts have repeatedly lost
 that bit. Automated callers therefore invoke it through Python: `sys.executable`
 in Python and `python3` in shell/Node. Restoring the bit alone is not a durable
@@ -111,7 +116,7 @@ This is a local developer test time, not production performance.
 
 ### Additional prerequisites for full conversion tests on macOS
 
-The full suite also needs a compiled OSM2World jar, SVG/PDF libraries, web build
+The full suite also needs SVG/PDF libraries, web build
 dependencies, and Playwright. See [map-content-verification.md](map-content-verification.md).
 JDK 17 compilation, the OSM2World regression, CairoSVG PDF creation, bundled
 SVGWrite imports, and standalone browser behavior checks have been verified on
