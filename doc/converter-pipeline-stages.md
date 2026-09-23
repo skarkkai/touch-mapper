@@ -24,8 +24,8 @@ This document describes converter data flow and stage names used by code comment
 
 ### OSM fetch mode notes
 - All content modes (`normal`, `no-buildings`, `only-big-roads`, `only-named-roads`) use the same network fetch strategy:
-  - randomized Overpass `xapi?map?bbox=` endpoint attempts first
-  - OSM main API `api/0.6/map?bbox=` fallback last
+  - HTTPS OSM main API `api/0.6/map?bbox=` is the only active endpoint.
+  - HTTPS Overpass `api/map?bbox=` remains commented out after a tiny-area HTTP 504 on 2026-09-23.
 - Mode-specific behavior is applied after fetch:
   - `normal`: no local OSM content pruning.
   - `no-buildings`: local OSM filtering removes building features.

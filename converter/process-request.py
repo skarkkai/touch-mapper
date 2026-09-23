@@ -12,7 +12,6 @@ import argparse
 import urllib.request
 import urllib.error
 import urllib.parse
-import random
 import subprocess
 import functools
 import time
@@ -677,30 +676,18 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
         return (osm_path, size, size, None, 0, 0, 'stored_map', source_key)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
-    overpass_map_attempts = [
-        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-          'provider': 'overpass',
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://overpass.osm.rambler.ru/cgi/xapi?map?bbox=" + bbox,
-          'provider': 'overpass',
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-        },
-        { 'url': "http://www.overpass-api.de/api/xapi?map?bbox=" + bbox,
-          'provider': 'overpass',
-          'method': lambda url: get_osm_overpass_api(url=url, timeout=60, request_body=request_body, osm_path=osm_path),
-        },
-    ]
-    # All content modes share the same fetch strategy:
-    # randomized Overpass endpoint order first, then OSM main API fallback.
-    attempts = list(overpass_map_attempts)
-    random.shuffle(attempts)
-    attempts.append(
-        { 'url': "http://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
+    attempts = [
+        # Disabled: Overpass /api/map returned HTTP 504 for a roughly 55 m by
+        # 111 m area on 2026-09-23. Re-enable only after reliability is verified.
+        # { 'url': "https://overpass-api.de/api/map?bbox=" + bbox,
+        #   'provider': 'overpass',
+        #   'method': lambda url: get_osm_overpass_api(url=url, timeout=20, request_body=request_body, osm_path=osm_path),
+        # },
+        { 'url': "https://api.openstreetmap.org/api/0.6/map?bbox=" + bbox,
           'provider': 'main_api',
           'method': lambda url: get_osm_main_api(url=url, timeout=120, osm_path=osm_path),
-        }
-    )
+        },
+    ]
     for i, attempt in enumerate(attempts):
         url_parts = urllib.parse.urlsplit(attempt['url'])
         endpoint = url_parts.netloc + url_parts.path

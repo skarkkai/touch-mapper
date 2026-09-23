@@ -3,11 +3,11 @@ import contextlib
 import datetime
 import gzip
 import errno
+from email.message import Message
 import importlib.util
 import io
 import json
 from pathlib import Path
-import socket
 import subprocess
 import sys
 import tempfile
@@ -20,6 +20,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / 'converter'))
 from converter import stats_pipeline
 spec = importlib.util.spec_from_file_location('process_request', str(REPO / 'converter/process-request.py'))
+assert spec is not None and spec.loader is not None
 worker = importlib.util.module_from_spec(spec)
 with mock.patch.dict(sys.modules, {'boto3': types.ModuleType('boto3')}):
     spec.loader.exec_module(worker)
@@ -60,53 +61,62 @@ def main():
         # Fetch tests use normal mode to avoid needing a valid OSM tree.
         request['contentMode'] = 'normal'
         records = []
-        counter = [0]
-
-        def fail_overpass(url, timeout, request_body, osm_path):
-            counter[0] += 1
-            if counter[0] == 1:
-                raise urllib.error.URLError(OSError(errno.ENETUNREACH, 'Network is unreachable'))
-            if counter[0] == 2:
-                raise urllib.error.URLError(socket.gaierror(-2, 'Name or service not known'))
-            raise urllib.error.HTTPError(url, 503, 'Busy', {}, io.BytesIO(b'SERVICE-PRIVATE-' + b'x' * 9000))
 
         def succeed_main(url, timeout, osm_path):
             Path(osm_path).write_bytes(b'<osm/>')
 
         output = io.StringIO()
-        with mock.patch.object(worker.random, 'shuffle'), \
-                mock.patch.object(worker, 'get_osm_overpass_api', side_effect=fail_overpass), \
-                mock.patch.object(worker, 'get_osm_main_api', side_effect=succeed_main), \
+        with mock.patch.object(worker, 'get_osm_main_api', side_effect=succeed_main) as main_api, \
                 contextlib.redirect_stdout(output):
             result = worker.get_osm(request, directory, attempt_records=records)
         assert result[6] == 'main_api'
-        assert [x['status'] for x in records] == ['failed'] * 3 + ['success']
-        assert records[0]['errno'] == errno.ENETUNREACH
-        assert records[1]['errno'] == -2
-        assert records[2]['http_status'] == 503
-        assert len(records[2]['response_excerpt'].encode('utf8')) == 4096
+        assert [entry['status'] for entry in records] == ['success']
+        assert records[0]['url'] == 'https://api.openstreetmap.org/api/0.6/map?bbox=1,2,3,4'
+        main_api.assert_called_once()
+        assert 'bbox=' not in output.getvalue()
+
+        def busy_main(url, timeout, osm_path):
+            raise urllib.error.HTTPError(url, 504, 'Gateway Timeout', Message(),
+                                         io.BytesIO(b'SERVICE-PRIVATE-' + b'x' * 9000))
+
+        busy_records = []
+        busy_output = io.StringIO()
+        with mock.patch.object(worker, 'get_osm_main_api', side_effect=busy_main), \
+                contextlib.redirect_stdout(busy_output):
+            try:
+                worker.get_osm(request, directory, attempt_records=busy_records)
+                assert False, 'gateway timeout was swallowed'
+            except RuntimeError as error:
+                assert isinstance(error.__cause__, urllib.error.HTTPError)
+        assert len(busy_records) == 1
+        assert busy_records[0]['http_status'] == 504
+        assert len(busy_records[0]['response_excerpt'].encode('utf8')) == 4096
+        assert 'bbox=' not in busy_output.getvalue() and 'osm_fetch_failed' in busy_output.getvalue()
+
+        def invalid_http(url, timeout, osm_path):
+            raise urllib.error.HTTPError(url, 503, 'Busy', Message(), io.BytesIO(b'\xff' * 9000))
+
         invalid_records = []
-        def invalid_http(url, timeout, request_body, osm_path):
-            raise urllib.error.HTTPError(url, 503, 'Busy', {}, io.BytesIO(b'\xff' * 9000))
-        with mock.patch.object(worker.random, 'shuffle'), \
-                mock.patch.object(worker, 'get_osm_overpass_api', side_effect=invalid_http), \
-                mock.patch.object(worker, 'get_osm_main_api', side_effect=succeed_main), \
+        with mock.patch.object(worker, 'get_osm_main_api', side_effect=invalid_http), \
                 contextlib.redirect_stdout(io.StringIO()):
-            worker.get_osm(request, directory, attempt_records=invalid_records)
+            try:
+                worker.get_osm(request, directory, attempt_records=invalid_records)
+                assert False, 'HTTP error was swallowed'
+            except RuntimeError as error:
+                assert isinstance(error.__cause__, urllib.error.HTTPError)
         assert len(invalid_records[0]['response_excerpt'].encode('utf8')) <= 4096
-        assert 'bbox=' not in output.getvalue() and 'osm_fetch_failed' in output.getvalue()
-        assert records[0]['url'].find('bbox=') >= 0  # private telemetry has exact target
+
         failed_records = []
-        with mock.patch.object(worker.random, 'shuffle'), \
-                mock.patch.object(worker, 'get_osm_overpass_api', side_effect=urllib.error.URLError('offline')), \
-                mock.patch.object(worker, 'get_osm_main_api', side_effect=urllib.error.URLError('offline')), \
+        with mock.patch.object(worker, 'get_osm_main_api',
+                               side_effect=urllib.error.URLError(OSError(errno.ENETUNREACH, 'offline'))), \
                 contextlib.redirect_stdout(io.StringIO()):
             try:
                 worker.get_osm(request, directory, attempt_records=failed_records)
                 assert False, 'terminal OSM failure was swallowed'
             except RuntimeError as error:
                 assert isinstance(error.__cause__, urllib.error.URLError)
-        assert len(failed_records) == 4
+        assert len(failed_records) == 1
+        assert failed_records[0]['errno'] == errno.ENETUNREACH
         ctx = worker.init_main_context()
         ctx.update(request_body=request, original_request_json=original,
                    osm_fetch_attempts=records, request_id=request['requestId'],
@@ -116,7 +126,7 @@ def main():
         assert first['schema_version'] == 2
         assert json.loads(first['request_json'])['addrLong'] == 'PRIVATE-REQUEST-SENTINEL'
         assert json.loads(first['request_json'])['contentMode'] == 'no-buildings'
-        assert len(json.loads(first['osm_fetch_attempts_json'])) == 4
+        assert len(json.loads(first['osm_fetch_attempts_json'])) == 1
         now = datetime.datetime(2026, 9, 23)
         path1 = stats_pipeline.write_attempt_record(str(root / 'stats'), first, now_utc=now)
         second = dict(first, attempt_id='eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')

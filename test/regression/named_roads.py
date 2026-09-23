@@ -95,7 +95,6 @@ def main():
     # Exercise fetch dispatch with local bytes for every mode; no network is reachable.
     def fetch_fixture(**kwargs):
         Path(kwargs['osm_path']).write_bytes(source.read_bytes())
-    setattr(module, "get_osm_overpass_api", fetch_fixture)
     setattr(module, "get_osm_main_api", fetch_fixture)
     for mode in ['normal', 'no-buildings', 'only-big-roads', 'only-named-roads']:
         mode_request = dict(request, contentMode=mode, targetRoadDensity=37)

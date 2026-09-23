@@ -92,12 +92,12 @@ Converter telemetry includes per-stage timing fields (seconds), including:
 
 OSM fetch source fields:
 
-- `osm_fetch_provider`: provider category for the successful fetch attempt (`overpass` or `main_api`)
+- `osm_fetch_provider`: provider category for the successful fetch attempt (`main_api` for new maps, `stored_map` for filtered maps)
 - `osm_fetch_endpoint`: endpoint URL for the successful fetch attempt
 
 Fetch policy notes:
 
-- All content modes (`normal`, `no-buildings`, `only-big-roads`, `only-named-roads`) use randomized Overpass `map?bbox` endpoint attempts first, then OSM main API fallback.
+- All content modes (`normal`, `no-buildings`, `only-big-roads`, `only-named-roads`) use the HTTPS OSM main API `api/0.6/map?bbox=` endpoint; the Overpass `api/map?bbox=` attempt is disabled after a tiny-area HTTP 504 on 2026-09-23.
 
 ## Status polling and structured errors
 
