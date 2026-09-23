@@ -63,6 +63,7 @@ def main():
         return
     sys.path.insert(0, str(bundle))
     runpy.run_path(str(REPO / 'converter/process-request.py'), run_name='worker_runtime_check')
+    runner_log = runpy.run_path(str(REPO / 'converter/runner-log.py'), run_name='runner_log_runtime_check')
     import boto3  # pyright: ignore[reportMissingImports]
     # The SDK upgrade must retain the worker's S3 and SQS resource interfaces too.
     session = boto3.Session(aws_access_key_id='fixture', aws_secret_access_key='fixture',
@@ -70,6 +71,9 @@ def main():
     assert session.resource('s3').Bucket('fixture').name == 'fixture'
     assert session.resource('sqs').Queue('https://fixture.invalid/queue').url.endswith('/queue')
     base = sys.argv[sys.argv.index('--') + 1]
+    with tempfile.TemporaryDirectory(prefix='runner-py35-', dir=str(base)) as environment_dir:
+        daily = runner_log['prepare'](environment_dir, '1', datetime.date(2026, 9, 23))
+        assert Path(daily).name == '2026-09-23.log'
     check_bundled_sdk(base)
     print('Python 3.5 worker import and stubbed Athena/S3 dashboard publication passed')
 

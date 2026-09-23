@@ -10,6 +10,8 @@ import boto3  # type: ignore[import-not-found]
 import json
 import argparse
 import urllib.request
+import urllib.error
+import urllib.parse
 import random
 import subprocess
 import functools
@@ -22,12 +24,14 @@ import io
 import math
 import signal
 import atexit
+import traceback
+import uuid
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, Optional
 
 import stats_pipeline
 from print_dimensions import normalize_print_dimensions
-from subprocess_timing import timed_command, parse_max_rss_kib
+from subprocess_timing import timed_command, parse_max_rss_kib, stream_subprocess_output
 
 STORE_AGE = 8640000
 # Use wall-clock timing for stage durations.
@@ -77,6 +81,8 @@ progress_state = {
     'stage': 'bootstrap',
     'request_id': None,
     'termination_signal': None,
+    'attempt_id': os.environ.get('TM_ATTEMPT_ID') or uuid.uuid4().hex,
+    'worker_name': os.environ.get('TM_WORKER_NAME', 'unknown'),
 }
 
 
@@ -88,56 +94,53 @@ def compact_log_text(value, max_length=240):
 
 
 def log_progress(stage, status=None, request_id=None, detail=None):
-    if not INSTRUMENTATION_ENABLED:
-        return
     if request_id is not None:
         progress_state['request_id'] = request_id
     if status is not None:
         progress_state['status'] = status
     progress_state['stage'] = stage
     parts = [
-        'PROGRESS:process-request:{stage}'.format(stage=stage),
-        'ts={ts}'.format(ts=datetime.datetime.utcnow().isoformat() + 'Z'),
-        'status={status}'.format(status=progress_state['status']),
+        datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z',
+        'ERROR' if status == 'failed' else 'INFO',
+        'process stage={}'.format(stage),
+        'status={}'.format(progress_state['status']),
+        'runner={}'.format(progress_state['worker_name']),
+        'attempt_id={}'.format(progress_state['attempt_id']),
     ]
     if progress_state['request_id'] is not None:
-        parts.append('requestId={request_id}'.format(request_id=progress_state['request_id']))
-    if detail:
-        parts.append('detail={detail}'.format(detail=compact_log_text(detail)))
-    print(" ".join(parts))
+        parts.append('request_id={}'.format(compact_log_text(progress_state['request_id'])))
+        parts.append('map_id={}'.format(compact_log_text(stats_pipeline.map_id_from_request_id(progress_state['request_id']))))
+    if detail and INSTRUMENTATION_ENABLED:
+        parts.append('detail={}'.format(compact_log_text(detail)))
+    print(' '.join(parts), flush=True)
 
 
 def log_exit_progress():
-    if not INSTRUMENTATION_ENABLED:
-        return
     parts = [
-        'PROGRESS:process-request:exit',
-        'ts={ts}'.format(ts=datetime.datetime.utcnow().isoformat() + 'Z'),
-        'status={status}'.format(status=progress_state['status']),
-        'last_stage={stage}'.format(stage=progress_state['stage']),
+        datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z',
+        'INFO', 'process_exit',
+        'status={}'.format(progress_state['status']),
+        'last_stage={}'.format(progress_state['stage']),
+        'runner={}'.format(progress_state['worker_name']),
+        'attempt_id={}'.format(progress_state['attempt_id']),
     ]
     if progress_state['request_id'] is not None:
-        parts.append('requestId={request_id}'.format(request_id=progress_state['request_id']))
+        parts.append('request_id={}'.format(compact_log_text(progress_state['request_id'])))
     if progress_state['termination_signal'] is not None:
-        parts.append('signal={signal}'.format(signal=progress_state['termination_signal']))
-    print(" ".join(parts))
+        parts.append('signal={}'.format(progress_state['termination_signal']))
+    print(' '.join(parts), flush=True)
 
 
 def handle_termination_signal(signum, frame):
     if progress_state.get('termination_signal') is None:
         progress_state['termination_signal'] = signum
-        log_progress(
-            'signal-received',
-            status='terminated',
-            detail='signal={}'.format(signum)
-        )
+        log_progress('signal-received', status='terminated', detail='signal={}'.format(signum))
     raise SystemExit(128 + signum)
 
 
-if INSTRUMENTATION_ENABLED:
-    atexit.register(log_exit_progress)
-    signal.signal(signal.SIGTERM, handle_termination_signal)
-    signal.signal(signal.SIGINT, handle_termination_signal)
+atexit.register(log_exit_progress)
+signal.signal(signal.SIGTERM, handle_termination_signal)
+signal.signal(signal.SIGINT, handle_termination_signal)
 
 
 def now_iso_utc():
@@ -553,12 +556,13 @@ def run_subprocess_with_max_rss_kib(cmd):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
-    stdout_data, stderr_data = process.communicate()
-    stdout_text = stdout_data.decode('utf8', errors='replace')
+    stdout_data, stderr_data = stream_subprocess_output(process)
     stderr_text = stderr_data.decode('utf8', errors='replace')
 
     max_rss_kib = parse_max_rss_kib(stderr_text, time_style)
 
+    print("{} INFO subprocess_exit command={} exit_code={} max_rss_kib={}".format(
+        now_iso_utc(), os.path.basename(cmd[0]), process.returncode, max_rss_kib), flush=True)
     if process.returncode != 0:
         raise Exception(
             "command failed ({}) for {} stderr={}".format(
@@ -567,9 +571,6 @@ def run_subprocess_with_max_rss_kib(cmd):
                 compact_log_text(stderr_text, max_length=1000)
             )
         )
-
-    if stdout_text.strip() != '':
-        print(stdout_text.strip())
 
     return max_rss_kib
 
@@ -637,7 +638,9 @@ def store_filter_source(bucket, request_id, osm_path):
         os.remove(compressed_path)
 
 
-def get_osm(request_body, work_dir, bucket=None):
+def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
+    if attempt_records is None:
+        attempt_records = []
     # TODO: verify the requested region isn't too large
     content_mode = ensure_request_content_mode(request_body)
     if content_mode == 'only-big-roads':
@@ -650,13 +653,27 @@ def get_osm(request_body, work_dir, bucket=None):
         if not isinstance(source_request_id, str) or not re.match(r'^B[0-9a-fA-F]{15}/[^/]{1,150}$', source_request_id):
             raise RequestProcessingError(code='unknown', description='Invalid filter source map ID')
         source_key = 'map/data/' + source_request_id + '.osm.gz'
-        if bucket is None:
-            raise RequestProcessingError(code='unknown', description='Map source storage unavailable')
-        source_data = bucket.Object(source_key).get()['Body'].read()
-        with open(osm_path, 'wb') as source_file:
-            source_file.write(gzip.decompress(source_data))
-        filter_osm_file_for_excluded_features(osm_path, request_body.get('excludedFeatures', []))
-        size = os.path.getsize(osm_path)
+        detail = {'number': 1, 'provider': 'stored_map', 'source_key': source_key}
+        stored_start = time_clock()
+        print('{} INFO osm_fetch_start provider=stored_map retry=1'.format(now_iso_utc()), flush=True)
+        try:
+            if bucket is None:
+                raise RequestProcessingError(code='unknown', description='Map source storage unavailable')
+            source_data = bucket.Object(source_key).get()['Body'].read()
+            with open(osm_path, 'wb') as source_file:
+                source_file.write(gzip.decompress(source_data))
+            filter_osm_file_for_excluded_features(osm_path, request_body.get('excludedFeatures', []))
+            size = os.path.getsize(osm_path)
+        except Exception as error:
+            detail.update(status='failed', elapsed_seconds=duration_since(stored_start),
+                          exception_class=type(error).__name__, error_detail=str(error))
+            attempt_records.append(detail)
+            print('{} ERROR osm_fetch_failed provider=stored_map retry=1 exception={}'.format(
+                now_iso_utc(), type(error).__name__), flush=True)
+            raise
+        detail.update(status='success', elapsed_seconds=duration_since(stored_start), bytes=size)
+        attempt_records.append(detail)
+        print('{} INFO osm_fetch_success provider=stored_map bytes={}'.format(now_iso_utc(), size), flush=True)
         return (osm_path, size, size, None, 0, 0, 'stored_map', source_key)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
@@ -685,11 +702,23 @@ def get_osm(request_body, work_dir, bucket=None):
         }
     )
     for i, attempt in enumerate(attempts):
+        url_parts = urllib.parse.urlsplit(attempt['url'])
+        endpoint = url_parts.netloc + url_parts.path
+        detail = {'number': i + 1, 'provider': attempt['provider'],
+                  'endpoint': endpoint, 'url': attempt['url']}
+        fetch_start_time = time_clock()
+        print('{} INFO osm_fetch_start provider={} endpoint={} retry={}'.format(
+            now_iso_utc(), attempt['provider'], endpoint, i + 1), flush=True)
         try:
-            fetch_start_time = time_clock()
             attempt['method'](attempt['url'])
             fetch_attempt_seconds = duration_since(fetch_start_time)
             fetched_osm_bytes = os.path.getsize(osm_path)
+            detail.update(status='success', elapsed_seconds=fetch_attempt_seconds,
+                          bytes=fetched_osm_bytes)
+            attempt_records.append(detail)
+            print('{} INFO osm_fetch_success provider={} endpoint={} retry={} elapsed_seconds={:.3f} bytes={}'.format(
+                now_iso_utc(), attempt['provider'], endpoint, i + 1,
+                fetch_attempt_seconds, fetched_osm_bytes), flush=True)
             prune_rss_kib = None
             prune_seconds = None
             if content_mode in ('only-big-roads', 'only-named-roads'):
@@ -733,21 +762,39 @@ def get_osm(request_body, work_dir, bucket=None):
                 attempt['url']
             )
         except Exception as e:
+            elapsed = duration_since(fetch_start_time)
+            if detail.get('status') == 'success':
+                print('{} ERROR osm_postfetch_failed provider={} endpoint={} retry={} exception={}'.format(
+                    now_iso_utc(), attempt['provider'], endpoint, i + 1, type(e).__name__), flush=True)
+                raise
+            if detail.get('status') != 'success':
+                detail.update(status='failed', elapsed_seconds=elapsed,
+                              exception_class=type(e).__name__, error_detail=str(e))
+                if isinstance(e, urllib.error.HTTPError):
+                    detail['http_status'] = e.code
+                    try:
+                        response_text = e.read(4096).decode('utf8', errors='replace')
+                        detail['response_excerpt'] = response_text.encode('utf8')[:4096].decode('utf8', errors='ignore')
+                    except Exception as read_error:
+                        detail['response_read_error'] = str(read_error)
+                reason = getattr(e, 'reason', e)
+                errno = getattr(reason, 'errno', None)
+                if errno is not None:
+                    detail['errno'] = errno
+                attempt_records.append(detail)
+                print('{} ERROR osm_fetch_failed provider={} endpoint={} retry={} elapsed_seconds={:.3f} exception={} errno={} http_status={}'.format(
+                    now_iso_utc(), attempt['provider'], endpoint, i + 1, elapsed,
+                    type(e).__name__, detail.get('errno'), detail.get('http_status')), flush=True)
             if isinstance(e, RequestProcessingError):
                 raise
-            msg = "Can't read map data from " + attempt['url'] + ": " + str(e)
             if i == len(attempts) - 1:
-                raise Exception(msg)
-            else:
-                print(msg)
+                raise RuntimeError('OSM fetch failed after {} attempts'.format(len(attempts))) from e
 
 def get_osm_overpass_api(url, timeout, request_body, osm_path):
-    print("getting " + url)
     osm_data = urllib.request.urlopen(url, timeout=timeout).read()
     write_osm_with_bounds(osm_data, request_body, osm_path)
 
 def get_osm_main_api(url, timeout, osm_path):
-    print("getting " + url)
     osm_data = urllib.request.urlopen(url, timeout=timeout).read()
     with open(osm_path, 'wb') as f:
         f.write(osm_data)
@@ -844,11 +891,11 @@ def run_osm_to_tactile(osm_path, request_body):
         return artifact_paths, meta, rss_kib
     except Exception as e:
         if has_empty_clip_report(output_dir):
-            raise RequestProcessingError(code='unknown', description=NO_GEOMETRY_ERROR_DESCRIPTION)
-        raise Exception("Can't convert map data to STL: " + str(e)) # let's not reveal too much, error msg likely contains paths
+            raise RequestProcessingError(code='unknown', description=NO_GEOMETRY_ERROR_DESCRIPTION) from e
+        raise Exception("Can't convert map data to STL: " + str(e)) from e # let's not reveal too much, error msg likely contains paths
 
-# Receive a message from SQS and delete it. Poll up to "poll_time" seconds. Return parsed request, or None if no msg received.
-def receive_sqs_msg(queue_name, poll_time):
+# Receive and delete an SQS message. Save its exact text before JSON parsing.
+def receive_sqs_msg(queue_name, poll_time, raw_body_sink=None):
     end = time_clock() + poll_time
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName = queue_name)
@@ -858,15 +905,15 @@ def receive_sqs_msg(queue_name, poll_time):
         )
         if len(messages) > 0:
             message = messages[0]
-            print(message.body)
-
             # Delete message immediately so we won't start looping on it if processing fails
             response = queue.delete_messages(Entries=[{
                 'Id': 'dummy',
                 'ReceiptHandle': message.receipt_handle,
             }]) # ignore errors
 
-            # Parse
+            # Preserve the exact private input even if JSON parsing fails.
+            if raw_body_sink is not None:
+                raw_body_sink(message.body)
             request = json.loads(message.body)
             # TODO: validate request -- its contents are untrusted
             return request
@@ -1027,7 +1074,11 @@ def init_main_context():
         'args': None,
         'stats_root_dir': None,
         'environment': None,
-        'worker_name': 'unknown',
+        'worker_name': os.environ.get('TM_WORKER_NAME', 'unknown'),
+        'attempt_id': progress_state['attempt_id'],
+        'poller_run_id': os.environ.get('TM_POLLER_RUN_ID'),
+        'original_request_json': None,
+        'osm_fetch_attempts': [],
         'current_stage': 'bootstrap',
         'failure_stage': None,
         'failure_class': None,
@@ -1088,7 +1139,8 @@ def init_stats_services(ctx):
         ctx['stats_s3'] = boto3.resource('s3')
         run_stats_maintenance(ctx)
     except Exception as e:
-        print("stats init failed: " + str(e))
+        print('{} ERROR stats init failed: {}'.format(now_iso_utc(), e), file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         ctx['stats_s3'] = None
 
 
@@ -1122,7 +1174,8 @@ def run_stats_maintenance(ctx, after_map=False):
             deployment_id=ctx['dashboard_deployment_id']
         )
     except Exception as exc:
-        print('stats maintenance failed: {}: {}'.format(type(exc).__name__, exc), file=sys.stderr)
+        print('{} ERROR stats maintenance failed: {}: {}'.format(now_iso_utc(), type(exc).__name__, exc), file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
 
 
 def handle_main_exception(ctx, e):
@@ -1138,8 +1191,9 @@ def handle_main_exception(ctx, e):
         ctx['error_description'] = str(e)
     ctx['status'] = 'failed'
     try:
-        print("process-request failed: " + str(e))
-        log_progress('failed', status='failed', detail=str(e))
+        log_progress('failed', status='failed')
+        print("{} ERROR process-request failed: {}".format(now_iso_utc(), e), file=sys.stderr)
+        traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
         write_status_info_json(
             ctx,
             progress=(ctx.get('status_progress') if ctx.get('status_progress') is not None else STATUS_PROGRESS_SEEN),
@@ -1151,16 +1205,21 @@ def handle_main_exception(ctx, e):
 
 
 def build_stats_record(ctx):
-    request_body = ctx['request_body']
+    request_body = ctx['request_body'] if isinstance(ctx['request_body'], dict) else {}
     total_elapsed = duration_since(ctx['processing_start_time'])
     return {
-        'schema_version': 1,
+        'schema_version': 2,
         'timestamp': now_iso_utc(),
         'day': datetime.datetime.utcnow().strftime('%d'),
         'code_branch': ctx['code_version_fields'].get('code_branch'),
         'code_deployed': ctx['code_version_fields'].get('code_deployed'),
         'code_commit': ctx['code_version_fields'].get('code_commit'),
         'request_id': ctx['request_id'],
+        'attempt_id': ctx['attempt_id'],
+        'worker_name': ctx['worker_name'],
+        'poller_run_id': ctx['poller_run_id'],
+        'request_json': ctx['original_request_json'],
+        'osm_fetch_attempts_json': json.dumps(ctx['osm_fetch_attempts'], ensure_ascii=False),
         'map_id': ctx['map_id'],
         'status': ctx['status'],
         'failure_stage': ctx['failure_stage'],
@@ -1223,7 +1282,9 @@ def write_final_stats_if_possible(ctx):
     if not STATS_ENABLED:
         return
     if ctx['request_body'] is None:
-        return
+        if ctx['original_request_json'] is None:
+            return
+        ctx['request_body'] = {}
     try:
         track_process_rss_kib(ctx)
         if ctx['stats_root_dir'] is None:
@@ -1233,15 +1294,19 @@ def write_final_stats_if_possible(ctx):
         if ctx['map_id'] is None:
             ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
 
-        stats_pipeline.write_attempt_record(
+        stats_path = stats_pipeline.write_attempt_record(
             stats_root_dir=ctx['stats_root_dir'],
             record=build_stats_record(ctx),
             quicktime_mode=STATS_QUICKTIME_MODE,
             s3_resource=ctx['stats_s3'],
             stats_bucket_name=ctx['stats_bucket_name']
         )
+        print('{} INFO telemetry_written attempt_id={} path={}'.format(
+            now_iso_utc(), ctx['attempt_id'], stats_path))
     except Exception as stats_error:
-        print("stats write failed: " + str(stats_error))
+        print('{} ERROR telemetry_write_failed attempt_id={} error={}'.format(
+            now_iso_utc(), ctx['attempt_id'], stats_error), file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
 
 
 def rethrow_failure_if_needed(ctx):
@@ -1267,12 +1332,24 @@ def main():
         # Receive SQS msg
         ctx['current_stage'] = 'poll'
         log_progress('poll-start')
-        print("\n\n============= STARTING TO POLL AT %s ===========" % (datetime.datetime.now().isoformat()))
-        ctx['request_body'] = receive_sqs_msg(ctx['queue_name'], ctx['args'].poll_time)
-        if ctx['request_body'] == None:
+        def remember_raw_body(raw_body):
+            ctx['original_request_json'] = raw_body
+            ctx['processing_start_time'] = time_clock()
+        ctx['request_body'] = receive_sqs_msg(
+            ctx['queue_name'], ctx['args'].poll_time, remember_raw_body)
+        if ctx['request_body'] is None:
+            if ctx['original_request_json'] is not None:
+                raise RequestProcessingError(code='unknown', description='Invalid request body')
             log_progress('poll-empty', status='idle')
             ctx['status'] = 'idle'
             return
+        if not isinstance(ctx['request_body'], dict):
+            raise RequestProcessingError(code='unknown', description='Invalid request body')
+        ctx['request_id'] = ctx['request_body'].get('requestId')
+        ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
+        os.environ['TM_REQUEST_ID'] = str(ctx['request_id'])
+        os.environ['TM_MAP_ID'] = ctx['map_id']
+        log_progress('request-received', request_id=ctx['request_id'])
         ctx['request_body']['contentMode'] = normalize_content_mode(ctx['request_body'].get('contentMode'))
         new_filter_refs = ctx['request_body'].get('excludedFeatures', [])
         if not isinstance(new_filter_refs, list):
@@ -1288,11 +1365,9 @@ def main():
             ensure_request_target_road_density(ctx['request_body'])
         else:
             ctx['request_body'].pop('targetRoadDensity', None)
-        ctx['request_id'] = ctx['request_body'].get('requestId')
-        ctx['map_id'] = stats_pipeline.map_id_from_request_id(ctx['request_id'])
-        ctx['processing_start_time'] = time_clock()
-        log_progress('poll-returned', request_id=ctx['request_id'])
-        print("Poll returned at %s" % (datetime.datetime.now().isoformat()))
+        log_progress('request-normalized')
+        print('{} INFO request_received attempt_id={} content_mode={}'.format(
+            now_iso_utc(), ctx['attempt_id'], ctx['request_body']['contentMode']))
         track_process_rss_kib(ctx)
 
         # Get OSM data
@@ -1306,7 +1381,7 @@ def main():
         # Normalize before any OSM work, after status reporting is available.
         normalize_print_dimensions(ctx['request_body'])
         write_status_info_json(ctx, STATUS_PROGRESS_SEEN)
-        osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir, bucket)
+        osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir, bucket, ctx['osm_fetch_attempts'])
         if osm_result is None:
             raise Exception("OSM path not available")
         (

@@ -10,9 +10,11 @@ import io
 import json
 import os
 import re
+import uuid
 import shutil
 import sys
 import time
+import traceback
 import urllib.request
 
 
@@ -96,7 +98,9 @@ def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
             return True
     except Exception as exc:
         # Report/config/AWS failures are best effort and must never abort a map.
-        print('stats daily maintenance failed: {}: {}'.format(type(exc).__name__, exc), file=sys.stderr)
+        print('{} ERROR stats daily maintenance failed: {}: {}'.format(
+            datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), type(exc).__name__, exc), file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         return False
 
 
@@ -134,7 +138,9 @@ def run_daily_upload_if_due(stats_root_dir, s3_resource, stats_bucket_name, now_
                 max_day=flush_day.day
             )
         except Exception as e:
-            print('stats daily upload failed: ' + str(e))
+            print('{} ERROR stats daily upload failed: {}'.format(
+                datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), e), file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
             upload_ok = False
 
         if not upload_ok:
@@ -179,12 +185,14 @@ def _write_attempt_record_real_date(stats_root_dir, record, now_utc=None):
         now_utc = datetime.datetime.utcnow()
     target_date = now_utc.date()
     record_to_store = dict(record)
+    record_to_store['attempt_id'] = record_to_store.get('attempt_id') or uuid.uuid4().hex
     _enrich_record_with_ip_geo(stats_root_dir, record_to_store)
     record_to_store['event_date'] = target_date.isoformat()
     record_to_store['day'] = '{:02d}'.format(target_date.day)
     file_path = _stats_file_path(
         stats_root_dir=stats_root_dir,
         map_id=record_to_store.get('map_id'),
+        attempt_id=record_to_store['attempt_id'],
         year=target_date.year,
         month=target_date.month,
         day=target_date.day
@@ -213,6 +221,7 @@ def _write_attempt_record_quicktime(stats_root_dir, record, s3_resource, stats_b
         day = int(state['virtual_day'])
 
         record_to_store = dict(record)
+        record_to_store['attempt_id'] = record_to_store.get('attempt_id') or uuid.uuid4().hex
         _enrich_record_with_ip_geo(stats_root_dir, record_to_store)
         record_to_store['event_date'] = '{:04d}-{:02d}-{:02d}'.format(year, month, day)
         record_to_store['day'] = '{:02d}'.format(day)
@@ -220,6 +229,7 @@ def _write_attempt_record_quicktime(stats_root_dir, record, s3_resource, stats_b
         file_path = _stats_file_path(
             stats_root_dir=stats_root_dir,
             map_id=record_to_store.get('map_id'),
+            attempt_id=record_to_store['attempt_id'],
             year=year,
             month=month,
             day=day
@@ -450,7 +460,7 @@ def _month_dir(stats_root_dir, year, month):
     )
 
 
-def _stats_file_path(stats_root_dir, map_id, year, month, day):
+def _stats_file_path(stats_root_dir, map_id, year, month, day, attempt_id):
     safe_map_id = _safe_map_id_for_filename(map_id)
     day_dir = os.path.join(
         stats_root_dir,
@@ -458,8 +468,14 @@ def _stats_file_path(stats_root_dir, map_id, year, month, day):
         '{:02d}'.format(int(month)),
         '{:02d}'.format(int(day))
     )
-    _ensure_dir(day_dir)
-    return os.path.join(day_dir, safe_map_id + '.json')
+    for private_dir in (stats_root_dir,
+                        os.path.join(stats_root_dir, '{:04d}'.format(int(year))),
+                        os.path.join(stats_root_dir, '{:04d}'.format(int(year)), '{:02d}'.format(int(month))),
+                        day_dir):
+        _ensure_dir(private_dir)
+        os.chmod(private_dir, 0o700)
+    safe_attempt_id = re.sub(r'[^A-Za-z0-9_-]', '_', str(attempt_id))
+    return os.path.join(day_dir, safe_map_id + '--' + safe_attempt_id + '.json')
 
 
 def _safe_map_id_for_filename(map_id):
@@ -509,10 +525,15 @@ def _write_small_text_atomic(path, value):
 def _write_json_atomic(path, value):
     _ensure_dir(os.path.dirname(path))
     tmp_path = path + '.tmp-{}-{}'.format(os.getpid(), int(time.time() * 1000))
-    with open(tmp_path, 'w', encoding='utf8') as handle:
-        json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
-        handle.write('\n')
-    os.replace(tmp_path, path)
+    fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf8') as handle:
+            json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
+            handle.write('\n')
+        os.replace(tmp_path, path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
 
 def _ensure_dir(path):

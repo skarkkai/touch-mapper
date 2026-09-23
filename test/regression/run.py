@@ -61,6 +61,8 @@ def main():
                                   '--', str(work)]),
         ('Dashboard maintenance', [sys.executable, str(REPO / 'test/regression/dashboard_maintenance.py'), str(work)]),
         ('Poller startup', [sys.executable, str(REPO / 'test/regression/poller_startup.py'), str(work)]),
+        ('Runner log rotation', [sys.executable, str(REPO / 'test/regression/runner_logs.py'), str(work)]),
+        ('Attempt telemetry', [sys.executable, str(REPO / 'test/regression/attempt_telemetry.py'), str(work)]),
         ('Subprocess timing', [sys.executable, str(REPO / 'test/regression/subprocess_timing.py')]),
         ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
         ('Stored print dimensions', ['node', str(REPO / 'test/regression/stored_print_dimensions.js')]),

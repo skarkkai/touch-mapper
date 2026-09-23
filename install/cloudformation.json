@@ -354,6 +354,31 @@
                 "Comment": "Full map request identifier received from the browser payload."
               },
               {
+                "Name": "attempt_id",
+                "Type": "string",
+                "Comment": "Unique ID for this request-process invocation; links private runner logs to telemetry."
+              },
+              {
+                "Name": "worker_name",
+                "Type": "string",
+                "Comment": "Numeric EC2 poller runner identity."
+              },
+              {
+                "Name": "poller_run_id",
+                "Type": "string",
+                "Comment": "ID of the long-running poller process that launched this attempt."
+              },
+              {
+                "Name": "request_json",
+                "Type": "string",
+                "Comment": "Private original request JSON before normalization; never publish in dashboard aggregates."
+              },
+              {
+                "Name": "osm_fetch_attempts_json",
+                "Type": "string",
+                "Comment": "Private JSON retry details with raw errors and bounded HTTP response excerpts."
+              },
+              {
                 "Name": "map_id",
                 "Type": "string",
                 "Comment": "Map identifier prefix derived from request_id before the slash."

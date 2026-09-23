@@ -9,7 +9,7 @@ import subprocess
 import time
 from typing import Any, Dict, List, Optional
 
-from subprocess_timing import timed_command, parse_max_rss_kib
+from subprocess_timing import timed_command, parse_max_rss_kib, stream_subprocess_output
 
 _WHITESPACE_RE = re.compile(r"\s")
 
@@ -61,7 +61,12 @@ class TelemetryLogger(object):
     def _line(self, component: str, depth: int, message: str) -> None:
         marker = self._marker(depth)
         infix = (" " + marker + " ") if marker else " "
-        print("{} [{}]{}{}".format(utc_ts_fixed(), component, infix, message))
+        context = ' '.join('{}={}'.format(key, str(os.environ[value]).replace('\n', ' ')[:160])
+                           for key, value in (('runner', 'TM_WORKER_NAME'), ('attempt_id', 'TM_ATTEMPT_ID'),
+                                              ('request_id', 'TM_REQUEST_ID'), ('map_id', 'TM_MAP_ID'))
+                           if os.environ.get(value))
+        print("{} INFO [{}]{}{}{}".format(utc_ts_fixed(), component, infix,
+                                           (context + ' ' if context else ''), message), flush=True)
 
     def _default_component(self) -> str:
         if self._stack:
@@ -217,7 +222,7 @@ class TelemetryLogger(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        stdout_data, stderr_data = process.communicate()
+        stdout_data, stderr_data = stream_subprocess_output(process, output_log_path=output_log_path)
         elapsed_sec = time.perf_counter() - started
 
         stdout_text = stdout_data.decode("utf-8", errors="replace")
@@ -226,16 +231,14 @@ class TelemetryLogger(object):
 
         max_rss_kib = parse_max_rss_kib(stderr_text, time_style)
 
-        if output_log_path:
-            with open(output_log_path, "w", encoding="utf-8") as handle:
-                handle.write(combined_output)
-
         result = {
             "returncode": process.returncode,
             "elapsedSec": elapsed_sec,
             "maxRssKiB": max_rss_kib,
             "output": combined_output,
         }
+        self._line(stage_component, depth, "subprocess exit_code={} elapsed={:.2f}s maxRSS={}".format(
+            process.returncode, elapsed_sec, _format_max_rss_mib(max_rss_kib)))
         if check and process.returncode != 0:
             raise subprocess.CalledProcessError(process.returncode, cmd, output=combined_output)
         return result

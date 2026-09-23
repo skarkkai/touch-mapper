@@ -12,11 +12,51 @@ created during operation and lives beside the installed `dist/` directory.
 
 `converter/process-request.py` records one telemetry JSON object per map attempt (success or failure) to local disk:
 
-`stats/<year>/<month>/<day>/<map-id>.json`
+`stats/<year>/<month>/<day>/<map-id>--<attempt-id>.json`
 
 - `<map-id>` is derived from `requestId` by taking the prefix before `/`.
-- If the same map id is written again on the same day, the existing file is overwritten.
+- Each process invocation has a fresh `attempt_id`; retries of the same map keep separate files. Existing historical `<map-id>.json` records remain readable.
 - Telemetry write runs in the final step so telemetry failures never affect user-visible processing.
+
+## Correlating private telemetry with runner logs
+
+Each request-process invocation records `attempt_id`, `worker_name`, and
+`poller_run_id`. Its log begins with `attempt_start runner=<number> attempt_id=<ID>` and ends with `attempt_exit ... exit_code=<code>`. Application
+stage events also include the attempt and map/request IDs. The telemetry file
+contains the same IDs. `request_json` preserves the original SQS body before
+normalization. `osm_fetch_attempts_json` preserves each OSM try's provider,
+full URL, retry number, duration, outcome, original error text, network errno or
+HTTP status, and up to 4 KiB from an HTTP error response. These fields stay in
+the private stats bucket and are not selected by the public dashboard query.
+New attempt records use `schema_version=2`. Old version 1 Athena rows return null for the new fields.
+
+For an attempt still on EC2, find the record by ID:
+
+```bash
+find /home/ubuntu/touch-mapper/prod/stats -type f -name '*--<ATTEMPT_ID>.json' -print
+```
+
+After the month's local directory has been uploaded and removed, query the
+private monthly object with an authorized AWS CLI session (substitute year,
+month, environment, and ID):
+
+```bash
+aws s3 cp s3://prod.stats.touch-mapper/stats-json/2026/09/stats-2026-09.jsonl.gz - | gzip -dc | python3 -c 'import json,sys; [print(line.strip()) for line in sys.stdin if json.loads(line).get("attempt_id") == "<ATTEMPT_ID>"]'
+```
+
+A hard kill may leave no terminal record. Use the matching daily runner log's
+attempt boundary and exit code to identify such an interruption. Log files stay
+local for 30 UTC dates, independent of monthly telemetry retention.
+
+The new Glue columns require `make test-aws-install` in the repository root
+before checking them in test Athena. For production, run `make prod-aws-install`
+(which updates Lambda and prints the next command), then separately run
+`install/cloudformation-update.sh prod` and wait for that stack update. EC2
+`dist/` deployment alone does not update Glue. Promote EC2 code through test
+with `make test-install-ec2` followed by `make prod-install-ec2`, then use the
+[controlled restart commands](development-setup.md#runner-logs-and-controlled-ec2-restart)
+to activate the shell redirection. This preserves one test and three production
+runners.
 
 ## Deploy code version metadata
 

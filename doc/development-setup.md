@@ -202,10 +202,12 @@ The directory layout is:
 │   ├── dashboard.env              # Environment-specific host configuration
 │   ├── runtime/                   # Created for runtime use
 │   │   └── <worker-id>/            # One numerically named directory per poller
-│   │       ├── poller.log
-│   │       ├── request.log
 │   │       ├── lockfile
 │   │       └── ...                # Working files and per-poller state
+│   ├── logs/                      # Private runner logs (0700)
+│   │   └── <worker-id>/            # One directory per runner (0700)
+│   │       ├── YYYY-MM-DD.log      # UTC daily log (0600)
+│   │       └── current.log         # Symlink for tail -F
 │   └── stats/                     # Created for runtime telemetry
 │       ├── .maintenance/          # Shared locks and markers for test
 │       └── <year>/<month>/<day>/   # Map-attempt JSON records
@@ -214,6 +216,8 @@ The directory layout is:
     ├── dashboard.env              # Production dashboard configuration
     ├── runtime/
     │   └── <worker-id>/            # Same per-poller structure as test
+    ├── logs/
+    │   └── <worker-id>/            # Same private UTC daily logs as test
     └── stats/
         ├── .maintenance/          # Shared locks and markers for prod
         └── <year>/<month>/<day>/
@@ -224,9 +228,9 @@ literal directory name. Each active poller uses
 its own directory. Directories left by older pollers may remain, so counting
 runtime directories does not establish how many pollers are currently running.
 
-**`dist/` is the installed artifact.** `runtime/` and `stats/` are created during
+**`dist/` is the installed artifact.** `runtime/`, `logs/`, and `stats/` are created during
 service startup and operation and live outside that artifact. Replacing `dist/`
-must preserve the environment's runtime data, telemetry, and `dashboard.env`.
+must preserve the environment's runtime data, runner logs, telemetry, and `dashboard.env`.
 Pollers in the same environment share its `stats/` directory; test and production
 have separate runtime and telemetry directories even though they share the host.
 
@@ -234,6 +238,76 @@ See [application telemetry](application-stats-telemetry.md) for the stats lifecy
 and [nightly dashboard](nightly-dashboard.md) for dashboard configuration and
 publication. The single-core production benchmarking rules remain in `AGENTS.md`;
 four running pollers do not imply four dedicated CPU cores.
+
+## Runner logs and controlled EC2 restart
+
+The poller writes all its own output, request-process output, and converter child
+output to `logs/<worker-id>/YYYY-MM-DD.log` in its environment. `current.log`
+points to the active UTC day. It appends after a same-day restart, switches files
+between request-process iterations, and keeps today plus the preceding 29 UTC
+dates. A request that spans midnight finishes in its starting file. On startup
+and once per UTC day, one worker removes expired dated logs across all runners,
+including retired ones. The next startup resumes cleanup if an environment was
+stopped. Only recognized dated log files are reaped; other files are left alone.
+These logs and the local telemetry contain private request data. Keep their
+permissions at `0700` for log directories and `0600` for log files.
+
+From EC2 as `ubuntu`, follow one runner with:
+
+```bash
+tail -F /home/ubuntu/touch-mapper/prod/logs/1/current.log
+```
+
+Search by `attempt_id` (printed at `attempt_start`, in process events, and in
+telemetry), or by the map ID:
+
+```bash
+grep -n 'attempt_id=<ID>' /home/ubuntu/touch-mapper/prod/logs/*/20??-??-??.log
+grep -n 'map_id=<MAP_ID>' /home/ubuntu/touch-mapper/prod/logs/*/20??-??-??.log
+```
+
+An `attempt_start` with `attempt_exit` but no `telemetry_written` means the
+terminal telemetry write failed, the process stopped before it could write, or
+there was no request in that polling interval. Read its exit code and intervening
+stage events. `124` means the 10-minute timeout; `137` or `143` indicates a
+signal. A hard kill may leave no terminal telemetry, but the log keeps the
+attempt ID, last stage, and exit status. The log alone cannot prove the cause of
+an old OSM failure unless that attempt was recorded by the new code.
+
+Code deployment replaces `dist/` but **does not restart a running poller**.
+Restart at a quiet time so a map in progress can finish. Inspect current
+processes with `ps -ef | grep '[p]oller.sh'`; use `kill -TERM <poller-PID>`
+for each runner you are replacing. The poller finishes its current request-process
+iteration, logs `runner_stop`, and exits without taking another message; wait
+for its process and worker lock to clear. Do not use `make test-restart` for this controlled rollout: the boot-time
+bulk helper stops every poller at once. After `make test-install-ec2`, start one
+test runner on EC2:
+
+```bash
+cd /home/ubuntu/touch-mapper
+umask 077
+export LC_ALL=en_US.UTF-8
+test_log="$(python3 test/dist/runner-log.py "$PWD/test" 1)"
+nohup "$PWD/test/dist/poller.sh" test 1 >>"$test_log" 2>&1 </dev/null &
+```
+
+After `make prod-install-ec2` promotes the tested distribution, stop the old
+production pollers one by one at a quiet time. Start exactly three:
+
+```bash
+cd /home/ubuntu/touch-mapper
+umask 077
+export LC_ALL=en_US.UTF-8
+for worker in 1 2 3; do
+    prod_log="$(python3 prod/dist/runner-log.py "$PWD/prod" "$worker")"
+    nohup "$PWD/prod/dist/poller.sh" prod "$worker" >>"$prod_log" 2>&1 </dev/null &
+done
+```
+
+Check `ps -ef | grep '[p]oller.sh'` and each runner's `current.log` for
+`runner_start` after restarting. The boot-time helper now starts one test and
+three production runners too. A dashboard refresh requested by the EC2 install
+target is published after the next successful map under the restarted poller.
 
 ## Run OSM -> STL converter service (Linux)
 

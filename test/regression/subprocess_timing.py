@@ -2,6 +2,7 @@
 import contextlib
 import importlib.util
 import io
+import tempfile
 from pathlib import Path
 import subprocess
 import sys
@@ -65,11 +66,12 @@ class SubprocessTimingTests(unittest.TestCase):
                                     ('darwin', '-l', DARWIN_OUTPUT)]:
             timed = ['/usr/bin/time', flag] + command
             child = Mock(returncode=0)
-            child.communicate.return_value = (b'child output\n', stderr.encode('utf8'))
+
             for module in (process_request, telemetry):
                 with self.subTest(style=style, runner=module.__name__):
                     with patch.object(module, 'timed_command', return_value=(timed, style)), \
                             patch.object(module.subprocess, 'Popen', return_value=child) as popen, \
+                            patch.object(module, 'stream_subprocess_output', return_value=(b'child output\n', stderr.encode('utf8'))), \
                             contextlib.redirect_stdout(io.StringIO()):
                         if module is process_request:
                             rss = module.run_subprocess_with_max_rss_kib(command)
@@ -117,6 +119,45 @@ class SubprocessTimingTests(unittest.TestCase):
             result = logger.run_subprocess(failing, check=False)
         self.assertEqual(result['returncode'], 7)
         self.assertIn('child failure', result['output'])
+
+    def test_streams_both_pipes_before_child_termination(self):
+        import time
+        import threading
+        child = subprocess.Popen([sys.executable, '-c',
+                                  'import os,time; os.write(1,b"live-out"); '
+                                  'os.write(2,b"live-err"); time.sleep(10)'],
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = io.StringIO()
+        result = []
+        with contextlib.redirect_stdout(output):
+            thread = threading.Thread(target=lambda: result.append(timing.stream_subprocess_output(child)))
+            thread.start()
+            deadline = time.monotonic() + 2
+            while ('live-out' not in output.getvalue() or 'live-err' not in output.getvalue()) \
+                    and time.monotonic() < deadline:
+                time.sleep(0.01)
+            self.assertIn('live-out', output.getvalue())
+            self.assertIn('live-err', output.getvalue())
+            self.assertIsNone(child.poll(), 'output must be visible before child exits')
+            child.terminate()
+            thread.join(timeout=2)
+        self.assertFalse(thread.is_alive())
+        self.assertIn(b'live-out', result[0][0])
+        self.assertIn(b'live-err', result[0][1])
+
+    def test_required_output_file_is_complete_when_capture_is_bounded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = str(Path(directory) / 'full-output.log')
+            child = subprocess.Popen([sys.executable, '-c',
+                                      'import os; os.write(1,b"a"*1100000); os.write(2,b"b"*1100000)'],
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            with contextlib.redirect_stdout(io.StringIO()):
+                stdout, stderr = timing.stream_subprocess_output(child, output_log_path=path)
+            self.assertEqual(child.returncode, 0)
+            self.assertEqual(len(stdout), 1048576)
+            self.assertEqual(len(stderr), 1048576)
+            self.assertEqual(Path(path).stat().st_size, 2200000)
+            self.assertEqual(Path(path).stat().st_mode & 0o777, 0o600)
 
     def test_untimed_fallback_executes_child(self):
         command = [sys.executable, '-c', 'print("untimed child")']

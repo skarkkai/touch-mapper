@@ -56,8 +56,8 @@ environment's file or `/etc/touch-mapper/dashboard.env`.
 
 If the file is missing, each test/prod `poller.sh` process writes a warning to
 stderr once at startup, after acquiring its worker lock and before entering its
-request loop. The existing stderr redirection records it in
-`/home/ubuntu/touch-mapper/<environment>/runtime/<worker>/poller.log`, including
+request loop. The daily runner log records it in
+`/home/ubuntu/touch-mapper/<environment>/logs/<worker>/current.log`, including
 the missing configuration's full path. It is not repeated for each request.
 The poller continues processing maps normally.
 
@@ -406,11 +406,11 @@ publication, so retention/removal of telemetry can change historical buckets.
 
 ## Troubleshooting on EC2
 
-Inspect `runtime/<worker>/request.log` for the current request,
-`prev-request.log` for the previous request, and `latest-failure.log` for the
-last request that exited unsuccessfully. All paths are relative to
-`/home/ubuntu/touch-mapper/<environment>/`. `poller.log` reports the failed
-worker's exit code and the full path to `latest-failure.log`.
+Inspect `logs/<worker>/current.log` for the current UTC day's poller,
+request, and converter output. The dated files under that directory retain the
+previous 29 UTC dates; see [runner logs and controlled EC2 restart](development-setup.md#runner-logs-and-controlled-ec2-restart)
+for `tail -F`, attempt/map searches, retention, and interruption handling.
+`attempt_id` links log events to the private telemetry JSON record.
 
 `stats daily maintenance failed: InvalidRequestException: ...` includes the
 AWS operation and service message needed to diagnose an invalid request. Use the
@@ -419,11 +419,11 @@ the exception class alone is insufficient. A caught maintenance failure does
 not itself cause the map worker to exit unsuccessfully, so inspect a separate
 request failure independently.
 
-`last progress marker ... <none found>` can occur when
-`TOUCH_MAPPER_INSTRUMENTATION` is disabled (the default); it is not proof of an
-early startup crash. Use the actual error in the request log. Worker logs may
-contain private query diagnostics or map inputs; share only the relevant error
-lines and redact sensitive values.
+Stage and attempt events are always emitted; `TOUCH_MAPPER_INSTRUMENTATION`
+adds optional finer details. Worker logs may contain private query diagnostics,
+map inputs, and third-party output; share only relevant error lines after
+redacting sensitive values. The dashboard HTML contains aggregate projections
+only, so inspect private telemetry for raw request and OSM retry details.
 
 ## Local verification
 
