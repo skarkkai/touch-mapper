@@ -89,6 +89,11 @@ blender/blender --background --factory-startup --threads 1 \
 make test-regression
 ```
 
+The quick suite prints a short status and summary during normal deployments.
+Failures print the failing check's output and retain all check logs under
+`.tmp/regression/`. For per-check timings and retained logs on a successful run,
+use `make test-regression-verbose`.
+
 Expected versions are Blender 2.78 (2.78c archive) and Python 3.5.2. The quick
 suite needs neither a rebuilt OSM2World jar nor CairoSVG, AWS, or Playwright.
 `bin/tmpctl` is tracked as executable, but copied checkouts have repeatedly lost

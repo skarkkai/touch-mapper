@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Small offline regression suite; add named commands to checks below."""
+import argparse
 import os
 from pathlib import Path
 import subprocess
@@ -10,12 +11,47 @@ import time
 REPO = Path(__file__).resolve().parents[2]
 
 
-# Run each check in isolation and retain diagnostics when anything fails.
+def run_checks(checks, work, verbose=False):
+    """Run isolated checks, retaining their output when any check fails."""
+    for name, command in checks:
+        tick = time.monotonic()
+        if verbose:
+            print('RUN ' + name, flush=True)
+        try:
+            result = subprocess.run(command, cwd=str(REPO), stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, universal_newlines=True,
+                                    timeout=25, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
+        except subprocess.TimeoutExpired as error:
+            output = error.stdout or ''
+            if isinstance(output, bytes):
+                output = output.decode('utf-8', errors='replace')
+            (work / (name.replace(' ', '-') + '.log')).write_text(output)
+            print('FAIL {} (timed out after {}s)\n{}\nArtifacts: {}'.format(
+                name, error.timeout, output.rstrip(), work), file=sys.stderr)
+            return False
+        except OSError as error:
+            print('FAIL {}: {}\nArtifacts: {}'.format(name, error, work), file=sys.stderr)
+            return False
+        (work / (name.replace(' ', '-') + '.log')).write_text(result.stdout)
+        if result.returncode:
+            print('FAIL {} (exit {})\n{}\nArtifacts: {}'.format(
+                name, result.returncode, result.stdout.rstrip(), work), file=sys.stderr)
+            return False
+        if verbose:
+            print('PASS {} ({:.2f}s)'.format(name, time.monotonic() - tick), flush=True)
+    return True
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--verbose', action='store_true', help='show each check and its timing')
+    parser.add_argument('--keep-logs', action='store_true', help='retain every check log after success')
+    args = parser.parse_args()
     started = time.monotonic()
     subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/regression'], check=True)
     work = Path(tempfile.mkdtemp(prefix='run-', dir=str(REPO / '.tmp/regression')))
     checks = [
+        ('Regression reporting', [sys.executable, str(REPO / 'test/regression/runner_reporting.py'), str(work)]),
         ('Temporary artifact helper', [sys.executable, str(REPO / 'test/regression/tmpctl.py'), str(work)]),
         ('Nightly dashboard', [sys.executable, str(REPO / 'test/regression/dashboard.py'), str(work)]),
         ('AWS runtime Python 3.5', [str(REPO / 'blender/blender'), '--background',
@@ -50,22 +86,14 @@ def main():
                                  '--', str(REPO), str(work)]),
         ('Deployment gates', [sys.executable, str(REPO / 'test/regression/deployment_gates.py'), str(work)]),
     ]
-    for name, command in checks:
-        tick = time.monotonic()
-        print('RUN ' + name, flush=True)
-        try:
-            result = subprocess.run(command, cwd=str(REPO), stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT, universal_newlines=True,
-                                    timeout=25, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
-            (work / (name.replace(' ', '-') + '.log')).write_text(result.stdout)
-            if result.returncode:
-                raise RuntimeError(result.stdout)
-        except (OSError, subprocess.TimeoutExpired, RuntimeError) as error:
-            print('FAIL {}: {}\nArtifacts: {}'.format(name, error, work), file=sys.stderr)
-            return 1
-        print('PASS {} ({:.2f}s)'.format(name, time.monotonic() - tick), flush=True)
-    subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'rm', str(work)], check=True)
-    print('Regression suite passed ({:.2f}s)'.format(time.monotonic() - started))
+    print('Running {} offline regression checks...'.format(len(checks)), flush=True)
+    if not run_checks(checks, work, args.verbose):
+        return 1
+    if args.keep_logs:
+        print('Logs: {}'.format(work))
+    else:
+        subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'rm', str(work)], check=True)
+    print('Regression suite passed: {} checks ({:.2f}s)'.format(len(checks), time.monotonic() - started))
     return 0
 
 

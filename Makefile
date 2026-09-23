@@ -6,12 +6,15 @@ FORCE: ;
 osm2world:
 	cd ./OSM2World && ant clean jar
 
-.PHONY: osm2world test test-regression test-regression-full package test-install-ec2 test-restart prod-install-ec2
+.PHONY: osm2world test test-regression test-regression-verbose test-regression-full package test-install-ec2 test-restart prod-install-ec2
 
 test: test-regression
 
 test-regression:
-	python3 test/regression/run.py
+	@python3 test/regression/run.py
+
+test-regression-verbose:
+	@python3 test/regression/run.py --verbose --keep-logs
 
 test-regression-full: test-regression
 	bash test/run-osm2world-regression.sh
