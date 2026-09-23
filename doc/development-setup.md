@@ -275,39 +275,44 @@ attempt ID, last stage, and exit status. The log alone cannot prove the cause of
 an old OSM failure unless that attempt was recorded by the new code.
 
 Code deployment replaces `dist/` but **does not restart a running poller**.
-Restart at a quiet time so a map in progress can finish. Inspect current
-processes with `ps -ef | grep '[p]oller.sh'`; use `kill -TERM <poller-PID>`
-for each runner you are replacing. The poller finishes its current request-process
-iteration, logs `runner_stop`, and exits without taking another message; wait
-for its process and worker lock to clear. Do not use `make test-restart` for this controlled rollout: the boot-time
-bulk helper stops every poller at once. After `make test-install-ec2`, start one
-test runner on EC2:
+`make test-restart` now restarts only the installed test environment. It sends
+the local restart helper over SSH, asks every existing test poller to stop,
+waits for their worker locks to clear (up to 11 minutes), then starts exactly
+one test runner and confirms it took the lock. Production pollers are untouched.
+The command does not package or upload local code: run `make test-install-ec2`
+first when deploying changes, then `make test-restart`. The new poller finishes
+its current request-process iteration after SIGTERM; a previously deployed
+poller without this drain behavior may interrupt an active map, so restart it
+at a quiet time. A stuck lock or failed startup makes the command fail instead
+of reporting a successful restart. Its output includes the new PID and daily
+log path. To follow it:
 
 ```bash
-cd /home/ubuntu/touch-mapper
-umask 077
-export LC_ALL=en_US.UTF-8
-test_log="$(python3 test/dist/runner-log.py "$PWD/test" 1)"
-nohup "$PWD/test/dist/poller.sh" test 1 >>"$test_log" 2>&1 </dev/null &
+make test-install-ec2
+make test-restart
+ssh tm-ec2 'tail -F /home/ubuntu/touch-mapper/test/logs/1/current.log'
 ```
 
-After `make prod-install-ec2` promotes the tested distribution, stop the old
-production pollers one by one at a quiet time. Start exactly three:
+After `make prod-install-ec2` promotes the tested distribution, run
+`make prod-restart` at a quiet time. It stops only the production pollers, waits
+up to 11 minutes for their worker locks to clear, then starts exactly three
+production runners and verifies that each took its lock. Test remains running.
+Like `test-restart`, this target uses the code already installed on EC2; it does
+not package or upload changes. Restarting an older poller that lacks graceful
+drain behavior may interrupt an active map. A stuck lock or failed startup
+makes the command fail. The output lists the new PIDs and log paths.
 
 ```bash
-cd /home/ubuntu/touch-mapper
-umask 077
-export LC_ALL=en_US.UTF-8
-for worker in 1 2 3; do
-    prod_log="$(python3 prod/dist/runner-log.py "$PWD/prod" "$worker")"
-    nohup "$PWD/prod/dist/poller.sh" prod "$worker" >>"$prod_log" 2>&1 </dev/null &
-done
+make prod-install-ec2
+make prod-restart
+ssh tm-ec2 'tail -F /home/ubuntu/touch-mapper/prod/logs/1/current.log'
 ```
 
-Check `ps -ef | grep '[p]oller.sh'` and each runner's `current.log` for
-`runner_start` after restarting. The boot-time helper now starts one test and
-three production runners too. A dashboard refresh requested by the EC2 install
-target is published after the next successful map under the restarted poller.
+Check the production runners' `current.log` files for `runner_start` and
+`ps -ef | grep '[p]oller.sh'` for three production pollers. The boot-time helper
+also starts one test and three production runners. A dashboard refresh requested
+by the EC2 install target is published after the next successful map under the
+restarted poller.
 
 ## Run OSM -> STL converter service (Linux)
 

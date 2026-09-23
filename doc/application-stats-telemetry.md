@@ -53,10 +53,11 @@ before checking them in test Athena. For production, run `make prod-aws-install`
 (which updates Lambda and prints the next command), then separately run
 `install/cloudformation-update.sh prod` and wait for that stack update. EC2
 `dist/` deployment alone does not update Glue. Promote EC2 code through test
-with `make test-install-ec2` followed by `make prod-install-ec2`, then use the
-[controlled restart commands](development-setup.md#runner-logs-and-controlled-ec2-restart)
-to activate the shell redirection. This preserves one test and three production
-runners.
+with `make test-install-ec2`, then `make test-restart` to activate the new
+shell redirection for the one test runner. After validation, use
+`make prod-install-ec2`, then `make prod-restart` for the three production
+runners. The restart target uses the installed production distribution and does
+not upload code.
 
 ## Deploy code version metadata
 

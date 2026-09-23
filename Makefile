@@ -6,7 +6,7 @@ FORCE: ;
 osm2world:
 	cd ./OSM2World && ant clean jar
 
-.PHONY: osm2world test test-regression test-regression-verbose test-regression-full package test-install-ec2 test-restart prod-install-ec2
+.PHONY: osm2world test test-regression test-regression-verbose test-regression-full package test-install-ec2 test-restart prod-install-ec2 prod-restart
 
 test: test-regression
 
@@ -57,11 +57,13 @@ test-install-ec2: test-regression
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2:touch-mapper/test/dist/
 	ssh tm-ec2 python3 touch-mapper/test/dist/request-dashboard-refresh.py
 
-test-restart: test-regression
-	install/package.sh
-	ssh tm-ec2 touch-mapper/test/dist/ec2-restart-pollers.sh
+test-restart:
+	ssh -T tm-ec2 python3 - /home/ubuntu/touch-mapper/test 1 < converter/restart-poller.py
 
 prod-install-ec2: test-regression
 	install/package.sh
 	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/
 	ssh tm-ec2 python3 touch-mapper/prod/dist/request-dashboard-refresh.py
+
+prod-restart:
+	ssh -T tm-ec2 python3 - /home/ubuntu/touch-mapper/prod 3 < converter/restart-poller.py

@@ -17,9 +17,10 @@ def script(path, body):
 # Exercise actual Make recipes and scripts without giving them remote tools.
 def main():
     fixture = Path(sys.argv[1]) / 'deployment'
-    for directory in ('install', 'test/regression', 'web', 'stubs'):
+    for directory in ('install', 'test/regression', 'web', 'stubs', 'converter'):
         (fixture / directory).mkdir(parents=True, exist_ok=True)
     shutil.copyfile(REPO / 'Makefile', fixture / 'Makefile')
+    shutil.copyfile(REPO / 'converter/restart-poller.py', fixture / 'converter/restart-poller.py')
     # A case-insensitive Mac resolves the OSM2World directory as the build target.
     # Simulate that name collision on every host; the command must still run.
     (fixture / 'osm2world').mkdir(exist_ok=True)
@@ -51,7 +52,6 @@ def main():
         for mode in ('test', 'prod'):
             cases.append(([str(fixture / 'install' / name), mode], ['parameters']))
     for target, after in [('test-install-ec2', ['package', 'rsync', 'ssh']),
-                          ('test-restart', ['package', 'ssh']),
                           ('prod-install-ec2', ['package', 'ssh', 'ssh']),
                           ('test-web-s3-install', ['parameters']),
                           ('test-aws-install', ['parameters', 'gate-start', 'gate-end', 'parameters']),
@@ -68,6 +68,15 @@ def main():
             expected = ['gate-start', 'gate-end'] + ([] if status else after)
             assert events == expected, (command, status, events, expected, result.stdout)
             assert (result.returncode != 0) == bool(status), (command, result.stdout)
+    # Restart streams its helper over SSH and does not package or upload code.
+    for target, environment, count in (('test-restart', 'test', '1'),
+                                       ('prod-restart', 'prod', '3')):
+        log.write_text('')
+        restart = subprocess.run(['make', target], cwd=str(fixture), env=env,
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 universal_newlines=True, timeout=5)
+        assert restart.returncode == 0 and log.read_text().splitlines() == ['ssh'], restart.stdout
+        assert 'python3 - /home/ubuntu/touch-mapper/{} {}'.format(environment, count) in restart.stdout
     # Development entrypoints and standalone packaging retain their previous behavior.
     for command, expected in [(['make', 'package'], ['package']),
                               (['make', 'dev-web-s3-install'], ['parameters']),

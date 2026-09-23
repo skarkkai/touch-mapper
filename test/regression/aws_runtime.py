@@ -64,6 +64,7 @@ def main():
     sys.path.insert(0, str(bundle))
     runpy.run_path(str(REPO / 'converter/process-request.py'), run_name='worker_runtime_check')
     runner_log = runpy.run_path(str(REPO / 'converter/runner-log.py'), run_name='runner_log_runtime_check')
+    runpy.run_path(str(REPO / 'converter/restart-poller.py'), run_name='restart_runtime_check')
     import boto3  # pyright: ignore[reportMissingImports]
     # The SDK upgrade must retain the worker's S3 and SQS resource interfaces too.
     session = boto3.Session(aws_access_key_id='fixture', aws_secret_access_key='fixture',
