@@ -50,10 +50,10 @@ def write_attempt_record(stats_root_dir, record, quicktime_mode=False, s3_resour
     return _write_attempt_record_real_date(stats_root_dir=stats_root_dir, record=record, now_utc=now_utc)
 
 
-# Publish daily after upload, or after a poller's first successful map.
+# Publish daily after upload, after a poller's first map, or after deployment.
 def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
                                  publish_report, now_utc=None, poller_run_id=None,
-                                 poller_work_dir=None, after_map=False):
+                                 poller_work_dir=None, after_map=False, deployment_id=None):
     if now_utc is None:
         now_utc = datetime.datetime.utcnow()
     try:
@@ -62,7 +62,10 @@ def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
                          if poller_run_id and poller_work_dir else None)
         startup_due = (after_map and poller_marker is not None and
                        _read_small_text(poller_marker) != poller_run_id)
-        if not daily_window and not startup_due:
+        deployment_marker = os.path.join(stats_root_dir, '.maintenance', 'dashboard-published-deployment.txt')
+        deployment_due = (after_map and deployment_id and
+                          _read_small_text(deployment_marker) != deployment_id)
+        if not daily_window and not startup_due and not deployment_due:
             return False
         maintenance_dir = _maintenance_dir(stats_root_dir)
         today = now_utc.date().isoformat()
@@ -76,9 +79,11 @@ def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
                 return False
             startup_due = (after_map and poller_marker is not None and
                            _read_small_text(poller_marker) != poller_run_id)
+            deployment_due = (after_map and deployment_id and
+                              _read_small_text(deployment_marker) != deployment_id)
             marker_path = os.path.join(maintenance_dir, 'last-successful-report-utc.txt')
             daily_due = daily_window and (_read_small_text(marker_path) or '') < today
-            if not daily_due and not startup_due:
+            if not daily_due and not startup_due and not deployment_due:
                 return False
             if publish_report(now_utc=now_utc) is False:
                 return False
@@ -86,6 +91,8 @@ def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
                 _write_small_text_atomic(marker_path, today)
             if poller_marker:
                 _write_small_text_atomic(poller_marker, poller_run_id)
+            if deployment_id:
+                _write_small_text_atomic(deployment_marker, deployment_id)
             return True
     except Exception as exc:
         # Report/config/AWS failures are best effort and must never abort a map.

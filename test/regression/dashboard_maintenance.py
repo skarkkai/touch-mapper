@@ -99,7 +99,52 @@ def main():
         check_web_deployment(root)
         check_poller_publication(os.path.join(root, 'poller'))
         check_worker_callback()
+        check_deployment_refresh(os.path.join(root, 'refresh'))
     print('dashboard maintenance regression passed')
+
+
+# A deployment queues one shared refresh, retains failures for retry, and does not
+# let an older in-flight request consume the new token. Use the actual CLI writer.
+def check_deployment_refresh(root):
+    dist = os.path.join(root, 'dist')
+    os.makedirs(dist)
+    for filename in ('request-dashboard-refresh.py', 'stats_pipeline.py'):
+        shutil.copyfile(os.path.join(REPO, 'converter', filename), os.path.join(dist, filename))
+    script = os.path.join(dist, 'request-dashboard-refresh.py')
+    token_path = os.path.join(root, 'dashboard-refresh.txt')
+    subprocess.run([sys.executable, script], check=True, stdout=subprocess.PIPE)
+    first = stats._read_small_text(token_path)
+    subprocess.run([sys.executable, script], check=True, stdout=subprocess.PIPE)
+    second = stats._read_small_text(token_path)
+    assert first and second and first != second
+    events = []
+    callback = lambda **kwargs: events.append('publish') or True
+    def run(token, after_map=True, publish=callback, now=None):
+        return stats.run_daily_maintenance_if_due(
+            os.path.join(root, 'stats'), None, 'fixture', publish,
+            now or datetime.datetime(2026, 3, 1, 0, 10), after_map=after_map, deployment_id=token)
+    assert not run(second, after_map=False)
+    assert run(first)  # An older process finishes with the token it captured.
+    assert not run(second, publish=lambda **kwargs: False)
+    marker = os.path.join(root, 'stats', '.maintenance', 'dashboard-published-deployment.txt')
+    assert stats._read_small_text(marker) == first
+    with stats._exclusive_lock(os.path.join(root, 'stats', '.maintenance', 'report.lock')):
+        assert not run(second)
+    assert run(second)
+    assert not run(second)  # Another poller sees the same shared completion marker.
+    assert events == ['publish', 'publish']
+    # A fresh deployment also refreshes after 00:15 when today's normal report
+    # and telemetry upload were already completed by another poller.
+    subprocess.run([sys.executable, script], check=True, stdout=subprocess.PIPE)
+    third = stats._read_small_text(token_path)
+    stats._write_small_text_atomic(os.path.join(root, 'stats', '.maintenance',
+                                               'last-successful-run-utc.txt'), '2026-03-01')
+    stats._write_small_text_atomic(os.path.join(root, 'stats', '.maintenance',
+                                               'last-successful-report-utc.txt'), '2026-03-01')
+    assert run(third, now=datetime.datetime(2026, 3, 1, 1, 0))
+    assert not run(third, now=datetime.datetime(2026, 3, 1, 1, 0))
+    assert stats._read_small_text(marker) == third
+    assert events == ['publish', 'publish', 'publish']
 
 
 # Check a poller's first-map publication independently of daily markers and cutoff.

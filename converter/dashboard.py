@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """Publish an aggregate-only nightly report, independently of map conversion."""
 import configparser
+import calendar
 import datetime
 import math
 import os
 import re
 import sys
 import time
+from typing import Any, Dict
 
 BUCKETS = {'test': 'test.touch-mapper.org', 'prod': 'touch-mapper.org'}
 ERROR_CODES = ('too_large',)
 STAGES = ('bootstrap', 'poll', 'get-osm', 'osm-to-tactile', 'map-desc',
           'map-content-read', 'prepare-upload', 'upload-primary', 'svg-to-pdf', 'upload-secondary')
 CLASSES = ('RuntimeError', 'ValueError', 'KeyError', 'TypeError', 'OSError',
-           'IOError', 'TimeoutError', 'CalledProcessError', 'ClientError', 'Exception')
+           'IOError', 'TimeoutError', 'CalledProcessError', 'ClientError', 'Exception', 'RequestProcessingError')
 RSS = (('OSM2World', 'rss_osm2world_kib'), ('Blender', 'rss_blender_kib'),
        ('clip-2d', 'rss_clip_2d_kib'), ('Converter process', 'rss_process_request_peak_kib'))
 TIMINGS = (('OSM fetch', 'timing_get_osm_seconds'),
@@ -94,7 +96,7 @@ def build_query(now_utc=None):
     lower_partition = ('"year" >= \'{0}\' AND ("year" > \'{0}\' OR "month" >= \'{1}\')').format(
         start.strftime('%Y'), start.strftime('%m'))
     columns = ['\"timestamp\"', 'status', 'browser_fingerprint', 'failure_stage', 'failure_class',
-               'error_code', 'printing_tech', 'content_mode', 'multipart_mode', 'browser_ip_country_code']
+               'error_code', 'printing_tech', 'content_mode', 'multipart_mode', 'browser_ip_country_code', 'code_commit']
     columns += ['"year"', '"month"'] + [column for label, column in RSS + TIMINGS]
     base = ('WITH history AS (SELECT ' + ', '.join(columns) + ' FROM application_stats_json WHERE '
             '{2} AND status IN (\'success\',\'failed\') AND try_cast(substr("timestamp",1,10) AS date) < DATE \'{0}\'), '
@@ -113,6 +115,11 @@ def build_query(now_utc=None):
                                   ('summary', "''", 'recent')]:
         parts.append("SELECT '{0}' kind, {1} period, '' label, {2} FROM {3}{4}".format(
             kind, period, metrics, source, '' if kind == 'summary' else ' GROUP BY 2'))
+    for outcome in ('success', 'failed'):
+        parts.append("SELECT 'latency_{0}', substr(\"timestamp\",1,10), '', {1} FROM recent "
+                     "WHERE status='{0}' GROUP BY 2".format(outcome, metrics))
+    commit = "CASE WHEN regexp_like(code_commit, '^[0-9a-f]{40}$') THEN code_commit ELSE 'unknown' END"
+    parts.append("SELECT 'releases', min(substr(\"timestamp\",1,10)), {0}, {1} FROM recent GROUP BY 3".format(commit, metrics))
     stage = safe_case('failure_stage', STAGES)
     failure = safe_case('failure_class', CLASSES)
     error = "CASE WHEN error_code IN ('too_large') THEN error_code ELSE concat({0}, ' / ', {1}) END".format(stage, failure)
@@ -121,6 +128,12 @@ def build_query(now_utc=None):
         return ("SELECT '{0}', '', {1}, count(*), 0, 0, 0, CAST(NULL AS double), "
                 "CAST(NULL AS double), CAST(NULL AS double) FROM recent {2} GROUP BY 3").format(kind, expression, condition)
     parts.append(category('errors', error, "WHERE status <> 'success' OR status IS NULL"))
+    parts.append("SELECT 'errors_daily', substr(\"timestamp\",1,10), {0}, count(*), 0, 0, 0, "
+                 "CAST(NULL AS double), CAST(NULL AS double), CAST(NULL AS double) "
+                 "FROM recent WHERE status='failed' GROUP BY 2,3".format(stage))
+    parts.append("SELECT 'osm_classes_daily', substr(\"timestamp\",1,10), {0}, count(*), 0, 0, 0, "
+                 "CAST(NULL AS double), CAST(NULL AS double), CAST(NULL AS double) "
+                 "FROM recent WHERE status='failed' AND failure_stage='get-osm' GROUP BY 2,3".format(failure))
     for kind, stages in [('rss', RSS), ('timings', TIMINGS)]:
         for label, column in stages:
             clean = 'IF({0}>=0,{0},NULL)'.format(column)
@@ -201,22 +214,37 @@ def build_report(rows, environment, now_utc=None):
               'generated_at': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
               'coverage': {'start': str(start), 'end': str(end)},
               'daily': [], 'monthly': [], 'summary': metrics({}), 'errors': [], 'rss': [], 'timings': [],
+              'latency_success': [], 'latency_failed': [], 'errors_daily': [], 'osm_classes_daily': [], 'releases': [],
               'usage': dict((key, []) for key in list(USAGE) + ['countries'])}
     trends = {'daily': {}, 'monthly': {}}
+    cohorts = {'latency_success': {}, 'latency_failed': {}}
+    error_days = {'errors_daily': {}, 'osm_classes_daily': {}}
     safe_errors = set(ERROR_CODES) | set(a + ' / ' + b for a in STAGES + ('unknown',) for b in CLASSES + ('unknown',))
     aggregates = {}
     for row in rows:
         kind, label = row.get('kind'), row.get('label')
-        if kind in trends:
+        if kind in trends or kind in cohorts or kind in error_days:
             period = row.get('period') or ''
-            fmt = '%Y-%m-%d' if kind == 'daily' else '%Y-%m'
+            fmt = '%Y-%m' if kind == 'monthly' else '%Y-%m-%d'
             try:
                 date = datetime.datetime.strptime(period, fmt).date()
             except ValueError:
                 continue
-            if period != date.strftime(fmt) or date > end or (kind == 'daily' and date < start):
+            if period != date.strftime(fmt) or date > end or (kind != 'monthly' and date < start):
                 continue
-            trends[kind][period] = metrics(row)
+            if kind in error_days:
+                allowed = STAGES if kind == 'errors_daily' else CLASSES
+                safe_label = label if label in allowed else 'unknown'
+                day = error_days[kind].setdefault(period, {})
+                day[safe_label] = day.get(safe_label, 0) + int(number(row.get('attempts'), 0) or 0)
+            else:
+                (trends if kind in trends else cohorts)[kind][period] = metrics(row)
+        elif kind == 'releases':
+            if label == 'unknown' or re.fullmatch(r'[0-9a-f]{40}', label or ''):
+                first_seen = row.get('period') or ''
+                if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', first_seen) or not str(start) <= first_seen <= str(end):
+                    first_seen = None
+                report['releases'].append(dict(metrics(row), label=label, first_seen=first_seen))
         elif kind == 'summary':
             report['summary'] = metrics(row)
         elif kind in ('rss', 'timings'):
@@ -238,13 +266,22 @@ def build_report(rows, environment, now_utc=None):
         key = str(date)
         report['daily'].append(dict(metrics({}), period=key))
         report['daily'][-1].update(trends['daily'].get(key, {}))
+        for kind in cohorts:
+            report[kind].append(dict(cohorts[kind].get(key, metrics({})), period=key))
+        for kind in error_days:
+            report[kind].append(dict(error_days[kind].get(key, {}), period=key))
         date += datetime.timedelta(days=1)
     first = min(trends['monthly']) if trends['monthly'] else end.strftime('%Y-%m')
     date = datetime.datetime.strptime(first, '%Y-%m').date()
     while date <= end:
         key = date.strftime('%Y-%m')
-        item = dict(metrics({}), period=key)
+        item = dict(metrics({}), period=key)  # type: Dict[str, Any]
         item.update(trends['monthly'].get(key, {}))
+        month_days = calendar.monthrange(date.year, date.month)[1]
+        observed_days = min(month_days, end.day) if (date.year, date.month) == (end.year, end.month) else month_days
+        item['partial'] = observed_days < month_days
+        item['attempts_per_day'] = item['attempts'] / observed_days
+        item['errors_per_day'] = item['errors'] / observed_days
         report['monthly'].append(item)
         date = datetime.date(date.year + (date.month == 12), date.month % 12 + 1, 1)
     for kind, stages in [('rss', RSS), ('timings', TIMINGS)]:
@@ -258,6 +295,20 @@ def build_report(rows, environment, now_utc=None):
             report[kind].append(item)
     attempts = report['summary']['attempts']
     report['summary']['success_rate'] = report['summary']['successes'] / attempts * 100 if attempts else None
+    for key in ('daily', 'monthly'):
+        for item in report[key]:
+            item['error_rate'] = item['errors'] / item['attempts'] * 100 if item['attempts'] else None
+    for index, item in enumerate(report['daily']):
+        window = report['daily'][index - 6:index + 1] if index >= 6 else []
+        count = sum(row['attempts'] for row in window)
+        item['rolling_error_rate'] = sum(row['errors'] for row in window) / count * 100 if count else None
+    report['recent'] = {}
+    for key, window in [('last7', report['daily'][-7:]), ('previous7', report['daily'][-14:-7])]:
+        count = sum(row['attempts'] for row in window)
+        errors = sum(row['errors'] for row in window)
+        report['recent'][key] = {'attempts': count, 'errors': errors,
+                               'success_rate': (count - errors) / count * 100 if count else None}
+    report['releases'].sort(key=lambda item: -item['attempts'])
     for target in [report['errors']] + list(report['usage'].values()):
         target.sort(key=lambda item: (-item['count'], item['label']))
     report['usage']['countries'] = report['usage']['countries'][:10]

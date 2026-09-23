@@ -52,6 +52,7 @@ test-install-ec2: test-regression
 	# First run: eval "$(ssh-agent -s)"; ssh-add .../ssh-key
 	# "tm-ec2" needs to be defined as a Host in ~/.ssh/config
 	rsync -a --delete --delay-updates -e ssh install/dist/ tm-ec2:touch-mapper/test/dist/
+	ssh tm-ec2 python3 touch-mapper/test/dist/request-dashboard-refresh.py
 
 test-restart: test-regression
 	install/package.sh
@@ -60,3 +61,4 @@ test-restart: test-regression
 prod-install-ec2: test-regression
 	install/package.sh
 	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/
+	ssh tm-ec2 python3 touch-mapper/prod/dist/request-dashboard-refresh.py

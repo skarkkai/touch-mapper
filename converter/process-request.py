@@ -1100,6 +1100,11 @@ def run_stats_maintenance(ctx, after_map=False):
     if after_map and (ctx['status'] != 'success' or not poller_run_id):
         return
     try:
+        # Capture the deployment request before polling; an in-flight old request
+        # must not acknowledge a refresh requested by a subsequent deployment.
+        if 'dashboard_deployment_id' not in ctx:
+            ctx['dashboard_deployment_id'] = stats_pipeline._read_small_text(
+                os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dashboard-refresh.txt'))
         def publish_report(now_utc):
             if ctx['environment'] not in ('test', 'prod'):
                 return False
@@ -1113,7 +1118,8 @@ def run_stats_maintenance(ctx, after_map=False):
             publish_report=publish_report,
             poller_run_id=poller_run_id,
             poller_work_dir=ctx['args'].work_dir,
-            after_map=after_map
+            after_map=after_map,
+            deployment_id=ctx['dashboard_deployment_id']
         )
     except Exception as exc:
         print('stats maintenance failed: {}: {}'.format(type(exc).__name__, exc), file=sys.stderr)

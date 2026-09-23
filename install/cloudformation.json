@@ -768,6 +768,30 @@
           },
           "CacheBehaviors": [
             {
+              "TargetOriginId": "web",
+              "PathPattern": "/dashboard/*",
+              "ViewerProtocolPolicy": "redirect-to-https",
+              "DefaultTTL": 0,
+              "MinTTL": 0,
+              "MaxTTL": 0,
+              "Compress": true,
+              "AllowedMethods": [
+                "HEAD",
+                "GET",
+                "OPTIONS"
+              ],
+              "CachedMethods": [
+                "HEAD",
+                "GET"
+              ],
+              "ForwardedValues": {
+                "QueryString": false,
+                "Cookies": {
+                  "Forward": "none"
+                }
+              }
+            },
+            {
               "TargetOriginId": "maps",
               "PathPattern": "/map/*",
               "ViewerProtocolPolicy": "allow-all",

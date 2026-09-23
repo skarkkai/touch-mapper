@@ -50,9 +50,9 @@ def main():
     for name in ('web-s3.sh', 'lambda-update.sh', 'cloudformation-update.sh'):
         for mode in ('test', 'prod'):
             cases.append(([str(fixture / 'install' / name), mode], ['parameters']))
-    for target, after in [('test-install-ec2', ['package', 'rsync']),
+    for target, after in [('test-install-ec2', ['package', 'rsync', 'ssh']),
                           ('test-restart', ['package', 'ssh']),
-                          ('prod-install-ec2', ['package', 'ssh']),
+                          ('prod-install-ec2', ['package', 'ssh', 'ssh']),
                           ('test-web-s3-install', ['parameters']),
                           ('test-aws-install', ['parameters', 'gate-start', 'gate-end', 'parameters']),
                           ('prod-aws-install', ['parameters'])]:

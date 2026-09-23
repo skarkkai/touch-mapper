@@ -1,5 +1,6 @@
 """Exercise aggregate mapping and AWS publication boundaries without network access."""
 import datetime
+import fnmatch
 import contextlib
 import io
 import importlib.util
@@ -111,6 +112,8 @@ def check_deployment_configs(root, rows):
 
 # Verify real contracts: completed UTC periods, nulls, percentiles and privacy projection.
 def main():
+    check_dashboard_cache_behavior()
+    check_reliability_metrics()
     for moment, upper, lower in [(datetime.datetime(2026, 1, 1), ('2025', '12'), ('2025', '12')),
                                  (datetime.datetime(2026, 3, 1), ('2026', '02'), ('2026', '01')),
                                  (datetime.datetime(2024, 3, 1), ('2024', '02'), ('2024', '01'))]:
@@ -239,6 +242,66 @@ def main():
             else:
                 raise AssertionError('upload failure not propagated')
     print('Dashboard bucketing, privacy, configuration, pagination, failures and atomic publication passed')
+
+
+# CloudFront must route dashboard URLs to the uncached web origin while retaining
+# the separate map path behavior; the S3 no-cache header alone is insufficient.
+def check_dashboard_cache_behavior():
+    template = json.loads((REPO / 'install/cloudformation.json').read_text())
+    config = template['Resources']['CloudFront']['Properties']['DistributionConfig']
+    def route(path):
+        return next((item for item in config['CacheBehaviors']
+                     if fnmatch.fnmatchcase(path, item['PathPattern'])), config['DefaultCacheBehavior'])
+    dashboard = route('/dashboard/opaque-token/index.html')
+    assert dashboard['TargetOriginId'] == 'web'
+    assert (dashboard['MinTTL'], dashboard['DefaultTTL'], dashboard['MaxTTL']) == (0, 0, 0)
+    assert route('/map/example')['TargetOriginId'] == 'maps'
+    assert route('/en/')['TargetOriginId'] == 'web'
+
+
+# Rates use attempt weights; durations stay separated by outcome; month boundaries
+# include leap days, and empty periods never invent latency or failure rates.
+def check_reliability_metrics():
+    rows = [
+        {'kind': 'daily', 'period': '2024-02-28', 'attempts': '10', 'errors': '5', 'successes': '5'},
+        {'kind': 'daily', 'period': '2024-02-29', 'attempts': '90', 'errors': '9', 'successes': '81'},
+        {'kind': 'monthly', 'period': '2024-02', 'attempts': '290', 'errors': '29'},
+        {'kind': 'latency_success', 'period': '2024-02-29', 'attempts': '81', 'p50': '20', 'p95': '60'},
+        {'kind': 'latency_failed', 'period': '2024-02-29', 'attempts': '9', 'p50': '1', 'p95': '2'},
+        {'kind': 'errors_daily', 'period': '2024-02-29', 'label': 'get-osm', 'attempts': '8'},
+        {'kind': 'errors_daily', 'period': '2024-02-29', 'label': 'PRIVATE URL', 'attempts': '1'},
+        {'kind': 'osm_classes_daily', 'period': '2024-02-29', 'label': 'RequestProcessingError', 'attempts': '2'},
+        {'kind': 'osm_classes_daily', 'period': '2024-02-29', 'label': 'PRIVATE URL', 'attempts': '1'},
+        {'kind': 'releases', 'label': 'a' * 40, 'attempts': '100', 'errors': '14'},
+        {'kind': 'releases', 'label': '<PRIVATE SCRIPT>', 'attempts': '1'}]
+    report = publisher.build_report(rows, 'test', datetime.datetime(2024, 3, 1))
+    assert abs(report['daily'][-1]['rolling_error_rate'] - 14) < 1e-9  # Not mean(50%, 10%).
+    assert report['daily'][0]['error_rate'] is None
+    assert report['daily'][5]['rolling_error_rate'] is None
+    assert report['recent']['last7']['success_rate'] == 86
+    assert report['recent']['previous7']['success_rate'] is None
+    assert report['monthly'][0]['attempts_per_day'] == 10
+    assert report['monthly'][0]['partial'] is False
+    assert report['latency_success'][-1]['p50_seconds'] == 20
+    assert report['latency_failed'][-1]['p50_seconds'] == 1
+    assert report['latency_success'][0]['p50_seconds'] is None
+    assert report['errors_daily'][-1] == {'period': '2024-02-29', 'get-osm': 8, 'unknown': 1}
+    assert report['osm_classes_daily'][-1] == {'period': '2024-02-29', 'RequestProcessingError': 2, 'unknown': 1}
+    assert len(report['releases']) == 1
+    partial = publisher.build_report([{'kind': 'monthly', 'period': '2024-02', 'attempts': '200'}],
+                                     'test', datetime.datetime(2024, 2, 21))
+    assert partial['monthly'][0]['partial'] is True
+    assert partial['monthly'][0]['attempts_per_day'] == 10
+    page = render_report(report)
+    assert 'PRIVATE' not in page
+    titles = ['Daily attempts', 'Monthly attempts', 'Daily errors', 'Monthly errors']
+    positions = [page.index('<h2>' + title + '</h2>') for title in titles]
+    assert positions == sorted(positions)
+    assert 'Successful map duration' in page and 'Failed attempt duration' in page
+    sql = publisher.build_query(NOW)
+    assert "WHERE status='success' GROUP BY 2" in sql
+    assert "WHERE status='failed' GROUP BY 2" in sql
+    assert "'errors_daily'" in sql and "'osm_classes_daily'" in sql and "'releases'" in sql
 
 
 if __name__ == '__main__':

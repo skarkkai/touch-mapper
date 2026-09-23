@@ -1,7 +1,7 @@
 # Nightly map-creation dashboard
 
 The converter publishes a self-contained HTML/SVG dashboard for `test` and `prod`.
-There are two publication triggers:
+There are three publication triggers:
 
 - Daily: the first worker startup at or after **00:15 UTC** uploads the previous
   UTC day's telemetry and then publishes the dashboard, once per environment
@@ -10,10 +10,16 @@ There are two publication triggers:
   not already published a dashboard. This also runs before 00:15 or when another
   poller has already completed today's publication. Empty queue polls and failed
   maps do not trigger this exception.
+- After the first successful map handled by a new request process following
+  `make test-install-ec2` or `make prod-install-ec2`. Each deployment writes a new refresh ID beside that
+  environment's `dist/`. A shared marker ensures one successful publication per
+  deployed refresh, even if all pollers stay running. Failed publication retries
+  after a later successful map. Empty polls and failed maps do not trigger it.
 
-The second trigger runs after all map artifacts are uploaded and final telemetry
-is written. Restarting a poller gives it a new lifetime. If publication fails or
-another worker holds the report lock, it retries after a later successful map.
+Both successful-map triggers run after all map artifacts are uploaded and final
+telemetry is written. Restarting a poller gives it a new lifetime. If publication
+fails or another worker holds the report lock, it retries after a later
+successful map.
 A successful daily publication by that poller also satisfies its lifetime trigger.
 Before 00:15, the lifetime trigger uses telemetry already available in Athena and
 leaves the normal daily upload/publication due. At or after 00:15 it first ensures
@@ -21,6 +27,15 @@ today's prior-day telemetry upload has succeeded. Reports always cover completed
 UTC days; the map that triggers publication is not included in today's charts.
 
 These triggers depend on worker activity, not an independent clock or scheduler.
+`prod-install-ec2` promotes the already deployed EC2 test `dist/`; run
+`make test-install-ec2` first so production receives the intended code.
+Both deployment commands queue a dashboard refresh after copying the code.
+No poller restart is needed. A request process reads the refresh ID before its
+SQS poll, which may last up to five minutes. A map handled by a process that
+was already polling when deployment finished can complete without triggering
+the refresh. The first successful map handled by a newly started request
+process publishes it. A process that started before deployment cannot
+acknowledge the new refresh ID. Daily publication can also complete it first.
 
 ## EC2-only configuration
 
@@ -249,11 +264,23 @@ mapping; arbitrary Athena columns and labels are discarded or mapped to unknown.
 - `environment`, `generated_at` (UTC), and `coverage.start` / `coverage.end` give
   the 30 completed UTC day operations window.
 - `daily` and `monthly` contain `period`, `attempts`, `successes`, `errors`,
-  `unique_users`, `p50_seconds`, and `p95_seconds`. Daily periods are ISO dates;
-  monthly periods are `YYYY-MM`. Daily contains exactly 30 buckets. Monthly
+  `unique_users`, `p50_seconds`, `p95_seconds`, and computed `error_rate`.
+  Daily rows also include a weighted seven-day `rolling_error_rate`. Monthly rows
+  include `partial`, `attempts_per_day`, and `errors_per_day`. Daily periods
+  are ISO dates; monthly periods are `YYYY-MM`. Daily contains exactly 30 buckets. Monthly
   starts at the earliest available completed-day attempt and includes the current
   partial month through yesterday. Missing buckets contain zero counts and null
   percentiles; with no history there is one empty current covered-month bucket.
+- `recent` compares failure counts, attempts, and success rates for the last and
+  previous seven completed days.
+- `latency_success` and `latency_failed` contain daily p50/p95 end-to-end
+  seconds for each terminal outcome. Missing measurements remain null.
+- `errors_daily` contains daily counts by allowlisted failure stage.
+- `osm_classes_daily` contains daily counts by allowlisted exception class for
+  failures at the `get-osm` stage.
+- `releases` contains 30-day aggregates by validated 40-character code commit,
+  including first observed date within the window, attempts, failures, and
+  mixed-outcome durations. This is descriptive, not a causal comparison.
 - `summary` contains those same metrics plus `success_rate` (0–100 or null when
   there are no attempts). Unique users and percentiles are recalculated over the
   whole window, never summed or averaged from daily aggregates.
@@ -283,8 +310,12 @@ shown as unavailable, never as zero. `approx_distinct` counts nonempty browser
 fingerprints; fingerprints themselves never leave Athena, and unidentifiable
 attempts do not contribute to that estimate. Approximate users are neither
 verified people nor additive across periods. All grouping uses recorded UTC
-telemetry dates and excludes today. Each trend selector displays one metric and
-one unit at a time.
+telemetry dates and excludes today. The first four charts show daily attempts,
+monthly attempts, daily errors, and monthly errors. Attempts stack successful
+and failed outcomes. The following charts show failure rates, successful and
+failed durations separately, daily errors by stage, and daily OSM failure
+classes. Monthly bars mark partial months; per-day monthly counts divide by elapsed calendar days. The
+first available historical month may have incomplete coverage.
 
 No raw request IDs, addresses, IPs, fingerprints, coordinates, error descriptions
 or exception messages are selected into query results or embedded in HTML. Safe
@@ -302,9 +333,12 @@ do not race the same maintenance stage. A failed report never records success.
 
 The poller exports a fresh `TM_POLLER_RUN_ID` to all its request processes.
 `runtime/<worker>/dashboard-published-poller.txt` records that ID only after a
-successful publication. This keeps the first-map trigger pending across idle
-polls, failures, missing configuration, and report-lock contention. The same
-environment-wide `report.lock` serializes both publication triggers. Each poller
+successful publication. `dashboard-refresh.txt` beside `dist/` records the most
+recent deployment request, and `stats/.maintenance/dashboard-published-deployment.txt`
+records it after a successful publication. These markers keep the successful-map
+triggers pending across idle polls, failures, missing configuration, and report-lock
+contention. The same
+environment-wide `report.lock` serializes all publication triggers. Each poller
 has its own lifetime marker; a new ID on restart makes any old marker ineligible.
 
 A publication issues one aggregate Athena query. Explicit projected year/month
@@ -323,10 +357,44 @@ validates/maps aggregates, renders the entire HTML in memory, then performs one
 S3 `PutObject`. S3 replaces the destination object atomically: clients see the
 previous complete report or the next complete report, never a partially uploaded
 page. Failed queries/rendering cause no web-bucket write; failed writes leave the
-report marker unset. Query retries start afresh on later worker starts.
+report marker unset. Query retries start afresh on later eligible worker activity.
 
-`Cache-Control: no-cache` requests revalidation; CloudFront policies must respect
-this header or otherwise use a suitably short TTL for the dashboard prefix.
+The HTML object has `Cache-Control: no-cache`. The site's default CloudFront
+behavior forces a one-hour minimum TTL, which overrides that header. The
+`/dashboard/*` ordered behavior in `install/cloudformation.json` sets minimum,
+default, and maximum TTL to zero, so dashboard requests reach the current S3
+object while the rest of the website retains its existing cache behavior.
+Deploy the AWS infrastructure change from the repository root:
+
+```bash
+make test-aws-install
+make prod-aws-install
+install/cloudformation-update.sh prod
+```
+
+`make prod-aws-install` updates Lambda but only prints the production CloudFormation
+command; run the last command explicitly. Wait for the production stack update
+and CloudFront deployment. Then invalidate old dashboard objects already held
+at CloudFront edges, using the production stack's distribution ID:
+
+```bash
+aws cloudformation wait stack-update-complete --stack-name TouchMapperProd
+dashboard_distribution_id=$(aws cloudformation describe-stack-resource \
+  --stack-name TouchMapperProd --logical-resource-id CloudFront \
+  --query 'StackResourceDetail.PhysicalResourceId' --output text)
+aws cloudfront wait distribution-deployed --id "$dashboard_distribution_id"
+dashboard_invalidation_id=$(aws cloudfront create-invalidation \
+  --distribution-id "$dashboard_distribution_id" --paths '/dashboard/*' \
+  --query 'Invalidation.Id' --output text)
+aws cloudfront wait invalidation-completed \
+  --distribution-id "$dashboard_distribution_id" --id "$dashboard_invalidation_id"
+```
+
+After invalidation completes, compare browsers. Reload the original
+URL; a query string alone cannot bypass this distribution's default cache key,
+which ignores query strings. The EC2 code deployment does not change CloudFront
+configuration.
+
 Athena and upload activity are best-effort maintenance, separate from map output.
 The monthly aggregate is regenerated from currently available history at every
 publication, so retention/removal of telemetry can change historical buckets.
