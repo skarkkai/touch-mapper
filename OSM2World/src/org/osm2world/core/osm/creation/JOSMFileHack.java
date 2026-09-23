@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -78,6 +79,7 @@ public final class JOSMFileHack {
 		/* parse original file */
 		
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		Document doc = db.parse(josmFile);
 		
@@ -141,6 +143,8 @@ public final class JOSMFileHack {
 		tempFile.deleteOnExit();
 		
 		TransformerFactory tFactory = TransformerFactory.newInstance();
+		tFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		tFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 		Transformer transformer = tFactory.newTransformer();
 		
 		DOMSource source = new DOMSource(doc);
