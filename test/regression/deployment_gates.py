@@ -54,7 +54,7 @@ def main():
     for target, after in [('test-install-ec2', ['package', 'rsync', 'ssh']),
                           ('prod-install-ec2', ['package', 'ssh', 'ssh']),
                           ('test-web-s3-install', ['parameters']),
-                          ('test-aws-install', ['parameters', 'gate-start', 'gate-end', 'parameters']),
+                          ('test-aws-install', ['parameters', 'parameters']),
                           ('prod-aws-install', ['parameters'])]:
         cases.append((['make', '-j8', target], after))
     for command, after in cases:
@@ -68,6 +68,25 @@ def main():
             expected = ['gate-start', 'gate-end'] + ([] if status else after)
             assert events == expected, (command, status, events, expected, result.stdout)
             assert (result.returncode != 0) == bool(status), (command, result.stdout)
+    # AWS reports an unchanged stack as an error; that must be an idempotent success.
+    script(fixture / 'install/parameters.sh',
+           'echo stack_name=TouchMapperTest\necho env_name=test\necho is_dev_env=false\necho domain=test.touch-mapper.org')
+    script(fixture / 'stubs/aws',
+           'if [[ $2 == update-stack ]]; then echo "No updates are to be performed." >&2; exit 1; fi')
+    log.write_text('')
+    env['GATE_RESULT'] = '0'
+    unchanged = subprocess.run([str(fixture / 'install/cloudformation-update.sh'), 'test'],
+                               cwd=str(fixture), env=env, stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, universal_newlines=True, timeout=5)
+    assert unchanged.returncode == 0 and 'already up to date' in unchanged.stdout, unchanged.stdout
+    script(fixture / 'stubs/aws',
+           'if [[ $2 == update-stack ]]; then echo "Access denied" >&2; exit 1; fi')
+    denied = subprocess.run([str(fixture / 'install/cloudformation-update.sh'), 'test'],
+                            cwd=str(fixture), env=env, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, universal_newlines=True, timeout=5)
+    assert denied.returncode != 0 and 'Access denied' in denied.stdout, denied.stdout
+    script(fixture / 'install/parameters.sh', 'echo parameters >> "$GATE_LOG"\necho "exit 0"')
+    script(fixture / 'stubs/aws', 'echo aws >> "$GATE_LOG"')
     # Restart streams its helper over SSH and does not package or upload code.
     for target, environment, count in (('test-restart', 'test', '1'),
                                        ('prod-restart', 'prod', '3')):
@@ -86,7 +105,47 @@ def main():
         subprocess.run(command, cwd=str(fixture), env=env, check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         assert log.read_text().splitlines() == expected
-    print('Direct scripts, parallel Make, failure barriers, and unchanged dev/package behavior passed')
+    # Full wrappers must run AWS, wait for the stack, then web, EC2, and restart.
+    for name, label in (('lambda-update.sh', 'lambda'),
+                        ('cloudformation-update.sh', 'cloudformation'),
+                        ('web-s3.sh', 'web')):
+        body = 'echo {}:$1 >> "$GATE_LOG"'.format(label)
+        if label == 'cloudformation':
+            body += '\nexit "${DEPLOY_CF_RESULT:-0}"'
+        script(fixture / 'install' / name, body)
+    script(fixture / 'stubs/aws', 'echo aws:$* >> "$GATE_LOG"')
+    env['GATE_RESULT'] = '0'
+    for target, environment, ec2_events in (
+            ('test-deploy', 'test', ['package', 'rsync', 'ssh', 'ssh']),
+            ('prod-deploy', 'prod', ['package', 'ssh', 'ssh', 'ssh'])):
+        log.write_text('')
+        env['GATE_RESULT'] = '1'
+        blocked = subprocess.run(['make', '-j8', target], cwd=str(fixture), env=env,
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 universal_newlines=True, timeout=5)
+        assert blocked.returncode != 0 and log.read_text().splitlines() == [
+            'gate-start', 'gate-end'], (target, blocked.stdout, log.read_text())
+        log.write_text('')
+        env['GATE_RESULT'] = '0'
+        env['DEPLOY_CF_RESULT'] = '0'
+        result = subprocess.run(['make', '-j8', target], cwd=str(fixture), env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                universal_newlines=True, timeout=5)
+        expected = ['gate-start', 'gate-end'] + [
+            'lambda:' + environment, 'cloudformation:' + environment,
+            'aws:cloudformation wait stack-update-complete --stack-name TouchMapper' +
+            environment.capitalize(), 'web:' + environment] + ec2_events
+        assert result.returncode == 0 and log.read_text().splitlines() == expected, \
+            (target, log.read_text(), result.stdout)
+        log.write_text('')
+        env['DEPLOY_CF_RESULT'] = '1'
+        failed = subprocess.run(['make', target], cwd=str(fixture), env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                universal_newlines=True, timeout=5)
+        assert failed.returncode != 0, (target, failed.stdout)
+        assert log.read_text().splitlines() == ['gate-start', 'gate-end'] + [
+            'lambda:' + environment, 'cloudformation:' + environment], log.read_text()
+    print('Direct scripts, deployment ordering, failure barriers, and unchanged dev/package behavior passed')
 
 
 if __name__ == '__main__':

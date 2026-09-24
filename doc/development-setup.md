@@ -279,7 +279,23 @@ signal. A hard kill may leave no terminal telemetry, but the log keeps the
 attempt ID, last stage, and exit status. The log alone cannot prove the cause of
 an old OSM failure unless that attempt was recorded by the new code.
 
-Code deployment replaces `dist/` but **does not restart a running poller**.
+## Full test and production deployments
+
+From the repository root, use `make test-deploy` to run the quick regression,
+update test Lambda and CloudFormation, wait for the stack update, publish the
+web app, install the EC2 distribution, and restart the test poller. Use
+`make prod-deploy` for the same production sequence. It publishes production
+web assets directly; `make prod-web-s3-install` remains a reminder-only target.
+Each full deployment runs the quick regression once and stops at the first
+failed step. They require the existing AWS
+credentials, SSH host `tm-ec2`, build tools, and web dependencies.
+
+Production EC2 deployment promotes the `test/dist/` already installed on the
+shared server. Run and validate `make test-deploy` first to stage the intended
+code; `make prod-deploy` does not package local code for production. A poller
+restart waits for active work to drain and can take up to 11 minutes.
+
+The individual EC2 install targets replace `dist/` but **do not restart a running poller**.
 `make test-restart` now restarts only the installed test environment. It sends
 the local restart helper over SSH, asks every existing test poller to stop,
 waits for their worker locks to clear (up to 11 minutes), then starts exactly

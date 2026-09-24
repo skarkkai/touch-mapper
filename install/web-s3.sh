@@ -9,7 +9,7 @@ fi
 environment=$1
 
 # Validate local code before any deployment preparation or remote operation.
-if [[ "$environment" == test || "$environment" == prod ]]; then
+if [[ ${TM_REGRESSION_ALREADY_PASSED:-} != 1 && ( "$environment" == test || "$environment" == prod ) ]]; then
     make -C "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" test-regression
 fi
 

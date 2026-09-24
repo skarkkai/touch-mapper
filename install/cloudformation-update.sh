@@ -9,7 +9,7 @@ fi
 environment=$1
 
 # Validate local code before any deployment preparation or remote operation.
-if [[ "$environment" == test || "$environment" == prod ]]; then
+if [[ ${TM_REGRESSION_ALREADY_PASSED:-} != 1 && ( "$environment" == test || "$environment" == prod ) ]]; then
     make -C "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" test-regression
 fi
 
@@ -31,5 +31,12 @@ echo "domain: $domain"
 
 cmd="aws cloudformation $mode-stack --stack-name $stack_name --template-body file://cloudformation.json --capabilities CAPABILITY_IAM --parameters ParameterKey=Environment,ParameterValue=$env_name ParameterKey=IsDevEnv,ParameterValue=$is_dev_env ParameterKey=Domain,ParameterValue=$domain"
 echo "Running: $cmd"
-$cmd
+if output=$($cmd 2>&1); then
+    printf '%s\n' "$output"
+elif [[ $mode == update && $output == *"No updates are to be performed"* ]]; then
+    echo "CloudFormation stack is already up to date: $stack_name"
+else
+    printf '%s\n' "$output" >&2
+    exit 1
+fi
 

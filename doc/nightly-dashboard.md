@@ -227,6 +227,10 @@ SHOW COLUMNS IN touch_mapper_stats_test.application_stats_json;
 ```
 
 If that column is missing, deploy the repository's AWS infrastructure changes.
+For a complete deployment, `make test-deploy` and `make prod-deploy` include
+their respective Lambda and CloudFormation updates, web publication, EC2
+installation, and poller restart. Deploy and validate test before production.
+
 From the repository root on your deployment machine, with the appropriate AWS
 credentials, run:
 

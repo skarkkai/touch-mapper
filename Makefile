@@ -6,7 +6,7 @@ FORCE: ;
 osm2world:
 	cd ./OSM2World && ant clean jar
 
-.PHONY: osm2world test test-regression test-regression-verbose test-regression-full package test-install-ec2 test-restart prod-install-ec2 prod-restart
+.PHONY: osm2world test test-regression test-regression-verbose test-regression-full package test-install-ec2 test-restart prod-install-ec2 prod-restart test-deploy prod-deploy
 
 test: test-regression
 
@@ -30,19 +30,19 @@ dev-aws-install:
 	install/lambda-update.sh dev
 	install/cloudformation-update.sh dev
 
-test-aws-install:
-	install/lambda-update.sh test
-	install/cloudformation-update.sh test
+test-aws-install: $(if $(filter 1,$(TM_REGRESSION_ALREADY_PASSED)),,test-regression)
+	TM_REGRESSION_ALREADY_PASSED=1 install/lambda-update.sh test
+	TM_REGRESSION_ALREADY_PASSED=1 install/cloudformation-update.sh test
 
-prod-aws-install:
-	install/lambda-update.sh prod
+prod-aws-install: $(if $(filter 1,$(TM_REGRESSION_ALREADY_PASSED)),,test-regression)
+	TM_REGRESSION_ALREADY_PASSED=1 install/lambda-update.sh prod
 	@echo 'run: install/cloudformation-update.sh prod'
 
 dev-web-s3-install:
 	install/web-s3.sh dev
 
-test-web-s3-install:
-	install/web-s3.sh test
+test-web-s3-install: $(if $(filter 1,$(TM_REGRESSION_ALREADY_PASSED)),,test-regression)
+	TM_REGRESSION_ALREADY_PASSED=1 install/web-s3.sh test
 
 prod-web-s3-install:
 	@echo 'run: install/web-s3.sh prod'
@@ -50,7 +50,7 @@ prod-web-s3-install:
 package:
 	install/package.sh
 
-test-install-ec2: test-regression
+test-install-ec2: $(if $(filter 1,$(TM_REGRESSION_ALREADY_PASSED)),,test-regression)
 	install/package.sh
 	# First run: eval "$(ssh-agent -s)"; ssh-add .../ssh-key
 	# "tm-ec2" needs to be defined as a Host in ~/.ssh/config
@@ -60,10 +60,30 @@ test-install-ec2: test-regression
 test-restart:
 	ssh -T tm-ec2 python3 - /home/ubuntu/touch-mapper/test 1 < converter/restart-poller.py
 
-prod-install-ec2: test-regression
+prod-install-ec2: $(if $(filter 1,$(TM_REGRESSION_ALREADY_PASSED)),,test-regression)
 	install/package.sh
 	ssh tm-ec2 rsync -a --delete touch-mapper/test/dist touch-mapper/prod/
 	ssh tm-ec2 python3 touch-mapper/prod/dist/request-dashboard-refresh.py
 
 prod-restart:
 	ssh -T tm-ec2 python3 - /home/ubuntu/touch-mapper/prod 3 < converter/restart-poller.py
+
+# Use the standalone targets in order. A full deployment passes its successful
+# regression result into sub-makes and deployment scripts, avoiding repeat runs.
+test-deploy: test-regression
+	+$(MAKE) test-aws-install TM_REGRESSION_ALREADY_PASSED=1
+	aws cloudformation wait stack-update-complete --stack-name TouchMapperTest
+	+$(MAKE) test-web-s3-install TM_REGRESSION_ALREADY_PASSED=1
+	+$(MAKE) test-install-ec2 TM_REGRESSION_ALREADY_PASSED=1
+	+$(MAKE) test-restart
+
+# Production EC2 code is promoted from the distribution already staged in test.
+# The standalone production AWS and web targets intentionally print their manual
+# follow-ups, so the wrapper executes those two steps explicitly.
+prod-deploy: test-regression
+	+$(MAKE) prod-aws-install TM_REGRESSION_ALREADY_PASSED=1
+	TM_REGRESSION_ALREADY_PASSED=1 install/cloudformation-update.sh prod
+	aws cloudformation wait stack-update-complete --stack-name TouchMapperProd
+	TM_REGRESSION_ALREADY_PASSED=1 install/web-s3.sh prod
+	+$(MAKE) prod-install-ec2 TM_REGRESSION_ALREADY_PASSED=1
+	+$(MAKE) prod-restart
