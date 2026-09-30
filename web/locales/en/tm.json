@@ -200,7 +200,7 @@
     "error_sending_email": "Error sending email",
     "conversion_error_unknown": "Map conversion failed.",
     "conversion_error_too_large": "Map is too dense to process.",
-    "conversion_error_too_many_nodes": "This map area has too much data. Choose a smaller area and try again. Changing Map content will not help.",
+    "conversion_error_too_many_nodes": "This map area has too much data. Choose a smaller area and try again. Changing map content will not help.",
     "drag_map": "Drag the map to adjust location",
     "label_3d_preview": "3D preview of the tactile map",
     "map_preview_controls_hint": "You can zoom, rotate and pan the map",
