@@ -654,7 +654,7 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
         source_key = 'map/data/' + source_request_id + '.osm.gz'
         detail = {'number': 1, 'provider': 'stored_map', 'source_key': source_key}
         stored_start = time_clock()
-        print('{} INFO osm_fetch_start provider=stored_map retry=1'.format(now_iso_utc()), flush=True)
+        print('{} INFO osm_fetch_start provider=stored_map attempt=1'.format(now_iso_utc()), flush=True)
         try:
             if bucket is None:
                 raise RequestProcessingError(code='unknown', description='Map source storage unavailable')
@@ -667,12 +667,12 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
             detail.update(status='failed', elapsed_seconds=duration_since(stored_start),
                           exception_class=type(error).__name__, error_detail=str(error))
             attempt_records.append(detail)
-            print('{} ERROR osm_fetch_failed provider=stored_map retry=1 exception={}'.format(
+            print('{} ERROR osm_fetch_failed provider=stored_map attempt=1 exception={}'.format(
                 now_iso_utc(), type(error).__name__), flush=True)
             raise
         detail.update(status='success', elapsed_seconds=duration_since(stored_start), bytes=size)
         attempt_records.append(detail)
-        print('{} INFO osm_fetch_success provider=stored_map bytes={}'.format(now_iso_utc(), size), flush=True)
+        print('{} INFO osm_fetch_success provider=stored_map attempt=1 bytes={}'.format(now_iso_utc(), size), flush=True)
         return (osm_path, size, size, None, 0, 0, 'stored_map', source_key)
     eff_area = request_body['effectiveArea']
     bbox = "{},{},{},{}".format( eff_area['lonMin'], eff_area['latMin'], eff_area['lonMax'], eff_area['latMax'] )
@@ -690,11 +690,11 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
     ]
     for i, attempt in enumerate(attempts):
         url_parts = urllib.parse.urlsplit(attempt['url'])
-        endpoint = url_parts.netloc + url_parts.path
+        endpoint = url_parts.scheme + '://' + url_parts.netloc + url_parts.path
         detail = {'number': i + 1, 'provider': attempt['provider'],
                   'endpoint': endpoint, 'url': attempt['url']}
         fetch_start_time = time_clock()
-        print('{} INFO osm_fetch_start provider={} endpoint={} retry={}'.format(
+        print('{} INFO osm_fetch_start provider={} endpoint={} attempt={}'.format(
             now_iso_utc(), attempt['provider'], endpoint, i + 1), flush=True)
         try:
             attempt['method'](attempt['url'])
@@ -703,7 +703,7 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
             detail.update(status='success', elapsed_seconds=fetch_attempt_seconds,
                           bytes=fetched_osm_bytes)
             attempt_records.append(detail)
-            print('{} INFO osm_fetch_success provider={} endpoint={} retry={} elapsed_seconds={:.3f} bytes={}'.format(
+            print('{} INFO osm_fetch_success provider={} endpoint={} attempt={} elapsed_seconds={:.3f} bytes={}'.format(
                 now_iso_utc(), attempt['provider'], endpoint, i + 1,
                 fetch_attempt_seconds, fetched_osm_bytes), flush=True)
             prune_rss_kib = None
@@ -751,7 +751,7 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
         except Exception as e:
             elapsed = duration_since(fetch_start_time)
             if detail.get('status') == 'success':
-                print('{} ERROR osm_postfetch_failed provider={} endpoint={} retry={} exception={}'.format(
+                print('{} ERROR osm_postfetch_failed provider={} endpoint={} attempt={} exception={}'.format(
                     now_iso_utc(), attempt['provider'], endpoint, i + 1, type(e).__name__), flush=True)
                 raise
             if detail.get('status') != 'success':
@@ -769,7 +769,7 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
                 if errno is not None:
                     detail['errno'] = errno
                 attempt_records.append(detail)
-                print('{} ERROR osm_fetch_failed provider={} endpoint={} retry={} elapsed_seconds={:.3f} exception={} errno={} http_status={}'.format(
+                print('{} ERROR osm_fetch_failed provider={} endpoint={} attempt={} elapsed_seconds={:.3f} exception={} errno={} http_status={}'.format(
                     now_iso_utc(), attempt['provider'], endpoint, i + 1, elapsed,
                     type(e).__name__, detail.get('errno'), detail.get('http_status')), flush=True)
             if isinstance(e, RequestProcessingError):

@@ -23,11 +23,16 @@ def check_startup(root, environment, configured, locked=False):
         config.write_text('[dashboard]\n')
     shell_stubs = root / 'shell-stubs'
     shell_stubs.write_text('''
+python3() {
+    if [[ "$1" == -c && "$2" == 'import sys; print(sys.version_info[:2] == (3, 5))' ]]; then echo True; return; fi
+    command python3 "$@"
+}
 flock() { return "$POLLER_TEST_LOCK_STATUS"; }
 timeout() {
     POLLER_TEST_REQUESTS=$(( ${POLLER_TEST_REQUESTS:-0} + 1 ))
     echo "$TM_POLLER_RUN_ID $TM_ATTEMPT_ID" >> "$POLLER_TEST_IDENTITIES"
     echo "fixture stdout iteration $POLLER_TEST_REQUESTS"
+    echo "fixture warning filter $PYTHONWARNINGS"
     echo "fixture stderr iteration $POLLER_TEST_REQUESTS" >&2
     if [[ $POLLER_TEST_REQUESTS -eq 1 ]]; then return 7; fi
     if [[ $POLLER_TEST_REQUESTS -eq 3 ]]; then exit 0; fi
@@ -51,6 +56,9 @@ timeout() {
     expected = int(not configured and environment in ('test', 'prod'))
     assert log.count(warning) == expected, log
     assert log.count('fixture stdout') == 3 and log.count('fixture stderr') == 3, log
+    assert log.count('boto3_python35_unsupported') == 1, log
+    assert log.count('fixture warning filter') == 3, log
+    assert log.count('ignore:Boto3 will no longer support Python 3.5') == 3, log
     assert 'attempt_failed' in log and 'exit_code=7' in log, log
     assert not (deployment / 'runtime' / '1' / 'request.log').exists()
     identities = (root / 'identities').read_text().splitlines()
@@ -115,7 +123,7 @@ timeout() {
     previous = (deployment / 'logs/1/2026-09-23.log').read_text()
     current = (deployment / 'logs/1/2026-09-24.log').read_text()
     assert 'child iteration 1' in previous and 'attempt_exit' in previous
-    assert 'child iteration 2' in current and 'runner_log_open' in current
+    assert 'child iteration 2' in current and 'runner_log_rotated' in current
     assert (deployment / 'logs/1/current.log').resolve().name == '2026-09-24.log'
 
 
@@ -146,6 +154,7 @@ def check_graceful_stop(root):
         assert daily.count('attempt_start ') == 1, daily
         assert 'completed-work' in daily and 'attempt_exit ' in daily, daily
         assert 'runner_stop ' in daily, daily
+        assert 'reason=signal signal=TERM' in daily, daily
     finally:
         if poller.poll() is None:
             poller.kill()

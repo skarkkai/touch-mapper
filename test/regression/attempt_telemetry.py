@@ -74,6 +74,8 @@ def main():
         assert records[0]['url'] == 'https://api.openstreetmap.org/api/0.6/map?bbox=1,2,3,4'
         main_api.assert_called_once()
         assert 'bbox=' not in output.getvalue()
+        assert 'endpoint=https://api.openstreetmap.org/api/0.6/map attempt=1' in output.getvalue()
+        assert 'retry=' not in output.getvalue()
 
         def busy_main(url, timeout, osm_path):
             raise urllib.error.HTTPError(url, 504, 'Gateway Timeout', Message(),

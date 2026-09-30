@@ -130,7 +130,10 @@ def check_deployment_refresh(root):
     assert stats._read_small_text(marker) == first
     with stats._exclusive_lock(os.path.join(root, 'stats', '.maintenance', 'report.lock')):
         assert not run(second)
-    assert run(second)
+    publication_log = io.StringIO()
+    with contextlib.redirect_stdout(publication_log):
+        assert run(second)
+    assert 'dashboard_publish_success triggers=deployment' in publication_log.getvalue()
     assert not run(second)  # Another poller sees the same shared completion marker.
     assert events == ['publish', 'publish']
     # A fresh deployment also refreshes after 00:15 when today's normal report

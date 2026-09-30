@@ -157,7 +157,10 @@ def restart(environment_dir, desired_count, wait_seconds=DEFAULT_WAIT_SECONDS):
         os.fchmod(lock.fileno(), 0o600)
         fcntl.flock(lock, fcntl.LOCK_EX)
         old = poller_processes(environment_dir, environment)
-        print('Stopping {} {} poller process(es) in {}'.format(len(old), environment, environment_dir), flush=True)
+        message = 'Stopping {} {} poller process(es) in {}'.format(len(old), environment, environment_dir)
+        if old:
+            message += '; create some maps to drain the converter processes, or wait for their current polls to time out'
+        print(message, flush=True)
         for pid in old:
             try:
                 os.kill(pid, signal.SIGTERM)

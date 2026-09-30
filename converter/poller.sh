@@ -21,12 +21,21 @@ cd "$dist_dir" || exit 1
 exec 200>"$work_dir/lockfile"
 flock --exclusive --nonblock 200 || exit 1
 stop_requested=0
-trap 'stop_requested=1' TERM INT
+stop_signal=
+trap 'stop_requested=1; stop_signal=TERM' TERM
+trap 'stop_requested=1; stop_signal=INT' INT
 current_log="$(python3 "$dist_dir/runner-log.py" "$environment_dir" "$worker_name")" || exit 1
 exec >>"$current_log" 2>&1
 export TM_POLLER_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
 revision="$(awk 'NR==1 {print $4}' VERSION.txt 2>/dev/null)"
 echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_start environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID revision=${revision:-unknown}"
+# Boto3's Python 3.5 warning otherwise repeats on every short-lived poll process.
+legacy_sdk_warning=0
+if [[ "$(python3 -c 'import sys; print(sys.version_info[:2] == (3, 5))')" == True ]]; then
+    legacy_sdk_warning=1
+    export PYTHONWARNINGS="${PYTHONWARNINGS:+$PYTHONWARNINGS,}ignore:Boto3 will no longer support Python 3.5"
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING boto3_python35_unsupported runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID"
+fi
 if [[ "$environment" == test || "$environment" == prod ]]; then
     dashboard_config="$environment_dir/dashboard.env"
     if [[ ! -f "$dashboard_config" ]]; then
@@ -45,7 +54,10 @@ while true; do
         if : >>"$next_log"; then
             exec >>"$next_log" 2>&1
             current_log="$next_log"
-            echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_log_open path=$current_log"
+            echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_log_rotated environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID revision=${revision:-unknown} path=$current_log"
+            if [[ $legacy_sdk_warning -eq 1 ]]; then
+                echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING boto3_python35_unsupported runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID"
+            fi
         else
             echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING runner log rotation open failed; retaining $current_log" >&2
         fi
@@ -62,4 +74,8 @@ while true; do
         echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) ERROR attempt_failed attempt_id=$attempt_id exit_code=$exit_code" >&2
     fi
 done
-echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_stop environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID"
+if [[ -n $stop_signal ]]; then
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_stop environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID reason=signal signal=$stop_signal"
+else
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_stop environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID reason=normal"
+fi

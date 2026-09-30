@@ -25,6 +25,10 @@ Before 00:15, the lifetime trigger uses telemetry already available in Athena an
 leaves the normal daily upload/publication due. At or after 00:15 it first ensures
 today's prior-day telemetry upload has succeeded. Reports always cover completed
 UTC days; the map that triggers publication is not included in today's charts.
+Successful dashboard publication writes `dashboard_publish_success` to the
+private runner log with the active trigger (`daily`, `poller`, or `deployment`).
+A missing dashboard configuration is warned about at runner start and on daily
+log rotation; it disables publication until configured.
 
 These triggers depend on worker activity, not an independent clock or scheduler.
 `prod-install-ec2` promotes the already deployed EC2 test `dist/`; run

@@ -95,6 +95,10 @@ def run_daily_maintenance_if_due(stats_root_dir, s3_resource, stats_bucket_name,
                 _write_small_text_atomic(poller_marker, poller_run_id)
             if deployment_id:
                 _write_small_text_atomic(deployment_marker, deployment_id)
+            triggers = ','.join(name for name, due in (
+                ('daily', daily_due), ('poller', startup_due), ('deployment', deployment_due)) if due)
+            print('{} INFO dashboard_publish_success triggers={}'.format(
+                now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'), triggers), flush=True)
             return True
     except Exception as exc:
         # Report/config/AWS failures are best effort and must never abort a map.

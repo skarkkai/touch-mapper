@@ -250,7 +250,11 @@ The poller writes all its own output, request-process output, and converter chil
 output to `logs/<worker-id>/YYYY-MM-DD.log` in its environment. `current.log`
 points to the active UTC day. It appends after a same-day restart, switches files
 between request-process iterations, and keeps today plus the preceding 29 UTC
-dates. A request that spans midnight finishes in its starting file. On startup
+dates. A request that spans midnight finishes in its starting file. A new day
+begins with `runner_log_rotated` from the existing poller; it is not a new
+runner. `runner_stop` includes its signal when a controlled restart requests
+shutdown. The legacy Python 3.5/Boto3 warning appears once per runner start
+and after midnight rotation instead of once per polling process. On startup
 and once per UTC day, one worker removes expired dated logs across all runners,
 including retired ones. The next startup resumes cleanup if an environment was
 stopped. Only recognized dated log files are reaped; other files are left alone.
@@ -262,6 +266,11 @@ From EC2 as `ubuntu`, follow one runner with:
 ```bash
 tail -F /home/ubuntu/touch-mapper/prod/logs/1/current.log
 ```
+
+OSM fetch events show the HTTPS endpoint without its private bounding box;
+`attempt=1` means the first source attempt. A successful dashboard publication
+writes `dashboard_publish_success` with its trigger. A missing dashboard
+configuration is warned about at runner start and daily log rotation.
 
 Search by `attempt_id` (printed at `attempt_start`, in process events, and in
 telemetry), or by the map ID:
@@ -294,6 +303,8 @@ Production EC2 deployment promotes the `test/dist/` already installed on the
 shared server. Run and validate `make test-deploy` first to stage the intended
 code; `make prod-deploy` does not package local code for production. A poller
 restart waits for active work to drain and can take up to 11 minutes.
+The restart message suggests creating maps to wake current long polls; waiting
+for the existing polls to time out also allows them to drain.
 
 The individual EC2 install targets replace `dist/` but **do not restart a running poller**.
 `make test-restart` now restarts only the installed test environment. It sends

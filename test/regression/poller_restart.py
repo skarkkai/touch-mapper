@@ -11,6 +11,7 @@ import time
 
 REPO = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('restart_poller', str(REPO / 'converter/restart-poller.py'))
+assert spec is not None and spec.loader is not None
 restart_poller = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(restart_poller)
 
@@ -111,6 +112,7 @@ def main():
                                           stderr=subprocess.STDOUT, universal_newlines=True,
                                           timeout=8)
             assert prod_restart.returncode == 0, prod_restart.stdout
+            assert 'create some maps to drain the converter processes' in prod_restart.stdout
             assert all(process.poll() is not None for process in old[2:]), prod_restart.stdout
             prod_running = restart_poller.poller_processes(str(prod_dir), 'prod')
             assert sorted(prod_running.values()) == ['1', '2', '3'], prod_running
@@ -129,6 +131,7 @@ def main():
                                        str(block_lock)], stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE, universal_newlines=True)
             try:
+                assert holder.stdout is not None
                 assert holder.stdout.readline().strip() == 'locked'
                 blocked = subprocess.run([sys.executable, str(REPO / 'converter/restart-poller.py'),
                                           str(blocked_dir), '1', '--wait-seconds', '0.2'],
