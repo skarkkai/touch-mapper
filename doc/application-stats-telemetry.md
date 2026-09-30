@@ -104,13 +104,19 @@ Fetch policy notes:
 Map creation progress is now published to `map/info/<id>.json` via top-level `status`:
 
 - `status.progress` (`20`, `60`, `80`, `100`)
-- `status.errorCode` (`unknown` or `too_large`) on failures
+- `status.errorCode` (`unknown`, `too_large`, or `too_many_nodes`) on failures
 - `status.errorDescription` diagnostic text on failures
 
-For `too_large`, converter includes size/threshold details in `errorDescription`, for example:
+For `too_large`, converter includes the specific limit in `errorDescription`, for example:
 
 - `OSM data is 73400321 > 73400320 bytes before pruning`
 - `OSM data is 26220000 > 26214400 bytes after pruning`
+For `too_many_nodes`, the converter reports that the OSM main API refused the
+area above its 50,000-node limit. It is set only when an HTTP 400 response body
+reports too many nodes; other HTTP 400 responses remain generic fetch failures.
+The UI tells users to choose a smaller area and explains that changing the map
+content selection cannot help because every mode fetches the same full area
+before local pruning.
 
 ## RAM telemetry fields
 

@@ -200,6 +200,7 @@
     "error_sending_email": "Fehler beim Senden der E-Mail",
     "conversion_error_unknown": "Kartenerstellung fehlgeschlagen.",
     "conversion_error_too_large": "Die Karte ist zu dicht, um verarbeitet zu werden.",
+    "conversion_error_too_many_nodes": "Dieser Kartenausschnitt enthält zu viele Daten. Wählen Sie einen kleineren Ausschnitt und versuchen Sie es erneut. Eine andere Auswahl des Karteninhalts hilft hier nicht.",
     "drag_map": "Karte ziehen, um Gebiet anzupassen",
     "label_3d_preview": "3D-Vorschau der taktilen Karte",
     "map_preview_controls_hint": "Sie können die Karte zoomen, drehen und verschieben",

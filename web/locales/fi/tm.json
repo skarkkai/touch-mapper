@@ -200,6 +200,7 @@
     "error_sending_email": "Virhe sähköpostin lähetyksessä",
     "conversion_error_unknown": "Kartan luonti epäonnistui.",
     "conversion_error_too_large": "Kartta on liian täysi käsiteltäväksi.",
+    "conversion_error_too_many_nodes": "Tällä kartta-alueella on liikaa tietoa. Valitse pienempi alue ja yritä uudelleen. Kartan sisällön valinnan muuttaminen ei auta.",
     "drag_map": "Raahaa karttaa sopivaan kohtaan",
     "label_3d_preview": "Kohokartan 3D-esikatselu",
     "map_preview_controls_hint": "Voit zoomata, kiertää ja siirtää karttaa",

@@ -127,6 +127,40 @@ assert.strictEqual(queued.requestId, 'Bretry/example');
 assert.strictEqual(queued.filterSourceRequestId, 'Bsource/Map');
 assert.deepStrictEqual(queued.excludedFeatures, ['way/1']);
 assert.strictEqual(history.find('Bretry').submission, 'unconfirmed');
+// Failed polling must keep the Create action short and put guidance in the alert.
+const strings = JSON.parse(fs.readFileSync(path.join(repo, 'web/locales/en/tm.json'), 'utf8'));
+sandbox.window.TM = {translations: strings};
+sandbox.makeS3InfoUrl = id => '/info/' + id;
+const shownErrors = [];
+sandbox.showError = message => shownErrors.push(message);
+const button = {
+  disabled: false, value: 'Reading OSM',
+  prop(key, value) { if (key === 'disabled') this.disabled = value; return this; },
+  attr(key) { assert.strictEqual(key, 'data-original-text'); return 'Create tactile map'; },
+  val(value) { this.value = value; return this; }
+};
+sandbox.$ = () => button;
+let pollingCode;
+sandbox.$.ajax = options => ({
+  done(callback) {
+    callback(options.url.startsWith('/info/') ? {status: {errorCode: pollingCode}} : {});
+    return this;
+  },
+  fail() { return this; }
+});
+for (const [code, expected] of [
+  ['unknown', strings.conversion_error_unknown],
+  ['too_many_nodes', strings.conversion_error_too_many_nodes]
+]) {
+  pollingCode = code;
+  button.value = 'Reading OSM';
+  shownErrors.length = 0;
+  sandbox.window.retrySavedMapCreation(history.find('B123'));
+  assert.strictEqual(button.disabled, false);
+  assert.strictEqual(button.value, 'Create tactile map');
+  assert.deepStrictEqual(shownErrors, [expected]);
+  assert.strictEqual(history.find('Bretry').errorCode, code);
+}
 history.clear();
 history.addAttempt(Object.assign({}, firstRequest, {
   filterSourceRequestId: 'Bsource/Original', excludedFeatures: ['way/42']

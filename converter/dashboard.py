@@ -11,7 +11,7 @@ import time
 from typing import Any, Dict
 
 BUCKETS = {'test': 'test.touch-mapper.org', 'prod': 'touch-mapper.org'}
-ERROR_CODES = ('too_large',)
+ERROR_CODES = ('too_large', 'too_many_nodes')
 STAGES = ('bootstrap', 'poll', 'get-osm', 'osm-to-tactile', 'map-desc',
           'map-content-read', 'prepare-upload', 'upload-primary', 'svg-to-pdf', 'upload-secondary')
 CLASSES = ('RuntimeError', 'ValueError', 'KeyError', 'TypeError', 'OSError',
@@ -122,7 +122,9 @@ def build_query(now_utc=None):
     parts.append("SELECT 'releases', min(substr(\"timestamp\",1,10)), {0}, {1} FROM recent GROUP BY 3".format(commit, metrics))
     stage = safe_case('failure_stage', STAGES)
     failure = safe_case('failure_class', CLASSES)
-    error = "CASE WHEN error_code IN ('too_large') THEN error_code ELSE concat({0}, ' / ', {1}) END".format(stage, failure)
+    known_codes = ",".join("'{}'".format(code) for code in ERROR_CODES)
+    error = "CASE WHEN error_code IN ({0}) THEN error_code ELSE concat({1}, ' / ', {2}) END".format(
+        known_codes, stage, failure)
     # Common shape keeps pagination and output validation simple for every section.
     def category(kind, expression, condition=''):
         return ("SELECT '{0}', '', {1}, count(*), 0, 0, 0, CAST(NULL AS double), "

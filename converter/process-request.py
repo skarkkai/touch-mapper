@@ -50,6 +50,10 @@ STATUS_PROGRESS_CONVERTING = 60
 STATUS_PROGRESS_UPLOADING_PRIMARY = 80
 STATUS_PROGRESS_DONE = 100
 NO_GEOMETRY_ERROR_DESCRIPTION = 'Map would contain no geometry in selected area.'
+OSM_NODE_LIMIT_ERROR_DESCRIPTION = (
+    'OSM API rejected this area because it has more than 50,000 nodes. '
+    'Choose a smaller area; changing map content cannot avoid this limit.'
+)
 
 
 def parse_env_bool(name):
@@ -772,6 +776,11 @@ def get_osm(request_body, work_dir, bucket=None, attempt_records=None):
                 print('{} ERROR osm_fetch_failed provider={} endpoint={} attempt={} elapsed_seconds={:.3f} exception={} errno={} http_status={}'.format(
                     now_iso_utc(), attempt['provider'], endpoint, i + 1, elapsed,
                     type(e).__name__, detail.get('errno'), detail.get('http_status')), flush=True)
+                if (attempt['provider'] == 'main_api' and detail.get('http_status') == 400 and
+                        'too many nodes' in detail.get('response_excerpt', '').lower()):
+                    raise RequestProcessingError(
+                        code='too_many_nodes', description=OSM_NODE_LIMIT_ERROR_DESCRIPTION
+                    ) from e
             if isinstance(e, RequestProcessingError):
                 raise
             if i == len(attempts) - 1:

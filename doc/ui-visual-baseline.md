@@ -35,6 +35,7 @@ Use this as a default guide for UI and styling changes unless a task explicitly 
 - Large draggable map preview sits below form controls.
 - Scale indicator is shown under the preview map.
 - A smaller green back button appears below the map section.
+- Conversion errors appear in a bordered, high-contrast alert immediately above the Create button; the button keeps its short action label.
 - Footer keeps map data attribution and repository link visible.
 
 ## View 3: Map result (`map`)

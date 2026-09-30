@@ -66,6 +66,7 @@ def main():
         ('Poller restart', [sys.executable, str(REPO / 'test/regression/poller_restart.py'), str(work)]),
         ('Runner log rotation', [sys.executable, str(REPO / 'test/regression/runner_logs.py'), str(work)]),
         ('Attempt telemetry', [sys.executable, str(REPO / 'test/regression/attempt_telemetry.py'), str(work)]),
+        ('OSM node limit', [sys.executable, str(REPO / 'test/regression/osm_node_limit.py'), str(work)]),
         ('Subprocess timing', [sys.executable, str(REPO / 'test/regression/subprocess_timing.py')]),
         ('Print dimensions', [sys.executable, str(REPO / 'test/regression/rectangular_maps.py')]),
         ('Stored print dimensions', ['node', str(REPO / 'test/regression/stored_print_dimensions.js')]),

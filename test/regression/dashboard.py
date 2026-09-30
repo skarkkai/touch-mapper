@@ -118,6 +118,7 @@ def main():
                                  (datetime.datetime(2026, 3, 1), ('2026', '02'), ('2026', '01')),
                                  (datetime.datetime(2024, 3, 1), ('2024', '02'), ('2024', '01'))]:
         sql = publisher.build_query(moment)
+        assert "error_code IN ('too_large','too_many_nodes')" in sql
         assert "\"year\" <= '{}' AND (\"year\" < '{}' OR \"month\" <= '{}')".format(upper[0], upper[0], upper[1]) in sql
         assert "\"year\" >= '{}' AND (\"year\" > '{}' OR \"month\" >= '{}')".format(lower[0], lower[0], lower[1]) in sql
         assert "DATE '{}'".format(moment.date() - datetime.timedelta(days=30)) in sql
@@ -161,6 +162,9 @@ def main():
     assert sum(item['count'] for item in safe['errors']) == 12
     assert {'label': 'too_large', 'count': 6} in safe['errors']
     assert {'label': 'get-osm / TimeoutError', 'count': 4} in safe['errors']
+    node_report = publisher.build_report(
+        [{'kind': 'errors', 'label': 'too_many_nodes', 'attempts': '2'}], 'test', NOW)
+    assert {'label': 'too_many_nodes', 'count': 2} in node_report['errors']
 
     values = {'DASHBOARD_PUBLIC_PREFIX': 'dashboard/fixture-only-not-a-real-url/',
               'DASHBOARD_WEB_BUCKET': 'test.touch-mapper.org'}

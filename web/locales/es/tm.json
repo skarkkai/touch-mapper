@@ -200,6 +200,7 @@
     "error_sending_email": "Error al enviar correo electrónico",
     "conversion_error_unknown": "La creación del mapa falló.",
     "conversion_error_too_large": "El mapa es demasiado denso para procesarlo.",
+    "conversion_error_too_many_nodes": "Esta zona del mapa contiene demasiados datos. Elige una zona más pequeña e inténtalo de nuevo. Cambiar el contenido del mapa no ayudará.",
     "drag_map": "Arrastra el mapa para ajustar la ubicación",
     "label_3d_preview": "Vista previa 3D del mapa táctil",
     "map_preview_controls_hint": "Puedes hacer zoom, rotar y desplazarte por el mapa.",

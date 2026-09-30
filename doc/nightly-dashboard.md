@@ -293,7 +293,7 @@ mapping; arbitrary Athena columns and labels are discarded or mapped to unknown.
   there are no attempts). Unique users and percentiles are recalculated over the
   whole window, never summed or averaged from daily aggregates.
 - `errors` contains descending `{label, count}` aggregates. Recognized specific
-  structured codes (currently `too_large`) take precedence. Unknown/missing codes
+  structured codes (`too_large` and `too_many_nodes`) take precedence. Unknown/missing codes
   fall back to a fixed allowlist of failure stages and exception classes. Unknown
   categories are collapsed, not rendered as arbitrary source strings.
 - `rss` contains `stage`, `p50_kib`, `p95_kib`, `max_kib`, and

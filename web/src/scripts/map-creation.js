@@ -24,7 +24,7 @@
   function pollProgress(startTime, requestId) {
       function showPollingError(message, consoleMessage) {
         $("#submit-button").prop("disabled", false);
-        $("#submit-button").val(message);
+        $("#submit-button").val($("#submit-button").attr("data-original-text"));
         showError(message);
         if (consoleMessage && window.console && window.console.error) {
           window.console.error(consoleMessage);

@@ -281,7 +281,9 @@
     article.appendChild(details);
     if (record.note) article.appendChild(element('p', 'my-map-note', record.note));
     if (record.status === 'failed') {
-      article.appendChild(element('p', 'my-map-error', text(record.errorCode === 'too_large' ? 'failureTooLarge' : 'failureUnknown')));
+      const errorText = record.errorCode === 'too_many_nodes' ? 'failureTooManyNodes' :
+        (record.errorCode === 'too_large' ? 'failureTooLarge' : 'failureUnknown');
+      article.appendChild(element('p', 'my-map-error', text(errorText)));
     }
     if (record.status === 'unavailable') {
       article.appendChild(element('p', 'my-map-unavailable-help', text('filesUnavailableHelp')));

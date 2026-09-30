@@ -12,6 +12,7 @@
         "progress__uploading": "{{ progress__uploading }}",
         "conversion_error_unknown": "{{ conversion_error_unknown }}",
         "conversion_error_too_large": "{{ conversion_error_too_large }}",
+        "conversion_error_too_many_nodes": "{{ conversion_error_too_many_nodes }}",
         "invalid_print_dimensions": "{{ invalid_print_dimensions }}",
         "area_adjustment_outside": "{{ area_adjustment_outside }}",
         "map_scale_coverage": "{{ map_scale_coverage }}",
@@ -241,6 +242,8 @@
       </div>
     </div>
   </div>
+
+  <div id="output"></div>
 
   <div class="row main-row submit-row">
     <input type="submit" id="submit-button" class="large-row green-button"

@@ -20,6 +20,8 @@ class Element {
 const page = new Element('div');
 const strings = JSON.parse(fs.readFileSync(path.join(root, 'web/locales/en/tm.json')));
 const template = fs.readFileSync(path.join(root, 'web/pre-src/maps.pre'), 'utf8');
+const areaTemplate = fs.readFileSync(path.join(root, 'web/pre-src/area.pre'), 'utf8');
+assert.match(areaTemplate, /<div id="output"><\/div>/, 'area errors need a visible target');
 for (const match of template.matchAll(/data-([\w-]+)="{{ (\w+) }}"/g)) {
   page.dataset[match[1].replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = strings[match[2]];
 }
@@ -94,6 +96,14 @@ card = context.window.renderCard(record);
 assert.strictEqual(byClass(card, 'my-map-content').length, 0);
 assert.strictEqual(all(card).find(el => el.tag === 'h3').textContent, 'School route');
 assert.strictEqual(byClass(card, 'my-map-address')[0].textContent, ', Kaapelitehdas, Helsinki');
+record.status = 'failed';
+record.errorCode = 'too_many_nodes';
+card = context.window.renderCard(record);
+assert.strictEqual(byClass(card, 'my-map-error')[0].textContent, strings.conversion_error_too_many_nodes);
+record.errorCode = 'too_large';
+card = context.window.renderCard(record);
+assert.strictEqual(byClass(card, 'my-map-error')[0].textContent, strings.conversion_error_too_large);
+record.status = 'ready';
 const fixed = new Date(2026, 8, 20, 18).getTime();
 context.Date = class extends Date {
   constructor(...args) { super(...(args.length ? args : [fixed])); }

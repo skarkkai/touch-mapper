@@ -25,6 +25,7 @@
      data-progress-converting="{{ progress__converting }}"
      data-progress-uploading="{{ progress__uploading }}"
      data-failure-too-large="{{ conversion_error_too_large }}"
+     data-failure-too-many-nodes="{{ conversion_error_too_many_nodes }}"
      data-map-type="{{ my_maps_map_type }}"
      data-size="{{ my_maps_size }}"
      data-scale="{{ my_maps_scale }}"
