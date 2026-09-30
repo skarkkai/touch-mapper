@@ -1294,11 +1294,11 @@ function formatNodeXml(state, nodeIx) {
   const tags = state.nodeTags[nodeIx] || [];
 
   if (tags.length === 0) {
-    return '  <node id="' + id + '" lat="' + lat + '" lon="' + lon + '"/>';
+    return '  <node id="' + id + '" version="1" lat="' + lat + '" lon="' + lon + '"/>';
   }
 
   const lines = [];
-  lines.push('  <node id="' + id + '" lat="' + lat + '" lon="' + lon + '">');
+  lines.push('  <node id="' + id + '" version="1" lat="' + lat + '" lon="' + lon + '">');
   for (let i = 0; i < tags.length; i += 1) {
     lines.push(formatTagXml('    ', tags[i][0], tags[i][1]));
   }
@@ -1313,7 +1313,7 @@ function formatWayXml(state, wayIx) {
   const len = state.wayRefLen[wayIx];
 
   const lines = [];
-  lines.push('  <way id="' + wayId + '">');
+  lines.push('  <way id="' + wayId + '" version="1">');
   for (let i = start; i < start + len; i += 1) {
     const nodeIx = state.wayNodeRefIxFlat[i];
     const nodeId = state.nodeIdByIx[nodeIx];
@@ -1353,7 +1353,7 @@ function formatRelationXml(state, relIx) {
   const members = state.relationMembers[relIx];
 
   const lines = [];
-  lines.push('  <relation id="' + relId + '">');
+  lines.push('  <relation id="' + relId + '" version="1">');
   for (let i = 0; i < members.length; i += 1) {
     const m = members[i];
     if (!isRelationMemberKept(state, m)) {

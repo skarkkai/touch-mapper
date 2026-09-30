@@ -199,6 +199,7 @@ public class OSM2World {
 				Output.output(config, argumentsGroup);
 			} catch (IOException e) {
 				e.printStackTrace();
+				System.exit(1);
 			}
 			break;
 			

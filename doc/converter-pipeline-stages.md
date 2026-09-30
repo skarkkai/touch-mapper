@@ -10,6 +10,10 @@ This document describes converter data flow and stage names used by code comment
   supplies missing element versions or applies JOSM `action=delete` semantics. Use
   unedited API OSM XML for conversion; local JOSM edits can fail to parse or render
   deleted objects as map geometry.
+- Simplified-mode pruning writes parser-valid OSM 0.6 elements with internal
+  version attributes. OSM2World read errors must exit nonzero. Before each
+  conversion, the runner removes the prior `map.obj` and `map-meta-raw.json`;
+  both must be produced again for the current request.
 - To build safely, use:
   - `ant clean jar`
 - OSM2World outputs:

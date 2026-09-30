@@ -91,6 +91,10 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
                   excluded_coastline_areas=''):
     # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
+    meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
+    for old_output in (output_path, meta_path):
+        if os.path.exists(old_output):
+            os.remove(old_output)
     #print(osm2world_path + " " + input_path + " " + output_path)
     cmd = [
         'java', '-Xmx1G',
@@ -114,7 +118,8 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
         depth_offset=0
     )
 
-    meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
+    if not os.path.isfile(output_path) or os.path.getsize(output_path) == 0:
+        raise Exception("OSM2World did not produce map.obj")
     if not os.path.exists(meta_path):
         raise Exception("Couldn't find map-meta-raw.json from OSM2World output")
     with open(meta_path, 'r') as f:

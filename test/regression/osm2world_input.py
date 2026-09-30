@@ -39,8 +39,9 @@ josm_input.write_text(josm_source.replace(" version='1'", '', 1))
 josm_output = WORK / 'josm-unversioned.obj'
 josm = run(['java', '-Xmx1G', '-jar', str(JAR), '-i', str(josm_input),
             '-o', str(josm_output)], env)
-# OSM2World's CLI can return zero after a reader-thread failure, so check
-# both the diagnostic and the absence of geometry.
+# Reader failures must be reported to the caller, even when Osmosis failed in
+# its worker thread.
+assert josm.returncode != 0, josm.stdout
 assert 'does not have a version attribute' in josm.stdout, josm.stdout
 assert not josm_output.exists(), 'unversioned JOSM input unexpectedly rendered'
 print('OSM2World file input: production geometry matches; unversioned JOSM input rejected')
