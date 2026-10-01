@@ -29,6 +29,7 @@ import org.osm2world.core.map_data.data.MapData;
 import org.osm2world.core.map_data.data.MapNode;
 import org.osm2world.core.map_data.data.MapWaySegment;
 import org.osm2world.core.map_data.object_info.ObjectInfoManager;
+import org.osm2world.core.map_data.object_info.TouchMapperCategory;
 import org.osm2world.core.map_data.object_info.ObjectType;
 import org.osm2world.core.map_elevation.creation.EleConstraintEnforcer;
 import org.osm2world.core.map_elevation.data.GroundState;
@@ -62,7 +63,8 @@ public class RoadModule extends ConfigurableWorldModule {
 	public void applyTo(MapData grid) {
 		
 		for (MapWaySegment line : grid.getMapWaySegments()) {
-			if (isRoad(line.getTags())) {
+			if (isRoad(line.getTags()) && TouchMapperCategory.roadEnabled(
+					TouchMapperCategory.isPedestrian(line.getTags()))) {
 				if (! isTunnelOrSimilar(line.getTags())) {
 					line.addRepresentation(new Road(line, line.getTags()));
 					ObjectInfoManager.addRoadSegment(line);
@@ -72,7 +74,8 @@ public class RoadModule extends ConfigurableWorldModule {
 
 		for (MapArea area : grid.getMapAreas()) {
 				
-			if (isRoad(area.getTags())) {
+			if (isRoad(area.getTags()) && TouchMapperCategory.roadEnabled(
+					TouchMapperCategory.isPedestrian(area.getTags()))) {
 				if (! isTunnelOrSimilar(area.getTags())) {
 					List<VectorXZ> coords = new ArrayList<VectorXZ>();
 					for (MapNode node : area.getBoundaryNodes()) {
@@ -87,6 +90,7 @@ public class RoadModule extends ConfigurableWorldModule {
 		}
 
 		for (MapNode node : grid.getMapNodes()) {
+			if (!TouchMapperCategory.roadEnabled(TouchMapperCategory.isPedestrian(node))) continue;
 
 			TagGroup tags = node.getOsmNode().tags;
 			

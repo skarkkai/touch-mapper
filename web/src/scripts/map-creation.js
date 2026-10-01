@@ -207,6 +207,12 @@
       const input = document.getElementById(id);
       if (input && !input.reportValidity()) return;
     }
+    if (data.get('printing-tech') === '3d') {
+      for (const section of Object.keys(window.TMPrintHeights.sections)) {
+        const input = document.getElementById(section + '-height-mm');
+        if (input && !input.validatePrintHeight()) return;
+      }
+    }
     const dimensions = mapDimensionsMeters();
     if (![dimensions.width, dimensions.height].every(value => Number.isFinite(value) && value > 0)) return;
     if (Math.abs(data.get("offsetX")) >= dimensions.width / 2 || Math.abs(data.get("offsetY")) >= dimensions.height / 2) {
@@ -260,6 +266,8 @@
           return id;
       })()
     };
+    Object.assign(msg, window.TMPrintHeights.normalize(data.get('printing-tech') === '3d'
+      ? Object.fromEntries(Object.keys(window.TMPrintHeights.defaults).map(key => [key, data.get(key)])) : {}));
     if (msg.contentMode === "only-big-roads") {
       msg.targetRoadDensity = normalizeTargetRoadDensityUiValue(data.get("target-road-density-ui"));
     }

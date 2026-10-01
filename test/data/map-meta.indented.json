@@ -5004,6 +5004,12 @@
          "maxY" : 581.041,
          "minX" : -1673.804,
          "minY" : -1102.813
+      },
+      "printHeightsMm" : {
+         "buildings" : 2.9,
+         "paths" : 1.5,
+         "railways" : 0.81,
+         "roads" : 0.82
       }
    },
    "nodes" : [

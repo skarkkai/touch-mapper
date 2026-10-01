@@ -55,16 +55,26 @@ public final class TouchMapperCategory {
 		return repNames.iterator().next();
 	}
 
+	/** Height omissions are applied before representations and metadata are created. */
+	public static boolean roadEnabled(boolean pedestrian) {
+		return !"true".equals(System.getenv(pedestrian
+				? "TOUCH_MAPPER_EXCLUDE_PATHS" : "TOUCH_MAPPER_EXCLUDE_ROADS"));
+	}
+
 	public static boolean isPedestrian(MapNode node) {
 		if (node == null) {
 			return false;
 		}
 		List<MapWaySegment> connectedWaySegments = node.getConnectedWaySegments();
 		int pedestrians = 0;
+		int enabledSegments = 0;
 		for (MapWaySegment mapWaySegment : connectedWaySegments) {
-			pedestrians += isPedestrian(mapWaySegment.getTags()) ? 1 : 0;
+			boolean pedestrian = isPedestrian(mapWaySegment.getTags());
+			if (!roadEnabled(pedestrian)) continue;
+			enabledSegments ++;
+			pedestrians += pedestrian ? 1 : 0;
 		}
-		return pedestrians >= (connectedWaySegments.size() + 1) / 2;
+		return pedestrians >= (enabledSegments + 1) / 2;
 	}
 
 	public static boolean isPedestrian(TagGroup tags) {

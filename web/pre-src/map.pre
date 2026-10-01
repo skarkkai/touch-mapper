@@ -230,6 +230,7 @@ window.TM = { translations: {
   "map_content_building_plural_shed": "{{ map_content_building_plural_shed }}",
   "map_content_building_plural_roof": "{{ map_content_building_plural_roof }}",
   "map_content_building_type_from_value": "{{ map_content_building_type_from_value }}",
+  "map_content_empty": "{{ map_content_empty }}",
   "map_content_unavailable": "{{ map_content_unavailable }}",
   "map_content_list_and": "{{ map_content_list_and }}",
   "map_content_edge_phrase": "{{ map_content_edge_phrase }}",
@@ -601,6 +602,7 @@ window.TM = { translations: {
         </button>
       </div>
       <div id="map-content-full" class="map-content-full" hidden>
+        <p class="map-content-notice" style="display: none"></p>
         <div class="row map-content-roads-row">
           <h4>{{ map_content_subheading_roads }}</h4>
           <div class="map-content-section-height"></div>

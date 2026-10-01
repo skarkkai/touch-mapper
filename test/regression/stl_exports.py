@@ -49,6 +49,23 @@ def check_scene(exporter, work, names):
     assert full == expected_ways + expected_rest == ways + rest
 
 
+# Standalone Blender callers can supply meshes without an OSM2World omission pass.
+def check_height_omissions(exporter, work):
+    bpy.ops.object.select_all(action='SELECT')
+    bpy.ops.object.delete()
+    vertices = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+    for name in ('RoadCar', 'RoadPath::pedestrian', 'Rail', 'Building', 'Water'):
+        mesh = bpy.data.meshes.new(name)
+        mesh.from_pydata(vertices, [], [(0, 1, 2)])
+        mesh.update()
+        bpy.context.scene.objects.link(bpy.data.objects.new(name, mesh))
+    exporter.omit_disabled_input_meshes({'roads': 0, 'paths': 0, 'buildings': 0, 'railways': 0})
+    base = os.path.join(work, 'omitted')
+    exporter.export_stl(base, 1000)
+    assert triangles(base + '.stl') == collections.Counter({tuple(sorted(vertices)): 1})
+    assert [ob.name for ob in exporter.all_mesh_objects()] == ['Water']
+
+
 def check_transformed_measurement(exporter, repo, work):
     """A local-coordinate inspector would report +/-1 for this translated cube."""
     spec = importlib.util.spec_from_file_location(
@@ -84,6 +101,7 @@ def main():
     for names in [('TestRoads', 'TestRoadAreas', 'TestRails', 'Building', 'Base'),
                   ('Building', 'Base'), ('TestRoads', 'TestRoadAreas', 'TestRails')]:
         check_scene(exporter, work, names)
+    check_height_omissions(exporter, work)
     check_transformed_measurement(exporter, repo, work)
     print('STL partition, empty selection, and transformed millimetre measurements passed')
 

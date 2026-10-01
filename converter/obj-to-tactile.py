@@ -14,6 +14,8 @@ script_dir = os.path.dirname(__file__)
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 import tactile_constants as tc
+from print_heights import (add_print_height_arguments, height_values_from_arguments,
+                           applied_print_heights)
 from print_dimensions import add_print_dimension_arguments, normalize_dimension_arguments
 
 perf_clock = getattr(time, 'perf_counter', time.time)
@@ -34,9 +36,13 @@ def do_cmdline():
     parser.add_argument('--no-borders', action='store_true', help="don't draw borders around the edges")
     parser.add_argument('--export-wireframe-png', action='store_true', help="export orthographic top-view wireframe PNG")
     parser.add_argument('--base-path', help='base output path (without extension), defaults to first input path')
-    parser.add_argument('mesh_paths', metavar='PATHS', nargs='+', help='.obj/.ply files to use as input')
+    parser.add_argument('mesh_paths', metavar='PATHS', nargs='*', help='.obj/.ply files to use as input')
+    add_print_height_arguments(parser)
     add_print_dimension_arguments(parser)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
+    if not args.mesh_paths and not args.base_path:
+        parser.error('--base-path is required for a map with no feature meshes')
+    height_values_from_arguments(args)
     return normalize_dimension_arguments(args)
 
 def print_verts(ob):
@@ -710,7 +716,8 @@ def do_road_areas(roads, height):
     fatten(roads)
     #print("processing %s took %.2f" % (roads.name, perf_clock() - t))
 
-def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
+def process_objects(min_x, min_y, max_x, max_y, scale, no_borders, heights=None):
+    heights = applied_print_heights({}) if heights is None else heights
     t = perf_clock()
     mm_to_units = scale / 1000
     if not no_borders:
@@ -777,7 +784,7 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
     # Buildings
     if joined_buildings:
         t = perf_clock()
-        extrude_building(joined_buildings, tc.BUILDING_HEIGHT_MM * mm_to_units)
+        extrude_building(joined_buildings, heights['buildings'] * mm_to_units)
         fatten(joined_buildings)
         print("processing %d buildings took %.2f" % (len(buildings), perf_clock() - t))
 
@@ -794,19 +801,39 @@ def process_objects(min_x, min_y, max_x, max_y, scale, no_borders):
 
     # Rails
     if joined_rails != None:
-        do_ways(joined_rails, tc.ROAD_HEIGHT_CAR_MM * mm_to_units * 0.99, min_x, min_y, max_x, max_y) # 0.99 to avoid faces in the same coordinates with roads
+        do_ways(joined_rails, heights['railways'] * mm_to_units, min_x, min_y, max_x, max_y) # Resolved physical offset prevents coincident road/rail faces
 
     # Roads
-    do_road_areas(joined_road_areas_car, tc.ROAD_HEIGHT_CAR_MM * mm_to_units)
-    do_road_areas(joined_road_areas_ped, tc.ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units)
-    do_ways(joined_roads_car, tc.ROAD_HEIGHT_CAR_MM * mm_to_units, min_x, min_y, max_x, max_y)
-    do_ways(joined_roads_ped, tc.ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units, min_x, min_y, max_x, max_y)
+    do_road_areas(joined_road_areas_car, heights['roads'] * mm_to_units)
+    do_road_areas(joined_road_areas_ped, heights['paths'] * mm_to_units)
+    do_ways(joined_roads_car, heights['roads'] * mm_to_units, min_x, min_y, max_x, max_y)
+    do_ways(joined_roads_ped, heights['paths'] * mm_to_units, min_x, min_y, max_x, max_y)
+
+def omit_disabled_input_meshes(heights):
+    """Honor standalone Blender height settings when supplied meshes include disabled categories."""
+    bpy.ops.object.select_all(action='DESELECT')
+    selected = False
+    for ob in all_mesh_objects():
+        section = None
+        if ob.name.startswith('Road'):
+            section = 'paths' if is_pedestrian(ob.name) else 'roads'
+        elif ob.name.startswith('Rail'):
+            section = 'railways'
+        elif ob.name.startswith('Building'):
+            section = 'buildings'
+        if section is not None and heights[section] == 0:
+            ob.select = True
+            selected = True
+    if selected:
+        bpy.ops.object.delete()
+
 
 def make_tactile_map(args):
     t = perf_clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
 
-    process_objects(min_x, min_y, max_x, max_y, args.scale, args.no_borders)
+    process_objects(min_x, min_y, max_x, max_y, args.scale, args.no_borders,
+                    applied_print_heights(height_values_from_arguments(args)))
     print("process_objects() took " + (str(perf_clock() - t)))
 
     # Create the support cube and borders
@@ -824,6 +851,8 @@ def main():
 
     for mesh_path in args.mesh_paths:
         import_mesh_file(mesh_path)
+
+    omit_disabled_input_meshes(applied_print_heights(height_values_from_arguments(args)))
 
     if args.base_path:
         base_path = args.base_path

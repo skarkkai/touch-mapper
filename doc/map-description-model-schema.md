@@ -21,6 +21,8 @@ The schema is produced by:
   "otherLinear": "SectionModel",
   "buildings": "SectionModel",
   "ui": {
+    "emptyMessage": "string or null",
+    "hasFullContentRows": false,
     "sectionHeightNotes": {
       "roads": "string",
       "paths": "string",
@@ -41,11 +43,19 @@ The schema is produced by:
 }
 ```
 
-`roads` and `buildings` are always present in UI. `paths`, `railways`,
-`waterways`, and `otherLinear` are hidden in UI when empty.
+All feature categories are hidden in the UI when their section count is zero.
+`ui.emptyMessage` is a localized string when all section counts are zero, and
+`null` otherwise. `ui.hasFullContentRows` is true only when a section has features.
 
 `ui.buildingsToggle` is `null` when the section does not need a show-more
 toggle.
+
+When a tile has no mapped features, section counts are zero and
+`summary.items` is empty. The browser immediately displays one message:
+"No map features listed for this map." Empty category headings and height notes are hidden. Failed content fetches
+display "Map content is not available." instead. A result created by excluding
+the last feature still opens the original map's filter catalog so the feature can be restored;
+an originally empty result has no filter action.
 
 `ui.sectionHeightNotes` contains one localized note string per map-content
 section heading (for example raised mm, waved surface, or varying raised
@@ -265,3 +275,22 @@ New requests no longer store scalar `size` or `diameter`; legacy saved square
 maps containing `size` remain readable by the browser. A partial explicit pair
 is invalid, even if a legacy `size` also exists. Section identities, textual
 feature semantics, and tactile height/width encodings are unchanged.
+
+### Feature print heights
+
+`metadata.requestBody` carries finite numeric `roadHeightMm`, `pathHeightMm`,
+`buildingHeightMm`, and `railwayHeightMm`. These are chosen millimetre values,
+including zero, persisted for recreation and filtering. Missing fields use
+0.82, 1.5, 2.9, and 0.81 mm respectively. UI-only range limits do not constrain
+worker/CLI values.
+
+`metadata.printHeightsMm` is an object with numeric `roads`, `paths`, `buildings`,
+and `railways` fields reporting applied extrusion values. Values within 0.01 mm
+of zero become zero and omit their representations and description entries.
+Enabled railways matching enabled roads within 1e-9 mm are lowered by 0.01 mm;
+otherwise the independent railway height applies. Height section notes display
+these applied values rounded to two decimals in millimetres and three in inches.
+The editor also rounds saved/requested millimetre settings to two decimals and
+committed inch inputs to three. The edited unit is authoritative; its companion
+is an approximation and is not independently validated. Converter defaults and
+applied railway offsets retain their physical precision.

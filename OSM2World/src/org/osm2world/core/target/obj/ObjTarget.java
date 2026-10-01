@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.osm2world.core.map_data.object_info.TouchMapperCategory;
 import org.osm2world.core.map_data.data.MapArea;
 import org.osm2world.core.map_data.data.MapElement;
 import org.osm2world.core.map_data.data.MapNode;
 import org.osm2world.core.map_data.data.MapWaySegment;
-import org.openstreetmap.josm.plugins.graphview.core.data.TagGroup;
 import org.osm2world.core.map_elevation.data.EleConnector;
 import org.osm2world.core.math.TriangleXYZ;
 import org.osm2world.core.math.TriangleXYZWithNormals;
@@ -107,20 +107,10 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
 				osmElement = null;
 			}
 
-			if (element instanceof MapNode) {
-				List<MapWaySegment> connectedWaySegments = ((MapNode) element).getConnectedWaySegments();
-				int pedestrians = 0;
-				for (MapWaySegment mapWaySegment : connectedWaySegments) {
-					pedestrians += isPath(mapWaySegment.getTags()) ? 1 : 0;
-				}
-				if (pedestrians >= (connectedWaySegments.size()+1) / 2) {
-					roadSuffix = "::pedestrian";
-				}
-			}
-
-			if (roadSuffix == null) {
-				roadSuffix = isPath(osmElement.tags) ? "::pedestrian" : "";
-			}
+			boolean pedestrian = element instanceof MapNode
+					? TouchMapperCategory.isPedestrian((MapNode) element)
+					: TouchMapperCategory.isPedestrian(osmElement == null ? null : osmElement.tags);
+			roadSuffix = TouchMapperCategory.roadSuffix(pedestrian);
 			
 			if (osmElement != null && osmElement.tags.containsKey("name")) {
 				objStream.println("o " + object.getClass().getSimpleName() + " " + osmElement.tags.getValue("name") + roadSuffix);
@@ -135,32 +125,6 @@ public class ObjTarget extends FaceTarget<RenderableToObj> {
 	}
 
 
-	private static boolean isPath(TagGroup tags) {
-		String highwayValue = tags.getValue("highway");
-		if ("path".equals(highwayValue)
-			|| "footway".equals(highwayValue)
-			|| "cycleway".equals(highwayValue)
-			|| "service".equals(highwayValue)
-			|| "bridleway".equals(highwayValue)
-			|| "living_street".equals(highwayValue)
-			|| "pedestrian".equals(highwayValue)
-			|| "track".equals(highwayValue)
-			|| "steps".equals(highwayValue)) {
-			return true;
-		}
-		if (tags.containsKey("footway")
-				|| tags.contains("tourism", "attraction")
-				|| tags.contains("man_made", "pier")
-				|| tags.contains("man_made", "breakwater")) {
-			return true;
-		}
-		String footValue = tags.getValue("foot");
-		if ("yes".equals(footValue)
-			|| "designated".equals(footValue)) {
-			return true;
-		}
-		return false;
-	}
 	@Override
 	public void drawFace(Material material, List<VectorXYZ> vs,
 			List<VectorXYZ> normals, List<List<VectorXZ>> texCoordLists) {

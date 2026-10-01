@@ -101,12 +101,16 @@ Authoritative schema and verification workflows:
 
 ## Map content authority
 
-Map content is controlled only by UI modes:
+Map content is selected by UI modes:
 
 1. Normal
 2. No buildings
 3. Only big roads (includes water areas and railways)
 4. Only named roads (includes named paths, water areas and railways)
+
+Independent print heights additionally omit roads, paths, buildings, or railways
+when their chosen height is within 0.01 mm of zero. These omissions apply upstream
+in OSM2World and must agree with both printed geometry and map descriptions.
 
 ---
 

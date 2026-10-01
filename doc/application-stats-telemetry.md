@@ -300,3 +300,18 @@ Behavior:
 - Keeps current month local files.
 - Removes local past-month directories after successful upload.
 - Use `--keep-local-months` to disable cleanup.
+
+## Chosen feature print heights
+
+Attempt records and the Glue/Athena table include nullable double columns
+`road_height_mm`, `path_height_mm`, `building_height_mm`, and `railway_height_mm`.
+They record the four chosen inputs after default filling, including zero and
+near-zero omissions, rather than the adjusted railway extrusion. `request_json`
+continues to preserve the original request. Historical rows without these fields
+return null. Schema version remains 2 because these are additive nullable fields.
+
+Deploying EC2 `dist/` alone does not install the new Glue columns. From the
+repository root run `make test-aws-install` for test. For production,
+`make prod-aws-install` updates Lambda and prints the separate required
+`install/cloudformation-update.sh prod` command; run that command to update the
+production stack. Apply the schema and converter before enabling the browser.

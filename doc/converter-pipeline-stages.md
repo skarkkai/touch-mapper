@@ -26,6 +26,7 @@ This document describes converter data flow and stage names used by code comment
 2. OSM2World reads OSM data and outputs `map.obj` and `map-meta-raw.json`.
 3. `clip-2d` clips OBJ triangles to map bounds and writes grouped `.ply` files plus `map-clip-report.json`.
 4. Blender (`obj-to-tactile.py`) reads grouped `.ply` files and writes tactile outputs (`map.stl`, split STLs, SVG, blend, wireframes).
+   A valid clip report may list zero meshes when the selected tile has no mapped features. Blender still makes the base plate (and borders unless disabled for multipart maps); metadata enrichment writes empty description sections, and the tile is uploaded normally. Missing or malformed clip reports remain conversion failures.
 5. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
 6. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including real `requestId`).
 7. Browser UI fetches `.map-content.json` from S3/CloudFront and presents map descriptions.
@@ -104,3 +105,30 @@ Queued legacy square requests remain supported. `info.json` and
 `map-content.json.metadata.requestBody` persist the normalized pair. Filtered
 reruns retain both dimensions. Stats use `print_width_cm` and `print_height_cm`;
 the Athena `size_cm` column remains available for historical records.
+
+## Feature print heights
+
+Requests carry independent `roadHeightMm`, `pathHeightMm`, `buildingHeightMm`,
+and `railwayHeightMm` (defaults 0.82, 1.5, 2.9, 0.81). Worker ingress and both
+converter CLIs supply defaults and require finite numbers; height ranges are
+validated only by the UI. CLI flags are `--road-height-mm`, `--path-height-mm`,
+`--building-height-mm`, and `--railway-height-mm`.
+The worker initializes the status destination before validating dimensions and
+heights, so invalid values publish a failure before any OSM fetch.
+
+The converter resolves near-zero omissions and passes explicit
+`TOUCH_MAPPER_EXCLUDE_ROADS`, `TOUCH_MAPPER_EXCLUDE_PATHS`, and
+`TOUCH_MAPPER_EXCLUDE_RAILWAYS` flags to OSM2World. Building omission combines
+with the existing `TOUCH_MAPPER_EXCLUDE_BUILDINGS` flag. World modules omit
+representations before geometry and metadata export, using the shared pedestrian
+classifier for road lines, areas, and junctions. Source OSM remains intact for
+restoration; clipping, extrusion, enrichment, and upload continue in their usual
+stages. Heights do not change road widths or geographic scale.
+
+After OSM2World, the converter records applied extrusion heights in raw
+`meta.printHeightsMm`; enrichment carries them to
+`map-content.json.metadata.printHeightsMm`. Blender uses the same physical-height
+resolver, including the independent railway setting and 0.01 mm matching-height
+offset. The worker adds `metadata.requestBody` without replacing applied metadata.
+Info JSON, history, multipart creation, and filtered reruns retain chosen heights.
+Deploy the rebuilt OSM2World jar and converter before the browser update.

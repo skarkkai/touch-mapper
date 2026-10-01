@@ -268,6 +268,8 @@ function initInputs(outputs, osmDragPanInteraction) {
     initPrintUnitInputs(axis, key);
   }
 
+  initPrintHeightInputs();
+
   // Scale
   initSimpleInput("scale", $("#scale-input"), 'int', 2400);
 
@@ -563,3 +565,77 @@ $(window).ready(function(){
     });
   } catch (error) { reportPrintDimensionError(error); }
 });
+
+// Bind height editors with rounded settings and an approximate companion unit.
+function initPrintHeightInputs() {
+  const api = window.TMPrintHeights;
+  const group = document.getElementById('print-heights');
+  const resets = Object.entries(api.sections).map(([section, key]) => bindHeight(section, key));
+  document.getElementById('reset-print-heights').addEventListener('click', () => {
+    for (const reset of resets) reset();
+  });
+
+  function bindHeight(section, key) {
+    const mm = document.getElementById(section + '-height-mm');
+    const inches = document.getElementById(section + '-height-inches');
+    const error = document.getElementById(section + '-height-error');
+    let chosen;
+    try { chosen = api.normalize({[key]: getLocalStorageStr(key, api.defaults[key])})[key]; }
+    catch (storageError) { chosen = api.defaults[key]; }
+    let unit = getLocalStorageStr(key + 'Unit', chosen > 50 ? 'in' : 'mm');
+    if (unit !== 'in') unit = 'mm';
+    if (!api.valid(unit === 'in' ? chosen / 25.4 : chosen, unit)) chosen = api.defaults[key];
+    let invalid = false;
+    function showValues() {
+      mm.value = api.format(chosen);
+      inches.value = api.format(chosen / 25.4, 'in');
+      inches.defaultValue = inches.value;
+    }
+    function update(input, editedUnit) {
+      unit = editedUnit;
+      invalid = !api.valid(input.value, unit);
+      input.setCustomValidity(invalid ? group.dataset.invalid : '');
+      const companion = input === mm ? inches : mm;
+      companion.setCustomValidity('');
+      input.setAttribute('aria-invalid', String(invalid));
+      companion.setAttribute('aria-invalid', 'false');
+      error.hidden = !invalid;
+      if (invalid) { error.textContent = group.dataset.invalid; return; }
+      const physical = Number(api.format(input.value, unit)) * (unit === 'in' ? 25.4 : 1);
+      chosen = physical <= 0.01 ? 0 : Number(api.format(physical));
+      companion.value = api.format(unit === 'in' ? chosen : chosen / 25.4, unit === 'in' ? 'mm' : 'in');
+      setData(key, chosen);
+      setLocalStorage(key + 'Unit', unit);
+    }
+    // Anchor native steps to the displayed value and round the edited field on commit.
+    function onEdit(event) {
+      const input = event.currentTarget;
+      const editedUnit = input === mm ? 'mm' : 'in';
+      update(input, editedUnit);
+      if (!invalid && event.type === 'change') input.value = api.format(input.value, editedUnit);
+      inches.defaultValue = inches.value;
+    }
+    for (const input of [mm, inches]) {
+      input.addEventListener('input', onEdit);
+      input.addEventListener('change', onEdit);
+    }
+    // Validate the edited unit; rounded companions may fall outside its limits.
+    mm.validatePrintHeight = () => {
+      if (invalid) {
+        const active = unit === 'in' ? inches : mm;
+        if (!$('#advanced-input').prop('checked')) $('#advanced-input').click();
+        active.focus(); active.reportValidity();
+        return false;
+      }
+      return true;
+    };
+    showValues();
+    setData(key, chosen);
+    setLocalStorage(key + 'Unit', unit);
+    return () => {
+      mm.value = api.format(api.defaults[key]);
+      update(mm, 'mm');
+      showValues();
+    };
+  }
+}

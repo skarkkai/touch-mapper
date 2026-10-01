@@ -336,7 +336,7 @@
     "map_content_show_less_features": "Mostrar menos funciones",
     "map_content_summary_show_more": "Mostrar más",
     "map_content_summary_show_only": "Mostrar solo el resumen",
-    "map_content_height_note_raised_mm": "Elevado __millimeters__ mm",
+    "map_content_height_note_raised_mm": "Elevado __millimeters__ mm (≈ __inches__ pulgadas)",
     "map_content_height_note_varying": "Elevado en distintas alturas",
     "map_content_height_note_waved_surface": "superficie ondulada",
     "map_content_height_note_text_only": "Solo información textual",
@@ -357,6 +357,7 @@
     "map_content_poi_example": "Ejemplo: __example__",
     "map_content_building_join_at": "en",
     "map_content_building_type_from_value": "__value__ edificio",
+    "map_content_empty": "No hay elementos del mapa enumerados para este mapa.",
     "map_content_unavailable": "El contenido del mapa no está disponible.",
     "map_content_list_and": "y",
     "map_content_edge_phrase": "__edge__ borde",
@@ -692,5 +693,14 @@
     "my_maps_read_error": "No se pudieron leer los mapas guardados en este navegador. El historial guardado no se ha modificado.",
     "my_maps_check_pending": "Todavía no se puede confirmar el progreso. Vuelve a comprobarlo más tarde. Si la creación se interrumpió, puedes intentarlo de nuevo.",
     "my_maps_retry_confirm": "¿Crear un nuevo intento con los mismos ajustes? El intento original aún podría completarse.",
-    "my_maps_variation_confirm": "Una variante utiliza el modo de contenido seleccionado sin exclusiones de objetos individuales. ¿Continuar? Para conservar las exclusiones, elige Intentar de nuevo."
+    "my_maps_variation_confirm": "Una variante utiliza el modo de contenido seleccionado sin exclusiones de objetos individuales. ¿Continuar? Para conservar las exclusiones, elige Intentar de nuevo.",
+  "reset_print_heights": "Restablecer alturas",
+  "print_heights": "Alturas de impresión",
+  "print_height_paths": "Senderos (peatones)",
+  "print_height_roads": "Carreteras (vehículos)",
+  "print_height_buildings": "Edificios",
+  "print_height_railways": "Ferrocarriles",
+  "unit_mm": "mm",
+  "print_heights_help": "Las alturas se miden desde la superficie del mapa. Introduce 0 para omitir un tipo de elemento.",
+  "invalid_print_heights": "Introduce 0 o una altura de al menos 0,1 mm y como máximo 50 mm / 2 pulgadas en el campo editado."
 }

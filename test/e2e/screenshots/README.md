@@ -2,7 +2,9 @@
 
 These five PNGs are intentional visual expectations for basic settings,
 advanced landscape settings, advanced portrait settings on mobile, and 2D/3D
-results. They were captured and visually reviewed on Linux with Playwright
+results. The two Advanced settings baselines include the four print-height
+controls, with editable millimetres/inches and zero-height omission guidance.
+They were captured and visually reviewed on Linux with Playwright
 1.58.2's bundled Chromium, device scale 1, en-US/UTC, and locally installed
 fallback fonts (the external Google Fonts request is blocked). These offline
 checks do not reproduce Google's live font delivery. Use the same browser/runtime

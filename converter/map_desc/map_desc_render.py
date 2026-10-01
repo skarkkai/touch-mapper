@@ -2492,6 +2492,8 @@ def write_map_content(grouped: Dict[str, Any], spec: Dict[str, Any],
         content[key] = main_entry
     if map_data:
         meta = map_data.get("meta") or {}
+        if "printHeightsMm" in meta:
+            content["metadata"] = {"printHeightsMm": meta["printHeightsMm"]}
         boundary = meta.get("boundary")
         if boundary:
             content["boundary"] = boundary

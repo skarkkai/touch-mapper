@@ -1,6 +1,40 @@
 'use strict';
 /* eslint camelcase:0, quotes:0, space-unary-ops:0, no-alert:0, no-unused-vars:0, no-shadow:0, no-extend-native:0, no-trailing-spaces:0 */
 
+// Share physical height settings across creation, history, and result descriptions.
+window.TMPrintHeights = (() => {
+  const defaults = {roadHeightMm: 0.82, pathHeightMm: 1.5, buildingHeightMm: 2.9, railwayHeightMm: 0.81};
+  const sections = {roads: 'roadHeightMm', paths: 'pathHeightMm', buildings: 'buildingHeightMm', railways: 'railwayHeightMm'};
+  function normalize(values = {}) {
+    const result = {};
+    for (const [key, fallback] of Object.entries(defaults)) {
+      const value = values[key] === undefined ? fallback : values[key];
+      if (value === null || value === '' || typeof value === 'boolean' || !Number.isFinite(Number(value))) {
+        throw new RangeError('Invalid print height');
+      }
+      result[key] = Number(Number(value).toFixed(2));
+    }
+    return result;
+  }
+  function applied(values = {}) {
+    const chosen = normalize(values), result = {};
+    for (const [section, key] of Object.entries(sections)) {
+      result[section] = Math.abs(chosen[key]) <= 0.01 ? 0 : chosen[key];
+    }
+    if (result.roads !== 0 && result.railways !== 0 && Math.abs(result.roads - result.railways) <= 1e-9) result.railways -= 0.01;
+    return result;
+  }
+  // Limits belong to the editor; the converted companion is never validated separately.
+  function valid(value, unit) {
+    if (value === '' || value === null) return false;
+    const number = Number(value), mm = unit === 'in' ? number * 25.4 : number;
+    return Number.isFinite(mm) && number >= 0 && number <= (unit === 'in' ? 2 : 50) &&
+      (mm <= 0.01 || mm >= 0.1);
+  }
+  function format(value, unit = 'mm') { return String(Number(Number(value).toFixed(unit === 'in' ? 3 : 2))); }
+  return {defaults, sections, normalize, applied, valid, format};
+})();
+
 function createCookie(name, value, days) {
     var expires;
     if (days) {
@@ -388,6 +422,13 @@ window.storeMapSettingsFromInfo = function(info) {
   setLocalStorage('coordinatesAdjusted', info.coordinatesAdjusted === true);
   setLocalStorage("printWidthCm", dimensions.printWidthCm);
   setLocalStorage("printHeightCm", dimensions.printHeightCm);
+  const heights = window.TMPrintHeights.normalize(info);
+  for (const [key, value] of Object.entries(heights)) {
+    const previousUnit = getLocalStorageStr(key + 'Unit', 'mm');
+    const retainUnit = Number(getLocalStorageStr(key, NaN)) === value && previousUnit === 'in';
+    setLocalStorage(key, value);
+    setLocalStorage(key + 'Unit', value > 50 || retainUnit ? 'in' : 'mm');
+  }
   setLocalStorage("scale", scale);
   setLocalStorage("multipartMode", multipartMode);
   setLocalStorage("multipartXpc", getInfoValue(["multipartXpc", "multipart_xpc"], 0));

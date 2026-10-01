@@ -17,11 +17,13 @@ It is derived from:
 - `high`: raised with the higher non-building relief values
 - `building`: dedicated building extrusion height
 
-Current constants in `converter/obj-to-tactile.py`:
+Default feature heights in `converter/print_heights.py` and water constants in
+`converter/tactile_constants.py`:
 
 - `ROAD_HEIGHT_CAR_MM = 0.82`
 - `ROAD_HEIGHT_PEDESTRIAN_MM = 1.5`
 - `BUILDING_HEIGHT_MM = 2.9`
+- Railway default: `0.81` mm
 - `WATERWAY_DEPTH_MM = 0.55`
 - `WATER_AREA_DEPTH_MM = 1.5` (wave pattern height target)
 
@@ -31,16 +33,18 @@ These are the categories/prefixes actually handled in `process_objects(...)`.
 
 | OBJ category/prefix | Way/Area kind | Tier | How it is extruded |
 |---|---|---|---|
-| `Road*` with no `::pedestrian` suffix | way/area | `low` | `raise_ob(..., ROAD_HEIGHT_CAR_MM * mm_to_units)` |
-| `Road*::pedestrian` | way/area | `high` | `raise_ob(..., ROAD_HEIGHT_PEDESTRIAN_MM * mm_to_units)` |
-| `Rail*` | way | `low` | `do_ways(..., ROAD_HEIGHT_CAR_MM * mm_to_units * 0.99)` |
+| `Road*` with no `::pedestrian` suffix | way/area | `low` | `raise_ob(..., heights['roads'] * mm_to_units)` |
+| `Road*::pedestrian` | way/area | `high` | `raise_ob(..., heights['paths'] * mm_to_units)` |
+| `Rail*` | way | `low` | `do_ways(..., heights['railways'] * mm_to_units)` |
 | `Waterway*` or `River*` | way | `low` (depressed) | `raise_ob(..., WATERWAY_DEPTH_MM * mm_to_units)` |
 | `Water*` or `AreaFountain*` | area | `high` | `water_wave_pattern(..., WATER_AREA_DEPTH_MM * mm_to_units, ...)` after remesh prep extrusion |
-| `Building*` | area | `building` | `extrude_building(..., BUILDING_HEIGHT_MM * mm_to_units)` |
+| `Building*` | area | `building` | `extrude_building(..., heights['buildings'] * mm_to_units)` |
 
 Notes:
 
 - `BuildingEntrance*` is deleted before extrusion and is not rendered as its own tactile tier.
+- `low` and `high` describe default tiers; custom heights may be equal or reversed.
+- Junction classification counts enabled branches so omitted paths cannot suppress an enabled road junction.
 - Unknown/unhandled object prefixes are not sent through `raise_ob(...)` / `extrude_building(...)`; they remain un-extruded by this stage.
 
 ## Map Page Height Note Mapping
@@ -50,13 +54,13 @@ mapping is:
 
 | Map page section | Note text rule |
 |---|---|
-| `roads` | `Raised __mm__ mm` (from road car extrusion height) |
-| `paths` | `Raised __mm__ mm` (from pedestrian road extrusion height) |
-| `railways` | `Raised __mm__ mm` (from rail extrusion height) |
+| `roads` | `Raised __mm__ mm (≈ __inches__ inches)` (from road car extrusion height) |
+| `paths` | `Raised __mm__ mm (≈ __inches__ inches)` (from pedestrian road extrusion height) |
+| `railways` | `Raised __mm__ mm (≈ __inches__ inches)` (from rail extrusion height) |
 | `waterways` | `Waved surface` |
 | `waterAreas` | `Waved surface` |
 | `otherLinear` | `Raised by varying amounts` when mixed/unknown |
-| `buildings` | `Raised __mm__ mm` (from building extrusion height) |
+| `buildings` | `Raised __mm__ mm (≈ __inches__ inches)` (from building extrusion height) |
 
 If a section resolves to more than one non-water profile in current map data,
 the fallback note is `Raised by varying amounts` instead of a single mm value.
@@ -138,3 +142,30 @@ This section maps the user-facing subtype names to tactile tiers as currently re
 - Feature bucketing + tier application: `converter/obj-to-tactile.py:598`
 - Pedestrian suffix logic: `OSM2World/src/org/osm2world/core/target/obj/ObjTarget.java:96`
 - Category naming: `OSM2World/src/org/osm2world/core/map_data/object_info/TouchMapperCategory.java:24`
+
+## Custom heights and omission
+
+Advanced 3D settings expose `roadHeightMm`, `pathHeightMm`, `buildingHeightMm`,
+and `railwayHeightMm`, independently, with the defaults above. Each has editable
+mm/inch inputs (1 inch = 25.4 mm). The UI accepts zero (including 0–0.01 mm) or
+heights of at least 0.1 mm, with a maximum of 50 mm in an edited mm field or
+2 inches in an edited inch field. The converted companion is not independently
+validated: entering 2 inches legitimately displays 50.8 mm. Height limits are
+UI-only; the worker and CLIs require finite numbers but impose no range or order.
+
+A chosen height with `abs(height) <= 0.01` mm omits the entire category, including
+road areas and junctions, at OSM2World representation creation. Disabled features
+never enter OBJ/clip meshes or raw feature metadata and are absent from the
+printed model, SVG, descriptions, and selectable result entries. Existing source
+OSM is retained, allowing restoration through map recreation. Water, base,
+borders, north corner, and location marker keep their existing heights.
+
+Railways use their independent height. When both roads and railways are enabled
+and their chosen heights match within 1e-9 mm, railway extrusion is 0.01 mm below
+its chosen height to avoid coincident surfaces during slicing. Omission is decided
+before this offset. This replaces the old road-height × 0.99 rule. Existing
+geometry fattening is retained, so final surface heights include its small offset.
+
+`metadata.printHeightsMm` reports resolved physical extrusion values for `roads`,
+`paths`, `buildings`, and `railways`; result notes display these in both units.
+Chosen values remain in `metadata.requestBody` for accurate regeneration.

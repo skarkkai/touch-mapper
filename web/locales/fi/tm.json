@@ -336,7 +336,7 @@
     "map_content_show_less_features": "Näytä vähemmän kohteita",
     "map_content_summary_show_more": "Näytä lisää",
     "map_content_summary_show_only": "Näytä vain yhteenveto",
-    "map_content_height_note_raised_mm": "Koholla __millimeters__ milliä",
+    "map_content_height_note_raised_mm": "Koholla __millimeters__ mm (≈ __inches__ tuumaa)",
     "map_content_height_note_varying": "Koholla vaihtelevasti",
     "map_content_height_note_waved_surface": "Aallotettu pinta",
     "map_content_height_note_text_only": "Vain tekstimuotoista tietoa",
@@ -357,6 +357,7 @@
     "map_content_poi_example": "Esimerkki: __example__",
     "map_content_building_join_at": "osoitteessa",
     "map_content_building_type_from_value": "__value__rakennus",
+    "map_content_empty": "Tälle kartalle ei ole listattu karttakohteita.",
     "map_content_unavailable": "Kartan sisältöä ei ole saatavilla.",
     "map_content_list_and": "ja",
     "map_content_edge_phrase": "__edge__reunaa",
@@ -692,5 +693,14 @@
     "my_maps_read_error": "Tähän selaimeen tallennettuja karttoja ei voitu lukea. Tallennettu historia on jätetty ennalleen.",
     "my_maps_check_pending": "Edistymistä ei vielä voida vahvistaa. Tarkista myöhemmin uudelleen. Jos luominen keskeytyi, voit yrittää uudelleen.",
     "my_maps_retry_confirm": "Luodaanko uusi kartta samoilla asetuksilla? Alkuperäinen yritys voi vielä valmistua.",
-    "my_maps_variation_confirm": "Muunnelma käyttää valittua sisältötilaa ilman yksittäisten kohteiden poistoja. Jatketaanko? Säilyttääksesi poistot valitse Yritä uudelleen."
+    "my_maps_variation_confirm": "Muunnelma käyttää valittua sisältötilaa ilman yksittäisten kohteiden poistoja. Jatketaanko? Säilyttääksesi poistot valitse Yritä uudelleen.",
+  "reset_print_heights": "Palauta oletuskorkeudet",
+  "print_heights": "Tulostuskorkeudet",
+  "print_height_paths": "Polut (jalankulku)",
+  "print_height_roads": "Tiet (ajoneuvot)",
+  "print_height_buildings": "Rakennukset",
+  "print_height_railways": "Rautatiet",
+  "unit_mm": "mm",
+  "print_heights_help": "Korkeudet mitataan kartan pinnasta. Jätä kohdelaji pois kartalta syöttämällä 0.",
+  "invalid_print_heights": "Syötä 0 tai vähintään 0,1 mm:n korkeus, enintään 50 mm / 2 tuumaa muokattavassa kentässä."
 }

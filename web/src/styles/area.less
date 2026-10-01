@@ -274,3 +274,17 @@ html.multipart-mode .area-movement-buttons {
 
 #print-width-input:focus-visible,
 #print-height-input:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; }
+
+.print-heights-row { display: block; border: 1px solid #aaa; padding: 12px; min-width: 0; }
+.print-heights-row legend { font-weight: bold; padding: 0 5px; }
+.print-heights-row p { margin: 0 0 10px; }
+.height-input-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.height-input-row > label { width: 175px; }
+.height-unit { white-space: nowrap; }
+.height-unit input { width: 60px; }
+.height-unit input:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; }
+.height-input-row .error-msg { width: 100%; }
+.height-input-row [aria-invalid="true"] { border: 2px solid #a00; }
+
+.print-heights-actions { display: flex; justify-content: flex-end; }
+#reset-print-heights:focus-visible { outline: 2px solid #005fcc; outline-offset: 2px; }

@@ -9,6 +9,7 @@
   const VERSION = 1;
   const REQUEST_FIELDS = [
     'addrShort', 'addrLong', 'printingTech', 'offsetX', 'offsetY',
+    'roadHeightMm', 'pathHeightMm', 'buildingHeightMm', 'railwayHeightMm',
     'printWidthCm', 'printHeightCm', 'size', 'contentMode', 'targetRoadDensity',
     'hideLocationMarker', 'lon', 'lat', 'effectiveArea', 'scale',
     'multipartMode', 'noBorders', 'multipartXpc', 'multipartYpc',

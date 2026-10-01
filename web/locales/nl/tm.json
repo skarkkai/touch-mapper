@@ -336,7 +336,7 @@
     "map_content_show_less_features": "Minder objecten tonen",
     "map_content_summary_show_more": "Meer tonen",
     "map_content_summary_show_only": "Alleen samenvatting tonen",
-    "map_content_height_note_raised_mm": "Verhoogd met __millimeters__ mm",
+    "map_content_height_note_raised_mm": "__millimeters__ mm verhoogd (≈ __inches__ inch)",
     "map_content_height_note_varying": "Verhoogd met wisselende hoogte",
     "map_content_height_note_waved_surface": "Golvende oppervlakte",
     "map_content_height_note_text_only": "Alleen tekstuele informatie",
@@ -357,6 +357,7 @@
     "map_content_poi_example": "Voorbeeld: __example__",
     "map_content_building_join_at": "bij",
     "map_content_building_type_from_value": "__value__ gebouw",
+    "map_content_empty": "Er zijn geen kaartelementen vermeld voor deze kaart.",
     "map_content_unavailable": "Kaartinhoud is niet beschikbaar.",
     "map_content_list_and": "en",
     "map_content_edge_phrase": "de __edge__rand",
@@ -692,5 +693,14 @@
     "my_maps_read_error": "De in deze browser opgeslagen kaarten konden niet worden gelezen. De opgeslagen geschiedenis is niet gewijzigd.",
     "my_maps_check_pending": "De voortgang kan nog niet worden bevestigd. Controleer het later opnieuw. Als het maken is onderbroken, kun je het opnieuw proberen.",
     "my_maps_retry_confirm": "Een nieuwe poging met dezelfde instellingen starten? De oorspronkelijke poging kan nog worden voltooid.",
-    "my_maps_variation_confirm": "Een variant gebruikt de gekozen inhoudsmodus zonder afzonderlijk uitgesloten objecten. Doorgaan? Kies Opnieuw proberen om deze uitsluitingen te behouden."
+    "my_maps_variation_confirm": "Een variant gebruikt de gekozen inhoudsmodus zonder afzonderlijk uitgesloten objecten. Doorgaan? Kies Opnieuw proberen om deze uitsluitingen te behouden.",
+  "reset_print_heights": "Hoogtes herstellen",
+  "print_heights": "Printhoogtes",
+  "print_height_paths": "Paden (voetgangers)",
+  "print_height_roads": "Wegen (voertuigen)",
+  "print_height_buildings": "Gebouwen",
+  "print_height_railways": "Spoorwegen",
+  "unit_mm": "mm",
+  "print_heights_help": "Hoogtes worden gemeten boven het kaartoppervlak. Voer 0 in om een soort element weg te laten.",
+  "invalid_print_heights": "Voer 0 in, of een hoogte van minimaal 0,1 mm en maximaal 50 mm / 2 inch in het bewerkte veld."
 }

@@ -57,6 +57,7 @@ Run with `--with-blender` to generate geometry regression snapshots in `test/map
   synthetic identity fields and no source-map references or request metadata.
 - Current UI grouping for linear features is roads + non-road linear groups (`paths`, `railways`, `waterways`, `otherLinear`) plus buildings.
 - For result-page filtering, check that section tri-state controls include collapsed entries, aggregate entries carry all contributing OSM references, and a filtered rerun updates tactile output and descriptions from the same post-preset OSM source without another fetch. The editor should remain open after regeneration with removed entries still visible and unticked; checking one and applying again should restore it. The quick regression suite covers stored-source reuse and upstream exclusion; the offline browser smoke covers selection, request submission, and regenerated-result navigation.
+- Empty tiles are valid, including borderless multipart parts and maps produced by filtering out the last feature. The quick suite converts a featureless OSM area into a base-only STL and empty `map-content.json`. The full filter regression excludes the only road and restores it from the stored source. The quick empty-description test checks consistent category visibility and the single localized empty-map message. The browser smoke checks that message in every locale, a separate unavailable message on failed fetches, the absent filter action for an originally empty map, and restoration through the filter editor on a filtered empty map.
 - If map content UI strings changed, inspect `simulated.txt` in each locale output for natural language quality.
 - For railway-related changes, verify rail-rich fixtures produce railway entries in both `normal` and `only-big-roads` modes.
 - For railway connectivity changes, verify railway junction/intersection narration is absent in simulated text output.
@@ -198,3 +199,28 @@ Advanced, square presets, multipart reset, and visible validation alerts. They a
 focused accessibility checks, not a complete WCAG audit. The quick gate retains
 its offline geometry matrix across dimensions, scales, hemispheres and independent
 multipart shifts; it does not launch a browser.
+
+## Custom print heights
+
+The quick suite registers `print_heights.py` and `print_heights.js` for defaults,
+finite-number validation without converter range limits, UI unit limits,
+invalid-height failure status before OSM fetching,
+epsilon omissions, enabled-branch junction classification, railway matching offsets,
+CLI forwarding, telemetry/Glue
+columns, rounded persistence (two decimals in mm, three in inches), and localized
+result height notes with the same display precision. Reset coverage checks all
+four defaults, saved settings, unit displays, and clearing invalid edits. It stays offline.
+
+The full suite runs `python3 test/map-content/check-print-heights.py` through
+OSM2World → clip-2d → Blender → enrichment. Cases cover custom and maximum
+heights, independently enabled railways, zero railways, and all four categories
+omitted; actual STL/Blender relief, raw omissions, final entries, water, and base
+are checked. Artifacts remain under `.tmp/print-heights/`.
+
+After building the local UI, run
+`NODE_PATH=.tmp/e2e-playwright-runtime/node_modules node test/e2e/print-heights.js`
+with socket permission. It checks native 0.05-inch arrow steps from converted and
+typed heights, real inputs, active-unit errors, hidden/2D
+settings, submitted values, restoration, all locales, and the tall-model result.
+Inspect its screenshots under `.tmp/print-heights/screenshots/` for spacing,
+wrapping, clipping, and visible keyboard focus. The preview must remain running.

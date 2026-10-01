@@ -84,7 +84,9 @@
 
   function requestBody(info, excluded) {
     var fields = [
-      'addrShort', 'addrLong', 'printingTech', 'offsetX', 'offsetY', 'printWidthCm', 'printHeightCm',
+      'addrShort', 'addrLong', 'printingTech', 'offsetX', 'offsetY',
+      'roadHeightMm', 'pathHeightMm', 'buildingHeightMm', 'railwayHeightMm',
+      'printWidthCm', 'printHeightCm',
       'contentMode', 'hideLocationMarker', 'lon', 'lat', 'effectiveArea',
       'scale', 'multipartMode', 'noBorders', 'multipartXpc',
       'multipartYpc', 'advancedMode', 'browserFingerprint', 'marker1',
@@ -98,6 +100,13 @@
     request.filterSourceRequestId = info.contentFilterBaseRequestId || info.requestId;
     request.excludedFeatures = excluded;
     return request;
+  }
+
+  function hasFilterableItems(value) {
+    if (!value || typeof value !== 'object') return false;
+    if (value.attrs && Array.isArray(value.attrs.filterRefs) && value.attrs.filterRefs.length) return true;
+    if (Array.isArray(value)) return value.some(hasFilterableItems);
+    return Object.keys(value).some(function(key){ return hasFilterableItems(value[key]); });
   }
 
   function initMapContentFilter(info) {
@@ -156,8 +165,12 @@
       });
     }
 
-    container.on('map-content-ready', function(){
+    container.on('map-content-ready', function(_event, model){
       if (restoring) return;
+      if (!info.contentFilterBaseRequestId && !hasFilterableItems(model)) {
+        open.attr('hidden', 'hidden');
+        return;
+      }
       open.removeAttr('hidden');
       if (autoOpen) {
         autoOpen = false;
@@ -176,7 +189,10 @@
           try { payload = JSON.parse(payload); } catch (_error) { payload = {}; }
         }
         window.TM.mapDescription.renderFilterCatalog(payload, container);
-        if (!$('#map-content-full li[data-filter-refs]').length) return;
+        if (!$('#map-content-full li[data-filter-refs]').length) {
+          open.attr('hidden', 'hidden');
+          return;
+        }
         makeCheckBoxes(appliedExcluded);
         open.attr('hidden', 'hidden');
         $('.map-content-row').addClass('filtering');

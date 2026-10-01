@@ -336,7 +336,7 @@
     "map_content_show_less_features": "Weniger Merkmale anzeigen",
     "map_content_summary_show_more": "Mehr anzeigen",
     "map_content_summary_show_only": "Nur Zusammenfassung anzeigen",
-    "map_content_height_note_raised_mm": "Um __millimeters__ mm erhöht",
+    "map_content_height_note_raised_mm": "Um __millimeters__ mm erhöht (≈ __inches__ Zoll)",
     "map_content_height_note_varying": "Unterschiedlich stark erhöht",
     "map_content_height_note_waved_surface": "Gewellte Oberfläche",
     "map_content_height_note_text_only": "Nur textbasierte Informationen",
@@ -357,6 +357,7 @@
     "map_content_poi_example": "Beispiel: __example__",
     "map_content_building_join_at": "in",
     "map_content_building_type_from_value": "__value__gebäude",
+    "map_content_empty": "Für diese Karte sind keine Kartenelemente aufgeführt.",
     "map_content_unavailable": "Karteninhalt ist nicht verfügbar.",
     "map_content_list_and": "und",
     "map_content_edge_phrase": "den __edge__rand",
@@ -692,5 +693,14 @@
     "my_maps_read_error": "Die in diesem Browser gespeicherten Karten konnten nicht gelesen werden. Der gespeicherte Verlauf wurde nicht verändert.",
     "my_maps_check_pending": "Der Fortschritt kann noch nicht bestätigt werden. Prüfen Sie später erneut. Falls die Erstellung unterbrochen wurde, können Sie es erneut versuchen.",
     "my_maps_retry_confirm": "Einen neuen Versuch mit denselben Einstellungen starten? Der ursprüngliche Versuch könnte noch abgeschlossen werden.",
-    "my_maps_variation_confirm": "Eine Variante verwendet den gewählten Inhaltsmodus ohne einzeln ausgeschlossene Objekte. Fortfahren? Um diese Ausschlüsse beizubehalten, wählen Sie Erneut versuchen."
+    "my_maps_variation_confirm": "Eine Variante verwendet den gewählten Inhaltsmodus ohne einzeln ausgeschlossene Objekte. Fortfahren? Um diese Ausschlüsse beizubehalten, wählen Sie Erneut versuchen.",
+  "reset_print_heights": "Höhen zurücksetzen",
+  "print_heights": "Druckhöhen",
+  "print_height_paths": "Wege (Fußverkehr)",
+  "print_height_roads": "Straßen (Fahrzeuge)",
+  "print_height_buildings": "Gebäude",
+  "print_height_railways": "Eisenbahnen",
+  "unit_mm": "mm",
+  "print_heights_help": "Die Höhen werden über der Kartenoberfläche gemessen. Geben Sie 0 ein, um eine Elementart wegzulassen.",
+  "invalid_print_heights": "Geben Sie 0 oder eine Höhe von mindestens 0,1 mm und höchstens 50 mm / 2 Zoll im bearbeiteten Feld ein."
 }

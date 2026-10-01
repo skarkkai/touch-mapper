@@ -197,6 +197,38 @@
       </div>
     </div>
 
+    <fieldset id="print-heights" class="row main-row print-heights-row hidden-for-2d" data-invalid="{{ invalid_print_heights }}" aria-describedby="print-heights-help">
+      <legend>{{ print_heights }}</legend>
+      <p id="print-heights-help">{{ print_heights_help }}</p>
+      <div class="height-input-row">
+        <label id="paths-height-label" for="paths-height-mm">{{ print_height_paths }}:</label>
+        <span class="height-unit"><input id="paths-height-mm" type="number" step="any" aria-labelledby="paths-height-label paths-height-mm-label" aria-describedby="print-heights-help paths-height-error" /> <label id="paths-height-mm-label" for="paths-height-mm">{{ unit_mm }}</label></span>
+        <span class="height-unit"><span aria-hidden="true">≈</span> <input id="paths-height-inches" type="number" step="0.05" aria-labelledby="paths-height-label paths-height-inches-label" aria-describedby="print-heights-help paths-height-error" /> <label id="paths-height-inches-label" for="paths-height-inches">{{ unit_inches }}</label></span>
+        <span id="paths-height-error" class="error-msg" role="alert" hidden></span>
+      </div>
+      <div class="height-input-row">
+        <label id="roads-height-label" for="roads-height-mm">{{ print_height_roads }}:</label>
+        <span class="height-unit"><input id="roads-height-mm" type="number" step="any" aria-labelledby="roads-height-label roads-height-mm-label" aria-describedby="print-heights-help roads-height-error" /> <label id="roads-height-mm-label" for="roads-height-mm">{{ unit_mm }}</label></span>
+        <span class="height-unit"><span aria-hidden="true">≈</span> <input id="roads-height-inches" type="number" step="0.05" aria-labelledby="roads-height-label roads-height-inches-label" aria-describedby="print-heights-help roads-height-error" /> <label id="roads-height-inches-label" for="roads-height-inches">{{ unit_inches }}</label></span>
+        <span id="roads-height-error" class="error-msg" role="alert" hidden></span>
+      </div>
+      <div class="height-input-row">
+        <label id="railways-height-label" for="railways-height-mm">{{ print_height_railways }}:</label>
+        <span class="height-unit"><input id="railways-height-mm" type="number" step="any" aria-labelledby="railways-height-label railways-height-mm-label" aria-describedby="print-heights-help railways-height-error" /> <label id="railways-height-mm-label" for="railways-height-mm">{{ unit_mm }}</label></span>
+        <span class="height-unit"><span aria-hidden="true">≈</span> <input id="railways-height-inches" type="number" step="0.05" aria-labelledby="railways-height-label railways-height-inches-label" aria-describedby="print-heights-help railways-height-error" /> <label id="railways-height-inches-label" for="railways-height-inches">{{ unit_inches }}</label></span>
+        <span id="railways-height-error" class="error-msg" role="alert" hidden></span>
+      </div>
+      <div class="height-input-row">
+        <label id="buildings-height-label" for="buildings-height-mm">{{ print_height_buildings }}:</label>
+        <span class="height-unit"><input id="buildings-height-mm" type="number" step="any" aria-labelledby="buildings-height-label buildings-height-mm-label" aria-describedby="print-heights-help buildings-height-error" /> <label id="buildings-height-mm-label" for="buildings-height-mm">{{ unit_mm }}</label></span>
+        <span class="height-unit"><span aria-hidden="true">≈</span> <input id="buildings-height-inches" type="number" step="0.05" aria-labelledby="buildings-height-label buildings-height-inches-label" aria-describedby="print-heights-help buildings-height-error" /> <label id="buildings-height-inches-label" for="buildings-height-inches">{{ unit_inches }}</label></span>
+        <span id="buildings-height-error" class="error-msg" role="alert" hidden></span>
+      </div>
+      <div class="print-heights-actions">
+        <button id="reset-print-heights" class="btn" type="button">{{ reset_print_heights }}</button>
+      </div>
+    </fieldset>
+
     <div class="row main-row print-scale-row">
       <div class="col col1">
         <label for="scale-input">{{ custom_scale }}:</label>

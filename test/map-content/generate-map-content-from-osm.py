@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import atexit
 import contextlib
 import importlib.util
 import json
@@ -33,6 +34,9 @@ def load_request_helpers() -> ModuleType:
     # immediately because this module deliberately provides no client/resource.
     with patch.dict(sys.modules, {"boto3": ModuleType("boto3")}):
         spec.loader.exec_module(module)
+    # This CLI emits a single JSON object; the production worker's exit log
+    # would otherwise append a second line after it.
+    atexit.unregister(module.log_exit_progress)
     return module
 
 class ClipOutputs(TypedDict):
@@ -236,19 +240,17 @@ def run_clip_2d(
         raise FileNotFoundError(f"clip-2d did not produce report: {clip_report_path}")
     with clip_report_path.open("r", encoding="utf-8") as handle:
         report = json.load(handle)
-    file_entries = report.get("files", [])
+    file_entries = report.get("files")
+    if not isinstance(file_entries, list):
+        raise ValueError(f"clip-2d report missing files list: {clip_report_path}")
     mesh_paths: List[str] = []
     for entry in file_entries:
-        if not isinstance(entry, dict):
-            continue
-        file_path = entry.get("path")
+        file_path = entry.get("path") if isinstance(entry, dict) else None
         if not isinstance(file_path, str) or not file_path:
-            continue
+            raise ValueError(f"clip-2d report has invalid mesh path: {clip_report_path}")
         if not Path(file_path).exists():
             raise FileNotFoundError(f"clip-2d output missing: {file_path}")
         mesh_paths.append(file_path)
-    if not mesh_paths:
-        raise ValueError(f"clip-2d produced no mesh outputs: {clip_report_path}")
     return {
         "reportPath": str(clip_report_path),
         "meshPaths": mesh_paths,

@@ -19,7 +19,7 @@
       key: "roads",
       rowSelector: ".map-content-roads-row",
       listSelector: ".map-content-roads",
-      alwaysShow: true,
+      alwaysShow: false,
       maxVisible: MAX_VISIBLE_LINEAR_ITEMS,
       toggleClass: "map-content-roads-toggle"
     },
@@ -175,16 +175,12 @@
     );
   }
 
-  function formatHeightMillimeters(mm) {
+  function formatHeightMillimeters(mm, decimals = 2) {
     const number = Number(mm);
     if (!isFinite(number)) {
       return null;
     }
-    const rounded = Math.round(number * 10) / 10;
-    if (Math.abs(rounded - Math.round(rounded)) < 1e-9) {
-      return String(Math.round(rounded));
-    }
-    return String(rounded);
+    return String(Number(number.toFixed(decimals)));
   }
 
   function sectionForLinearSubClassKey(subClassKey) {
@@ -329,9 +325,9 @@
           translateWithHelpers(
             helpers,
             "map_content_height_note_raised_mm",
-            "Raised __millimeters__ mm"
+            "Raised __millimeters__ mm (≈ __inches__ inches)"
           ),
-          { millimeters: millimeters }
+          { millimeters: millimeters, inches: formatHeightMillimeters(Number(onlyProfile.slice("raised:".length)) / 25.4, 3) }
         );
       }
     }
@@ -344,6 +340,15 @@
 
   function buildSectionHeightNotes(mapContent, helpers) {
     const discoveredProfiles = collectSectionHeightProfiles(mapContent);
+    const metadata = mapContent && mapContent.metadata || {};
+    const appliedHeights = metadata.printHeightsMm;
+    if (appliedHeights) {
+      for (const section of ['roads', 'paths', 'buildings', 'railways']) {
+        if (Number.isFinite(appliedHeights[section])) {
+          discoveredProfiles[section] = new Set(['raised:' + appliedHeights[section]]);
+        }
+      }
+    }
     const notes = {};
     Object.keys(SECTION_HEIGHT_DEFAULT_PROFILES).forEach(function(sectionKey){
       const defaultProfiles = new Set(SECTION_HEIGHT_DEFAULT_PROFILES[sectionKey] || []);
@@ -795,7 +800,7 @@
 
   function hasFullContentRows(model) {
     return sectionEntriesInDisplayOrder(model).some(function(entry){
-      return !!(entry && entry.section && Array.isArray(entry.section.items) && entry.section.items.length);
+      return !!(entry && sectionCount(entry.section) > 0);
     });
   }
 
@@ -984,6 +989,7 @@
       buildingsToggle: buildingsResult.toggle,
       poiToggles: poiToggles,
       hasFullContentRows: hasFullContentRows(model),
+      emptyMessage: hasFullContentRows(model) ? null : translateWithHelpers(helpers, "map_content_empty", "No map features listed for this map."),
       summaryShowMoreLabel: translateWithHelpers(helpers, "map_content_summary_show_more", "Show more"),
       summaryShowOnlyLabel: translateWithHelpers(helpers, "map_content_summary_show_only", "Show summary only")
     };
@@ -1117,6 +1123,7 @@
     const summaryItems = model && model.summary && Array.isArray(model.summary.items)
       ? model.summary.items
       : [];
+    container.find(".map-content-summary-block").toggle(summaryItems.length > 0);
     summaryItems.forEach(function(item){
       if (!item || !item.text) {
         return;
@@ -1195,6 +1202,9 @@
         buildings: 0
       };
     }
+    container.find(".map-content-notice")
+      .text(model && model.ui && model.ui.emptyMessage || "")
+      .toggle(!!(model && model.ui && model.ui.emptyMessage));
     const linearRenderer = getRenderer("mapDescWays");
     const poiRenderer = getRenderer("mapDescPois");
     const buildingsListElem = container.find(".map-content-buildings");
@@ -1326,8 +1336,9 @@
     const sectionHeightNotes = model && model.ui && model.ui.sectionHeightNotes
       ? model.ui.sectionHeightNotes
       : null;
+    buildingRow.toggle(sectionCount(model ? model.buildings : null) > 0);
     renderSectionHeightNote(buildingRow, sectionHeightNotes ? sectionHeightNotes.buildings : null);
-    counts.buildings = buildingsListElem.length
+    counts.buildings = buildingsListElem.length && sectionCount(model ? model.buildings : null) > 0
       ? renderSectionFromModel(buildingsListElem, model ? model.buildings : null, buildingsRenderer)
       : 0;
     if (buildingsListElem.length) {
@@ -1413,30 +1424,14 @@
     const buildingRow = container.find(".map-content-buildings-row");
     buildingRow.find(".map-content-buildings-toggle").remove();
     renderSectionHeightNote(buildingRow, null);
+    buildingRow.hide();
+    container.find(".map-content-notice").hide();
 
     const requestId = info ? info.requestId : null;
     const request = loadMapContent(requestId);
     if (!request) {
       setFullContentVisibility(container, true);
-      if (roadsListElem.length) {
-        showMessage(roadsListElem, t("map_content_unavailable", "Map content is not available."));
-      }
-      if (buildingsListElem.length) {
-        showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
-      }
-      if (waterAreasListElem.length) {
-        container.find(WATER_AREA_SECTION_CONFIG.rowSelector).show();
-        showMessage(waterAreasListElem, t("map_content_unavailable", "Map content is not available."));
-      }
-      POI_SECTION_CONFIGS.forEach(function(sectionConfig){
-        const row = container.find(sectionConfig.rowSelector);
-        const listElem = container.find(sectionConfig.listSelector);
-        if (!listElem.length || !sectionConfig.alwaysShow) {
-          return;
-        }
-        row.show();
-        showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
-      });
+      container.find(".map-content-notice").text(t("map_content_unavailable", "Map content is not available.")).show();
       return null;
     }
 
@@ -1448,31 +1443,18 @@
         fullContentRendered: false
       };
       renderSummaryFromModel(model, container);
-      setFullContentVisibility(container, false);
-      updateSummaryToggleButton(container, model, false);
+      if (!model.summary.items.length) {
+        renderFromModel(model, container);
+        state.summaryExpanded = true;
+        state.fullContentRendered = true;
+      }
+      setFullContentVisibility(container, state.summaryExpanded);
+      updateSummaryToggleButton(container, model, state.summaryExpanded);
       bindSummaryToggle(container, model, state);
-      container.trigger("map-content-ready");
+      container.trigger("map-content-ready", [model]);
     }).fail(function(){
       setFullContentVisibility(container, true);
-      if (roadsListElem.length) {
-        showMessage(roadsListElem, t("map_content_unavailable", "Map content is not available."));
-      }
-      if (buildingsListElem.length) {
-        showMessage(buildingsListElem, t("map_content_unavailable", "Map content is not available."));
-      }
-      if (waterAreasListElem.length) {
-        container.find(WATER_AREA_SECTION_CONFIG.rowSelector).show();
-        showMessage(waterAreasListElem, t("map_content_unavailable", "Map content is not available."));
-      }
-      POI_SECTION_CONFIGS.forEach(function(sectionConfig){
-        const row = container.find(sectionConfig.rowSelector);
-        const listElem = container.find(sectionConfig.listSelector);
-        if (!listElem.length || !sectionConfig.alwaysShow) {
-          return;
-        }
-        row.show();
-        showMessage(listElem, t("map_content_unavailable", "Map content is not available."));
-      });
+      container.find(".map-content-notice").text(t("map_content_unavailable", "Map content is not available.")).show();
     });
     return request;
   }

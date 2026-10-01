@@ -37,6 +37,7 @@ public class RailwayModule extends ConfigurableWorldModule {
 	
 	@Override
 	public void applyTo(MapData grid) {
+		if ("true".equals(System.getenv("TOUCH_MAPPER_EXCLUDE_RAILWAYS"))) return;
 		
 		for (MapWaySegment segment : grid.getMapWaySegments()) {
 			if (segment.getTags().containsAny("railway", RAILWAY_VALUES)) {

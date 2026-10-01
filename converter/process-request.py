@@ -29,6 +29,7 @@ import xml.etree.ElementTree as ET
 from typing import Any, Dict, Optional
 
 import stats_pipeline
+from print_heights import normalize_print_heights, print_height_cli_arguments
 from print_dimensions import normalize_print_dimensions
 from subprocess_timing import timed_command, parse_max_rss_kib, stream_subprocess_output
 
@@ -49,7 +50,6 @@ STATUS_PROGRESS_SEEN = 20
 STATUS_PROGRESS_CONVERTING = 60
 STATUS_PROGRESS_UPLOADING_PRIMARY = 80
 STATUS_PROGRESS_DONE = 100
-NO_GEOMETRY_ERROR_DESCRIPTION = 'Map would contain no geometry in selected area.'
 OSM_NODE_LIMIT_ERROR_DESCRIPTION = (
     'OSM API rejected this area because it has more than 50,000 nodes. '
     'Choose a smaller area; changing map content cannot avoid this limit.'
@@ -827,24 +827,8 @@ def read_osm_to_tactile_rss_kib(output_dir):
             fields[field_name] = rss_value
     return fields
 
-def has_empty_clip_report(output_dir):
-    clip_report_path = os.path.join(output_dir, 'map-clip-report.json')
-    if not os.path.exists(clip_report_path):
-        return False
-    try:
-        with open(clip_report_path, 'r') as f:
-            report = json.load(f)
-    except Exception:
-        return False
-    file_entries = report.get('files')
-    if not isinstance(file_entries, list):
-        return False
-    for entry in file_entries:
-        if isinstance(entry, dict) and entry.get('path'):
-            return False
-    return True
-
 def run_osm_to_tactile(osm_path, request_body):
+    normalize_print_heights(request_body)
     normalize_print_dimensions(request_body)
     output_dir = os.path.dirname(osm_path)
     clip_report_path = os.path.join(output_dir, 'map-clip-report.json')
@@ -857,6 +841,7 @@ def run_osm_to_tactile(osm_path, request_body):
         args = ['--scale', str(request_body['scale']),
                 '--print-width-cm', str(request_body['printWidthCm']),
                 '--print-height-cm', str(request_body['printHeightCm'])]
+        args.extend(print_height_cli_arguments(request_body))
         coastline_refs = [ref for ref in request_body.get('excludedFeatures', [])
                           if ref.startswith('coastline:')]
         if coastline_refs:
@@ -886,8 +871,6 @@ def run_osm_to_tactile(osm_path, request_body):
         rss_kib = read_osm_to_tactile_rss_kib(os.path.dirname(osm_path))
         return artifact_paths, meta, rss_kib
     except Exception as e:
-        if has_empty_clip_report(output_dir):
-            raise RequestProcessingError(code='unknown', description=NO_GEOMETRY_ERROR_DESCRIPTION) from e
         raise Exception("Can't convert map data to STL: " + str(e)) from e # let's not reveal too much, error msg likely contains paths
 
 # Receive and delete an SQS message. Save its exact text before JSON parsing.
@@ -997,9 +980,7 @@ def attach_request_metadata_to_map_content(map_content, request_body):
         map_content_json = json.loads(map_content.decode('utf8'))
     except Exception as e:
         raise Exception("Can't parse map-content.json: " + str(e))
-    map_content_json['metadata'] = {
-        'requestBody': copy.deepcopy(request_body)
-    }
+    map_content_json.setdefault('metadata', {})['requestBody'] = copy.deepcopy(request_body)
     return json.dumps(map_content_json, ensure_ascii=False, separators=(',', ':')).encode('utf8')
 
 
@@ -1239,6 +1220,11 @@ def build_stats_record(ctx):
         'offset_y': request_body.get('offsetY'),
         'print_width_cm': request_body.get('printWidthCm'),
         'print_height_cm': request_body.get('printHeightCm'),
+        'road_height_mm': request_body.get('roadHeightMm'),
+        'path_height_mm': request_body.get('pathHeightMm'),
+        'building_height_mm': request_body.get('buildingHeightMm'),
+        'railway_height_mm': request_body.get('railwayHeightMm'),
+
         'content_mode': request_body.get('contentMode'),
         'hide_location_marker': interpreted_request_bool(request_body, 'hideLocationMarker', False),
         'lon': request_body.get('lon'),
@@ -1376,6 +1362,7 @@ def main():
         bucket = ctx['s3'].Bucket(ctx['map_bucket_name'])
         # Normalize before any OSM work, after status reporting is available.
         normalize_print_dimensions(ctx['request_body'])
+        normalize_print_heights(ctx['request_body'])
         write_status_info_json(ctx, STATUS_PROGRESS_SEEN)
         osm_result = get_osm(ctx['request_body'], ctx['args'].work_dir, bucket, ctx['osm_fetch_attempts'])
         if osm_result is None:

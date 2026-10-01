@@ -2,6 +2,64 @@ Store timestamps as timestamp type in Athena (there is some planning conversatio
 
 ---
 
+# Derive section height notes from feature extrusion profiles
+
+## Summary
+
+Preserve each feature’s extrusion profile in `map-content.json`, then derive section notes from the features actually present.
+
+For example, with roads disabled and paths set to 3 mm, a surviving service road must produce “Raised 3 mm (≈ 0.11811 inches)” in the Roads section. Empty sections will have no height note.
+
+## Implementation
+
+### Preserve extrusion profiles
+
+- Use existing raw metadata: `tmCategory` identifies the representation family, and `tmRoadType` already records the shared converter classification as `car` or `pedestrian`. No new OSM tag classifier is needed.
+- In the description converter, add `printHeightProfile` to individual feature summaries within `groups[].ways[]` and `groups[].items[]`.
+- Use these profile values:
+  - `roads`: `Road` or `RoadArea` with `tmRoadType=car`.
+  - `paths`: `Road` or `RoadArea` with `tmRoadType=pedestrian`.
+  - `railways`: `Rail`.
+  - `buildings`: `Building`.
+  - `varying`: unknown or unsupported non-water extrusion.
+- Preserve every member’s profile through grouping, including named ways with multiple members. Resolve numeric heights through the existing applied `metadata.printHeightsMm` values.
+
+### Build accurate UI notes
+
+- Replace the section-wide height override and subclass-based height guesses in `map-description.js`.
+- Collect profiles from all members belonging to each section, including entries hidden behind “Show more.”
+- Resolve profiles to applied numeric heights before deduplication. Different profiles with equal heights produce one uniform-height note.
+- Show the existing localized “Raised by varying amounts” note when heights differ or any feature has an unresolved profile or height.
+- Preserve existing water and text-only POI wording.
+- Return an empty note for empty sections and hide the note element so it leaves no blank spacing.
+- Keep the existing millimetre/inch formatting and railway adjustment already recorded in applied metadata.
+
+## Contract and documentation
+
+- Document `printHeightProfile` on feature summaries and the uniform, mixed, unknown, and empty-section rules.
+- Correct the extrusion-tier documentation: service roads, tracks, and living streets can appear under Roads while using pedestrian extrusion. UI subclasses do not determine extrusion.
+- Update pipeline and verification documentation to describe profile preservation through description generation.
+- Keep request fields, telemetry, feature grouping, geometry, and height limits unchanged.
+
+## Validation
+
+- Extend the registered quick regressions to cover:
+  - Service roads, tracks, living streets, and a road tagged `foot=yes` using the pedestrian profile.
+  - Roads disabled with paths at 3 mm: surviving road-section features report 3 mm.
+  - Different heights within one section, including members grouped under one name.
+  - Equal road/path heights producing a uniform note; reversed heights resolving correctly.
+  - Unknown profiles producing the mixed fallback; empty sections producing no note.
+  - Buildings and adjusted railway heights in both units across all five locales.
+- Extend the real pipeline height fixture to verify profile preservation and agreement between geometry and description notes for a service road.
+- Run `make test-regression` and the targeted pipeline/browser checks. Rebuild the offline UI, inspect desktop and narrow screenshots for uniform, mixed, and empty sections, and leave the local preview running.
+
+## Assumptions and rollout
+
+- Notes describe applied extrusion values, consistent with existing height metadata.
+- Older payloads lacking feature profiles may show the varying-height fallback; no compatibility inference from section names will be added.
+- Deploy the converter before the updated browser. This fix requires no AWS infrastructure change.
+---
+
 ```text
 Refactor Touch Mapper’s browser-side map-description code so that feature grouping and semantic deduplication never depend on translated or formatted display text.
 

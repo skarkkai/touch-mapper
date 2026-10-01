@@ -336,7 +336,7 @@
     "map_content_show_less_features": "Show fewer features",
     "map_content_summary_show_more": "Show more",
     "map_content_summary_show_only": "Show summary only",
-    "map_content_height_note_raised_mm": "Raised __millimeters__ mm",
+    "map_content_height_note_raised_mm": "Raised __millimeters__ mm (≈ __inches__ inches)",
     "map_content_height_note_varying": "Raised by varying amounts",
     "map_content_height_note_waved_surface": "Waved surface",
     "map_content_height_note_text_only": "Textual information only",
@@ -357,6 +357,7 @@
     "map_content_poi_example": "Example: __example__",
     "map_content_building_join_at": "at",
     "map_content_building_type_from_value": "__value__ building",
+    "map_content_empty": "No map features listed for this map.",
     "map_content_unavailable": "Map content is not available.",
     "map_content_list_and": "and",
     "map_content_edge_phrase": "__edge__ edge",
@@ -692,5 +693,14 @@
     "my_maps_read_error": "This browser’s saved maps could not be read. The stored history has been left unchanged.",
     "my_maps_check_pending": "Progress cannot yet be confirmed. Try checking again later. If creation was interrupted, you can try again.",
     "my_maps_retry_confirm": "Create a new attempt with the same settings? The original attempt may still finish.",
-    "my_maps_variation_confirm": "A variation starts from the selected content mode without individual object exclusions. Continue? To preserve those exclusions, use Try again."
+    "my_maps_variation_confirm": "A variation starts from the selected content mode without individual object exclusions. Continue? To preserve those exclusions, use Try again.",
+  "reset_print_heights": "Reset heights",
+  "print_heights": "Print heights",
+  "print_height_paths": "Paths (pedestrian)",
+  "print_height_roads": "Roads (vehicle)",
+  "print_height_buildings": "Buildings",
+  "print_height_railways": "Railways",
+  "unit_mm": "mm",
+  "print_heights_help": "Heights are measured above the map surface. Enter 0 to leave an element out of the map.",
+  "invalid_print_heights": "Enter 0, or a height of at least 0.1 mm and at most 50 mm / 2 inches in the edited field."
 }

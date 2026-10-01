@@ -494,6 +494,26 @@
                 "Comment": "Requested physical map height in centimeters."
               },
               {
+                "Name": "road_height_mm",
+                "Type": "double",
+                "Comment": "Chosen road print height in millimeters; near-zero omits the element."
+              },
+              {
+                "Name": "path_height_mm",
+                "Type": "double",
+                "Comment": "Chosen path print height in millimeters; near-zero omits the element."
+              },
+              {
+                "Name": "building_height_mm",
+                "Type": "double",
+                "Comment": "Chosen building print height in millimeters; near-zero omits the element."
+              },
+              {
+                "Name": "railway_height_mm",
+                "Type": "double",
+                "Comment": "Chosen railway print height in millimeters; near-zero omits the element."
+              },
+              {
                 "Name": "content_mode",
                 "Type": "string",
                 "Comment": "Selected content mode: normal, no-buildings, only-big-roads, or only-named-roads."

@@ -144,7 +144,7 @@ def check_tactile(pipeline, name, request, triangles, bounds):
     else:
         assert 'Buildings' not in meshes, name
     if EXPECTED[name]['sections']['railways']:
-        profiles['Rails'] = 0.8118
+        profiles['Rails'] = 0.81
     if not EXPECTED[name]['sections']['paths']:
         assert 'PedestrianRoads' not in meshes, name
     measured_relief = {}

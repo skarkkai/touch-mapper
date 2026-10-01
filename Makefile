@@ -21,9 +21,11 @@ test-regression-full: test-regression
 	python3 test/map-content/check-regression.py
 	python3 test/map-content/check-content-filter.py
 	python3 test/map-content/check-rectangular-maps.py
+	python3 test/map-content/check-print-heights.py
 	$(MAKE) -C web build-offline
 	bash test/e2e/run-offline-map-smoke.sh
 	NODE_PATH=.tmp/e2e-playwright-runtime/node_modules node test/e2e/rectangular-maps.js
+	NODE_PATH=.tmp/e2e-playwright-runtime/node_modules node test/e2e/print-heights.js
 	NODE_PATH=.tmp/e2e-playwright-runtime/node_modules node .tmp/e2e-playwright-runtime/node_modules/playwright/cli.js test --config=test/e2e/ui-regression.config.js
 
 dev-aws-install:

@@ -24,9 +24,12 @@ OUT = REPO / '.tmp/filter-regression'
 SOURCE_ID = 'B123456789abcdef/filter-fixture'
 
 
-# Retain the input exactly as production does, with no network service involved.
+# Give synthetic elements the OSM 0.6 versions required by the file reader.
 def store_source(tree, name):
     path = OUT / (name + '.osm')
+    for kind in ('node', 'way', 'relation'):
+        for element in tree.getroot().findall(kind):
+            element.set('version', '1')
     tree.write(str(path))
     bucket = Bucket()
     PROCESS.store_filter_source(bucket, SOURCE_ID, str(path))
@@ -34,12 +37,14 @@ def store_source(tree, name):
 
 
 # Use production entry points for OSM filtering and conversion, logging each case.
-def convert(bucket, name, excluded):
+def convert(bucket, name, excluded, no_borders=False):
     folder = OUT / name
     folder.mkdir(exist_ok=True)
     request = {'contentMode': 'normal', 'filterSourceRequestId': SOURCE_ID,
                'excludedFeatures': excluded, 'scale': 1400, 'size': 17,
                'diameter': 238, 'hideLocationMarker': True}
+    if no_borders:
+        request['noBorders'] = True
     with (folder / 'conversion.log').open('w') as log, contextlib.redirect_stdout(log):
         osm_path = PROCESS.get_osm(request, str(folder), bucket)[0]
         previous_cwd = Path.cwd()
@@ -79,6 +84,22 @@ def svg_polygons(result, fill):
 def main():
     subprocess.run([sys.executable, str(REPO / 'bin/tmpctl'), 'mkdir', '.tmp/filter-regression'], check=True)
     original = ET.parse(str(REPO / 'test/map-content/fixtures/mixed.osm'))
+    road_only = copy.deepcopy(original)
+    for way in list(road_only.getroot().findall('way')):
+        if way.get('id') != '101':
+            road_only.getroot().remove(way)
+    bucket = store_source(road_only, 'road-only')
+    before_empty = convert(bucket, 'road-only-original', [], no_borders=True)
+    empty = convert(bucket, 'road-only-empty', ['way:101'], no_borders=True)
+    restored_empty = convert(bucket, 'road-only-restored', [], no_borders=True)
+    assert '101' in CHECKS.classification_ids(before_empty[2])['A1_local_streets']
+    assert all(not group['items'] for section in empty[2].values()
+               if isinstance(section, dict) for subclass in section.get('subclasses', [])
+               for group in subclass.get('groups', []))
+    assert json.loads((empty[0] / 'map-clip-report.json').read_text())['files'] == []
+    assert len(empty[3]) == 12, 'Borderless empty tile must retain its printable base'
+    assert CHECKS.classification_ids(before_empty[2]) == CHECKS.classification_ids(restored_empty[2])
+    print('PASS filtering the last road leaves a printable empty tile and can restore it', flush=True)
     # A second real road keeps the browser's tri-state and retry checks meaningful.
     browser = copy.deepcopy(original)
     for ident, lon in [('201', '24.0002'), ('202', '24.002'), ('203', '24.0036')]:

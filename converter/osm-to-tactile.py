@@ -11,6 +11,8 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 from tactile_constants import BORDER_WIDTH_MM, BORDER_HORIZONTAL_OVERLAP_MM
 from telemetry import TelemetryLogger
+from print_heights import (add_print_height_arguments, height_values_from_arguments,
+                           applied_print_heights, print_height_cli_arguments)
 from print_dimensions import add_print_dimension_arguments, normalize_dimension_arguments
 
 
@@ -73,8 +75,10 @@ def do_cmdline():
     parser.add_argument('--exclude-buildings', action='store_true', help="don't include buildings")
     parser.add_argument('--exclude-coastline-areas', default='',
                         help='Comma-separated stable references of generated coastal areas to exclude')
+    add_print_height_arguments(parser)
     add_print_dimension_arguments(parser)
     args = parser.parse_args()
+    height_values_from_arguments(args)
     return normalize_dimension_arguments(args)
 
 def _parse_int_env(name, fallback):
@@ -88,7 +92,7 @@ def _parse_int_env(name, fallback):
 
 
 def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
-                  excluded_coastline_areas=''):
+                  excluded_coastline_areas='', print_heights=None):
     # Code below creates stage "OSM2World raw meta" data.
     osm2world_path = os.path.join(script_dir, 'OSM2World', 'build', 'OSM2World.jar')
     meta_path = os.path.join(os.path.dirname(output_path), 'map-meta-raw.json')
@@ -101,6 +105,7 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
         '-jar', osm2world_path,
         '-i', input_path,
         '-o', output_path]
+    heights = applied_print_heights(print_heights or {})
     output_basename = os.path.splitext(os.path.basename(output_path))[0]
     osm2world_log_path = os.path.join(
         os.path.dirname(output_path),
@@ -111,8 +116,11 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
         env={
             'TOUCH_MAPPER_SCALE': str(scale),
             'TOUCH_MAPPER_EXTRUDER_WIDTH': '0.5',
-            'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings else 'false'),
-            'TOUCH_MAPPER_EXCLUDED_COASTLINE_AREAS': excluded_coastline_areas
+            'TOUCH_MAPPER_EXCLUDE_BUILDINGS': ('true' if exclude_buildings or heights['buildings'] == 0 else 'false'),
+            'TOUCH_MAPPER_EXCLUDED_COASTLINE_AREAS': excluded_coastline_areas,
+            'TOUCH_MAPPER_EXCLUDE_ROADS': str(heights['roads'] == 0).lower(),
+            'TOUCH_MAPPER_EXCLUDE_PATHS': str(heights['paths'] == 0).lower(),
+            'TOUCH_MAPPER_EXCLUDE_RAILWAYS': str(heights['railways'] == 0).lower()
         },
         output_log_path=osm2world_log_path,
         depth_offset=0
@@ -124,6 +132,7 @@ def run_osm2world(input_path, output_path, scale, exclude_buildings, telemetry,
         raise Exception("Couldn't find map-meta-raw.json from OSM2World output")
     with open(meta_path, 'r') as f:
         meta = json.load(f)
+    meta.setdefault('meta', {})['printHeightsMm'] = heights
     write_json_file(meta_path, meta, pretty_json_enabled())
 
     return meta, run_result.get('maxRssKiB')
@@ -152,18 +161,17 @@ def run_clip_2d(obj_path, clip_bounds, telemetry):
         raise Exception("clip-2d did not produce report")
     with open(clip_report_path, 'r') as f:
         report = json.load(f)
-    file_entries = report.get('files', [])
+    file_entries = report.get('files')
+    if not isinstance(file_entries, list):
+        raise Exception('clip-2d report missing files list')
     mesh_paths = []
     for entry in file_entries:
-        mesh_path = entry.get('path')
-        if not mesh_path:
-            continue
+        mesh_path = entry.get('path') if isinstance(entry, dict) else None
+        if not isinstance(mesh_path, str) or not mesh_path:
+            raise Exception('clip-2d report has invalid mesh path')
         if not os.path.exists(mesh_path):
             raise Exception("clip-2d output missing: " + mesh_path)
         mesh_paths.append(mesh_path)
-    if not mesh_paths:
-        raise Exception("clip-2d produced no meshes")
-
     telemetry.log("clip-2d outputs: {} files report={}".format(len(mesh_paths), clip_report_path))
     return mesh_paths, report, run_result.get('maxRssKiB')
 
@@ -190,6 +198,7 @@ def run_blender(mesh_paths, boundary, args, output_base_path, telemetry):
         '--print-height-cm', str(args.print_height_cm),
         '--base-path', output_base_path,
     ]
+    script_args.extend(print_height_cli_arguments(height_values_from_arguments(args)))
     if args.foreground:
         script_args.append('--no-stl-export')
     else:
@@ -235,7 +244,7 @@ def main():
     obj_path = input_basename + '.obj'
     osm2world_stage = telemetry.start_stage('run-osm2world', component='run-osm2world')
     meta, osm2world_rss_kib = run_osm2world(osm_path, obj_path, args.scale, args.exclude_buildings, telemetry,
-                                         args.exclude_coastline_areas)
+                                         args.exclude_coastline_areas, height_values_from_arguments(args))
     telemetry.end_stage(osm2world_stage, own_max_rss_kib=osm2world_rss_kib)
     boundary = meta.get('meta', {}).get('boundary')
     if boundary is None:

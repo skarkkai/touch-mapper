@@ -31,6 +31,7 @@ Use this as a default guide for UI and styling changes unless a task explicitly 
 - Main heading is "Map parameters".
 - Form uses a clear two-column rhythm: left labels and right controls.
 - Controls include radios, checkboxes, dropdowns, and concise helper text.
+- Print-height helper text explains the surface reference and zero-height omission. Numeric limits appear in validation errors when needed.
 - Primary call-to-action is a wide bright-green button ("Create tactile map").
 - Large draggable map preview sits below form controls.
 - Scale indicator is shown under the preview map.
@@ -99,3 +100,12 @@ immediately update the other unit. Centimetres remain the canonical request size
 rounded to one decimal when converting from inches (1 inch = 2.54 cm). Native
 validation covers both units. The post-rectangular-map “100% X…” explanatory line
 has been removed. The card edit control uses the rounded square-pen outline.
+
+The print heights rows are ordered Paths, Roads, Railways, Buildings.
+The section has a secondary reset button at the bottom right.
+It restores all four default heights, clears validation errors, and saves the
+restored settings. Keep its keyboard focus visible at desktop and narrow widths.
+
+Map descriptions hide empty categories consistently. A map with no listed
+features shows one message beneath Map content, without category headings or
+height notes. Content retrieval errors have a separate unavailable message.
