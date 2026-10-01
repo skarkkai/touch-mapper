@@ -91,35 +91,38 @@ def all_mesh_objects():
 def rgb(r, g, b):
     return 'rgb(%d, %d, %d)' % (round(r*2.55), round(g*2.55), round(b*2.55))
 
-def add_polygons(dwg, g, ob):
+# Project world-space map polygons into north-up SVG coordinates.
+def add_polygons(dwg, g, ob, svg_y_sum):
     mesh = ob.data
     verts = mesh.vertices
     for polygon in mesh.polygons:
         points = []
         for vert_index in polygon.vertices:
             world_co = ob.matrix_world * verts[vert_index].co
-            points.append(('%.1f' % world_co[0], '%.1f' % world_co[1]))
+            # Blender Y increases northward; SVG Y increases downward.
+            points.append(('%.1f' % world_co[0], '%.1f' % (svg_y_sum - world_co[1])))
         g.add(dwg.polygon(points=points))
 
-def add_svg_object(dwg, main_g, ob, color):
+def add_svg_object(dwg, main_g, ob, color, svg_y_sum):
     g = dwg.g(stroke=color, fill=color)
     g['stroke-width'] = 0.3 # removes gaps between objects
     main_g.add(g)
 
     if ob.name.startswith('Road'):
         g['stroke-width'] = 0.8 # Make roads a bit thicker so embosser draws them
-    add_polygons(dwg, g, ob)
+    add_polygons(dwg, g, ob, svg_y_sum)
 
-def add_road_overlay_object(dwg, main_g, ob):
+def add_road_overlay_object(dwg, main_g, ob, svg_y_sum):
     g = dwg.g(opacity=0.0, fill='red', stroke='blue')
     g['stroke-width'] = 5.0
     main_g.add(g)
 
-    add_polygons(dwg, g, ob)
+    add_polygons(dwg, g, ob, svg_y_sum)
 
 def export_svg(base_path, args):
     t = perf_clock()
     min_x, min_y, max_x, max_y = (args.min_x, args.min_y, args.max_x, args.max_y)
+    svg_y_sum = min_y + max_y
     one_cm_units = (max_y - min_y) / args.print_height_cm
 
     import svgwrite
@@ -167,23 +170,23 @@ def export_svg(base_path, args):
     main_g = dwg.add(dwg.g(clip_path='url(#main_clip)'))
 
     for ob in rails:
-        add_svg_object(dwg, main_g, ob, rgb(0, 50, 0))
+        add_svg_object(dwg, main_g, ob, rgb(0, 50, 0), svg_y_sum)
     for ob in rivers:
-        add_svg_object(dwg, main_g, ob, rgb(20, 20, 100))
+        add_svg_object(dwg, main_g, ob, rgb(20, 20, 100), svg_y_sum)
     for ob in water_areas:
-        add_svg_object(dwg, main_g, ob, rgb(20, 20, 100))
+        add_svg_object(dwg, main_g, ob, rgb(20, 20, 100), svg_y_sum)
     for ob in roads_car:
-        add_svg_object(dwg, main_g, ob, rgb(70, 0, 0))
+        add_svg_object(dwg, main_g, ob, rgb(70, 0, 0), svg_y_sum)
     for ob in roads_ped:
-        add_svg_object(dwg, main_g, ob, rgb(0, 0, 0))
+        add_svg_object(dwg, main_g, ob, rgb(0, 0, 0), svg_y_sum)
     for ob in buildings:
-        add_svg_object(dwg, main_g, ob, rgb(80, 20, 100))
+        add_svg_object(dwg, main_g, ob, rgb(80, 20, 100), svg_y_sum)
 
     # Add overlays
     for ob in objs:
         try:
             if ob.name.startswith('Road') or ob.name.startswith('Rail') or ob.name.startswith('Waterway') or ob.name.startswith('River'):
-                add_road_overlay_object(dwg, main_g, ob)
+                add_road_overlay_object(dwg, main_g, ob, svg_y_sum)
         except Exception as e:
             print("SVG export failed2 {}: {}".format(ob.name, str(e)))
 

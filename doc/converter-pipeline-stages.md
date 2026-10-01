@@ -26,6 +26,10 @@ This document describes converter data flow and stage names used by code comment
 2. OSM2World reads OSM data and outputs `map.obj` and `map-meta-raw.json`.
 3. `clip-2d` clips OBJ triangles to map bounds and writes grouped `.ply` files plus `map-clip-report.json`.
 4. Blender (`obj-to-tactile.py`) reads grouped `.ply` files and writes tactile outputs (`map.stl`, split STLs, SVG, blend, wireframes).
+   SVG export maps north-increasing world Y to downward-increasing SVG Y using
+   `minY + maxY - worldY` for features and line overlays. This keeps SVG and its
+   derived PDF north-up beneath the north-east marker, including offset and
+   rectangular bounds; STL geometry retains its world coordinates.
    A valid clip report may list zero meshes when the selected tile has no mapped features. Blender still makes the base plate (and borders unless disabled for multipart maps); metadata enrichment writes empty description sections, and the tile is uploaded normally. Missing or malformed clip reports remain conversion failures.
 5. `converter.map_desc` enriches metadata and writes `map-meta.augmented.json`, `map-meta.json`, and `map-content.json`.
 6. `converter/process-request.py` uploads artifacts to S3. Uploaded `.map-content.json` includes `metadata.requestBody` (full request params including real `requestId`).

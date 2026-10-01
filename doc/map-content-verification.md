@@ -25,6 +25,11 @@ Use this workflow when changing converter map-description logic or related UI de
 - Use `complex` mainly for performance profiling.
 
 ## Blender visual regression artifacts
+The quick suite's `SVG orientation` check exports asymmetric real Blender meshes
+with square and offset rectangular bounds. It verifies north-up feature layers,
+matching line overlays, east-west ordering, clipping bounds, physical dimensions,
+and the north-east marker used by both SVG and derived PDF maps.
+
 Run with `--with-blender` to generate geometry regression snapshots in `test/map-content/out/<category>/pipeline/`:
 - `map-wireframe-flat.png`: before geometry modifications (flat source geometry).
 - `map-wireframe.png`: after geometry modifications.
