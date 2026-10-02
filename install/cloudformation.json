@@ -109,7 +109,7 @@
         "WebsiteConfiguration": {
           "IndexDocument": "index.html"
         },
-        "AccessControl": "PublicRead",
+        "AccessControl": "Private",
         "LoggingConfiguration": {
           "DestinationBucketName": {
             "Ref": "Logs"

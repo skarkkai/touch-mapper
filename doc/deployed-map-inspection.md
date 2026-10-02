@@ -94,3 +94,30 @@ diff -u /tmp/local-map-content.json /tmp/live-map-content.json | sed -n '1,200p'
 - Keep to `curl -sSfL` command style in this environment.
 - Uploaded `.map-content.json` may include `metadata.requestBody`; remove `metadata` when comparing against local fixtures that do not include upload-time metadata.
 - If deployed JS changes URL builders, update this file (and keep AGENTS pointer intact).
+
+## Map bucket access
+
+The map bucket uses a `Private` bucket ACL. A bucket-level `PublicRead` ACL
+grants anonymous `ListBucket` access and exposes object names, including map
+IDs and stored OSM source names. The browser only needs known object URLs;
+map history is stored in the browser and does not enumerate S3.
+
+Bucket and object ACLs are independent. The converter explicitly uploads info
+JSON (including progress), map-content JSON, STL, SVG, PDF, and Blender files
+with `public-read` object ACLs. Changing the bucket ACL preserves these public
+downloads, including existing maps. Stored `.osm.gz` sources keep the default
+private object ACL and remain accessible to the converter with its AWS credentials.
+Closing enumeration does not make public metadata confidential to someone who
+already has its map URL.
+
+This change requires an AWS infrastructure update. From the repository root,
+run `make test-aws-install` to apply the test CloudFormation template. For
+production, `make prod-aws-install` updates Lambda and prints the separate
+required `install/cloudformation-update.sh prod` command; run that command to
+update the production stack. Deploying EC2 `dist/` alone does not change bucket
+permissions.
+
+After the stack update completes, confirm that an anonymous S3 `ListObjectsV2`
+request is denied and that known info, STL, SVG, and map-content URLs remain
+readable. The offline `Map bucket access` regression checks the template ACL
+and exercises the worker's actual upload calls without AWS access.
