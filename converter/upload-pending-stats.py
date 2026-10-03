@@ -7,7 +7,6 @@ import shutil
 import sys
 
 script_dir = os.path.dirname(__file__)
-sys.path.insert(1, '%s/py-lib/boto3' % (script_dir,))
 sys.path.insert(1, script_dir)
 
 import stats_pipeline

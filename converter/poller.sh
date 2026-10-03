@@ -14,6 +14,7 @@ if [[ ! "$worker_name" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 environment_dir="$(cd "$dist_dir/.." && pwd)"
+worker_python="$(bash "$dist_dir/worker-python.sh" --print)" || exit 1
 work_dir="$environment_dir/runtime/$worker_name"
 mkdir -p "$work_dir" || exit 1
 cd "$dist_dir" || exit 1
@@ -24,18 +25,11 @@ stop_requested=0
 stop_signal=
 trap 'stop_requested=1; stop_signal=TERM' TERM
 trap 'stop_requested=1; stop_signal=INT' INT
-current_log="$(python3 "$dist_dir/runner-log.py" "$environment_dir" "$worker_name")" || exit 1
+current_log="$("$worker_python" "$dist_dir/runner-log.py" "$environment_dir" "$worker_name")" || exit 1
 exec >>"$current_log" 2>&1
-export TM_POLLER_RUN_ID="$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+export TM_POLLER_RUN_ID="$("$worker_python" -c 'import uuid; print(uuid.uuid4().hex)')"
 revision="$(awk 'NR==1 {print $4}' VERSION.txt 2>/dev/null)"
 echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_start environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID revision=${revision:-unknown}"
-# Boto3's Python 3.5 warning otherwise repeats on every short-lived poll process.
-legacy_sdk_warning=0
-if [[ "$(python3 -c 'import sys; print(sys.version_info[:2] == (3, 5))')" == True ]]; then
-    legacy_sdk_warning=1
-    export PYTHONWARNINGS="${PYTHONWARNINGS:+$PYTHONWARNINGS,}ignore:Boto3 will no longer support Python 3.5"
-    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING boto3_python35_unsupported runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID"
-fi
 if [[ "$environment" == test || "$environment" == prod ]]; then
     dashboard_config="$environment_dir/dashboard.env"
     if [[ ! -f "$dashboard_config" ]]; then
@@ -46,7 +40,7 @@ fi
 while true; do
     if [[ $stop_requested -eq 1 ]]; then break; fi
     cd "$dist_dir" || exit 1
-    next_log="$(python3 "$dist_dir/runner-log.py" "$environment_dir" "$worker_name")"
+    next_log="$("$worker_python" "$dist_dir/runner-log.py" "$environment_dir" "$worker_name")"
     log_status=$?
     if [[ $log_status -ne 0 || -z "$next_log" ]]; then
         echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING runner log rotation failed; retaining $current_log" >&2
@@ -55,17 +49,14 @@ while true; do
             exec >>"$next_log" 2>&1
             current_log="$next_log"
             echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO runner_log_rotated environment=$environment runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID revision=${revision:-unknown} path=$current_log"
-            if [[ $legacy_sdk_warning -eq 1 ]]; then
-                echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING boto3_python35_unsupported runner=$worker_name poller_run_id=$TM_POLLER_RUN_ID"
-            fi
         else
             echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) WARNING runner log rotation open failed; retaining $current_log" >&2
         fi
     fi
-    attempt_id="$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+    attempt_id="$("$worker_python" -c 'import uuid; print(uuid.uuid4().hex)')"
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO attempt_start runner=$worker_name attempt_id=$attempt_id"
     PYTHONUNBUFFERED=true TM_ENVIRONMENT="$environment" TM_WORKER_NAME="$worker_name" TM_ATTEMPT_ID="$attempt_id" \
-        timeout --kill-after=1s 10m ./process-request.py --poll-time 300 --work-dir "$work_dir"
+        timeout --kill-after=1s 10m "$worker_python" ./process-request.py --poll-time 300 --work-dir "$work_dir"
     exit_code=$?
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) INFO attempt_exit runner=$worker_name attempt_id=$attempt_id exit_code=$exit_code"
     if [[ $exit_code -eq 124 || $exit_code -eq 137 || $exit_code -eq 143 ]]; then

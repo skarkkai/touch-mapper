@@ -161,46 +161,15 @@ run a new Athena query.
 
 Package both `converter/dashboard.py` and `converter/dashboard_html.py` alongside
 the worker. The publisher imports `boto3` only when running a publication.
-The worker's bundled SDK must support Athena and `botocore.config.Config`;
-the old `boto3==1.2.2` bundle does not. The deployed worker runs with
-`/usr/bin/python3` and must remain compatible with Python 3.5. The SDK and all
-its dependencies are pinned in `converter/aws-requirements.txt` for that runtime
-(`boto3==1.16.63`, `botocore==1.19.63`). Modern boto3 releases such as 1.34.162
-cannot be imported by that interpreter: f-strings cause `SyntaxError` before the
-worker starts. Packaging on Python 3.10+ must still use the complete pinned
-requirements, rather than letting the packaging interpreter select dependencies.
-
-Before packaging, update the bundle from the repository root:
-
-```bash
-python3 -m pip install --upgrade --target=converter/py-lib/boto3 -r converter/aws-requirements.txt
-```
-
-`init.sh` uses the same requirements. Packaging includes the updated `py-lib`
-directory and `aws-requirements.txt`. For an existing EC2 deployment, stop its
-pollers before updating its bundle, then run this from that environment's `dist/`
-directory and restart its pollers:
-
-```bash
-python3 -m pip install --upgrade --target=py-lib/boto3 -r aws-requirements.txt
-```
-
-Installing boto3 into a separate virtual environment does not update the bundle
-used by `process-request.py`.
-
-If a newer incompatible bundle has already been deployed, stop the pollers and
-copy the corrected `aws-requirements.txt` into each affected deployment's `dist/`.
-Run the installation command above there. The `--upgrade` option replaces the
-existing target packages with the pinned versions even when those versions are
-older. Verify each deployment with its actual worker interpreter before restarting:
-
-```bash
-/usr/bin/python3 --version
-PYTHONPATH=py-lib/boto3 /usr/bin/python3 -c 'import boto3; from botocore.config import Config; print(boto3.__version__)'
-```
-
-The version printed should be `1.16.63`. Update the local packaging bundle as well,
-so the next deployment does not restore the incompatible SDK.
+The publisher uses the worker's host-local Python 3.12+ venv and the pinned
+AWS SDK in `converter/aws-requirements.txt` (Boto3/Botocore 1.43.107).
+Packaging includes the requirements and runtime setup/check helpers, not a venv
+or the historical `py-lib/boto3` bundle. Prepare each environment on EC2 with
+`bash dist/setup-worker-python.sh` and verify `bash dist/worker-python.sh --check`
+before restarting it. See [development-setup.md](development-setup.md) for host
+prerequisites, test-first migration, and later upgrades with workers stopped.
+For manual telemetry uploads, use
+`bash dist/worker-python.sh dist/upload-pending-stats.py ...` too.
 
 The shared instance role needs access for both environments: Athena
 `StartQueryExecution`, `GetQueryExecution`, `GetQueryResults`, and
@@ -444,12 +413,10 @@ working directory and disabling only the environment whose config is absent.
 Maintenance and poller regressions cover first-map publication before the daily
 cutoff, same-day restarts, independent workers, retry behavior, and preservation
 of the daily run after an early publication.
-When the bundled SDK is installed, the dashboard regression also checks its real
-Athena and S3 request models with stubbed responses and explicit fake credentials;
-it makes no AWS calls. The `AWS runtime Python 3.5` regression repeats this under
-Blender's Python 3.5, imports the real `process-request.py` entrypoint, and checks
-the worker's S3/SQS resource interfaces to catch incompatible SDK dependencies
-before deployment.
+The `AWS worker runtime` regression uses the actual Python 3.12+ worker venv,
+imports the real `process-request.py` entrypoint and checks S3/SQS resources and
+Athena/S3 publication with stubbed responses and explicit fake credentials.
+It makes no AWS calls and runs separately from Blender's Python 3.5 checks.
 Render the fixture to a project `.tmp/`
 file and copy it into the ignored local `web/build/` preview for visual QA. Check
 both desktop and narrow viewport layouts, metric selectors, table overflow,

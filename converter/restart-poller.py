@@ -151,6 +151,10 @@ def restart(environment_dir, desired_count, wait_seconds=DEFAULT_WAIT_SECONDS):
         raise ValueError('expected a test/prod environment and one to three runners')
     if not os.path.isdir(os.path.join(environment_dir, 'dist')):
         raise RuntimeError('Missing deployed dist directory in {}'.format(environment_dir))
+    runtime_helper = os.path.join(environment_dir, 'dist', 'worker-python.sh')
+    if os.path.isfile(runtime_helper):
+        # Validate before stopping any working pollers during the migration.
+        subprocess.check_call(['bash', runtime_helper, '--check'])
     restart_lock = os.path.join(environment_dir, '.restart.lock')
     fd = os.open(restart_lock, os.O_RDWR | os.O_CREAT, 0o600)
     with os.fdopen(fd, 'r+') as lock:

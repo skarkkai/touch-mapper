@@ -15,6 +15,8 @@ def check_startup(root, environment, configured, locked=False):
     deployment = root / environment
     dist = deployment / 'dist'
     dist.mkdir(parents=True)
+    # Poller orchestration fixture; real runtime validation has its own regression.
+    (dist / 'worker-python.sh').write_text('printf "%s\\n" "' + sys.executable + '"\n')
     (deployment / 'runtime').mkdir()
     for name in ('poller.sh', 'runner-log.py'):
         shutil.copyfile(REPO / 'converter' / name, dist / name)
@@ -23,10 +25,6 @@ def check_startup(root, environment, configured, locked=False):
         config.write_text('[dashboard]\n')
     shell_stubs = root / 'shell-stubs'
     shell_stubs.write_text('''
-python3() {
-    if [[ "$1" == -c && "$2" == 'import sys; print(sys.version_info[:2] == (3, 5))' ]]; then echo True; return; fi
-    command python3 "$@"
-}
 flock() { return "$POLLER_TEST_LOCK_STATUS"; }
 timeout() {
     POLLER_TEST_REQUESTS=$(( ${POLLER_TEST_REQUESTS:-0} + 1 ))
@@ -56,9 +54,9 @@ timeout() {
     expected = int(not configured and environment in ('test', 'prod'))
     assert log.count(warning) == expected, log
     assert log.count('fixture stdout') == 3 and log.count('fixture stderr') == 3, log
-    assert log.count('boto3_python35_unsupported') == 1, log
+    assert 'boto3_python35_unsupported' not in log, log
     assert log.count('fixture warning filter') == 3, log
-    assert log.count('ignore:Boto3 will no longer support Python 3.5') == 3, log
+    assert 'ignore:Boto3 will no longer support Python 3.5' not in log, log
     assert 'attempt_failed' in log and 'exit_code=7' in log, log
     assert not (deployment / 'runtime' / '1' / 'request.log').exists()
     identities = (root / 'identities').read_text().splitlines()
@@ -77,6 +75,8 @@ def check_initial_log_failure(root):
     deployment = root / 'test'
     dist = deployment / 'dist'
     dist.mkdir(parents=True)
+    # Poller orchestration fixture; real runtime validation has its own regression.
+    (dist / 'worker-python.sh').write_text('printf "%s\\n" "' + sys.executable + '"\n')
     shutil.copyfile(REPO / 'converter/poller.sh', dist / 'poller.sh')
     shutil.copyfile(REPO / 'converter/runner-log.py', dist / 'runner-log.py')
     (deployment / 'logs').write_text('blocks log directory')
@@ -94,6 +94,8 @@ def check_midnight_rotation(root):
     deployment = root / 'prod'
     dist = deployment / 'dist'
     dist.mkdir(parents=True)
+    # Poller orchestration fixture; real runtime validation has its own regression.
+    (dist / 'worker-python.sh').write_text('printf "%s\\n" "' + sys.executable + '"\n')
     shutil.copyfile(REPO / 'converter/poller.sh', dist / 'poller.sh')
     helper = dist / 'runner-log.py'
     helper.write_text('''import datetime, os, runpy, sys
@@ -131,6 +133,8 @@ def check_graceful_stop(root):
     deployment = root / 'test'
     dist = deployment / 'dist'
     dist.mkdir(parents=True)
+    # Poller orchestration fixture; real runtime validation has its own regression.
+    (dist / 'worker-python.sh').write_text('printf "%s\\n" "' + sys.executable + '"\n')
     shutil.copyfile(REPO / 'converter/poller.sh', dist / 'poller.sh')
     shutil.copyfile(REPO / 'converter/runner-log.py', dist / 'runner-log.py')
     stubs = root / 'stubs'

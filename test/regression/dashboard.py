@@ -18,7 +18,6 @@ sys.path.insert(0, str(REPO / 'converter'))
 sys.path.insert(0, str(REPO))
 from converter import dashboard as publisher
 from converter.dashboard_html import render_report
-from aws_runtime import check_bundled_sdk
 
 NOW = datetime.datetime(2026, 3, 1, 0, 15)
 COLUMNS = ('kind', 'period', 'label', 'attempts', 'successes', 'errors', 'unique_users', 'p50', 'p95', 'maximum')
@@ -209,7 +208,6 @@ def main():
 
     base = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / '.tmp'
     base.mkdir(parents=True, exist_ok=True)
-    check_bundled_sdk(base)
     with tempfile.TemporaryDirectory(prefix='dashboard-', dir=str(base)) as directory:
         check_deployment_configs(Path(directory) / 'deployments', rows)
         events[:] = []

@@ -4,6 +4,8 @@
 __pycache__
 /blender*
 /runtime
+/worker-venv/
+/worker-python/
 /ol
 .tmp/
 tmp/

@@ -78,6 +78,15 @@ def main():
                 wait_for_event(events, 'start {} {} {}'.format(environment, worker, process.pid))
             command = [sys.executable, str(REPO / 'converter/restart-poller.py'),
                        str(test_dir), '1', '--wait-seconds', '3']
+            # A broken new runtime must not interrupt the existing workers.
+            helper = test_dir / 'dist/worker-python.sh'
+            helper.write_text('echo "fixture invalid worker runtime" >&2; exit 1\n')
+            rejected = subprocess.run(command, env=env, stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT, universal_newlines=True, timeout=6)
+            assert rejected.returncode != 0 and 'invalid worker runtime' in rejected.stdout
+            assert all(process.poll() is None for process in old)
+            assert 'stop ' not in events.read_text()
+            helper.unlink()
             result = subprocess.run(command, env=env, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT, universal_newlines=True, timeout=6)
             assert result.returncode == 0, result.stdout

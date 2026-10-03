@@ -14,12 +14,67 @@ The quick regression suite also needs Ant and a JDK that accepts Java 7
 source/target because it builds and exercises OSM2World (JDK 17 works; JDK 21
 does not).
 
-The EC2 worker also has a Python 3.5 compatibility baseline and starts through
-`/usr/bin/python3`. The development interpreter's version does not establish
-what syntax or dependencies work on EC2. Install the full pinned
-`converter/aws-requirements.txt` when preparing the converter's bundled AWS SDK;
-the quick suite checks worker imports and dashboard AWS calls on Python 3.5
-using the installed Blender runtime when the SDK bundle is present.
+The converter worker uses **Python 3.12+** in a host-local `worker-venv`.
+Blender continues to use its bundled Python 3.5, including SVGWrite. The worker
+launches `osm-to-tactile.py` and PDF conversion with its own interpreter, and
+`osm-to-tactile.py` launches the unchanged Blender binary explicitly.
+
+Install Python 3.12 with `venv` support and the native Cairo library first
+(on Ubuntu 24.04: `sudo apt install python3.12 python3.12-venv libcairo2`).
+An older EC2 OS may need an OS upgrade or a separately installed supported
+CPython; installing boto3 cannot upgrade Python or the host C library. Do not
+replace `/usr/bin/python3`, which system tools and the restart bootstrap use.
+For macOS, a Homebrew Python 3.12+ and `brew install cairo` are suitable.
+
+Prepare the local worker from the repository root:
+
+```bash
+bash converter/setup-worker-python.sh
+bash converter/worker-python.sh --check
+bash converter/worker-python.sh converter/process-request.py --help
+```
+
+Set `TM_WORKER_BASE_PYTHON=/absolute/path/to/python3.12` when creating the venv
+with a separately installed CPython. `TM_WORKER_PYTHON` can select an existing
+fully provisioned worker interpreter for manual runs. The default is
+`worker-venv/bin/python` beside `converter/` locally or beside `dist/` on EC2.
+Missing, old, or incorrectly provisioned environments fail startup before SQS
+polling. `--check` validates pinned versions and creates a tiny PDF offline.
+AWS dependencies are pinned in `converter/aws-requirements.txt`; PDF dependencies
+are pinned in `converter/worker-requirements.txt`. The old `py-lib/boto3` bundle
+is neither imported nor packaged. The quick suite requires the worker environment
+and verifies real worker imports and stubbed S3/SQS/Athena calls with fake credentials.
+
+### Migrating an existing EC2 worker
+
+Keep `worker-venv` outside `dist/`; create it **on EC2**, never copy a development
+venv there. Install a supported host Python and Cairo before replacing `dist/`.
+Drain and stop the existing **test** pollers before `make test-install-ec2`:
+send SIGTERM to their poller PIDs, let the current request finish (or create
+maps to drain their outstanding polls), and verify their worker locks are free.
+An artifact replacement changes files used by existing processes, so do not
+leave legacy pollers running against the new distribution. Install the new test
+distribution with `make test-install-ec2`, then run as `ubuntu` on EC2:
+
+```bash
+cd /home/ubuntu/touch-mapper/test
+bash dist/setup-worker-python.sh
+bash dist/worker-python.sh --check
+```
+
+Then run `make test-restart` locally and create a test map. Inspect its
+STL, SVG, PDF, description and runner log before production. For production,
+drain and stop only the production pollers, use `make prod-install-ec2`, prepare `/home/ubuntu/touch-mapper/prod/worker-venv`
+with the same two commands, then `make prod-restart`. The restart helper
+validates the new environment before signaling existing pollers. These targets
+only install converter artifacts; no CloudFormation/Lambda change is involved.
+
+The first migration creates a fresh venv during a controlled interruption of that environment.
+For later dependency updates, drain and stop that environment's workers before
+changing its existing venv; do not update packages under running workers. Keep
+the previous distribution and its runtime together for rollback. The default
+setup interpreter is `python3.12`; specify `TM_WORKER_BASE_PYTHON` on EC2 too
+if it is installed elsewhere. Preserve both venvs across artifact deployments.
 
 ### Linux
 
@@ -100,7 +155,8 @@ Failures print the failing check's output and retain all check logs under
 use `make test-regression-verbose`.
 
 Expected versions are Blender 2.78 (2.78c archive) and Python 3.5.2. The quick
-suite builds the OSM2World jar itself and needs neither CairoSVG, AWS, nor Playwright.
+suite builds the OSM2World jar itself and needs the worker environment above,
+but requires neither AWS access nor Playwright.
 `bin/tmpctl` is tracked as executable, but copied checkouts have repeatedly lost
 that bit. Automated callers therefore invoke it through Python: `sys.executable`
 in Python and `python3` in shell/Node. Restoring the bit alone is not a durable
@@ -204,6 +260,7 @@ The directory layout is:
 │   │   ├── process-request.py
 │   │   ├── VERSION.txt
 │   │   └── ...                    # Other scripts, libraries and bundled tools
+│   ├── worker-venv/                # Host-local Python 3.12+ and pinned dependencies
 │   ├── dashboard.env              # Environment-specific host configuration
 │   ├── runtime/                   # Created for runtime use
 │   │   └── <worker-id>/            # One numerically named directory per poller
@@ -235,7 +292,8 @@ runtime directories does not establish how many pollers are currently running.
 
 **`dist/` is the installed artifact.** `runtime/`, `logs/`, and `stats/` are created during
 service startup and operation and live outside that artifact. Replacing `dist/`
-must preserve the environment's runtime data, runner logs, telemetry, and `dashboard.env`.
+must preserve the environment's `worker-venv`, runtime data, runner logs, telemetry,
+and `dashboard.env`.
 Pollers in the same environment share its `stats/` directory; test and production
 have separate runtime and telemetry directories even though they share the host.
 
@@ -253,8 +311,7 @@ between request-process iterations, and keeps today plus the preceding 29 UTC
 dates. A request that spans midnight finishes in its starting file. A new day
 begins with `runner_log_rotated` from the existing poller; it is not a new
 runner. `runner_stop` includes its signal when a controlled restart requests
-shutdown. The legacy Python 3.5/Boto3 warning appears once per runner start
-and after midnight rotation instead of once per polling process. On startup
+shutdown. Worker runtime validation reports the Python and SDK versions at startup. On startup
 and once per UTC day, one worker removes expired dated logs across all runners,
 including retired ones. The next startup resumes cleanup if an environment was
 stopped. Only recognized dated log files are reaped; other files are left alone.

@@ -17,7 +17,8 @@ fi
 ln -s ../OSM2World ../blender converter || true
 
 # Install Python modules for AWS
-python3 -m pip install --upgrade --target=converter/py-lib/boto3 -r converter/aws-requirements.txt
+sudo apt install libcairo2 # native library used by the worker's CairoSVG
+bash converter/setup-worker-python.sh
 
 # Install Python modules for Blender scripts
 curl -o /tmp/get-pip.py https://bootstrap.pypa.io/pip/3.5/get-pip.py
@@ -26,7 +27,6 @@ blender/$BLENDER_VERSION/python/bin/pip install --target=blender/$BLENDER_VERSIO
 
 sudo pip install xlwt xlrd # for translation file conversions
 sudo pip install awscli
-sudo apt install python3-cairosvg # for SVG to PDF conversion
 
 # Install "jq" and "rename" for install/web-s3.sh
 sudo apt install jq rename

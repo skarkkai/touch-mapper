@@ -2,7 +2,6 @@
 
 import sys,os
 script_dir = os.path.dirname(__file__)
-sys.path.insert(1, "%s/py-lib/boto3" % (script_dir,))
 sys.path.insert(1, script_dir)
 
 import re
@@ -854,7 +853,7 @@ def run_osm_to_tactile(osm_path, request_body):
             marker1y = (request_body['marker1']['lat'] - eff_area['latMin']) / (eff_area['latMax'] - eff_area['latMin'])
             if 0.04 < marker1x < 0.96 and 0.04 < marker1y < 0.96:
                 args.extend([ '--marker1', json.dumps({ 'x': marker1x, 'y': marker1y }) ])
-        cmd = ['./osm-to-tactile.py'] + args + [osm_path]
+        cmd = [sys.executable, os.path.join(script_dir, 'osm-to-tactile.py')] + args + [osm_path]
         print("running: " + " ".join(cmd))
         subprocess.check_call(cmd)
         artifact_paths = {

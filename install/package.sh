@@ -19,9 +19,8 @@ cp -alH ../blender dist/
 mkdir dist/OSM2World
 cp -alH ../OSM2World/build dist/OSM2World/
 cp -plH ../converter/*{py,sh,js} dist/
-cp -p ../converter/aws-requirements.txt dist/
+cp -p ../converter/*requirements.txt dist/
 cp -aH ../converter/map_desc dist/
-cp -aH ../converter/py-lib dist/
 cp -aH ../install/{ec2-restart-pollers.sh,ec2-init.sh} dist/
 echo "$( date +'%Y-%m-%dT%H:%M:%S') $( git rev-parse --abbrev-ref HEAD ) $( git describe --tags ) $( git rev-parse --verify HEAD )" >dist/VERSION.txt
 #GZIP=-4 tar czf dist.tgz dist

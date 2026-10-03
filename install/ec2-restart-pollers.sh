@@ -3,8 +3,12 @@
 set -e
 umask 077
 export LC_ALL=en_US.UTF-8
-sudo killall -9 poller.sh process-request.py || true
 base_dir="$(cd "$(dirname "$0")/../.." && pwd)"
+for execmode in test prod; do
+    runtime_helper="$base_dir/$execmode/dist/worker-python.sh"
+    if [[ -f "$runtime_helper" ]]; then bash "$runtime_helper" --check; fi
+done
+sudo killall -9 poller.sh process-request.py || true
 for execmode in test prod; do
     if [[ "$execmode" == test ]]; then worker_count=1; else worker_count=3; fi
     for worker in $(seq 1 "$worker_count"); do
